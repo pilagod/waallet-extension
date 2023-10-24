@@ -1,7 +1,7 @@
 {
   "name": "waallet-extension",
-  "displayName": "Waallet",
-  "version": "0.0.1",
+  "displayName": "Waallet Extension",
+  "version": "0.0.0",
   "description": "Browser extension for account abstraction",
   "scripts": {
     "dev": "plasmo dev",
