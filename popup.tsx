@@ -17,7 +17,7 @@ function IndexPopup() {
       </h2>
       <input onChange={(e) => setData(e.target.value)} value={data} />
       <a href="https://docs.plasmo.com" target="_blank">
-        View Docs
+        View Docs {process.env.PLASMO_PUBLIC_SITE_URL}
       </a>
     </div>
   )
