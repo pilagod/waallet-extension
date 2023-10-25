@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import "./style.css"
+import "../style.css"
 
 function OptionsIndex() {
   const [data, setData] = useState("")
