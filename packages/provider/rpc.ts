@@ -7,14 +7,16 @@ export type RequestArguments = {
 
 export default {
   method: {
-    ethAccounts: "eth_accounts",
-    ethChainId: "eth_chainId"
+    eth: {
+      accounts: "eth_accounts",
+      blockNumber: "eth_blockNumber",
+      chainId: "eth_chainId"
+    }
   },
-
   async request(rpcUrl: string, args: RequestArguments): Promise<any> {
     const { data } = await axios.post(rpcUrl, {
       jsonrpc: "2.0",
-      id: 1,
+      id: 0,
       ...args
     })
     return data.result
