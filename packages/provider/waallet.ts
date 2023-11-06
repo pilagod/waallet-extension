@@ -10,7 +10,7 @@ export class WaalletProvider {
     console.log(args)
     switch (args.method) {
       case rpc.method.eth.accounts:
-        return Promise.resolve(["0x407d73d8a49eeb85d32cf465507dd71d507100c1"])
+        return Promise.resolve(["0xeaf6c1a01df4ffdc0e909233e5d95dd2cb657dc1"])
       case rpc.method.eth.chainId:
         return rpc.request(this.bundlerRpcUrl, args)
       default:
