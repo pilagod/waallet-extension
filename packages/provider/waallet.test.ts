@@ -1,4 +1,4 @@
-import rpcMethod from "./rpcMethod"
+import rpc from "./rpc"
 import { WaalletProvider } from "./waallet"
 
 describe("Waallet Provider", () => {
@@ -10,7 +10,7 @@ describe("Waallet Provider", () => {
 
   it("should get chain id from bundler", async () => {
     const chainId = await waalletProvider.request({
-      method: rpcMethod.ethChainId
+      method: rpc.method.ethChainId
     })
     expect(parseInt(chainId, 16)).toBe(31337)
   })
