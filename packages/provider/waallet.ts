@@ -1,4 +1,4 @@
-import rpc, { type RequestArguments } from "./rpc"
+import { Method, request, type RequestArguments } from "./rpc"
 
 export class WaalletProvider {
   public constructor(
@@ -9,12 +9,14 @@ export class WaalletProvider {
   public async request(args: RequestArguments): Promise<any> {
     console.log(args)
     switch (args.method) {
-      case rpc.method.eth.accounts:
+      case Method.eth_accounts:
         return Promise.resolve(["0xeaf6c1a01df4ffdc0e909233e5d95dd2cb657dc1"])
-      case rpc.method.eth.chainId:
-        return rpc.request(this.bundlerRpcUrl, args)
+      case Method.eth_chainId:
+        return request(this.bundlerRpcUrl, args)
+      case Method.eth_estimateGas:
+        break
       default:
-        return rpc.request(this.nodeRpcUrl, args)
+        return request(this.nodeRpcUrl, args)
     }
   }
 }

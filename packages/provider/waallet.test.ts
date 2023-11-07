@@ -1,4 +1,4 @@
-import rpc from "./rpc"
+import { Method } from "./rpc"
 import { WaalletProvider } from "./waallet"
 
 describe("Waallet Provider", () => {
@@ -12,14 +12,14 @@ describe("Waallet Provider", () => {
 
   it("should get chain id", async () => {
     const chainId = await waalletProvider.request({
-      method: rpc.method.eth.chainId
+      method: Method.eth_chainId
     })
     expect(parseInt(chainId, 16)).toBe(31337)
   })
 
   it("should get block number", async () => {
     const blockNumber = await waalletProvider.request({
-      method: rpc.method.eth.blockNumber
+      method: Method.eth_blockNumber
     })
     expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
   })
