@@ -10,7 +10,8 @@ export default {
     eth: {
       accounts: "eth_accounts",
       blockNumber: "eth_blockNumber",
-      chainId: "eth_chainId"
+      chainId: "eth_chainId",
+      waalletConnect: "eth_waalletConnect"
     }
   },
   async request(rpcUrl: string, args: RequestArguments): Promise<any> {

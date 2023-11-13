@@ -13,6 +13,10 @@ export class WaalletProvider {
         return Promise.resolve(["0xeaf6c1a01df4ffdc0e909233e5d95dd2cb657dc1"])
       case rpc.method.eth.chainId:
         return rpc.request(this.bundlerRpcUrl, args)
+      case rpc.method.eth.waalletConnect: {
+        window.postMessage(args, window.location.origin)
+        return
+      }
       default:
         return rpc.request(this.nodeRpcUrl, args)
     }
