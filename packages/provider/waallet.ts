@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import bigintUtil from "~packages/utils/bigint"
-import type { HexString } from "~typing"
+import type { HexString } from "~typings"
 
 import accountAbi from "./abi/account"
 import entryPointAbi from "./abi/entryPoint"

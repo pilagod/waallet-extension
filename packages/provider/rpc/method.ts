@@ -1,6 +1,6 @@
 import { type BigNumberish } from "ethers"
 
-import type { HexString } from "~typing"
+import type { HexString } from "~typings"
 
 export enum Method {
   eth_accounts = "eth_accounts",
