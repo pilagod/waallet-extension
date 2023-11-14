@@ -14,7 +14,7 @@ describe("Waallet Provider", () => {
     const chainId = await waalletProvider.request({
       method: Method.eth_chainId
     })
-    expect(parseInt(chainId, 16)).toBe(31337)
+    expect(parseInt(chainId, 16)).toBe(1337)
   })
 
   it("should get block number", async () => {
@@ -22,5 +22,21 @@ describe("Waallet Provider", () => {
       method: Method.eth_blockNumber
     })
     expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
+  })
+
+  it("should estimate gas", async () => {
+    const gas = await waalletProvider.request({
+      method: Method.eth_estimateGas,
+      params: [
+        {
+          from: waalletProvider.account,
+          to: waalletProvider.account,
+          value: 1,
+          gas: 50000,
+          gasPrice: 1
+        }
+      ]
+    })
+    expect(parseInt(gas, 16)).toBeGreaterThan(0)
   })
 })

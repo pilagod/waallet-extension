@@ -1,28 +1,59 @@
-import type { BigNumberish, BytesLike } from "ethers"
+import { type BigNumberish } from "ethers"
+
+import type { HexString } from "~typing"
 
 export enum Method {
   eth_accounts = "eth_accounts",
   eth_blockNumber = "eth_blockNumber",
   eth_chainId = "eth_chainId",
-  eth_estimateGas = "eth_estimateGas"
+  eth_estimateGas = "eth_estimateGas",
+
+  // Bundler
+  eth_estimateUserOperationGas = "eth_estimateUserOperationGas",
+  eth_supportedEntryPoints = "eth_supportedEntryPoints"
 }
 
 export type RequestArguments =
   | EthEstimateGasArguments
+  | EthEstimateUserOperationGasArguments
   | {
-      method: Method.eth_accounts | Method.eth_blockNumber | Method.eth_chainId
+      method:
+        | Method.eth_accounts
+        | Method.eth_blockNumber
+        | Method.eth_chainId
+        | Method.eth_supportedEntryPoints
     }
 
-type EthEstimateGasArguments = {
+export type EthEstimateGasArguments = {
   method: Method.eth_estimateGas
   params: [
     {
-      from?: BytesLike
-      to: BytesLike
+      from?: HexString
+      to: HexString
       gas?: BigNumberish
       gasPrice?: BigNumberish
       value?: BigNumberish
-      input?: BytesLike
+      input?: HexString
     }
+  ]
+}
+
+export type EthEstimateUserOperationGasArguments = {
+  method: Method.eth_estimateUserOperationGas
+  params: [
+    {
+      sender: HexString
+      nonce: BigNumberish
+      initCode: HexString
+      callData: HexString
+      callGasLimit?: BigNumberish
+      verificationGasLimit?: BigNumberish
+      preVerificationGas?: BigNumberish
+      maxFeePerGas?: BigNumberish
+      maxPriorityFeePerGas?: BigNumberish
+      paymasterAndData?: HexString
+      signature?: HexString
+    },
+    HexString
   ]
 }
