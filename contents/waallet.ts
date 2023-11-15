@@ -59,4 +59,4 @@ const callback = async (
 
 // Listen from postMessage()
 window.addEventListener("message", callback)
-;(window as any).waallet = new WaalletProvider()
+;(window as any).waallet = new WaalletProvider("", "")
