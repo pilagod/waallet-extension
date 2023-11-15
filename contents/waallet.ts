@@ -21,7 +21,7 @@ console.log(
  * Usage in the DApp:
  *
  * await (window as any).waallet.request({
- *  method: "eth_waalletConnect",
+ *  method: "eth_someOpenWindowMethod",
  *  params: { post: "post:window" },
  *   });
  */
@@ -31,7 +31,7 @@ const callback = async (
     params: { post: string }
   }>
 ) => {
-  if (messageEvent.data.method !== "eth_waalletConnect") {
+  if (messageEvent.data.method !== "eth_someOpenWindowMethod") {
     return
   }
   if (messageEvent.data.params.post === "post:window") {
