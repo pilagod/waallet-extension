@@ -25,15 +25,15 @@ export class WaalletProvider {
   }
 
   // TODO: Refine response type
-  public async request(args: RequestArguments): Promise<any> {
+  public async request<T>(args: RequestArguments): Promise<T> {
     console.log(args)
     switch (args.method) {
       case Method.eth_accounts:
-        return Promise.resolve([this.account])
+        return Promise.resolve([this.account]) as T
       case Method.eth_chainId:
         return request(this.bundlerRpcUrl, args)
       case Method.eth_estimateGas:
-        return this.handleEstimateUserOperationGas(args)
+        return this.handleEstimateUserOperationGas(args) as T
       default:
         return request(this.nodeRpcUrl, args)
     }
