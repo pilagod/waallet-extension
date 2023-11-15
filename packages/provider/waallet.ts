@@ -1,6 +1,6 @@
 import * as ethers from "ethers"
 
-import bigintUtil from "~packages/utils/bigint"
+import number from "~packages/utils/number"
 import type { HexString } from "~typings"
 
 import accountAbi from "./abi/account"
@@ -52,14 +52,14 @@ export class WaalletProvider {
     const [tx] = args.params
     const userOp = {
       sender: this.account,
-      nonce: bigintUtil.toHex(
+      nonce: number.toHex(
         (await entryPoint.getNonce(this.account, 0)) as bigint
       ),
       // TODO: Handle init code when account is not deployed
       initCode: "0x",
       callData: new ethers.Interface(accountAbi).encodeFunctionData("execute", [
         tx.to,
-        tx.value ? bigintUtil.toHex(ethers.toBigInt(tx.value)) : 0,
+        tx.value ? number.toHex(tx.value) : 0,
         tx.input ?? "0x"
       ]),
       paymasterAndData: "0x",
@@ -67,11 +67,11 @@ export class WaalletProvider {
       signature:
         "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c",
       ...(tx.gas && {
-        callGasLimit: bigintUtil.toHex(ethers.toBigInt(tx.gas))
+        callGasLimit: number.toHex(tx.gas)
       }),
       ...(tx.gasPrice && {
-        maxFeePerGas: bigintUtil.toHex(ethers.toBigInt(tx.gasPrice)),
-        maxPriorityFeePerGas: bigintUtil.toHex(ethers.toBigInt(tx.gasPrice))
+        maxFeePerGas: number.toHex(tx.gasPrice),
+        maxPriorityFeePerGas: number.toHex(tx.gasPrice)
       })
     }
     const e = await request<{
