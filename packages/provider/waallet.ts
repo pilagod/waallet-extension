@@ -82,13 +82,10 @@ export class WaalletProvider {
       method: Method.eth_estimateUserOperationGas,
       params: [userOp, entryPointAddress]
     })
-    return (
-      "0x" +
-      (
-        ethers.toBigInt(e.verificationGasLimit) +
+    return number.toHex(
+      ethers.toBigInt(e.verificationGasLimit) +
         ethers.toBigInt(e.callGasLimit) +
         ethers.toBigInt(e.preVerificationGas)
-      ).toString(16)
     )
   }
 }
