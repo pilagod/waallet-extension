@@ -9,7 +9,7 @@ export const config: PlasmoCSConfig = {
 
 relay(
   {
-    name: "window" as const
+    name: "mCreateWindow" as const // Defined by the background/messages/mCreateWindow.ts filename
   },
   async (req) => {
     console.log(`[contents][relay] Request: ${JSON.stringify(req, null, 2)}`)

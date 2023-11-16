@@ -91,4 +91,15 @@ export class WaalletProvider {
       ).toString(16)
     )
   }
+
+  private createWindow = async (args: {
+    sourceMethod: string
+    post: string
+    params: any
+  }): Promise<any> => {
+    console.log(
+      `[provider][createWindow] args: ${JSON.stringify(args, null, 2)}`
+    )
+    window.postMessage(args, window.location.origin)
+  }
 }

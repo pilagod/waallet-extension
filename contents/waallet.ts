@@ -19,44 +19,59 @@ console.log(
 
 /**
  * Usage in the DApp:
+ *   (1) Execute Provider's createWindow():
  *
- * await (window as any).waallet.request({
- *  method: "eth_someOpenWindowMethod",
- *  params: { post: "post:window" },
- *   });
+ *     await (window as any).waallet.createWindow({
+ *       sourceMethod: "eth_someCreationWindowMethod",
+ *       post: "createWindow",
+ *       params: { hello: "world" },
+ *     });
+ *
+ *   (2) Bypass the Provider and directly window.postMessage() to Contents:
+ *
+ *     window.postMessage(
+ *       {
+ *         sourceMethod: "eth_someCreationWindowMethod",
+ *         post: "createWindow",
+ *         params: { hello: "world" },
+ *       },
+ *       window.location.origin
+ *     );
  */
 const callback = async (
   messageEvent: MessageEvent<{
-    method: string
-    params: { post: string }
+    sourceMethod: string
+    post: string
+    params: any
   }>
 ) => {
-  if (messageEvent.data.method !== "eth_someOpenWindowMethod") {
+  if (messageEvent.data.sourceMethod !== "eth_someCreationWindowMethod") {
     return
   }
-  if (messageEvent.data.params.post === "post:window") {
-    console.log(
-      `[contents][listener][post:window] Message: ${JSON.stringify(
-        messageEvent,
-        null,
-        2
-      )}`
-    )
-
-    const res = await sendToBackgroundViaRelay({
-      name: "window" as keyof MessagesMetadata,
-      body: { in: `Please open the connecting window.` }
-    })
-    console.log(
-      `[contents][sendToBackgroundViaRelay] Response: ${JSON.stringify(
-        res,
-        null,
-        2
-      )}`
-    )
+  if (messageEvent.data.post !== "createWindow") {
+    return
   }
+  console.log(
+    `[contents][listener][createWindow] Message: ${JSON.stringify(
+      messageEvent.data,
+      null,
+      2
+    )}`
+  )
+
+  const res = await sendToBackgroundViaRelay({
+    name: "mCreateWindow" as keyof MessagesMetadata, // Defined by the background/messages/mCreateWindow.ts filename
+    body: { in: `Please create the window.` }
+  })
+  console.log(
+    `[contents][sendToBackgroundViaRelay] Response: ${JSON.stringify(
+      res,
+      null,
+      2
+    )}`
+  )
 }
 
-// Listen from postMessage()
+// Listen from window.postMessage()
 window.addEventListener("message", callback)
 ;(window as any).waallet = new WaalletProvider("", "")

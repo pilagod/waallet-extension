@@ -1,4 +1,4 @@
-import windowUrl from "url:~background/messages/window.html"
+import createWindowUrl from "url:~background/messages/mCreateWindow.html"
 import { windows } from "webextension-polyfill"
 
 import { type PlasmoMessaging } from "@plasmohq/messaging"
@@ -18,7 +18,7 @@ const handler: PlasmoMessaging.MessageHandler<
   console.log(`[background][messaging][window] Request: ${JSON.stringify(req)}`)
 
   await windows.create({
-    url: windowUrl,
+    url: createWindowUrl,
     focused: true,
     type: "popup",
     width: 385,
@@ -26,7 +26,7 @@ const handler: PlasmoMessaging.MessageHandler<
   })
 
   res.send({
-    out: `Opened: ${windowUrl}`
+    out: `Opened: ${createWindowUrl}`
   })
 }
 
