@@ -1,5 +1,10 @@
 import * as ethers from "ethers"
 
+import {
+  sendToBackgroundViaRelay,
+  type MessagesMetadata
+} from "@plasmohq/messaging"
+
 import bigintUtil from "~packages/utils/bigint"
 import type { HexString } from "~typings"
 
@@ -92,14 +97,37 @@ export class WaalletProvider {
     )
   }
 
-  private createWindow = async (args: {
+  /**
+   * Usage:
+   *   await this.createWindow({
+   *     sourceMethod: "eth_someCreationWindowMethod",
+   *     post: "createWindow",
+   *     params: { hello: "world" },
+   *   });
+   */
+  private async createWindow(args: {
     sourceMethod: string
     post: string
     params: any
-  }): Promise<any> => {
+  }): Promise<any> {
     console.log(
-      `[provider][createWindow] args: ${JSON.stringify(args, null, 2)}`
+      `[provider][createWindow] arguments: ${JSON.stringify(args, null, 2)}`
     )
-    window.postMessage(args, window.location.origin)
+    if (args.sourceMethod !== "eth_someCreationWindowMethod") {
+      throw new Error("Invalid method")
+    }
+    if (args.post !== "createWindow") {
+      throw new Error("Invalid post")
+    }
+
+    // Send to the service worker's messaging via content script's relay (contents/relayer.ts).
+    const res = await sendToBackgroundViaRelay({
+      name: "mCreateWindow" as keyof MessagesMetadata, // Defined by the background/messages/mCreateWindow.ts filename
+      body: { in: `Please create the window.` }
+    })
+    console.log(
+      `[provider][createWindow] response: ${JSON.stringify(res, null, 2)}`
+    )
+    return res
   }
 }
