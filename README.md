@@ -1,3 +1,17 @@
+# Waallet Extension
+
+## Development
+
+This project depends on [waallet-contract](https://github.com/pilagod/waallet-contract) to provide the testnet environment, please follow the instructions in the repository to setup local testnet.
+
+After you spin up a testnet from [waallet-contract](https://github.com/pilagod/waallet-contract), run following commands to do testing:
+
+```bash
+npm run test
+```
+
+# Plasmo Extension
+
 This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
 
 ## Getting Started

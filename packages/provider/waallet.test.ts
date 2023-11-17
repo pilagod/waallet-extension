@@ -1,3 +1,5 @@
+import type { HexString } from "~typings"
+
 import { Method } from "./rpc"
 import { WaalletProvider } from "./waallet"
 
@@ -11,21 +13,21 @@ describe("Waallet Provider", () => {
   })
 
   it("should get chain id", async () => {
-    const chainId = await waalletProvider.request({
+    const chainId = await waalletProvider.request<HexString>({
       method: Method.eth_chainId
     })
     expect(parseInt(chainId, 16)).toBe(1337)
   })
 
   it("should get block number", async () => {
-    const blockNumber = await waalletProvider.request({
+    const blockNumber = await waalletProvider.request<HexString>({
       method: Method.eth_blockNumber
     })
     expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
   })
 
   it("should estimate gas", async () => {
-    const gas = await waalletProvider.request({
+    const gas = await waalletProvider.request<HexString>({
       method: Method.eth_estimateGas,
       params: [
         {
