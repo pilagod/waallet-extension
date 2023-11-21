@@ -22,24 +22,26 @@ export class WaalletProvider {
   private accountOwnerPrivateKey =
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
-  private nodeRpcProvider: ethers.JsonRpcProvider
+  private nodeProvider: ethers.JsonRpcProvider
 
   public constructor(
     private nodeRpcUrl: string,
     private bundlerProvider: BundlerProvider,
     private messenger: Messenger
   ) {
-    this.nodeRpcProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
+    // TODO: Refactor node provider
+    this.nodeProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
 
   // TODO: Refine response type
+  // TODO: Refine client json rpc method list
   public async request<T>(args: RequestArguments): Promise<T> {
     console.log(args)
     switch (args.method) {
       case Method.eth_accounts:
         return Promise.resolve([this.account]) as T
       case Method.eth_chainId:
-        return request(this.bundlerProvider.rpcUrl, args)
+        return this.bundlerProvider.getChainId() as T
       case Method.eth_estimateGas:
         return this.handleEstimateUserOperationGas(args.params) as T
       case Method.eth_sendTransaction:
@@ -53,12 +55,8 @@ export class WaalletProvider {
     params: EthEstimateGasArguments["params"]
   ): Promise<HexString> {
     // TODO: Use account's entry point
-    const [entryPointAddress] = await request<string[]>(
-      this.bundlerProvider.rpcUrl,
-      {
-        method: Method.eth_supportedEntryPoints
-      }
-    )
+    const [entryPointAddress] =
+      await this.bundlerProvider.getSupportedEntryPoints()
     const e = await this.estimateUserOperationGas(params, entryPointAddress)
 
     // TODO: Return only call gas limit
@@ -74,21 +72,17 @@ export class WaalletProvider {
   ): Promise<HexString> {
     const [tx] = params
     // TODO: Check tx from is same as account
-    const [entryPointAddress] = await request<string[]>(
-      this.bundlerProvider.rpcUrl,
-      {
-        method: Method.eth_supportedEntryPoints
-      }
-    )
+    const [entryPointAddress] =
+      await this.bundlerProvider.getSupportedEntryPoints()
     const entryPoint = new ethers.Contract(
       entryPointAddress,
       EntryPointAbi,
-      this.nodeRpcProvider
+      this.nodeProvider
     )
     if (!tx.nonce) {
       tx.nonce = (await entryPoint.getNonce(tx.from, 0)) as bigint
     }
-    const userOpGasEst = await this.estimateUserOperationGas(
+    const userOpGasLimit = await this.estimateUserOperationGas(
       params,
       entryPointAddress
     )
@@ -104,7 +98,7 @@ export class WaalletProvider {
       ]),
       paymasterAndData: "0x",
       signature: "0x",
-      ...userOpGasEst,
+      ...userOpGasLimit,
       ...userOpGasFee,
       ...(tx.gas && {
         callGasLimit: number.toHex(tx.gas)
@@ -151,10 +145,7 @@ export class WaalletProvider {
       this.accountOwnerPrivateKey
     ).signMessage(ethers.getBytes(userOpHash))
 
-    await request(this.bundlerProvider.rpcUrl, {
-      method: Method.eth_sendUserOperation,
-      params: [userOp, entryPointAddress]
-    })
+    await this.bundlerProvider.sendUserOperation(userOp, entryPointAddress)
     const txHash = await this.bundlerProvider.wait(userOpHash)
 
     return txHash
@@ -172,7 +163,7 @@ export class WaalletProvider {
     const entryPoint = new ethers.Contract(
       entryPointAddress,
       EntryPointAbi,
-      this.nodeRpcProvider
+      this.nodeProvider
     )
     const userOp = {
       sender: tx.from ?? this.account,
@@ -199,10 +190,10 @@ export class WaalletProvider {
         maxPriorityFeePerGas: number.toHex(tx.gasPrice)
       })
     }
-    return request(this.bundlerProvider.rpcUrl, {
-      method: Method.eth_estimateUserOperationGas,
-      params: [userOp, entryPointAddress]
-    })
+    return this.bundlerProvider.estimateUserOperationGas(
+      userOp,
+      entryPointAddress
+    )
   }
 
   private async estimateGasFee(gasPrice?: BigNumberish): Promise<{
@@ -215,7 +206,7 @@ export class WaalletProvider {
         maxPriorityFeePerGas: number.toHex(gasPrice)
       }
     }
-    const fee = await this.nodeRpcProvider.getFeeData()
+    const fee = await this.nodeProvider.getFeeData()
     // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
     return {
       maxFeePerGas: number.toHex(fee.gasPrice),

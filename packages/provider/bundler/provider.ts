@@ -1,11 +1,27 @@
+import type { BigNumberish } from "ethers"
+
 import type { HexString, Nullable } from "~typings"
 
-import { Method } from "../rpc"
 import { RpcProvider } from "../rpc/provider"
+import { BundlerRpcMethod } from "./rpc"
 
 export enum BundlerMode {
   Manual = "manual",
   Auto = "auto"
+}
+
+export type UserOperation = {
+  sender: HexString
+  nonce: BigNumberish
+  initCode: HexString
+  callData: HexString
+  callGasLimit: BigNumberish
+  verificationGasLimit: BigNumberish
+  preVerificationGas: BigNumberish
+  maxFeePerGas: BigNumberish
+  maxPriorityFeePerGas: BigNumberish
+  paymasterAndData: HexString
+  signature: HexString
 }
 
 export class BundlerProvider extends RpcProvider {
@@ -14,6 +30,46 @@ export class BundlerProvider extends RpcProvider {
     private mode: BundlerMode = BundlerMode.Auto
   ) {
     super(bundlerRpcUrl)
+  }
+
+  public async getChainId(): Promise<HexString> {
+    const chainId = this.rpcRequest({
+      method: BundlerRpcMethod.eth_chainId
+    })
+    return chainId
+  }
+
+  public async getSupportedEntryPoints(): Promise<HexString[]> {
+    const entryPointAddresses = this.rpcRequest({
+      method: BundlerRpcMethod.eth_supportedEntryPoints
+    })
+    return entryPointAddresses
+  }
+
+  public async estimateUserOperationGas(
+    userOp: Partial<UserOperation>,
+    entryPointAddress: HexString
+  ): Promise<{
+    preVerificationGas: HexString
+    verificationGasLimit: HexString
+    callGasLimit: HexString
+  }> {
+    const gasLimits = this.rpcRequest({
+      method: BundlerRpcMethod.eth_estimateUserOperationGas,
+      params: [userOp, entryPointAddress]
+    })
+    return gasLimits
+  }
+
+  public async sendUserOperation(
+    userOp: UserOperation,
+    entryPointAddress: HexString
+  ): Promise<HexString> {
+    const userOpHash = this.rpcRequest({
+      method: BundlerRpcMethod.eth_sendUserOperation,
+      params: [userOp, entryPointAddress]
+    })
+    return userOpHash
   }
 
   public async wait(userOpHash: HexString): Promise<HexString> {
@@ -29,7 +85,7 @@ export class BundlerProvider extends RpcProvider {
         setTimeout(async () => {
           resolve(
             await this.rpcRequest({
-              method: Method.eth_getUserOperationByHash,
+              method: BundlerRpcMethod.eth_getUserOperationByHash,
               params: [userOpHash]
             })
           )
@@ -43,7 +99,7 @@ export class BundlerProvider extends RpcProvider {
 
   private async debugSendBundleNow() {
     await this.rpcRequest({
-      method: Method.debug_bundler_sendBundleNow
+      method: BundlerRpcMethod.debug_bundler_sendBundleNow
     })
   }
 }

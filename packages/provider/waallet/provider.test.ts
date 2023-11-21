@@ -9,7 +9,7 @@ import { WaalletProvider } from "./provider"
 
 describe("Waallet Provider", () => {
   const nodeRpcUrl = "http://localhost:8545"
-  const nodeRpcProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
+  const nodeProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
 
   const bundlerRpcUrl = "http://localhost:3000"
   const bundlerProvider = new BundlerProvider(bundlerRpcUrl, BundlerMode.Manual)
@@ -26,7 +26,7 @@ describe("Waallet Provider", () => {
       "function number() view returns (uint256)",
       "function increment()"
     ]),
-    nodeRpcProvider
+    nodeProvider
   )
 
   it("should pass this canary test", () => {
@@ -74,7 +74,7 @@ describe("Waallet Provider", () => {
         }
       ]
     })
-    const receipt = await nodeRpcProvider.getTransactionReceipt(txHash)
+    const receipt = await nodeProvider.getTransactionReceipt(txHash)
     expect(receipt.status).toBe(1)
 
     const counterAfter = (await counter.number()) as bigint
