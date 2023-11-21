@@ -1,20 +1,19 @@
 import type { HexString, Nullable } from "~typings"
 
-import { Method, request } from "../rpc"
+import { Method } from "../rpc"
+import { RpcProvider } from "../rpc/provider"
 
 export enum BundlerMode {
   Manual = "manual",
   Auto = "auto"
 }
 
-export class BundlerProvider {
+export class BundlerProvider extends RpcProvider {
   public constructor(
-    private bundlerRpcUrl: string,
+    bundlerRpcUrl: string,
     private mode: BundlerMode = BundlerMode.Auto
-  ) {}
-
-  public get rpcUrl() {
-    return this.bundlerRpcUrl
+  ) {
+    super(bundlerRpcUrl)
   }
 
   public async wait(userOpHash: HexString): Promise<HexString> {
@@ -29,7 +28,7 @@ export class BundlerProvider {
       >((resolve) => {
         setTimeout(async () => {
           resolve(
-            await request(this.bundlerRpcUrl, {
+            await this.rpcRequest({
               method: Method.eth_getUserOperationByHash,
               params: [userOpHash]
             })
@@ -43,7 +42,7 @@ export class BundlerProvider {
   }
 
   private async debugSendBundleNow() {
-    await request(this.bundlerRpcUrl, {
+    await this.rpcRequest({
       method: Method.debug_bundler_sendBundleNow
     })
   }
