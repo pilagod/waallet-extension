@@ -9,8 +9,8 @@ import {
 import number from "~packages/utils/number"
 import type { HexString } from "~typings"
 
-import accountAbi from "./abi/account"
-import entryPointAbi from "./abi/entryPoint"
+import AccountAbi from "./abi/Account"
+import EntryPointAbi from "./abi/EntryPoint"
 import { BundlerProvider } from "./bundler"
 import {
   Method,
@@ -85,7 +85,7 @@ export class WaalletProvider {
     )
     const entryPoint = new ethers.Contract(
       entryPointAddress,
-      entryPointAbi,
+      EntryPointAbi,
       this.nodeRpcProvider
     )
     if (!tx.nonce) {
@@ -100,7 +100,7 @@ export class WaalletProvider {
       sender: tx.from,
       nonce: number.toHex(tx.nonce),
       initCode: "0x",
-      callData: new ethers.Interface(accountAbi).encodeFunctionData("execute", [
+      callData: new ethers.Interface(AccountAbi).encodeFunctionData("execute", [
         tx.to,
         tx.value ? number.toHex(tx.value) : 0,
         tx.input ?? "0x"
@@ -174,7 +174,7 @@ export class WaalletProvider {
     const [tx] = params
     const entryPoint = new ethers.Contract(
       entryPointAddress,
-      entryPointAbi,
+      EntryPointAbi,
       this.nodeRpcProvider
     )
     const userOp = {
@@ -185,7 +185,7 @@ export class WaalletProvider {
       // TODO: Handle init code when account is not deployed
       initCode: "0x",
       ...(tx.to && {
-        callData: new ethers.Interface(accountAbi).encodeFunctionData(
+        callData: new ethers.Interface(AccountAbi).encodeFunctionData(
           "execute",
           [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.input ?? "0x"]
         )

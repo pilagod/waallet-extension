@@ -2,8 +2,6 @@ import * as ethers from "ethers"
 
 import type { HexString } from "~typings"
 
-// TODO: Rename to pascal case
-import entryPointAbi from "./abi/entryPoint"
 import { BundlerMode, BundlerProvider } from "./bundler"
 import { Method } from "./rpc"
 import { WaalletProvider } from "./waallet"
@@ -17,11 +15,6 @@ describe("Waallet Provider", () => {
 
   const waalletProvider = new WaalletProvider(nodeRpcUrl, bundlerProvider)
 
-  const entryPoint = new ethers.Contract(
-    "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    entryPointAbi,
-    nodeRpcProvider
-  )
   const counter = new ethers.Contract(
     "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
     new ethers.Interface([
