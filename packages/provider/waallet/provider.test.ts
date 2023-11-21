@@ -1,10 +1,11 @@
 import * as ethers from "ethers"
 
+import { StubMessenger } from "~packages/messenger/stubMessenger"
 import type { HexString } from "~typings"
 
-import { BundlerMode, BundlerProvider } from "./bundler"
-import { Method } from "./rpc"
-import { WaalletProvider } from "./waallet"
+import { BundlerMode, BundlerProvider } from "../bundler"
+import { Method } from "../rpc"
+import { WaalletProvider } from "./provider"
 
 describe("Waallet Provider", () => {
   const nodeRpcUrl = "http://localhost:8545"
@@ -13,7 +14,11 @@ describe("Waallet Provider", () => {
   const bundlerRpcUrl = "http://localhost:3000"
   const bundlerProvider = new BundlerProvider(bundlerRpcUrl, BundlerMode.Manual)
 
-  const waalletProvider = new WaalletProvider(nodeRpcUrl, bundlerProvider)
+  const waalletProvider = new WaalletProvider(
+    nodeRpcUrl,
+    bundlerProvider,
+    new StubMessenger()
+  )
 
   const counter = new ethers.Contract(
     "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",

@@ -1,24 +1,20 @@
 import * as ethers from "ethers"
 import type { BigNumberish } from "ethers"
 
-import {
-  sendToBackgroundViaRelay,
-  type MessagesMetadata
-} from "@plasmohq/messaging"
-
+import type { Messenger } from "~packages/messenger"
 import number from "~packages/utils/number"
 import type { HexString } from "~typings"
 
-import AccountAbi from "./abi/Account"
-import EntryPointAbi from "./abi/EntryPoint"
-import { BundlerProvider } from "./bundler"
+import AccountAbi from "../abi/Account"
+import EntryPointAbi from "../abi/EntryPoint"
+import { BundlerProvider } from "../bundler"
 import {
   Method,
   request,
   type EthEstimateGasArguments,
   type EthSendTransactionArguments,
   type RequestArguments
-} from "./rpc"
+} from "../rpc"
 
 export class WaalletProvider {
   // TODO: Setup an account instance
@@ -30,7 +26,8 @@ export class WaalletProvider {
 
   public constructor(
     private nodeRpcUrl: string,
-    private bundlerProvider: BundlerProvider
+    private bundlerProvider: BundlerProvider,
+    private messenger: Messenger
   ) {
     this.nodeRpcProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
@@ -226,34 +223,17 @@ export class WaalletProvider {
     }
   }
 
-  /**
-   * Usage:
-   *   await this.createWindow({
-   *     sourceMethod: "eth_someCreationWindowMethod",
-   *     post: "createWindow",
-   *     params: { hello: "world" },
-   *   });
-   */
-  private async createWindow(args: {
-    sourceMethod: string
-    post: string
-    params: any
-  }): Promise<any> {
+  private async createWindow(): Promise<any> {
+    const req = {
+      name: "mCreateWindow",
+      body: {
+        in: `Please create the window.`
+      }
+    }
     console.log(
-      `[provider][createWindow] arguments: ${JSON.stringify(args, null, 2)}`
+      `[provider][createWindow] request: ${JSON.stringify(req, null, 2)}`
     )
-    if (args.sourceMethod !== "eth_someCreationWindowMethod") {
-      throw new Error("Invalid method")
-    }
-    if (args.post !== "createWindow") {
-      throw new Error("Invalid post")
-    }
-
-    // Send to the service worker's messaging via content script's relay (contents/relayer.ts).
-    const res = await sendToBackgroundViaRelay({
-      name: "mCreateWindow" as keyof MessagesMetadata, // Defined by the background/messages/mCreateWindow.ts filename
-      body: { in: `Please create the window.` }
-    })
+    const res = await this.messenger.send(req)
     console.log(
       `[provider][createWindow] response: ${JSON.stringify(res, null, 2)}`
     )
