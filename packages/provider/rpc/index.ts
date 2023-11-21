@@ -13,6 +13,13 @@ export async function request<T>(
     id: 0,
     ...args
   })
+  // TODO: Should handle error
+  // {
+  //     jsonrpc: '2.0',
+  //     error: { code: -32521, message: "user operation's call reverted: 0x" },
+  //     id: 0
+  // }
+  console.log(data)
   // TODO: Transform error to error instance
   return data.result
 }
