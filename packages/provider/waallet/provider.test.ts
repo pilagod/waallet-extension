@@ -3,9 +3,9 @@ import * as ethers from "ethers"
 import { StubMessenger } from "~packages/messenger/stubMessenger"
 import type { HexString } from "~typings"
 
-import { BundlerMode, BundlerProvider } from "../bundler"
-import { Method } from "../rpc"
+import { BundlerMode, BundlerProvider } from "../bundler/provider"
 import { WaalletProvider } from "./provider"
+import { WaalletRpcMethod } from "./rpc"
 
 describe("Waallet Provider", () => {
   const nodeRpcUrl = "http://localhost:8545"
@@ -35,21 +35,21 @@ describe("Waallet Provider", () => {
 
   it("should get chain id", async () => {
     const chainId = await waalletProvider.request<HexString>({
-      method: Method.eth_chainId
+      method: WaalletRpcMethod.eth_chainId
     })
     expect(parseInt(chainId, 16)).toBe(1337)
   })
 
   it("should get block number", async () => {
     const blockNumber = await waalletProvider.request<HexString>({
-      method: Method.eth_blockNumber
+      method: WaalletRpcMethod.eth_blockNumber
     })
     expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
   })
 
   it("should estimate gas", async () => {
     const gas = await waalletProvider.request<HexString>({
-      method: Method.eth_estimateGas,
+      method: WaalletRpcMethod.eth_estimateGas,
       params: [
         {
           from: waalletProvider.account,
@@ -65,7 +65,7 @@ describe("Waallet Provider", () => {
     const counterBefore = (await counter.number()) as bigint
 
     const txHash = await waalletProvider.request<HexString>({
-      method: Method.eth_sendTransaction,
+      method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
           from: waalletProvider.account,

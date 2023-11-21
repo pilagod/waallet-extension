@@ -1,8 +1,6 @@
-import { type BigNumberish } from "ethers"
+import type { BigNumberish, HexString } from "~typings"
 
-import type { HexString } from "~typings"
-
-export enum Method {
+export enum WaalletRpcMethod {
   eth_accounts = "eth_accounts",
   eth_blockNumber = "eth_blockNumber",
   eth_chainId = "eth_chainId",
@@ -10,15 +8,18 @@ export enum Method {
   eth_sendTransaction = "eth_sendTransaction"
 }
 
-export type RequestArguments =
+export type WaalletRequestArguments =
   | EthEstimateGasArguments
   | EthSendTransactionArguments
   | {
-      method: Method.eth_accounts | Method.eth_blockNumber | Method.eth_chainId
+      method:
+        | WaalletRpcMethod.eth_accounts
+        | WaalletRpcMethod.eth_blockNumber
+        | WaalletRpcMethod.eth_chainId
     }
 
 export type EthEstimateGasArguments = {
-  method: Method.eth_estimateGas
+  method: WaalletRpcMethod.eth_estimateGas
   params: [
     {
       from?: HexString
@@ -32,7 +33,7 @@ export type EthEstimateGasArguments = {
 }
 
 export type EthSendTransactionArguments = {
-  method: Method.eth_sendTransaction
+  method: WaalletRpcMethod.eth_sendTransaction
   params: [
     {
       from: HexString

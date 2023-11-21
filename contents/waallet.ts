@@ -1,7 +1,7 @@
 import type { PlasmoCSConfig } from "plasmo"
 
 import { BackgroundMessenger } from "~packages/messenger/backgroundMessenger"
-import { WaalletProvider } from "~packages/provider/waallet"
+import { WaalletProvider } from "~packages/provider/waallet/provider"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],

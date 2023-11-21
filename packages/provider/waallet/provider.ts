@@ -1,22 +1,21 @@
 import * as ethers from "ethers"
-import type { BigNumberish } from "ethers"
 
 import type { Messenger } from "~packages/messenger"
 import number from "~packages/utils/number"
-import type { HexString } from "~typings"
+import type { BigNumberish, HexString } from "~typings"
 
 import AccountAbi from "../abi/Account"
 import EntryPointAbi from "../abi/EntryPoint"
-import { BundlerProvider } from "../bundler"
+import { BundlerProvider } from "../bundler/provider"
+import { RpcProvider } from "../rpc/provider"
 import {
-  Method,
-  request,
+  WaalletRpcMethod,
   type EthEstimateGasArguments,
   type EthSendTransactionArguments,
-  type RequestArguments
-} from "../rpc"
+  type WaalletRequestArguments
+} from "./rpc"
 
-export class WaalletProvider {
+export class WaalletProvider extends RpcProvider {
   // TODO: Setup an account instance
   public account = "0x661b4a3909b486a3da520403ecc78f7a7b683c63"
   private accountOwnerPrivateKey =
@@ -25,29 +24,29 @@ export class WaalletProvider {
   private nodeProvider: ethers.JsonRpcProvider
 
   public constructor(
-    private nodeRpcUrl: string,
+    nodeRpcUrl: string,
     private bundlerProvider: BundlerProvider,
     private messenger: Messenger
   ) {
+    // TODO: A way to distinguish node rpc url and bundler rpc url
+    super(nodeRpcUrl)
     // TODO: Refactor node provider
     this.nodeProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
 
-  // TODO: Refine response type
-  // TODO: Refine client json rpc method list
-  public async request<T>(args: RequestArguments): Promise<T> {
+  public async request<T>(args: WaalletRequestArguments): Promise<T> {
     console.log(args)
     switch (args.method) {
-      case Method.eth_accounts:
+      case WaalletRpcMethod.eth_accounts:
         return Promise.resolve([this.account]) as T
-      case Method.eth_chainId:
+      case WaalletRpcMethod.eth_chainId:
         return this.bundlerProvider.getChainId() as T
-      case Method.eth_estimateGas:
+      case WaalletRpcMethod.eth_estimateGas:
         return this.handleEstimateUserOperationGas(args.params) as T
-      case Method.eth_sendTransaction:
+      case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
-        return request(this.nodeRpcUrl, args)
+        return this.rpcRequest(args)
     }
   }
 
@@ -134,7 +133,7 @@ export class WaalletProvider {
         [
           ethers.keccak256(userOpPacked),
           entryPointAddress,
-          await this.request<HexString>({ method: Method.eth_chainId })
+          await this.bundlerProvider.getChainId()
         ]
       )
     )

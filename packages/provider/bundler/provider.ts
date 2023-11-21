@@ -1,6 +1,4 @@
-import type { BigNumberish } from "ethers"
-
-import type { HexString, Nullable } from "~typings"
+import type { BigNumberish, HexString, Nullable } from "~typings"
 
 import { RpcProvider } from "../rpc/provider"
 import { BundlerRpcMethod } from "./rpc"
