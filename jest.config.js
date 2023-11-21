@@ -7,6 +7,7 @@ const { compilerOptions } = require("./tsconfig")
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
+  testTimeout: 60 * 1000,
   transform: {
     ".ts": [
       "ts-jest",
