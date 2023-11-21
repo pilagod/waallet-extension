@@ -57,14 +57,11 @@ export class WaalletProvider {
     // TODO: Use account's entry point
     const [entryPointAddress] =
       await this.bundlerProvider.getSupportedEntryPoints()
-    const e = await this.estimateUserOperationGas(params, entryPointAddress)
-
-    // TODO: Return only call gas limit
-    return number.toHex(
-      ethers.toBigInt(e.verificationGasLimit) +
-        ethers.toBigInt(e.callGasLimit) +
-        ethers.toBigInt(e.preVerificationGas)
+    const { callGasLimit } = await this.estimateUserOperationGas(
+      params,
+      entryPointAddress
     )
+    return number.toHex(callGasLimit)
   }
 
   private async handleSendTransaction(
