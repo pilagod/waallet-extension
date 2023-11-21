@@ -53,12 +53,32 @@ describe("Waallet Provider", () => {
       params: [
         {
           from: waalletProvider.account,
-          to: waalletProvider.account,
-          value: 1
+          to: await counter.getAddress(),
+          input: counter.interface.encodeFunctionData("increment", [])
         }
       ]
     })
     expect(parseInt(gas, 16)).toBeGreaterThan(0)
+  })
+
+  it("should send transaction with ether", async () => {
+    const balanceBefore = await nodeProvider.getBalance(counter.getAddress())
+
+    const txHash = await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_sendTransaction,
+      params: [
+        {
+          from: waalletProvider.account,
+          to: await counter.getAddress(),
+          value: 1
+        }
+      ]
+    })
+    const receipt = await nodeProvider.getTransactionReceipt(txHash)
+    expect(receipt.status).toBe(1)
+
+    const balanceAfter = await nodeProvider.getBalance(counter.getAddress())
+    expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
   it("should send transaction to contract", async () => {
