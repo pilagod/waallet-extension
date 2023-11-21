@@ -7,7 +7,7 @@
     "dev": "plasmo dev",
     "build": "plasmo build",
     "lint": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest -i"
   },
   "dependencies": {
     "@plasmohq/messaging": "^0.5.0",
