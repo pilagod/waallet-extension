@@ -3,18 +3,18 @@ import * as ethers from "ethers"
 import { StubMessenger } from "~packages/messenger/stubMessenger"
 import type { HexString } from "~typings"
 
-import { BundlerMode, BundlerProvider } from "../bundler/provider"
-import { WaalletProvider } from "./provider"
-import { WaalletRpcMethod } from "./rpc"
+import { BundlerMode, BundlerProvider } from "../../bundler/provider"
+import { WaalletRpcMethod } from "../rpc"
+import { WaalletBackgroundProvider } from "./provider"
 
-describe("Waallet Provider", () => {
+describe("Waallet Background Provider", () => {
   const nodeRpcUrl = "http://localhost:8545"
   const nodeProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
 
   const bundlerRpcUrl = "http://localhost:3000"
   const bundlerProvider = new BundlerProvider(bundlerRpcUrl, BundlerMode.Manual)
 
-  const waalletProvider = new WaalletProvider(
+  const waalletProvider = new WaalletBackgroundProvider(
     nodeRpcUrl,
     bundlerProvider,
     new StubMessenger()

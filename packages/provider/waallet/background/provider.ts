@@ -4,18 +4,18 @@ import type { Messenger } from "~packages/messenger"
 import number from "~packages/utils/number"
 import type { BigNumberish, HexString } from "~typings"
 
-import AccountAbi from "../abi/Account"
-import EntryPointAbi from "../abi/EntryPoint"
-import { BundlerProvider } from "../bundler/provider"
-import { RpcProvider } from "../rpc/provider"
+import AccountAbi from "../../abi/Account"
+import EntryPointAbi from "../../abi/EntryPoint"
+import { BundlerProvider } from "../../bundler/provider"
+import { RpcProvider } from "../../rpc/provider"
 import {
   WaalletRpcMethod,
   type EthEstimateGasArguments,
   type EthSendTransactionArguments,
   type WaalletRequestArguments
-} from "./rpc"
+} from "../rpc"
 
-export class WaalletProvider extends RpcProvider {
+export class WaalletBackgroundProvider extends RpcProvider {
   // TODO: Setup an account instance
   public account = "0x661b4a3909b486a3da520403ecc78f7a7b683c63"
   private accountOwnerPrivateKey =
