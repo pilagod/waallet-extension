@@ -29,8 +29,20 @@ describe("Waallet Provider", () => {
     nodeProvider
   )
 
-  it("should pass this canary test", () => {
-    expect(true).toBe(true)
+  it("should get accounts", async () => {
+    const accounts = await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_accounts
+    })
+    expect(accounts.length).toBeGreaterThan(0)
+    expect(accounts[0]).toHaveLength(42)
+  })
+
+  it("should request accounts", async () => {
+    const accounts = await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_requestAccounts
+    })
+    expect(accounts.length).toBeGreaterThan(0)
+    expect(accounts[0]).toHaveLength(42)
   })
 
   it("should get chain id", async () => {

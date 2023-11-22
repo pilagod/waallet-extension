@@ -38,6 +38,7 @@ export class WaalletProvider extends RpcProvider {
     console.log(args)
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
+      case WaalletRpcMethod.eth_requestAccounts:
         return Promise.resolve([this.account]) as T
       case WaalletRpcMethod.eth_chainId:
         return this.bundlerProvider.getChainId() as T
