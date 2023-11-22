@@ -1,10 +1,9 @@
 import * as ethers from "ethers"
 
+import abi from "~packages/abi"
 import number from "~packages/utils/number"
 import type { BigNumberish, HexString } from "~typings"
 
-import AccountAbi from "../../abi/Account"
-import EntryPointAbi from "../../abi/EntryPoint"
 import { BundlerProvider } from "../../bundler/provider"
 import { JsonRpcProvider } from "../../rpc/json/provider"
 import {
@@ -71,7 +70,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       await this.bundlerProvider.getSupportedEntryPoints()
     const entryPoint = new ethers.Contract(
       entryPointAddress,
-      EntryPointAbi,
+      abi.EntryPoint,
       this.nodeProvider
     )
     if (!tx.nonce) {
@@ -86,11 +85,10 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       sender: tx.from,
       nonce: number.toHex(tx.nonce),
       initCode: "0x",
-      callData: new ethers.Interface(AccountAbi).encodeFunctionData("execute", [
-        tx.to,
-        tx.value ? number.toHex(tx.value) : 0,
-        tx.input ?? "0x"
-      ]),
+      callData: new ethers.Interface(abi.Account).encodeFunctionData(
+        "execute",
+        [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.input ?? "0x"]
+      ),
       paymasterAndData: "0x",
       signature: "0x",
       ...userOpGasLimit,
@@ -157,7 +155,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     const [tx] = params
     const entryPoint = new ethers.Contract(
       entryPointAddress,
-      EntryPointAbi,
+      abi.EntryPoint,
       this.nodeProvider
     )
     const userOp = {
@@ -168,7 +166,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       // TODO: Handle init code when account is not deployed
       initCode: "0x",
       ...(tx.to && {
-        callData: new ethers.Interface(AccountAbi).encodeFunctionData(
+        callData: new ethers.Interface(abi.Account).encodeFunctionData(
           "execute",
           [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.input ?? "0x"]
         )

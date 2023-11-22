@@ -1,6 +1,5 @@
 import * as ethers from "ethers"
 
-import { StubMessenger } from "~packages/messenger/stubMessenger"
 import type { HexString } from "~typings"
 
 import { BundlerMode, BundlerProvider } from "../../bundler/provider"
@@ -16,8 +15,7 @@ describe("Waallet Background Provider", () => {
 
   const waalletProvider = new WaalletBackgroundProvider(
     nodeRpcUrl,
-    bundlerProvider,
-    new StubMessenger()
+    bundlerProvider
   )
 
   const counter = new ethers.Contract(
