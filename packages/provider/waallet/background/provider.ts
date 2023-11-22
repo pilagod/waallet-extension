@@ -6,7 +6,7 @@ import type { BigNumberish, HexString } from "~typings"
 import AccountAbi from "../../abi/Account"
 import EntryPointAbi from "../../abi/EntryPoint"
 import { BundlerProvider } from "../../bundler/provider"
-import { RpcProvider } from "../../rpc/provider"
+import { JsonRpcProvider } from "../../rpc/json/provider"
 import {
   WaalletRpcMethod,
   type EthEstimateGasArguments,
@@ -14,7 +14,7 @@ import {
   type WaalletRequestArguments
 } from "../rpc"
 
-export class WaalletBackgroundProvider extends RpcProvider {
+export class WaalletBackgroundProvider extends JsonRpcProvider {
   // TODO: Setup an account instance
   public account = "0x661b4a3909b486a3da520403ecc78f7a7b683c63"
   private accountOwnerPrivateKey =
@@ -45,7 +45,7 @@ export class WaalletBackgroundProvider extends RpcProvider {
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
-        return this.rpcRequest(args)
+        return this.send(args)
     }
   }
 

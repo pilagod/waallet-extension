@@ -1,9 +1,9 @@
 import axios from "axios"
 
-export class RpcProvider {
+export class JsonRpcProvider {
   public constructor(public readonly rpcUrl: string) {}
 
-  public async rpcRequest(args: { method: string; params?: any[] }) {
+  public async send(args: { method: string; params?: any[] }) {
     const { data } = await axios.post(this.rpcUrl, {
       jsonrpc: "2.0",
       id: 0,
