@@ -1,6 +1,5 @@
 import * as ethers from "ethers"
 
-import type { Messenger } from "~packages/messenger"
 import number from "~packages/utils/number"
 import type { BigNumberish, HexString } from "~typings"
 
@@ -25,8 +24,7 @@ export class WaalletBackgroundProvider extends RpcProvider {
 
   public constructor(
     nodeRpcUrl: string,
-    private bundlerProvider: BundlerProvider,
-    private messenger: Messenger
+    private bundlerProvider: BundlerProvider
   ) {
     // TODO: A way to distinguish node rpc url and bundler rpc url
     super(nodeRpcUrl)
@@ -211,20 +209,14 @@ export class WaalletBackgroundProvider extends RpcProvider {
     }
   }
 
-  private async createWindow(): Promise<any> {
-    const req = {
-      name: "mCreateWindow",
-      body: {
-        in: `Please create the window.`
-      }
-    }
-    console.log(
-      `[provider][createWindow] request: ${JSON.stringify(req, null, 2)}`
-    )
-    const res = await this.messenger.send(req)
-    console.log(
-      `[provider][createWindow] response: ${JSON.stringify(res, null, 2)}`
-    )
-    return res
+  private async createWindow(url: string): Promise<any> {
+    // TODO: Require an abstraction for browser to open window
+    // await browser.windows.create({
+    //   url,
+    //   focused: true,
+    //   type: "popup",
+    //   width: 385,
+    //   height: 720
+    // })
   }
 }
