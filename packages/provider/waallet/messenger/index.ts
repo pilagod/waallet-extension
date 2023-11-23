@@ -1,12 +1,12 @@
-export enum MessageName {
+export enum WaalletMessageName {
   JsonRpcRequest = "JsonRpcRequest"
 }
 
-export type Message<Body> = {
-  name: MessageName
+export type WaalletMessage<Body> = {
+  name: WaalletMessageName
   body: Body
 }
 
-export interface Messenger {
-  send<ReqBody, ResBody>(msg: Message<ReqBody>): Promise<ResBody>
+export interface WaalletMessenger {
+  send<ReqBody, ResBody>(msg: WaalletMessage<ReqBody>): Promise<ResBody>
 }

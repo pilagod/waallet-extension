@@ -1,10 +1,12 @@
-import { type Message, type Messenger } from "./index"
+import { type WaalletMessage, type WaalletMessenger } from "./index"
 
-export class StubMessenger implements Messenger {
-  public msgs: Message<any>[] = []
+export class StubMessenger implements WaalletMessenger {
+  public msgs: WaalletMessage<any>[] = []
   private resBody: any = null
 
-  public async send<ReqBody, ResBody>(msg: Message<ReqBody>): Promise<ResBody> {
+  public async send<ReqBody, ResBody>(
+    msg: WaalletMessage<ReqBody>
+  ): Promise<ResBody> {
     this.msgs.push(msg)
     return this.resBody
   }
