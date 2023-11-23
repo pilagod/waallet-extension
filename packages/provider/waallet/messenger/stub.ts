@@ -1,6 +1,6 @@
 import { type WaalletMessage, type WaalletMessenger } from "./index"
 
-export class StubMessenger implements WaalletMessenger {
+export class WaalletStubMessenger implements WaalletMessenger {
   public msgs: WaalletMessage<any>[] = []
   private resBody: any = null
 

@@ -3,17 +3,38 @@ import type { PlasmoCSConfig } from "plasmo"
 import { sendToBackground } from "@plasmohq/messaging"
 import { relay } from "@plasmohq/messaging/relay"
 
+import { WaalletMessageName } from "~packages/provider/waallet/messenger"
+
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"]
 }
 
 relay(
   {
-    name: "mCreateWindow" as const // Defined by the background/messages/mCreateWindow.ts filename
+    name: "mCreateWindow"
   },
   async (req) => {
-    console.log(`[contents][relay] Request: ${JSON.stringify(req, null, 2)}`)
-    const openResult = await sendToBackground(req as any)
-    return openResult
+    console.log(`[content][relay][mCreateWindow][request]`, req)
+    const res = await sendToBackground(req as any)
+    console.log(`[content][relay][mCreateWindow][response]`, res)
+    return res
+  }
+)
+
+relay(
+  {
+    name: WaalletMessageName.JsonRpcRequest
+  },
+  async (req) => {
+    console.log(
+      `[content][relay][${WaalletMessageName.JsonRpcRequest}][request]`,
+      req
+    )
+    const res = await sendToBackground(req as any)
+    console.log(
+      `[content][relay][${WaalletMessageName.JsonRpcRequest}][response]`,
+      res
+    )
+    return res
   }
 )

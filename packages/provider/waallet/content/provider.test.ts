@@ -1,10 +1,10 @@
 import { WaalletMessageName } from "../messenger"
-import { StubMessenger } from "../messenger/stubMessenger"
+import { WaalletStubMessenger } from "../messenger/stub"
 import { WaalletRpcMethod, type EthSendTransactionArguments } from "../rpc"
 import { WaalletContentProvider } from "./provider"
 
 describe("Waallet Content Provider", () => {
-  const backgroundMessenger = new StubMessenger()
+  const backgroundMessenger = new WaalletStubMessenger()
   const waalletContentProvider = new WaalletContentProvider(backgroundMessenger)
 
   beforeEach(() => {
