@@ -1,10 +1,11 @@
-import { WaalletMessageName } from "../messenger"
-import { WaalletStubMessenger } from "../messenger/stub"
+import { BackgroundStubMessenger } from "~packages/messenger/background/stub"
+
+import { WaalletMessage } from "../message"
 import { WaalletRpcMethod, type EthSendTransactionArguments } from "../rpc"
 import { WaalletContentProvider } from "./provider"
 
 describe("Waallet Content Provider", () => {
-  const backgroundMessenger = new WaalletStubMessenger()
+  const backgroundMessenger = new BackgroundStubMessenger()
   const waalletContentProvider = new WaalletContentProvider(backgroundMessenger)
 
   beforeEach(() => {
@@ -29,7 +30,7 @@ describe("Waallet Content Provider", () => {
     const result = await waalletContentProvider.request(args)
 
     expect(backgroundMessenger.msgs[0]).toEqual({
-      name: WaalletMessageName.JsonRpcRequest,
+      name: WaalletMessage.JsonRpcRequest,
       body: args
     })
     expect(result).toBe(txHash)

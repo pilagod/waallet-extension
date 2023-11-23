@@ -3,7 +3,7 @@ import type { PlasmoCSConfig } from "plasmo"
 import { sendToBackground } from "@plasmohq/messaging"
 import { relay } from "@plasmohq/messaging/relay"
 
-import { WaalletMessageName } from "~packages/provider/waallet/messenger"
+import { WaalletMessage } from "~packages/provider/waallet/message"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"]
@@ -23,16 +23,16 @@ relay(
 
 relay(
   {
-    name: WaalletMessageName.JsonRpcRequest
+    name: WaalletMessage.JsonRpcRequest
   },
   async (req) => {
     console.log(
-      `[content][relay][${WaalletMessageName.JsonRpcRequest}][request]`,
+      `[content][relay][${WaalletMessage.JsonRpcRequest}][request]`,
       req
     )
     const res = await sendToBackground(req as any)
     console.log(
-      `[content][relay][${WaalletMessageName.JsonRpcRequest}][response]`,
+      `[content][relay][${WaalletMessage.JsonRpcRequest}][response]`,
       res
     )
     return res

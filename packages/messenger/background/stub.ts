@@ -1,11 +1,11 @@
-import { type WaalletMessage, type WaalletMessenger } from "./index"
+import { type BackgroundMessage, type BackgroundMessenger } from "./index"
 
-export class WaalletStubMessenger implements WaalletMessenger {
-  public msgs: WaalletMessage<any>[] = []
+export class BackgroundStubMessenger implements BackgroundMessenger {
+  public msgs: BackgroundMessage<any>[] = []
   private resBody: any = null
 
   public async send<ReqBody, ResBody>(
-    msg: WaalletMessage<ReqBody>
+    msg: BackgroundMessage<ReqBody>
   ): Promise<ResBody> {
     this.msgs.push(msg)
     return this.resBody
