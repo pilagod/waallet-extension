@@ -1,23 +1,21 @@
 import * as ethers from "ethers"
 
 import abi from "~packages/abi"
+import { BundlerProvider } from "~packages/provider/bundler/provider"
+import { JsonRpcProvider } from "~packages/provider/rpc/json/provider"
 import number from "~packages/utils/number"
 import type { BigNumberish, HexString } from "~typings"
 
-import { BundlerProvider } from "../../bundler/provider"
-import { JsonRpcProvider } from "../../rpc/json/provider"
 import {
   WaalletRpcMethod,
   type EthEstimateGasArguments,
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
+import { type Account } from "./account"
 
 export class WaalletBackgroundProvider extends JsonRpcProvider {
-  // TODO: Setup an account instance
-  public account = "0x661b4a3909b486a3da520403ecc78f7a7b683c63"
-  private accountOwnerPrivateKey =
-    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+  public account: Account
 
   private nodeProvider: ethers.JsonRpcProvider
 
@@ -31,12 +29,16 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     this.nodeProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
 
+  public connect(account: Account) {
+    this.account = account
+  }
+
   public async request<T>(args: WaalletRequestArguments): Promise<T> {
     console.log(args)
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
       case WaalletRpcMethod.eth_requestAccounts:
-        return Promise.resolve([this.account]) as T
+        return [await this.account.getAddress()] as T
       case WaalletRpcMethod.eth_chainId:
         return this.bundlerProvider.getChainId() as T
       case WaalletRpcMethod.eth_estimateGas:
@@ -134,9 +136,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
         ]
       )
     )
-    userOp.signature = await new ethers.Wallet(
-      this.accountOwnerPrivateKey
-    ).signMessage(ethers.getBytes(userOpHash))
+    userOp.signature = await this.account.signMessage(userOpHash)
 
     await this.bundlerProvider.sendUserOperation(userOp, entryPointAddress)
     const txHash = await this.bundlerProvider.wait(userOpHash)

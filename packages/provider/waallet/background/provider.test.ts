@@ -4,6 +4,7 @@ import type { HexString } from "~typings"
 
 import { BundlerMode, BundlerProvider } from "../../bundler/provider"
 import { WaalletRpcMethod } from "../rpc"
+import { SimpleAccount } from "./account/simple"
 import { WaalletBackgroundProvider } from "./provider"
 
 describe("Waallet Background Provider", () => {
@@ -16,6 +17,12 @@ describe("Waallet Background Provider", () => {
   const waalletProvider = new WaalletBackgroundProvider(
     nodeRpcUrl,
     bundlerProvider
+  )
+  waalletProvider.connect(
+    new SimpleAccount(
+      "0x661b4a3909b486a3da520403ecc78f7a7b683c63",
+      "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    )
   )
 
   const counter = new ethers.Contract(
@@ -62,7 +69,7 @@ describe("Waallet Background Provider", () => {
       method: WaalletRpcMethod.eth_estimateGas,
       params: [
         {
-          from: waalletProvider.account,
+          from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
           input: counter.interface.encodeFunctionData("increment", [])
         }
@@ -78,7 +85,7 @@ describe("Waallet Background Provider", () => {
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
-          from: waalletProvider.account,
+          from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
           value: 1
         }
@@ -98,7 +105,7 @@ describe("Waallet Background Provider", () => {
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
-          from: waalletProvider.account,
+          from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
           input: counter.interface.encodeFunctionData("increment", [])
         }
