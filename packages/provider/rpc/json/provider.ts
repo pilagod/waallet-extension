@@ -1,14 +1,22 @@
-import axios from "axios"
+import fetch from "isomorphic-fetch"
 
 export class JsonRpcProvider {
   public constructor(public readonly rpcUrl: string) {}
 
   public async send(args: { method: string; params?: any[] }) {
-    const { data } = await axios.post(this.rpcUrl, {
-      jsonrpc: "2.0",
-      id: 0,
-      ...args
+    const res = await fetch(this.rpcUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 0,
+        ...args
+      })
     })
+    const data = await res.json()
+
     // TODO: Should handle error
     // {
     //     jsonrpc: '2.0',
