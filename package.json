@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "description": "Browser extension for account abstraction",
   "scripts": {
-    "dev": "plasmo dev",
+    "dev": "plasmo dev --env .env.development",
     "build": "plasmo build",
     "lint": "tsc --noEmit",
     "test": "jest -i"

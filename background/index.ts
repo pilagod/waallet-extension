@@ -1,12 +1,20 @@
+import { SimpleAccount } from "~packages/provider/waallet/background/account/simple"
+
 import { setupWaalletBackgroundProvider } from "./provider"
 
 console.log(
   "Live now; make now always the most precious time. Now will never come again."
 )
 
-setupWaalletBackgroundProvider({
-  nodeRpcUrl: "http://localhost:8545",
-  bundlerRpcUrl: "http://localhost:3000"
+const provider = setupWaalletBackgroundProvider({
+  nodeRpcUrl: process.env.PLASMO_PUBLIC_NODE_RPC_URL,
+  bundlerRpcUrl: process.env.PLASMO_PUBLIC_BUNDLER_RPC_URL
 })
+provider.connect(
+  new SimpleAccount(
+    process.env.PLASMO_PUBLIC_ACCOUNT,
+    process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY
+  )
+)
 
 export {}

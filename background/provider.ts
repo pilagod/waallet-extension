@@ -13,7 +13,7 @@ export function getWaalletBackgroundProvider() {
 export function setupWaalletBackgroundProvider(options: {
   nodeRpcUrl: string
   bundlerRpcUrl: string
-}) {
+}): WaalletBackgroundProvider {
   waalletBackgroundProvider = new WaalletBackgroundProvider(
     options.nodeRpcUrl,
     new BundlerProvider(options.bundlerRpcUrl, BundlerMode.Manual)
