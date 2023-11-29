@@ -89,7 +89,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       initCode: "0x",
       callData: new ethers.Interface(abi.Account).encodeFunctionData(
         "execute",
-        [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.input ?? "0x"]
+        [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.data ?? "0x"]
       ),
       paymasterAndData: "0x",
       signature: "0x",
@@ -159,16 +159,19 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       this.nodeProvider
     )
     const userOp = {
-      sender: tx.from ?? this.account,
+      sender: tx.from ?? (await this.account.getAddress()),
       nonce: number.toHex(
-        (await entryPoint.getNonce(this.account, 0)) as bigint
+        (await entryPoint.getNonce(
+          await this.account.getAddress(),
+          0
+        )) as bigint
       ),
       // TODO: Handle init code when account is not deployed
       initCode: "0x",
       ...(tx.to && {
         callData: new ethers.Interface(abi.Account).encodeFunctionData(
           "execute",
-          [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.input ?? "0x"]
+          [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.data ?? "0x"]
         )
       }),
       paymasterAndData: "0x",

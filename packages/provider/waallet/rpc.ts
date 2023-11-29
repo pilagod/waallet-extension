@@ -29,7 +29,7 @@ export type EthEstimateGasArguments = {
       gas?: BigNumberish
       gasPrice?: BigNumberish
       value?: BigNumberish
-      input?: HexString
+      data?: HexString
     }
   ]
 }
@@ -44,6 +44,7 @@ export type EthSendTransactionArguments = {
       gasPrice?: BigNumberish
       value?: BigNumberish
       input?: HexString
+      data?: HexString
       nonce?: BigNumberish
     }
   ]

@@ -71,7 +71,7 @@ describe("Waallet Background Provider", () => {
         {
           from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
-          input: counter.interface.encodeFunctionData("increment", [])
+          data: counter.interface.encodeFunctionData("increment", [])
         }
       ]
     })
@@ -107,7 +107,7 @@ describe("Waallet Background Provider", () => {
         {
           from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
-          input: counter.interface.encodeFunctionData("increment", [])
+          data: counter.interface.encodeFunctionData("increment", [])
         }
       ]
     })
