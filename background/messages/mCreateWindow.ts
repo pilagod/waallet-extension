@@ -52,14 +52,8 @@ const handler: PlasmoMessaging.MessageHandler<
 
 function createWindowAsync(createWindowUrl: string) {
   return new Promise((resolve, reject) => {
-    let createdWindowId = null
-    const createdListener = (createdWindow: Windows.Window) => {
-      createdWindowId = createdWindow.id
-      windows.onCreated.removeListener(createdListener)
-    }
-    windows.onCreated.addListener(createdListener)
-
-    const window = windows
+    let createdWindow = null
+    windows
       .create({
         url: createWindowUrl,
         focused: true,
@@ -67,14 +61,17 @@ function createWindowAsync(createWindowUrl: string) {
         width: 385,
         height: 720
       })
+      .then((window) => {
+        createdWindow = window
+      })
       .catch((error) => {
         reject(error)
       })
 
     const removedListener = (removedWindowId: number) => {
-      if (removedWindowId === createdWindowId) {
+      if (removedWindowId === createdWindow.id) {
         windows.onRemoved.removeListener(removedListener)
-        resolve(window)
+        resolve(createdWindow)
       }
     }
     windows.onRemoved.addListener(removedListener)
@@ -83,23 +80,20 @@ function createWindowAsync(createWindowUrl: string) {
 
 function createTabAsync(createTabUrl: string) {
   return new Promise((resolve, reject) => {
-    let createdTabId = null
-    const createdListener = (createdTab: Tabs.Tab) => {
-      createdTabId = createdTab.id
-      tabs.onCreated.removeListener(createdListener)
-    }
-    tabs.onCreated.addListener(createdListener)
-
+    let createdTab = null
     const tab = tabs
       .create({
         url: createTabUrl
+      })
+      .then((tab) => {
+        createdTab = tab
       })
       .catch((error) => {
         reject(error)
       })
 
     const removedListener = (removedTabId: number) => {
-      if (removedTabId === createdTabId) {
+      if (removedTabId === createdTab.id) {
         tabs.onRemoved.removeListener(removedListener)
         resolve(tab)
       }
