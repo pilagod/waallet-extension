@@ -1,4 +1,4 @@
-import { SimpleAccount } from "~packages/provider/waallet/background/account/simple"
+import { PrivateKeyAccount } from "~packages/provider/waallet/background/account/privateKey"
 
 import { setupWaalletBackgroundProvider } from "./provider"
 
@@ -11,7 +11,7 @@ const provider = setupWaalletBackgroundProvider({
   bundlerRpcUrl: process.env.PLASMO_PUBLIC_BUNDLER_RPC_URL
 })
 provider.connect(
-  new SimpleAccount(
+  new PrivateKeyAccount(
     process.env.PLASMO_PUBLIC_ACCOUNT,
     process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY
   )

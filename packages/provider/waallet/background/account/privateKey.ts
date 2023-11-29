@@ -4,7 +4,7 @@ import type { HexString } from "~typings"
 
 import { type Account } from "./index"
 
-export class SimpleAccount implements Account {
+export class PrivateKeyAccount implements Account {
   private accountOwner: Wallet
 
   public constructor(

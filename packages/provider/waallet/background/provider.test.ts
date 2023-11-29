@@ -4,7 +4,7 @@ import type { HexString } from "~typings"
 
 import { BundlerMode, BundlerProvider } from "../../bundler/provider"
 import { WaalletRpcMethod } from "../rpc"
-import { SimpleAccount } from "./account/simple"
+import { PrivateKeyAccount } from "./account/privateKey"
 import { WaalletBackgroundProvider } from "./provider"
 
 describe("Waallet Background Provider", () => {
@@ -19,7 +19,7 @@ describe("Waallet Background Provider", () => {
     bundlerProvider
   )
   waalletProvider.connect(
-    new SimpleAccount(
+    new PrivateKeyAccount(
       "0x661b4a3909b486a3da520403ecc78f7a7b683c63",
       "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
     )
