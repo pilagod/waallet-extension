@@ -9,13 +9,8 @@ import {
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 export type RequestBody = {
-  method: string
-  params: [
-    {
-      origin: string
-      account: string
-    }
-  ]
+  origin: string
+  account: string
 }
 
 export type ResponseBody = {
@@ -32,8 +27,9 @@ const handler: PlasmoMessaging.MessageHandler<
 
   const createWindowUrl = `${runtime.getURL(
     "tabs/mCreateWindow.html"
-  )}?origin=${req.body.params?.[0].origin}&account=${req.body.params?.[0]
-    .account}&tabId=${req.sender.tab.id}`
+  )}?origin=${req.body.origin}&account=${req.body.account}&tabId=${
+    req.sender.tab.id
+  }`
 
   const window = await createWindowAsync(createWindowUrl)
   console.log(
@@ -51,22 +47,19 @@ const handler: PlasmoMessaging.MessageHandler<
 }
 
 function createWindowAsync(createWindowUrl: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     let createdWindow = null
-    windows
-      .create({
+    try {
+      createdWindow = await windows.create({
         url: createWindowUrl,
         focused: true,
         type: "popup",
         width: 385,
         height: 720
       })
-      .then((window) => {
-        createdWindow = window
-      })
-      .catch((error) => {
-        reject(error)
-      })
+    } catch (e) {
+      reject(e)
+    }
 
     const removedListener = (removedWindowId: number) => {
       if (removedWindowId === createdWindow.id) {
@@ -79,23 +72,20 @@ function createWindowAsync(createWindowUrl: string) {
 }
 
 function createTabAsync(createTabUrl: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     let createdTab = null
-    const tab = tabs
-      .create({
+    try {
+      createdTab = await tabs.create({
         url: createTabUrl
       })
-      .then((tab) => {
-        createdTab = tab
-      })
-      .catch((error) => {
-        reject(error)
-      })
+    } catch (e) {
+      reject(e)
+    }
 
     const removedListener = (removedTabId: number) => {
       if (removedTabId === createdTab.id) {
         tabs.onRemoved.removeListener(removedListener)
-        resolve(tab)
+        resolve(createdTab)
       }
     }
     tabs.onRemoved.addListener(removedListener)

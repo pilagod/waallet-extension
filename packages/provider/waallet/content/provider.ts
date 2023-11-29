@@ -40,13 +40,8 @@ export class WaalletContentProvider {
     const req = {
       name: "mCreateWindow",
       body: {
-        method: method,
-        params: [
-          {
-            origin,
-            account
-          }
-        ]
+        origin,
+        account
       }
     }
     const res = await this.backgroundMessenger.send(req)
