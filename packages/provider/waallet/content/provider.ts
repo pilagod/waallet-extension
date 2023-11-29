@@ -17,25 +17,15 @@ export class WaalletContentProvider {
   // Demo code
   // Usage:
   //   await (window as any).waallet.createWindow({
-  //     method: "debug_createWindow",
-  //     params: [
-  //       {
-  //         origin: "app.uniswap.org",
-  //         account: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  //       },
-  //     ],
+  //     origin: "app.uniswap.org",
+  //     account: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   //   });
   private async createWindow({
-    method,
-    params: [{ origin, account }]
+    origin,
+    account
   }: {
-    method: string
-    params: [
-      {
-        origin: string
-        account: string
-      }
-    ]
+    origin: string
+    account: string
   }): Promise<any> {
     const req = {
       name: "mCreateWindow",

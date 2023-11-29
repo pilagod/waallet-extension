@@ -1,10 +1,4 @@
-import {
-  runtime,
-  tabs,
-  windows,
-  type Tabs,
-  type Windows
-} from "webextension-polyfill"
+import { runtime, tabs, windows } from "webextension-polyfill"
 
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
