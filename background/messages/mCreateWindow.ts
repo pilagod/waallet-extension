@@ -53,6 +53,7 @@ function createWindowAsync(createWindowUrl: string) {
       })
     } catch (e) {
       reject(e)
+      return
     }
 
     const removedListener = (removedWindowId: number) => {
@@ -74,6 +75,7 @@ function createTabAsync(createTabUrl: string) {
       })
     } catch (e) {
       reject(e)
+      return
     }
 
     const removedListener = (removedTabId: number) => {
