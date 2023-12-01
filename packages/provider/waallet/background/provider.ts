@@ -203,10 +203,11 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       }
     }
     const fee = await this.nodeProvider.getFeeData()
+    const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
     // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
     return {
-      maxFeePerGas: number.toHex(fee.gasPrice),
-      maxPriorityFeePerGas: number.toHex(fee.gasPrice)
+      maxFeePerGas: number.toHex(gasPriceWithBuffer),
+      maxPriorityFeePerGas: number.toHex(gasPriceWithBuffer)
     }
   }
 
