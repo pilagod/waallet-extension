@@ -27,7 +27,7 @@ const handler: PlasmoMessaging.MessageHandler<
   )}&chalBase64Url=${req.body.chalBase64Url}&authAttach=${req.body.authAttach}`
   console.log(`createWindowUrl: ${createWindowUrl}`)
 
-  const window = await createWindowAsync(createWindowUrl, req.sender.tab.id)
+  const window = await createWindowAsync(createWindowUrl)
   console.log(
     `[background][messaging][window] window: ${JSON.stringify(window, null, 2)}`
   )
@@ -42,7 +42,7 @@ const handler: PlasmoMessaging.MessageHandler<
   })
 }
 
-function createWindowAsync(createWindowUrl: string, tabId: number) {
+function createWindowAsync(createWindowUrl: string) {
   return new Promise(async (resolve, reject) => {
     let createdWindow = null
     try {

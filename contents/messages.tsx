@@ -33,8 +33,7 @@ export const config: PlasmoCSConfig = {
 }
 
 export enum ContentMethod {
-  content_createWebauthn = "content_createWebauthn",
-  content_forTest = "content_forTest"
+  content_createWebauthn = "content_createWebauthn"
 }
 
 export type ContentRequestArguments = ContentCreateWebauthnArguments
@@ -62,10 +61,6 @@ const Messages = () => {
       if (req.body.method) {
         switch (req.body.method) {
           case ContentMethod.content_createWebauthn: {
-            if (!req.body.params) {
-              setStatus("user, chal or authAttach not found")
-              break
-            }
             const cred = await handleCreateWebauthn(req.body.params)
             console.log(
               `[contents][messages] cred: ${JSON.stringify(cred, null, 2)}`
@@ -73,12 +68,6 @@ const Messages = () => {
             // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
             res.send(cred)
             setStatus("Webauthn creation successful.")
-            break
-          }
-          case ContentMethod.content_forTest: {
-            // Send the information back to the window or tab that called sendToContentScript().
-            res.send(req.body)
-            setStatus("For test")
             break
           }
           default: {
