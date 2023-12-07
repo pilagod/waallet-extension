@@ -54,7 +54,7 @@ export class EoaOwnedAccount implements Account {
     if (!this.accountAddress) {
       this.accountAddress = ethers.zeroPadValue(
         ethers.stripZerosLeft(
-          await new ethers.JsonRpcProvider().call(
+          await this.nodeRpcProvider.call(
             await this.factory
               .getFunction("getAddress")
               .populateTransaction(this.owner.address, this.salt)
