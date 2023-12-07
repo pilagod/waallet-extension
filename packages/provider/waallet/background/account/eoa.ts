@@ -4,14 +4,14 @@ import type { HexString } from "~typings"
 
 import { type Account } from "./index"
 
-export class PrivateKeyAccount implements Account {
+export class EoaOwnedAccount implements Account {
   private accountOwner: Wallet
 
   public constructor(
     private accountAddress: HexString,
-    accountOwnerPrivateKey: HexString
+    ownerPrivateKey: HexString
   ) {
-    this.accountOwner = new Wallet(accountOwnerPrivateKey)
+    this.accountOwner = new Wallet(ownerPrivateKey)
   }
 
   public getAddress() {
