@@ -3,8 +3,9 @@ import { runtime, tabs, windows } from "webextension-polyfill"
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 export type RequestBody = {
-  origin: string
-  account: string
+  user?: string
+  chalBase64Url?: string
+  authAttach?: AuthenticatorAttachment
 }
 
 export type ResponseBody = {
@@ -20,19 +21,20 @@ const handler: PlasmoMessaging.MessageHandler<
   )
 
   const createWindowUrl = `${runtime.getURL(
-    "tabs/mCreateWindow.html"
-  )}?origin=${req.body.origin}&account=${req.body.account}&tabId=${
-    req.sender.tab.id
-  }`
+    "tabs/createWebauthn.html"
+  )}?tabId=${req.sender.tab.id}&user=${encodeURI(
+    req.body.user
+  )}&chalBase64Url=${req.body.chalBase64Url}&authAttach=${req.body.authAttach}`
+  console.log(`createWindowUrl: ${createWindowUrl}`)
 
-  const window = await createWindowAsync(createWindowUrl)
+  const window = await createWindowAsync(createWindowUrl, req.sender.tab.id)
   console.log(
     `[background][messaging][window] window: ${JSON.stringify(window, null, 2)}`
   )
 
   //   const tab = await createTabAsync(createWindowUrl)
   //   console.log(
-  //     `[background][messaging][window] tab: ${JSON.stringify(window, null, 2)}`
+  //     `[background][messaging][tab] tab: ${JSON.stringify(window, null, 2)}`
   //   )
 
   res.send({
@@ -40,7 +42,7 @@ const handler: PlasmoMessaging.MessageHandler<
   })
 }
 
-function createWindowAsync(createWindowUrl: string) {
+function createWindowAsync(createWindowUrl: string, tabId: number) {
   return new Promise(async (resolve, reject) => {
     let createdWindow = null
     try {
@@ -48,7 +50,7 @@ function createWindowAsync(createWindowUrl: string) {
         url: createWindowUrl,
         focused: true,
         type: "popup",
-        width: 385,
+        width: 480,
         height: 720
       })
     } catch (e) {
@@ -71,7 +73,8 @@ function createTabAsync(createTabUrl: string) {
     let createdTab = null
     try {
       createdTab = await tabs.create({
-        url: createTabUrl
+        url: createTabUrl,
+        active: false
       })
     } catch (e) {
       reject(e)
