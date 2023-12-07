@@ -19,10 +19,11 @@ describe("Waallet Background Provider", () => {
     bundlerProvider
   )
   waalletProvider.connect(
-    new EoaOwnedAccount(
-      "0x661b4a3909b486a3da520403ecc78f7a7b683c63",
-      "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-    )
+    new EoaOwnedAccount({
+      accountAddress: "0x661b4a3909b486a3da520403ecc78f7a7b683c63",
+      ownerPrivateKey:
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    })
   )
 
   const counter = new ethers.Contract(
