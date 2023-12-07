@@ -1,38 +1,23 @@
-import * as ethers from "ethers"
-
+import config from "~config/test"
 import type { HexString } from "~typings"
 
-import { BundlerMode, BundlerProvider } from "../../bundler/provider"
 import { WaalletRpcMethod } from "../rpc"
 import { EoaOwnedAccount } from "./account/eoa"
 import { WaalletBackgroundProvider } from "./provider"
 
 describe("Waallet Background Provider", () => {
-  const nodeRpcUrl = "http://localhost:8545"
-  const nodeProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
-
-  const bundlerRpcUrl = "http://localhost:3000"
-  const bundlerProvider = new BundlerProvider(bundlerRpcUrl, BundlerMode.Manual)
+  const { node } = config.provider
+  const { counter } = config.contract
 
   const waalletProvider = new WaalletBackgroundProvider(
-    nodeRpcUrl,
-    bundlerProvider
+    config.rpc.node,
+    config.provider.bundler
   )
   waalletProvider.connect(
     new EoaOwnedAccount({
-      accountAddress: "0x661b4a3909b486a3da520403ecc78f7a7b683c63",
-      ownerPrivateKey:
-        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+      accountAddress: config.address.SimpleAccount,
+      ownerPrivateKey: config.account.operator.privateKey
     })
-  )
-
-  const counter = new ethers.Contract(
-    "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-    new ethers.Interface([
-      "function number() view returns (uint256)",
-      "function increment()"
-    ]),
-    nodeProvider
   )
 
   it("should get accounts", async () => {
@@ -80,7 +65,7 @@ describe("Waallet Background Provider", () => {
   })
 
   it("should send transaction with ether", async () => {
-    const balanceBefore = await nodeProvider.getBalance(counter.getAddress())
+    const balanceBefore = await node.getBalance(counter.getAddress())
 
     const txHash = await waalletProvider.request<HexString>({
       method: WaalletRpcMethod.eth_sendTransaction,
@@ -92,10 +77,10 @@ describe("Waallet Background Provider", () => {
         }
       ]
     })
-    const receipt = await nodeProvider.getTransactionReceipt(txHash)
+    const receipt = await node.getTransactionReceipt(txHash)
     expect(receipt.status).toBe(1)
 
-    const balanceAfter = await nodeProvider.getBalance(counter.getAddress())
+    const balanceAfter = await node.getBalance(counter.getAddress())
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
@@ -112,7 +97,7 @@ describe("Waallet Background Provider", () => {
         }
       ]
     })
-    const receipt = await nodeProvider.getTransactionReceipt(txHash)
+    const receipt = await node.getTransactionReceipt(txHash)
     expect(receipt.status).toBe(1)
 
     const counterAfter = (await counter.number()) as bigint
