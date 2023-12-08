@@ -43,7 +43,7 @@ export type ContentCreateWebauthnArguments = {
   params: {
     tabId?: number
     user?: string
-    chalBase64Url?: string
+    challengeBase64Url?: string
     authAttach?: AuthenticatorAttachment
   }
 }
@@ -101,7 +101,7 @@ export default Messages
 export const handleCreateWebauthn = async (params: {
   tabId?: number // Not to use
   user?: string
-  chalBase64Url?: string
+  challengeBase64Url?: string
   authAttach?: AuthenticatorAttachment
 }): Promise<{
   orig: string
@@ -109,8 +109,8 @@ export const handleCreateWebauthn = async (params: {
   credPubKeyXUint256String: string
   credPubKeyYUint256String: string
 }> => {
-  const chalBase64Url = params.chalBase64Url
-    ? params.chalBase64Url
+  const challengeBase64Url = params.challengeBase64Url
+    ? params.challengeBase64Url
     : isoBase64URL.fromBuffer(await generateChallenge())
   const authAttach =
     params.authAttach &&
@@ -136,7 +136,7 @@ export const handleCreateWebauthn = async (params: {
       name: userName,
       displayName: userDisplayName
     },
-    challenge: chalBase64Url,
+    challenge: challengeBase64Url,
     pubKeyCredParams: [
       {
         alg: defaultWebauthn.pubKeyCredAlgEs256,
@@ -189,7 +189,7 @@ export const handleCreateWebauthn = async (params: {
     ethersAbi.encode(["bytes32"], [credPubKeyYHex])
   )[0] as bigint
   console.log(
-    `[webauthn][debug]\nuserDisplayName: ${userDisplayName}\nchalBase64Url: ${chalBase64Url}\nauthAttach: ${authAttach}\ncredPubKeyXHex: ${credPubKeyXHex}\ncredPubKeyYHex: ${credPubKeyYHex}`
+    `[webauthn][debug]\nuserDisplayName: ${userDisplayName}\nchallengeBase64Url: ${challengeBase64Url}\nauthAttach: ${authAttach}\ncredPubKeyXHex: ${credPubKeyXHex}\ncredPubKeyYHex: ${credPubKeyYHex}`
   )
   return {
     orig: origin,

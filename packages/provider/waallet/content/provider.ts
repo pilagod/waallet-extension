@@ -22,23 +22,23 @@ export class WaalletContentProvider extends EventEmitter {
   // Usage:
   //   await (window as any).waallet.createWindow({
   //     user: "imToken Labs",
-  //     chalBase64Url: "",
+  //     challengeBase64Url: "Pezpmh0P8lXu3tP-V5wSIGnHNVvns0EWyloweQTjmE8",
   //     authAttach: "cross-platform",
   //   });
   private async createWindow({
     user,
-    chalBase64Url,
+    challengeBase64Url,
     authAttach
   }: {
     user?: string
-    chalBase64Url?: string
+    challengeBase64Url?: string
     authAttach?: AuthenticatorAttachment
   }): Promise<any> {
     const req = {
       name: "mCreateWindow",
       body: {
         user,
-        chalBase64Url,
+        challengeBase64Url,
         authAttach
       }
     }

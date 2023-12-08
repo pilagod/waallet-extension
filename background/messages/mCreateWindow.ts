@@ -4,7 +4,7 @@ import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 export type RequestBody = {
   user?: string
-  chalBase64Url?: string
+  challengeBase64Url?: string
   authAttach?: AuthenticatorAttachment
 }
 
@@ -24,7 +24,9 @@ const handler: PlasmoMessaging.MessageHandler<
     "tabs/createWebauthn.html"
   )}?tabId=${req.sender.tab.id}&user=${encodeURI(
     req.body.user
-  )}&chalBase64Url=${req.body.chalBase64Url}&authAttach=${req.body.authAttach}`
+  )}&challengeBase64Url=${req.body.challengeBase64Url}&authAttach=${
+    req.body.authAttach
+  }`
   console.log(`createWindowUrl: ${createWindowUrl}`)
 
   const window = await createWindowAsync(createWindowUrl)
