@@ -41,6 +41,7 @@
     "host_permissions": [
       "https://*/*",
       "http://localhost:*/*"
-    ]
+    ],
+    "key": "$CRX_KEY"
   }
 }
