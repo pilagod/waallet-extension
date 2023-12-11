@@ -19,9 +19,8 @@ import type {
 } from "@simplewebauthn/typescript-types"
 import { AbiCoder } from "ethers"
 import type { PlasmoCSConfig } from "plasmo"
-import { useState } from "react"
 
-import { useMessage } from "@plasmohq/messaging/hook"
+import { listen } from "@plasmohq/messaging/message"
 
 const ethersAbi = AbiCoder.defaultAbiCoder()
 export const config: PlasmoCSConfig = {
@@ -48,52 +47,40 @@ export type ContentCreateWebauthnArguments = {
   }
 }
 
+// Non-hook usage reference: https://github.com/PlasmoHQ/plasmo/blob/888b6015c3829872f78428ca0f07640989f6608c/api/messaging/src/hook.ts#L18
 const Messages = () => {
-  const [status, setStatus] = useState<string>("")
+  listen<Record<string, any>, Record<string, any>>(async (req, res) => {
+    console.log(`[contents][messages] req: ${JSON.stringify(req, null, 2)}`)
 
-  const { data: _ } = useMessage<Record<string, any>, Record<string, any>>(
-    async (req, res) => {
-      console.log(`[contents][messages] req: ${JSON.stringify(req, null, 2)}`)
-
-      if (!req.body.method) {
-        setStatus("method not found")
-      }
-      if (req.body.method) {
-        switch (req.body.method) {
-          case ContentMethod.content_createWebauthn: {
-            const cred = await handleCreateWebauthn(req.body.params)
-            console.log(
-              `[contents][messages] cred: ${JSON.stringify(cred, null, 2)}`
-            )
-            // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
-            res.send(cred)
-            setStatus("Webauthn creation successful.")
-            break
-          }
-          default: {
-            // Send the information back to the window or tab that called sendToContentScript().
-            res.send(req.body)
-            setStatus("no method matching")
-            break
-          }
+    if (!req.body.method) {
+      console.log(`[contents][messages] status: method not found`)
+    }
+    if (req.body.method) {
+      switch (req.body.method) {
+        case ContentMethod.content_createWebauthn: {
+          const cred = await handleCreateWebauthn(req.body.params)
+          console.log(
+            `[contents][messages] cred: ${JSON.stringify(cred, null, 2)}`
+          )
+          // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
+          res.send(cred)
+          console.log(
+            `[contents][messages] status: Webauthn creation successful`
+          )
+          break
+        }
+        default: {
+          // Send the information back to the window or tab that called sendToContentScript().
+          res.send(req.body)
+          console.log(`[contents][messages] status: No method matching`)
+          break
         }
       }
     }
-  )
-
-  return (
-    <div
-      style={{
-        padding: 8,
-        background: "#333",
-        color: "red"
-      }}>
-      Status: {status}
-    </div>
-  )
+  })
 }
 
-export default Messages
+Messages()
 
 /*********************************
  *            Helpers            *
