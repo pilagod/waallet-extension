@@ -11,7 +11,9 @@ export interface EoaOwnedAccountFactoryAdapter {
 }
 
 export class EoaOwnedAccount implements Account {
-  // @dev Use when account is already deployed
+  /**
+   * Use when account is already deployed
+   */
   public static async initWithAddress(opts: {
     address: HexString
     ownerPrivateKey: HexString
@@ -22,7 +24,9 @@ export class EoaOwnedAccount implements Account {
     })
   }
 
-  // @dev Use when account is not yet deployed
+  /**
+   * Use when account is not yet deployed
+   */
   public static async initWithSalt(opts: {
     factoryAdapter: EoaOwnedAccountFactoryAdapter
     salt: BigNumberish
