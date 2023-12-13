@@ -17,7 +17,7 @@ describe("Waallet Background Provider", () => {
   beforeAll(async () => {
     waalletProvider.connect(
       await EoaOwnedAccount.initWithAddress({
-        accountAddress: config.address.SimpleAccount,
+        address: config.address.SimpleAccount,
         ownerPrivateKey: config.account.operator.privateKey
       })
     )

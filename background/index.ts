@@ -11,7 +11,7 @@ const provider = setupWaalletBackgroundProvider({
   bundlerRpcUrl: process.env.PLASMO_PUBLIC_BUNDLER_RPC_URL
 })
 EoaOwnedAccount.initWithAddress({
-  accountAddress: process.env.PLASMO_PUBLIC_ACCOUNT,
+  address: process.env.PLASMO_PUBLIC_ACCOUNT,
   ownerPrivateKey: process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY
 }).then((account) => {
   provider.connect(account)

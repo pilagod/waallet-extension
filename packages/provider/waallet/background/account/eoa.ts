@@ -4,66 +4,81 @@ import type { BigNumberish, HexString } from "~typings"
 
 import { type Account } from "./index"
 
+// TODO: Extract a generic adapter interface
 export interface EoaOwnedAccountFactoryAdapter {
   getAddress(ownerAddress: HexString, salt: BigNumberish): Promise<HexString>
   getInitCode(ownerAddress: HexString, salt: BigNumberish): Promise<HexString>
 }
 
 export class EoaOwnedAccount implements Account {
+  // @dev Use when account is already deployed
   public static async initWithAddress(opts: {
-    accountAddress: HexString
+    address: HexString
     ownerPrivateKey: HexString
   }): Promise<EoaOwnedAccount> {
-    return new EoaOwnedAccount(opts)
+    return new EoaOwnedAccount({
+      ...opts,
+      deployed: true
+    })
   }
 
+  // @dev Use when account is not yet deployed
   public static async initWithSalt(opts: {
-    ownerPrivateKey: HexString
     factoryAdapter: EoaOwnedAccountFactoryAdapter
     salt: BigNumberish
+    ownerPrivateKey: HexString
   }): Promise<EoaOwnedAccount> {
     const owner = new ethers.Wallet(opts.ownerPrivateKey)
-    const accountAddress = await opts.factoryAdapter.getAddress(
+    const address = await opts.factoryAdapter.getAddress(
+      owner.address,
+      opts.salt
+    )
+    const initCode = await opts.factoryAdapter.getInitCode(
       owner.address,
       opts.salt
     )
     return new EoaOwnedAccount({
-      accountAddress,
-      ...opts
+      address,
+      deployed: false,
+      ownerPrivateKey: owner.privateKey,
+      initCode
     })
   }
 
-  private accountAddress: HexString
+  private address: HexString
+  private deployed: boolean
+  private initCode: HexString = "0x"
+
   private owner: ethers.Wallet
 
-  private factoryAdapter?: EoaOwnedAccountFactoryAdapter
-  private salt?: BigNumberish
-
   private constructor(opts: {
-    accountAddress: HexString
+    address: HexString
+    deployed: boolean
     ownerPrivateKey: HexString
-    factoryAdapter?: EoaOwnedAccountFactoryAdapter
-    salt?: BigNumberish
+    initCode?: HexString
   }) {
-    this.accountAddress = opts.accountAddress
+    this.address = opts.address
+    this.deployed = opts.deployed
     this.owner = new ethers.Wallet(opts.ownerPrivateKey)
-    if (opts.factoryAdapter) {
-      this.factoryAdapter = opts.factoryAdapter
-    }
-    if (opts.salt) {
-      this.salt = opts.salt
+    if (opts.initCode) {
+      this.initCode = opts.initCode
     }
   }
 
   public async getAddress() {
-    return this.accountAddress
+    return this.address
   }
 
   public async getInitCode() {
-    if (!this.factoryAdapter || !this.salt) {
-      throw new Error("Factory adapter or salt is not set")
-    }
-    return this.factoryAdapter.getInitCode(this.owner.address, this.salt)
+    return this.initCode
+  }
+
+  public async isDeployed() {
+    return this.deployed
+  }
+
+  public markDeployed() {
+    this.deployed = true
   }
 
   public signMessage(message: string | Uint8Array) {

@@ -19,12 +19,12 @@ describe("EoaOwnedAccount", () => {
     beforeEach(async () => {
       salt = ethers.toBigInt(ethers.randomBytes(32))
       account = await EoaOwnedAccount.initWithSalt({
-        ownerPrivateKey: owner.privateKey,
         factoryAdapter: new SimpleAccountFactoryAdapter(
           config.address.SimpleAccountFactory,
           config.rpc.node
         ),
-        salt
+        salt,
+        ownerPrivateKey: owner.privateKey
       })
     })
 
