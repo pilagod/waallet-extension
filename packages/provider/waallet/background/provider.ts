@@ -113,8 +113,9 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
 
     if (!(await this.account.isDeployed())) {
       // TODO: A mechanism to notify account deployed (or maybe do it in the outside world)
-      const receipt = await this.nodeProvider.getTransactionReceipt(txHash)
-      if (receipt.status) {
+      const { success } =
+        await this.bundlerProvider.getUserOperationReceipt(userOpHash)
+      if (success) {
         this.account.markDeployed()
       }
     }

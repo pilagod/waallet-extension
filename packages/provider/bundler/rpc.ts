@@ -2,6 +2,7 @@ export enum BundlerRpcMethod {
   eth_chainId = "eth_chainId",
   eth_estimateUserOperationGas = "eth_estimateUserOperationGas",
   eth_getUserOperationByHash = "eth_getUserOperationByHash",
+  eth_getUserOperationReceipt = "eth_getUserOperationReceipt",
   eth_sendUserOperation = "eth_sendUserOperation",
   eth_supportedEntryPoints = "eth_supportedEntryPoints",
 

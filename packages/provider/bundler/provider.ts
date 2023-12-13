@@ -31,6 +31,16 @@ export class BundlerProvider extends JsonRpcProvider {
     return entryPointAddresses
   }
 
+  public async getUserOperationReceipt(userOpHash: HexString): Promise<{
+    success: boolean
+  }> {
+    const receipt = this.send({
+      method: BundlerRpcMethod.eth_getUserOperationReceipt,
+      params: [userOpHash]
+    })
+    return receipt
+  }
+
   public async estimateUserOperationGas(
     userOp: Partial<UserOperation>,
     entryPointAddress: HexString
