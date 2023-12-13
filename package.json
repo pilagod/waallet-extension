@@ -8,7 +8,8 @@
     "build": "plasmo build",
     "lint": "tsc --noEmit",
     "test": "jest -i",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "clear": "rm -r .plasmo/ && rm -r build/"
   },
   "dependencies": {
     "@plasmohq/messaging": "^0.5.0",
