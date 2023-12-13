@@ -17,7 +17,7 @@ describe("EoaOwnedAccount", () => {
     let account: EoaOwnedAccount
 
     beforeEach(async () => {
-      salt = ethers.toBigInt(ethers.randomBytes(32))
+      salt = number.random()
       account = await EoaOwnedAccount.initWithSalt({
         factoryAdapter: new SimpleAccountFactoryAdapter(
           config.address.SimpleAccountFactory,

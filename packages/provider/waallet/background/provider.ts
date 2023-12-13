@@ -84,10 +84,11 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       entryPointAddress
     )
     const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
+    // TODO: Fix sender to connected account
     const userOp = {
       sender: tx.from,
       nonce: number.toHex(tx.nonce),
-      initCode: "0x",
+      initCode: await this.account.getInitCode(),
       callData: new ethers.Interface(abi.Account).encodeFunctionData(
         "execute",
         [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.data ?? "0x"]
@@ -110,6 +111,14 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     await this.bundlerProvider.sendUserOperation(userOp, entryPointAddress)
     const txHash = await this.bundlerProvider.wait(userOpHash)
 
+    if (!(await this.account.isDeployed())) {
+      // TODO: A mechanism to notify account deployed (or maybe do it in the outside world)
+      const receipt = await this.nodeProvider.getTransactionReceipt(txHash)
+      if (receipt.status) {
+        this.account.markDeployed()
+      }
+    }
+
     return txHash
   }
 
@@ -127,6 +136,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       abi.EntryPoint,
       this.nodeProvider
     )
+    // TODO: Fix sender to connected account
     const userOp = {
       sender: tx.from ?? (await this.account.getAddress()),
       nonce: number.toHex(
@@ -135,8 +145,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
           0
         )) as bigint
       ),
-      // TODO: Handle init code when account is not deployed
-      initCode: "0x",
+      initCode: await this.account.getInitCode(),
       ...(tx.to && {
         callData: new ethers.Interface(abi.Account).encodeFunctionData(
           "execute",

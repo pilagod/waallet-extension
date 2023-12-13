@@ -1,7 +1,11 @@
+import * as ethers from "ethers"
+
 import config from "~config/test"
+import number from "~packages/utils/number"
 import type { HexString } from "~typings"
 
 import { WaalletRpcMethod } from "../rpc"
+import { SimpleAccountFactoryAdapter } from "./account/adapter/SimpleAccountFactory"
 import { EoaOwnedAccount } from "./account/eoa"
 import { WaalletBackgroundProvider } from "./provider"
 
@@ -14,7 +18,7 @@ describe("Waallet Background Provider", () => {
     config.provider.bundler
   )
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     waalletProvider.connect(
       await EoaOwnedAccount.initWithAddress({
         address: config.address.SimpleAccount,
@@ -102,6 +106,46 @@ describe("Waallet Background Provider", () => {
     })
     const receipt = await node.getTransactionReceipt(txHash)
     expect(receipt.status).toBe(1)
+
+    const counterAfter = (await counter.number()) as bigint
+    expect(counterAfter - counterBefore).toBe(1n)
+  })
+
+  it("should deploy account and send transaction when account is not deployed", async () => {
+    const account = await EoaOwnedAccount.initWithSalt({
+      factoryAdapter: new SimpleAccountFactoryAdapter(
+        config.address.SimpleAccountFactory,
+        config.rpc.node
+      ),
+      salt: number.random(),
+      ownerPrivateKey: config.account.operator.privateKey
+    })
+    await config.account.operator.sendTransaction({
+      to: await account.getAddress(),
+      value: ethers.parseUnits("0.001", "ether")
+    })
+    waalletProvider.connect(account)
+
+    const codeBefore = await node.getCode(await account.getAddress())
+    expect(codeBefore).toBe("0x")
+    expect(await account.isDeployed()).toBe(false)
+
+    const counterBefore = (await counter.number()) as bigint
+
+    await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_sendTransaction,
+      params: [
+        {
+          from: await waalletProvider.account.getAddress(),
+          to: await counter.getAddress(),
+          data: counter.interface.encodeFunctionData("increment", [])
+        }
+      ]
+    })
+
+    const codeAfter = await node.getCode(await account.getAddress())
+    expect(codeAfter).not.toBe("0x")
+    expect(await account.isDeployed()).toBe(true)
 
     const counterAfter = (await counter.number()) as bigint
     expect(counterAfter - counterBefore).toBe(1n)

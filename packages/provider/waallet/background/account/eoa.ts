@@ -70,6 +70,12 @@ export class EoaOwnedAccount implements Account {
   }
 
   public async getInitCode() {
+    if (await this.isDeployed()) {
+      return "0x"
+    }
+    if (!this.initCode) {
+      throw new Error("No init code for account")
+    }
     return this.initCode
   }
 
