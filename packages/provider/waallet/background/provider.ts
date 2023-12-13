@@ -189,15 +189,4 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       maxPriorityFeePerGas: number.toHex(gasPriceWithBuffer)
     }
   }
-
-  private async createWindow(url: string): Promise<any> {
-    // TODO: Require an abstraction for browser to open window
-    // await browser.windows.create({
-    //   url,
-    //   focused: true,
-    //   type: "popup",
-    //   width: 385,
-    //   height: 720
-    // })
-  }
 }
