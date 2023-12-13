@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import abi from "~packages/abi"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
+import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/rpc/json/provider"
 import number from "~packages/utils/number"
 import type { BigNumberish, HexString } from "~typings"
@@ -99,42 +100,10 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
         callGasLimit: number.toHex(tx.gas)
       })
     }
-    const abiCoder = ethers.AbiCoder.defaultAbiCoder()
-    const userOpPacked = abiCoder.encode(
-      [
-        "address",
-        "uint256",
-        "bytes32",
-        "bytes32",
-        "uint256",
-        "uint256",
-        "uint256",
-        "uint256",
-        "uint256",
-        "bytes32"
-      ],
-      [
-        userOp.sender,
-        userOp.nonce,
-        ethers.keccak256(userOp.initCode),
-        ethers.keccak256(userOp.callData),
-        userOp.callGasLimit,
-        userOp.verificationGasLimit,
-        userOp.preVerificationGas,
-        userOp.maxFeePerGas,
-        userOp.maxPriorityFeePerGas,
-        ethers.keccak256(userOp.paymasterAndData)
-      ]
-    )
-    const userOpHash = ethers.keccak256(
-      abiCoder.encode(
-        ["bytes32", "address", "uint256"],
-        [
-          ethers.keccak256(userOpPacked),
-          entryPointAddress,
-          await this.bundlerProvider.getChainId()
-        ]
-      )
+    const userOpHash = await getUserOpHash(
+      userOp,
+      entryPointAddress,
+      await this.bundlerProvider.getChainId()
     )
     userOp.signature = await this.account.signMessage(userOpHash)
 
