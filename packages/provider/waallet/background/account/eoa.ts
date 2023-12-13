@@ -9,51 +9,41 @@ export interface EoaOwnedAccountFactoryAdapter {
 }
 
 export class EoaOwnedAccount implements Account {
-  private owner: ethers.Wallet
-
-  private accountAddress?: HexString
-
-  private factoryAdapter?: EoaOwnedAccountFactoryAdapter
-  private salt?: BigNumberish
-
-  public constructor(opts: {
-    ownerPrivateKey: HexString
+  public static async initWithAddress(opts: {
     accountAddress: HexString
-  })
-  public constructor(opts: {
+    ownerPrivateKey: HexString
+  }): Promise<EoaOwnedAccount> {
+    return new EoaOwnedAccount(opts)
+  }
+
+  public static async initWithSalt(opts: {
     ownerPrivateKey: HexString
     factoryAdapter: EoaOwnedAccountFactoryAdapter
     salt: BigNumberish
-  })
-  public constructor(
-    opts:
-      | {
-          ownerPrivateKey: HexString
-          accountAddress: HexString
-        }
-      | {
-          ownerPrivateKey: HexString
-          factoryAdapter: EoaOwnedAccountFactoryAdapter
-          salt: BigNumberish
-        }
-  ) {
-    if ("accountAddress" in opts) {
-      this.accountAddress = opts.accountAddress
-    }
-    if ("factoryAdapter" in opts) {
-      this.factoryAdapter = opts.factoryAdapter
-      this.salt = opts.salt
-    }
+  }): Promise<EoaOwnedAccount> {
+    const owner = new ethers.Wallet(opts.ownerPrivateKey)
+    const accountAddress = await opts.factoryAdapter.getAddress(
+      owner.address,
+      opts.salt
+    )
+    return new EoaOwnedAccount({
+      ownerPrivateKey: opts.ownerPrivateKey,
+      accountAddress
+    })
+  }
+
+  private accountAddress: HexString
+  private owner: ethers.Wallet
+
+  private constructor(opts: {
+    accountAddress: HexString
+    ownerPrivateKey: HexString
+  }) {
+    this.accountAddress = opts.accountAddress
     this.owner = new ethers.Wallet(opts.ownerPrivateKey)
   }
 
   public async getAddress() {
-    if (!this.accountAddress) {
-      this.accountAddress = await this.factoryAdapter.getAddress(
-        this.owner.address,
-        this.salt
-      )
-    }
     return this.accountAddress
   }
 

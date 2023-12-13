@@ -13,12 +13,15 @@ describe("Waallet Background Provider", () => {
     config.rpc.node,
     config.provider.bundler
   )
-  waalletProvider.connect(
-    new EoaOwnedAccount({
-      accountAddress: config.address.SimpleAccount,
-      ownerPrivateKey: config.account.operator.privateKey
-    })
-  )
+
+  beforeAll(async () => {
+    waalletProvider.connect(
+      await EoaOwnedAccount.initWithAddress({
+        accountAddress: config.address.SimpleAccount,
+        ownerPrivateKey: config.account.operator.privateKey
+      })
+    )
+  })
 
   it("should get accounts", async () => {
     const accounts = await waalletProvider.request<HexString>({

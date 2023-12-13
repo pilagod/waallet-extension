@@ -14,7 +14,7 @@ describe("EoaOwnedAccount", () => {
   it("should compute address from factory", async () => {
     const salt = 123
 
-    const account = new EoaOwnedAccount({
+    const account = await EoaOwnedAccount.initWithSalt({
       ownerPrivateKey: config.account.operator.privateKey,
       factoryAdapter: new SimpleAccountFactoryAdapter(
         config.address.SimpleAccountFactory,
