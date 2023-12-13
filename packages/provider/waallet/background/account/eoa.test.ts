@@ -6,7 +6,7 @@ import { getUserOpHash } from "~packages/provider/bundler/util"
 import number from "~packages/utils/number"
 import type { BigNumberish } from "~typings"
 
-import { SimpleAccountFactoryAdapter } from "./adapter/SimpleAccountFactoryAdapter"
+import { SimpleAccountFactoryAdapter } from "./adapter/SimpleAccountFactory"
 import { EoaOwnedAccount } from "./eoa"
 
 describe("EoaOwnedAccount", () => {

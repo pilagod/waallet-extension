@@ -1,4 +1,3 @@
-import { SimpleAccountFactoryAdapter } from "~packages/provider/waallet/background/account/adapter/SimpleAccountFactoryAdapter"
 import { EoaOwnedAccount } from "~packages/provider/waallet/background/account/eoa"
 
 import { setupWaalletBackgroundProvider } from "./provider"
