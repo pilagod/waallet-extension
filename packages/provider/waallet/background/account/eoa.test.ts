@@ -10,10 +10,7 @@ import { SimpleAccountFactoryAdapter } from "./adapter/SimpleAccountFactoryAdapt
 import { EoaOwnedAccount } from "./eoa"
 
 describe("EoaOwnedAccount", () => {
-  const owner = new ethers.Wallet(
-    config.account.operator.privateKey,
-    config.provider.node
-  )
+  const owner = config.account.operator
 
   describe("With factory and salt", () => {
     let salt: BigNumberish
@@ -22,7 +19,7 @@ describe("EoaOwnedAccount", () => {
     beforeEach(async () => {
       salt = ethers.toBigInt(ethers.randomBytes(32))
       account = await EoaOwnedAccount.initWithSalt({
-        ownerPrivateKey: config.account.operator.privateKey,
+        ownerPrivateKey: owner.privateKey,
         factoryAdapter: new SimpleAccountFactoryAdapter(
           config.address.SimpleAccountFactory,
           config.rpc.node
