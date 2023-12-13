@@ -22,17 +22,14 @@ export const CreateWebauthn = () => {
     setTabParams(params)
   }, [])
 
-  const buttonCreateWebauthnViaContentsDeps: DependencyList = [tabParams]
   const buttonCreateWebauthnViaContents = useCallback(async () => {
     const tabId = tabParams.tabId ? tabParams.tabId : undefined
     const contentReq = {
       tabId: tabId,
-      name: "",
-      body: {
-        method: ContentMethod.content_createWebauthn,
-        params: tabParams
-      } as ContentRequestArguments
-    }
+      name: ContentMethod.content_createWebauthn,
+      body: tabParams
+    } as ContentRequestArguments
+    chrome.tabs.sendMessage(tabId, { farewell: "goodbye" })
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
     const contentRes = await sendToContentScript(contentReq)
 
@@ -44,9 +41,8 @@ export const CreateWebauthn = () => {
       )}`
     )
     setCred(contentRes)
-  }, buttonCreateWebauthnViaContentsDeps)
+  }, [tabParams])
 
-  const buttonCreateWebauthnDeps: DependencyList = [tabParams]
   const buttonCreateWebauthn = useCallback(async () => {
     const credential = await handleCreateWebauthn(tabParams)
 
@@ -54,7 +50,7 @@ export const CreateWebauthn = () => {
       `[tab][createWebauthn] contentRes: ${JSON.stringify(credential, null, 2)}`
     )
     setCred(credential)
-  }, buttonCreateWebauthnDeps)
+  }, [tabParams])
 
   const buttonCloseWindow = () => {
     window.onbeforeunload = null

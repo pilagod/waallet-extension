@@ -38,8 +38,9 @@ export enum ContentMethod {
 export type ContentRequestArguments = ContentCreateWebauthnArguments
 
 export type ContentCreateWebauthnArguments = {
-  method: ContentMethod.content_createWebauthn
-  params: {
+  tabId?: number
+  name: ContentMethod.content_createWebauthn
+  body: {
     tabId?: number
     user?: string
     challengeBase64Url?: string
@@ -52,13 +53,13 @@ const Messages = () => {
   listen<Record<string, any>, Record<string, any>>(async (req, res) => {
     console.log(`[contents][messages] req: ${JSON.stringify(req, null, 2)}`)
 
-    if (!req.body.method) {
+    if (!req.name) {
       console.log(`[contents][messages] status: method not found`)
     }
-    if (req.body.method) {
-      switch (req.body.method) {
+    if (req.name) {
+      switch (req.name) {
         case ContentMethod.content_createWebauthn: {
-          const cred = await handleCreateWebauthn(req.body.params)
+          const cred = await handleCreateWebauthn(req.body)
           console.log(
             `[contents][messages] cred: ${JSON.stringify(cred, null, 2)}`
           )
@@ -96,17 +97,22 @@ export const handleCreateWebauthn = async (params: {
   credPubKeyXUint256String: string
   credPubKeyYUint256String: string
 }> => {
-  const challengeBase64Url = params.challengeBase64Url
-    ? params.challengeBase64Url
-    : isoBase64URL.fromBuffer(await generateChallenge())
+  const challengeBase64Url =
+    params &&
+    params.challengeBase64Url &&
+    isoBase64URL.isBase64(params.challengeBase64Url)
+      ? params.challengeBase64Url
+      : isoBase64URL.fromBuffer(await generateChallenge())
   const authAttach =
+    params &&
     params.authAttach &&
     (params.authAttach.toString() === "platform" ||
       params.authAttach.toString() === "cross-platform")
       ? params.authAttach
       : ("cross-platform" as AuthenticatorAttachment)
-
-  const userDisplayName = params.user ? decodeURI(params.user) : "user"
+  console.log(`authAttach: ${authAttach}`)
+  const userDisplayName =
+    params && params.user ? decodeURI(params.user) : "user"
   const name = userDisplayName.toLowerCase().replace(/[^\w]/g, "")
   const id = Date.now().toString()
   const userId = `${name}-${id}`
