@@ -1,5 +1,9 @@
 # Waallet Extension
 
+## Demo
+
+[![Waallet Demo](https://i.imgur.com/78PaPdK.png)](https://www.youtube.com/watch?v=rUzqDGrcEvU)
+
 ## Development
 
 This project depends on [waallet-contract](https://github.com/pilagod/waallet-contract) to provide the testnet environment, please follow the instructions in the repository to setup local testnet.
