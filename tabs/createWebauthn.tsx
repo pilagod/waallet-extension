@@ -29,7 +29,7 @@ export const CreateWebauthn = () => {
       name: ContentMethod.content_createWebauthn,
       body: tabParams
     } as ContentRequestArguments
-    chrome.tabs.sendMessage(tabId, { farewell: "goodbye" })
+
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
     const contentRes = await sendToContentScript(contentReq)
 

@@ -55,27 +55,25 @@ const Messages = () => {
 
     if (!req.name) {
       console.log(`[contents][messages] status: method not found`)
+      return
     }
-    if (req.name) {
-      switch (req.name) {
-        case ContentMethod.content_createWebauthn: {
-          const cred = await handleCreateWebauthn(req.body)
-          console.log(
-            `[contents][messages] cred: ${JSON.stringify(cred, null, 2)}`
-          )
-          // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
-          res.send(cred)
-          console.log(
-            `[contents][messages] status: Webauthn creation successful`
-          )
-          break
-        }
-        default: {
-          // Send the information back to the window or tab that called sendToContentScript().
-          res.send(req.body)
-          console.log(`[contents][messages] status: No method matching`)
-          break
-        }
+
+    switch (req.name) {
+      case ContentMethod.content_createWebauthn: {
+        const cred = await handleCreateWebauthn(req.body)
+        console.log(
+          `[contents][messages] cred: ${JSON.stringify(cred, null, 2)}`
+        )
+        // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
+        res.send(cred)
+        console.log(`[contents][messages] status: Webauthn creation successful`)
+        break
+      }
+      default: {
+        // Send the information back to the window or tab that called sendToContentScript().
+        res.send(req.body)
+        console.log(`[contents][messages] status: No method matching`)
+        break
       }
     }
   })
