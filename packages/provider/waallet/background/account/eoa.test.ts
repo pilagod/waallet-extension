@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 
+import { SimpleAccountFactoryAdapter } from "./adapter/SimpleAccountFactoryAdapter"
 import { EoaOwnedAccount } from "./eoa"
 
 describe("EoaOwnedAccount", () => {
@@ -12,11 +13,14 @@ describe("EoaOwnedAccount", () => {
 
   it("should compute address from factory", async () => {
     const salt = 123
-    const account = new EoaOwnedAccount({
+
+    const account = await EoaOwnedAccount.initWithSalt({
       ownerPrivateKey: config.account.operator.privateKey,
-      factoryAddress: config.address.SimpleAccountFactory,
-      salt,
-      nodeRpcUrl: config.rpc.node
+      factoryAdapter: new SimpleAccountFactoryAdapter(
+        config.address.SimpleAccountFactory,
+        config.rpc.node
+      ),
+      salt
     })
 
     const got = await account.getAddress()
