@@ -21,21 +21,25 @@ export class WaalletContentProvider extends EventEmitter {
   // Demo code
   // Usage:
   //   await (window as any).waallet.createWindow({
-  //     origin: "app.uniswap.org",
-  //     account: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  //     user: "imToken Labs",
+  //     challengeBase64Url: "Pezpmh0P8lXu3tP-V5wSIGnHNVvns0EWyloweQTjmE8",
+  //     authAttach: "cross-platform",
   //   });
   private async createWindow({
-    origin,
-    account
+    user,
+    challengeBase64Url,
+    authAttach
   }: {
-    origin: string
-    account: string
+    user?: string
+    challengeBase64Url?: string
+    authAttach?: AuthenticatorAttachment
   }): Promise<any> {
     const req = {
       name: "mCreateWindow",
       body: {
-        origin,
-        account
+        user,
+        challengeBase64Url,
+        authAttach
       }
     }
     const res = await this.backgroundMessenger.send(req)
