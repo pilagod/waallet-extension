@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 
 import abi from "~packages/abi"
+import { type Account } from "~packages/account"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/rpc/json/provider"
@@ -13,7 +14,6 @@ import {
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
-import { type Account } from "./account"
 
 export class WaalletBackgroundProvider extends JsonRpcProvider {
   public account: Account

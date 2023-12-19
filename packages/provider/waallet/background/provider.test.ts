@@ -1,12 +1,12 @@
 import * as ethers from "ethers"
 
 import config from "~config/test"
+import { SimpleAccountFactoryAdapter } from "~packages/account/adapter/SimpleAccountFactory"
+import { EoaOwnedAccount } from "~packages/account/eoa"
 import number from "~packages/utils/number"
 import type { HexString } from "~typings"
 
 import { WaalletRpcMethod } from "../rpc"
-import { SimpleAccountFactoryAdapter } from "./account/adapter/SimpleAccountFactory"
-import { EoaOwnedAccount } from "./account/eoa"
 import { WaalletBackgroundProvider } from "./provider"
 
 describe("Waallet Background Provider", () => {

@@ -1,4 +1,4 @@
-import { EoaOwnedAccount } from "~packages/provider/waallet/background/account/eoa"
+import { EoaOwnedAccount } from "~packages/account/eoa"
 
 import { setupWaalletBackgroundProvider } from "./provider"
 
