@@ -27,6 +27,8 @@ describe("SimpleAccount", () => {
 
     it("should compute address from factory", async () => {
       const got = await account.getAddress()
+      // The name of `getAddress` conflicts with the function on ethers.Contract.
+      // So we build call data from interface and directly send through node rpc provider.
       const expected = await config.provider.node.call(
         await config.contract.simpleAccountFactory
           .getFunction("getAddress")
@@ -45,8 +47,7 @@ describe("SimpleAccount", () => {
       const { node, bundler } = config.provider
       const { gasPrice } = await node.getFeeData()
 
-      const codeBefore = await node.getCode(await account.getAddress())
-      expect(codeBefore).toBe("0x")
+      expect(await account.isDeployed()).toBe(false)
 
       const userOp: UserOperation = {
         sender: await account.getAddress(),
@@ -74,8 +75,7 @@ describe("SimpleAccount", () => {
       )
       await bundler.wait(userOpHash)
 
-      const codeAfter = await node.getCode(await account.getAddress())
-      expect(codeAfter).not.toBe("0x")
+      expect(await account.isDeployed()).toBe(true)
     })
   })
 })

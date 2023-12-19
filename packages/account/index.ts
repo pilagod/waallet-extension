@@ -5,7 +5,6 @@ export interface Account {
   getInitCode(): Promise<HexString>
 
   isDeployed(): Promise<boolean>
-  markDeployed(): void
 
   signMessage(message: string | Uint8Array): Promise<HexString>
 }

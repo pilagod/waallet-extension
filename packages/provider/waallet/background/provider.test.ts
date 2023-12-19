@@ -118,15 +118,13 @@ describe("Waallet Background Provider", () => {
       salt: number.random(),
       nodeRpcUrl: config.rpc.node
     })
+    expect(await account.isDeployed()).toBe(false)
+
     await config.account.operator.sendTransaction({
       to: await account.getAddress(),
       value: ethers.parseUnits("0.001", "ether")
     })
     waalletProvider.connect(account)
-
-    const codeBefore = await node.getCode(await account.getAddress())
-    expect(codeBefore).toBe("0x")
-    expect(await account.isDeployed()).toBe(false)
 
     const counterBefore = (await counter.number()) as bigint
 
@@ -141,8 +139,6 @@ describe("Waallet Background Provider", () => {
       ]
     })
 
-    const codeAfter = await node.getCode(await account.getAddress())
-    expect(codeAfter).not.toBe("0x")
     expect(await account.isDeployed()).toBe(true)
 
     const counterAfter = (await counter.number()) as bigint

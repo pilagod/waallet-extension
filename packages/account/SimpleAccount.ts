@@ -79,8 +79,6 @@ export class SimpleAccount implements Account {
     return code !== "0x"
   }
 
-  public markDeployed() {}
-
   public async signMessage(message: string | Uint8Array) {
     return this.owner.signMessage(ethers.getBytes(message))
   }
