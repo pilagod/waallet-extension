@@ -1,8 +1,7 @@
 import * as ethers from "ethers"
 
 import config from "~config/test"
-import { SimpleAccountFactoryAdapter } from "~packages/account/adapter/SimpleAccountFactory"
-import { EoaOwnedAccount } from "~packages/account/eoa"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
 import number from "~packages/utils/number"
 import type { HexString } from "~typings"
 
@@ -20,9 +19,10 @@ describe("Waallet Background Provider", () => {
 
   beforeEach(async () => {
     waalletProvider.connect(
-      await EoaOwnedAccount.initWithAddress({
+      await SimpleAccount.init({
         address: config.address.SimpleAccount,
-        ownerPrivateKey: config.account.operator.privateKey
+        ownerPrivateKey: config.account.operator.privateKey,
+        nodeRpcUrl: config.rpc.node
       })
     )
   })
@@ -112,13 +112,11 @@ describe("Waallet Background Provider", () => {
   })
 
   it("should deploy account and send transaction when account is not deployed", async () => {
-    const account = await EoaOwnedAccount.initWithSalt({
-      factoryAdapter: new SimpleAccountFactoryAdapter(
-        config.address.SimpleAccountFactory,
-        config.rpc.node
-      ),
+    const account = await SimpleAccount.initWithSalt({
+      ownerPrivateKey: config.account.operator.privateKey,
+      factoryAddress: config.address.SimpleAccountFactory,
       salt: number.random(),
-      ownerPrivateKey: config.account.operator.privateKey
+      nodeRpcUrl: config.rpc.node
     })
     await config.account.operator.sendTransaction({
       to: await account.getAddress(),

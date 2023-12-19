@@ -6,25 +6,22 @@ import { getUserOpHash } from "~packages/provider/bundler/util"
 import number from "~packages/utils/number"
 import type { BigNumberish } from "~typings"
 
-import { SimpleAccountFactoryAdapter } from "./adapter/SimpleAccountFactory"
-import { EoaOwnedAccount } from "./eoa"
+import { SimpleAccount } from "./SimpleAccount"
 
-describe("EoaOwnedAccount", () => {
+describe("SimpleAccount", () => {
   const owner = config.account.operator
 
   describe("With factory and salt", () => {
     let salt: BigNumberish
-    let account: EoaOwnedAccount
+    let account: SimpleAccount
 
     beforeEach(async () => {
       salt = number.random()
-      account = await EoaOwnedAccount.initWithSalt({
-        factoryAdapter: new SimpleAccountFactoryAdapter(
-          config.address.SimpleAccountFactory,
-          config.rpc.node
-        ),
+      account = await SimpleAccount.initWithSalt({
+        ownerPrivateKey: owner.privateKey,
+        factoryAddress: config.address.SimpleAccountFactory,
         salt,
-        ownerPrivateKey: owner.privateKey
+        nodeRpcUrl: config.rpc.node
       })
     })
 

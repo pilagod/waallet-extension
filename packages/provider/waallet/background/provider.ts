@@ -18,16 +18,16 @@ import {
 export class WaalletBackgroundProvider extends JsonRpcProvider {
   public account: Account
 
-  private nodeProvider: ethers.JsonRpcProvider
+  private node: ethers.JsonRpcProvider
 
   public constructor(
     nodeRpcUrl: string,
-    private bundlerProvider: BundlerProvider
+    private bundler: BundlerProvider
   ) {
     // TODO: A way to distinguish node rpc url and bundler rpc url
     super(nodeRpcUrl)
     // TODO: Refactor node provider
-    this.nodeProvider = new ethers.JsonRpcProvider(nodeRpcUrl)
+    this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
 
   public connect(account: Account) {
@@ -41,7 +41,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       case WaalletRpcMethod.eth_requestAccounts:
         return [await this.account.getAddress()] as T
       case WaalletRpcMethod.eth_chainId:
-        return this.bundlerProvider.getChainId() as T
+        return this.bundler.getChainId() as T
       case WaalletRpcMethod.eth_estimateGas:
         return this.handleEstimateUserOperationGas(args.params) as T
       case WaalletRpcMethod.eth_sendTransaction:
@@ -55,8 +55,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     params: EthEstimateGasArguments["params"]
   ): Promise<HexString> {
     // TODO: Use account's entry point
-    const [entryPointAddress] =
-      await this.bundlerProvider.getSupportedEntryPoints()
+    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     const { callGasLimit } = await this.estimateUserOperationGas(
       params,
       entryPointAddress
@@ -69,12 +68,11 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
   ): Promise<HexString> {
     const [tx] = params
     // TODO: Check tx from is same as account
-    const [entryPointAddress] =
-      await this.bundlerProvider.getSupportedEntryPoints()
+    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     const entryPoint = new ethers.Contract(
       entryPointAddress,
       abi.EntryPoint,
-      this.nodeProvider
+      this.node
     )
     if (!tx.nonce) {
       tx.nonce = (await entryPoint.getNonce(tx.from, 0)) as bigint
@@ -104,21 +102,12 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     const userOpHash = await getUserOpHash(
       userOp,
       entryPointAddress,
-      await this.bundlerProvider.getChainId()
+      await this.bundler.getChainId()
     )
     userOp.signature = await this.account.signMessage(userOpHash)
 
-    await this.bundlerProvider.sendUserOperation(userOp, entryPointAddress)
-    const txHash = await this.bundlerProvider.wait(userOpHash)
-
-    if (!(await this.account.isDeployed())) {
-      // TODO: A mechanism to notify account deployed (or maybe do it in the outside world)
-      const { success } =
-        await this.bundlerProvider.getUserOperationReceipt(userOpHash)
-      if (success) {
-        this.account.markDeployed()
-      }
-    }
+    await this.bundler.sendUserOperation(userOp, entryPointAddress)
+    const txHash = await this.bundler.wait(userOpHash)
 
     return txHash
   }
@@ -135,7 +124,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     const entryPoint = new ethers.Contract(
       entryPointAddress,
       abi.EntryPoint,
-      this.nodeProvider
+      this.node
     )
     // TODO: Fix sender to connected account
     const userOp = {
@@ -165,10 +154,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
         maxPriorityFeePerGas: number.toHex(tx.gasPrice)
       })
     }
-    return this.bundlerProvider.estimateUserOperationGas(
-      userOp,
-      entryPointAddress
-    )
+    return this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
   }
 
   private async estimateGasFee(gasPrice?: BigNumberish): Promise<{
@@ -181,7 +167,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
         maxPriorityFeePerGas: number.toHex(gasPrice)
       }
     }
-    const fee = await this.nodeProvider.getFeeData()
+    const fee = await this.node.getFeeData()
     const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
     // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
     return {
