@@ -8,7 +8,7 @@ export type UserOperationCall = {
   signature: HexString // Dummy signature for simulation
 }
 
-export type TransactionCall = {
+export type Call = {
   to: HexString
   value: BigNumberish
   data: HexString
@@ -16,7 +16,7 @@ export type TransactionCall = {
 }
 
 export interface Account {
-  createUserOperationCall(tx: TransactionCall): Promise<UserOperationCall>
+  createUserOperationCall(call: Call): Promise<UserOperationCall>
   getAddress(): Promise<HexString>
   isDeployed(): Promise<boolean>
   signMessage(message: string | Uint8Array): Promise<HexString>

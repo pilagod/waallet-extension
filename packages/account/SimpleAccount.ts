@@ -3,7 +3,7 @@ import * as ethers from "ethers"
 import number from "~packages/utils/number"
 import type { BigNumberish, HexString } from "~typings"
 
-import type { Account, TransactionCall } from "./index"
+import type { Account, Call } from "./index"
 
 export class SimpleAccount implements Account {
   /**
@@ -71,19 +71,20 @@ export class SimpleAccount implements Account {
     this.factory = opts.factory
   }
 
-  public async createUserOperationCall(tx?: TransactionCall) {
+  public async createUserOperationCall(call?: Call) {
     const isDeployed = await this.isDeployed()
 
     const sender = await this.account.getAddress()
-    const nonce = tx?.nonce ?? (isDeployed ? await this.account.getNonce() : 0)
+    const nonce =
+      call?.nonce ?? (isDeployed ? await this.account.getNonce() : 0)
     const initCode = isDeployed
       ? "0x"
       : await this.mustGetFactory().getInitCode()
-    const callData = tx
+    const callData = call
       ? this.account.interface.encodeFunctionData("execute", [
-          tx.to,
-          number.toHex(tx.value ?? 0),
-          tx.data ?? "0x"
+          call.to,
+          number.toHex(call.value ?? 0),
+          call.data ?? "0x"
         ])
       : "0x"
     const dummySignature =
