@@ -4,7 +4,7 @@ import type { BigNumberish } from "~typings"
 
 export default {
   /**
-   *  Default size will be `uint256`
+   *  Default size is `uint256`
    */
   random(byteSize: number = 32) {
     return ethers.toBigInt(ethers.randomBytes(byteSize))
