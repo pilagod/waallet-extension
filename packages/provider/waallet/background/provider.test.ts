@@ -122,7 +122,7 @@ describe("Waallet Background Provider", () => {
 
     await config.account.operator.sendTransaction({
       to: await account.getAddress(),
-      value: ethers.parseUnits("0.001", "ether")
+      value: ethers.parseUnits("0.01", "ether")
     })
     waalletProvider.connect(account)
 

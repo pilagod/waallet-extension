@@ -39,7 +39,7 @@ describe("SimpleAccount", () => {
       expect(ethers.toBigInt(got)).toBe(ethers.toBigInt(expected))
     })
 
-    it("should get init code", async () => {
+    it("should deploy account by first user operation", async () => {
       await owner.sendTransaction({
         to: await account.getAddress(),
         value: ethers.parseUnits("0.01", "ether")
@@ -49,18 +49,15 @@ describe("SimpleAccount", () => {
 
       expect(await account.isDeployed()).toBe(false)
 
-      const userOp: UserOperation = {
-        sender: await account.getAddress(),
-        nonce: number.toHex(0),
-        initCode: await account.getInitCode(),
-        callData: "0x",
+      const userOpCall = await account.createUserOperationCall()
+      const userOp = {
+        ...userOpCall,
         callGasLimit: number.toHex(50000),
         verificationGasLimit: number.toHex(250000),
         preVerificationGas: number.toHex(50000),
         maxFeePerGas: number.toHex(gasPrice),
         maxPriorityFeePerGas: number.toHex(gasPrice),
-        paymasterAndData: "0x",
-        signature: "0x"
+        paymasterAndData: "0x"
       }
       userOp.signature = await account.signMessage(
         await getUserOpHash(

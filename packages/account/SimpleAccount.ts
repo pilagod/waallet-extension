@@ -1,8 +1,9 @@
 import * as ethers from "ethers"
 
+import number from "~packages/utils/number"
 import type { BigNumberish, HexString } from "~typings"
 
-import type { Account } from "./index"
+import type { Account, TransactionCall } from "./index"
 
 export class SimpleAccount implements Account {
   /**
@@ -45,7 +46,7 @@ export class SimpleAccount implements Account {
     })
   }
 
-  private address: HexString
+  private account: ethers.Contract
   private owner: ethers.Wallet
   private factory?: SimpleAccountFactory
   private node: ethers.JsonRpcProvider
@@ -56,27 +57,51 @@ export class SimpleAccount implements Account {
     factory?: SimpleAccountFactory
     nodeRpcUrl: string
   }) {
-    this.address = opts.address
+    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
+    this.account = new ethers.Contract(
+      opts.address,
+      [
+        "function getNonce() view returns (uint256)",
+        "function execute(address dest, uint256 value, bytes calldata func)"
+      ],
+      this.node
+    )
     this.owner = opts.owner
     this.factory = opts.factory
-    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
+  }
+
+  public async createUserOperationCall(tx?: TransactionCall) {
+    const isDeployed = await this.isDeployed()
+    const sender = await this.account.getAddress()
+    const nonce = isDeployed ? await this.account.getNonce() : 0
+    const initCode = isDeployed
+      ? "0x"
+      : await this.mustGetFactory().getInitCode()
+    const callData = tx
+      ? this.account.interface.encodeFunctionData("execute", [
+          tx.to,
+          number.toHex(tx.value ?? 0),
+          tx.data ?? "0x"
+        ])
+      : "0x"
+    const dummySignature =
+      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
+
+    return {
+      sender,
+      nonce: number.toHex(nonce),
+      initCode,
+      callData,
+      signature: dummySignature
+    }
   }
 
   public async getAddress() {
-    return this.address
-  }
-
-  public async getInitCode() {
-    const isDeployed = await this.isDeployed()
-    if (isDeployed) {
-      return "0x"
-    }
-    return this.mustGetFactory().getInitCode()
+    return this.account.getAddress()
   }
 
   public async isDeployed() {
-    const code = await this.node.getCode(this.address)
-    return code !== "0x"
+    return !!(await this.account.getDeployedCode())
   }
 
   public async signMessage(message: string | Uint8Array) {

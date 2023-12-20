@@ -54,10 +54,25 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
   private async handleEstimateUserOperationGas(
     params: EthEstimateGasArguments["params"]
   ): Promise<HexString> {
+    const [tx] = params
+    // TODO: When `to` is empty, it should estimate gas for contract creation
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const { callGasLimit } = await this.estimateUserOperationGas(
-      params,
+    // TODO: Integrate paymaster
+    const paymasterAndData = "0x"
+    const userOpCall = await this.account.createUserOperationCall({
+      to: tx.to,
+      value: tx.value,
+      data: tx.data
+    })
+    const { callGasLimit } = await this.bundler.estimateUserOperationGas(
+      {
+        ...userOpCall,
+        ...(tx.gas && {
+          callGasLimit: number.toHex(tx.gas)
+        }),
+        paymasterAndData
+      },
       entryPointAddress
     )
     return number.toHex(callGasLimit)
@@ -68,6 +83,11 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
   ): Promise<HexString> {
     const [tx] = params
     // TODO: Check tx from is same as account
+    if (!tx.to) {
+      // TODO: When `to` is empty, it should create contract
+      return
+    }
+    // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     const entryPoint = new ethers.Contract(
       entryPointAddress,
@@ -77,27 +97,29 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     if (!tx.nonce) {
       tx.nonce = (await entryPoint.getNonce(tx.from, 0)) as bigint
     }
-    const userOpGasLimit = await this.estimateUserOperationGas(
-      params,
+    // TODO: Integrate paymaster
+    const paymasterAndData = "0x"
+    const userOpCall = await this.account.createUserOperationCall({
+      to: tx.to,
+      value: tx.value,
+      data: tx.data
+    })
+    const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
+    const userOpGasLimit = await this.bundler.estimateUserOperationGas(
+      {
+        ...userOpCall,
+        ...(tx.gas && {
+          callGasLimit: number.toHex(tx.gas)
+        }),
+        paymasterAndData
+      },
       entryPointAddress
     )
-    const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
-    // TODO: Fix sender to connected account
     const userOp = {
-      sender: tx.from,
-      nonce: number.toHex(tx.nonce),
-      initCode: await this.account.getInitCode(),
-      callData: new ethers.Interface(abi.Account).encodeFunctionData(
-        "execute",
-        [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.data ?? "0x"]
-      ),
-      paymasterAndData: "0x",
-      signature: "0x",
+      ...userOpCall,
       ...userOpGasLimit,
       ...userOpGasFee,
-      ...(tx.gas && {
-        callGasLimit: number.toHex(tx.gas)
-      })
+      paymasterAndData
     }
     const userOpHash = await getUserOpHash(
       userOp,
@@ -110,51 +132,6 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     const txHash = await this.bundler.wait(userOpHash)
 
     return txHash
-  }
-
-  private async estimateUserOperationGas(
-    params: EthEstimateGasArguments["params"],
-    entryPointAddress: HexString
-  ): Promise<{
-    preVerificationGas: HexString
-    verificationGasLimit: HexString
-    callGasLimit: HexString
-  }> {
-    const [tx] = params
-    const entryPoint = new ethers.Contract(
-      entryPointAddress,
-      abi.EntryPoint,
-      this.node
-    )
-    // TODO: Fix sender to connected account
-    const userOp = {
-      sender: tx.from ?? (await this.account.getAddress()),
-      nonce: number.toHex(
-        (await entryPoint.getNonce(
-          await this.account.getAddress(),
-          0
-        )) as bigint
-      ),
-      initCode: await this.account.getInitCode(),
-      ...(tx.to && {
-        callData: new ethers.Interface(abi.Account).encodeFunctionData(
-          "execute",
-          [tx.to, tx.value ? number.toHex(tx.value) : 0, tx.data ?? "0x"]
-        )
-      }),
-      paymasterAndData: "0x",
-      // Dummy signature for simple account
-      signature:
-        "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c",
-      ...(tx.gas && {
-        callGasLimit: number.toHex(tx.gas)
-      }),
-      ...(tx.gasPrice && {
-        maxFeePerGas: number.toHex(tx.gasPrice),
-        maxPriorityFeePerGas: number.toHex(tx.gasPrice)
-      })
-    }
-    return this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
   }
 
   private async estimateGasFee(gasPrice?: BigNumberish): Promise<{
