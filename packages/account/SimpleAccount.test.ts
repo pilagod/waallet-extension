@@ -1,7 +1,6 @@
 import * as ethers from "ethers"
 
 import config from "~config/test"
-import type { UserOperation } from "~packages/provider/bundler/typing"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import number from "~packages/utils/number"
 import type { BigNumberish } from "~typings"
@@ -27,8 +26,6 @@ describe("SimpleAccount", () => {
 
     it("should compute address from factory", async () => {
       const got = await account.getAddress()
-      // The name of `getAddress` conflicts with the function on ethers.Contract.
-      // So we build call data from interface and directly send through node rpc provider.
       const expected = await config.provider.node.call(
         await config.contract.simpleAccountFactory
           .getFunction("getAddress")
