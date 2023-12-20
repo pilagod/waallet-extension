@@ -12,6 +12,7 @@ export type TransactionCall = {
   to: HexString
   value: BigNumberish
   data: HexString
+  nonce?: BigNumberish
 }
 
 export interface Account {

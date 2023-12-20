@@ -1,6 +1,5 @@
 import * as ethers from "ethers"
 
-import abi from "~packages/abi"
 import { type Account } from "~packages/account"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
@@ -89,20 +88,13 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const entryPoint = new ethers.Contract(
-      entryPointAddress,
-      abi.EntryPoint,
-      this.node
-    )
-    if (!tx.nonce) {
-      tx.nonce = (await entryPoint.getNonce(tx.from, 0)) as bigint
-    }
     // TODO: Integrate paymaster
     const paymasterAndData = "0x"
     const userOpCall = await this.account.createUserOperationCall({
       to: tx.to,
       value: tx.value,
-      data: tx.data
+      data: tx.data,
+      nonce: tx.nonce
     })
     const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
     const userOpGasLimit = await this.bundler.estimateUserOperationGas(

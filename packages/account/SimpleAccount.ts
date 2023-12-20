@@ -72,8 +72,9 @@ export class SimpleAccount implements Account {
 
   public async createUserOperationCall(tx?: TransactionCall) {
     const isDeployed = await this.isDeployed()
+
     const sender = await this.account.getAddress()
-    const nonce = isDeployed ? await this.account.getNonce() : 0
+    const nonce = tx?.nonce ?? (isDeployed ? await this.account.getNonce() : 0)
     const initCode = isDeployed
       ? "0x"
       : await this.mustGetFactory().getInitCode()
