@@ -16,9 +16,9 @@ export class PasskeyAccount implements Account {
     owner: PasskeyOwner
     nodeRpcUrl: string
   }) {
-    // TODO: Fetch credential id from account
-    // opts.owner.set(credential id)
-    return new PasskeyAccount({ ...opts })
+    const account = new PasskeyAccount({ ...opts })
+    opts.owner.set(await account.getCredentialId())
+    return account
   }
 
   public static async initWithFactory(opts: {
@@ -58,13 +58,23 @@ export class PasskeyAccount implements Account {
     nodeRpcUrl: string
   }) {
     this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
-    this.account = new ethers.Contract(opts.address, [], this.node)
+    const Passkey = "(string credId, uint256 pubKeyX, uint256 pubKeyY)"
+    this.account = new ethers.Contract(
+      opts.address,
+      [`function passkey() view returns (${Passkey} passkey)`],
+      this.node
+    )
     this.owner = opts.owner
     this.factory = opts.factory
   }
 
   public async createUserOperationCall(call: Call) {
     return {} as any
+  }
+
+  public async getCredentialId() {
+    const { credId } = await this.account.passkey()
+    return credId as string
   }
 
   public async getAddress() {
