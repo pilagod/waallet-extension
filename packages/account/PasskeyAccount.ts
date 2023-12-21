@@ -3,6 +3,7 @@ import * as ethers from "ethers"
 import type { BigNumberish, HexString } from "~typing"
 
 import type { Account, Call } from "./index"
+import type { PasskeyOwner } from "./PasskeyOwner"
 
 export type PasskeyPublicKey = {
   x: BigNumberish
@@ -10,12 +11,17 @@ export type PasskeyPublicKey = {
 }
 
 export class PasskeyAccount implements Account {
-  public static async init(opts: { address: HexString; nodeRpcUrl: string }) {
+  public static async init(opts: {
+    address: HexString
+    owner: PasskeyOwner
+    nodeRpcUrl: string
+  }) {
     // TODO: Fetch credential id from account
-    return new PasskeyAccount({ ...opts, credentialId: "" })
+    return new PasskeyAccount({ ...opts })
   }
 
   public static async initWithFactory(opts: {
+    owner: PasskeyOwner
     credentialId: string
     publicKey: PasskeyPublicKey
     salt: BigNumberish
@@ -31,7 +37,7 @@ export class PasskeyAccount implements Account {
     })
     return new PasskeyAccount({
       address: await factory.getAddress(),
-      credentialId: opts.credentialId,
+      owner: opts.owner,
       factory,
       nodeRpcUrl: opts.nodeRpcUrl
     })
@@ -40,17 +46,18 @@ export class PasskeyAccount implements Account {
   private node: ethers.JsonRpcProvider
 
   private account: ethers.Contract
+  private owner: PasskeyOwner
   private factory?: PasskeyAccountFactory
 
   private constructor(opts: {
     address: HexString
-    // TODO: Extract signer interface
-    credentialId: string
+    owner: PasskeyOwner
     factory?: PasskeyAccountFactory
     nodeRpcUrl: string
   }) {
     this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
     this.account = new ethers.Contract(opts.address, [], this.node)
+    this.owner = opts.owner
     this.factory = opts.factory
   }
 
