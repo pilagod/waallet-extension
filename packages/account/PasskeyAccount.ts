@@ -17,6 +17,7 @@ export class PasskeyAccount implements Account {
     nodeRpcUrl: string
   }) {
     // TODO: Fetch credential id from account
+    // opts.owner.set(credential id)
     return new PasskeyAccount({ ...opts })
   }
 
@@ -28,6 +29,7 @@ export class PasskeyAccount implements Account {
     factoryAddress: string
     nodeRpcUrl: string
   }) {
+    opts.owner.set(opts.credentialId)
     const factory = new PasskeyAccountFactory({
       address: opts.factoryAddress,
       credentialId: opts.credentialId,
