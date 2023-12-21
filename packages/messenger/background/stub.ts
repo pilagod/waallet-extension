@@ -1,22 +1,30 @@
 import { type BackgroundMessage, type BackgroundMessenger } from "./index"
 
 export class BackgroundStubMessenger implements BackgroundMessenger {
-  public msgs: BackgroundMessage<any>[] = []
-  private resBody: any = null
+  private sentMsgs: BackgroundMessage<any>[] = []
+  private msgRes: any = null
 
   public async send<ReqBody, ResBody>(
     msg: BackgroundMessage<ReqBody>
   ): Promise<ResBody> {
-    this.msgs.push(msg)
-    return this.resBody
+    this.sentMsgs.push(msg)
+    return this.msgRes
   }
 
-  public mockResBody(resBody: any) {
-    this.resBody = resBody
+  public getSentMsg(index: number) {
+    return this.sentMsgs[index]
+  }
+
+  public getSentMsgs() {
+    return this.sentMsgs
+  }
+
+  public mockMsgRes(res: any) {
+    this.msgRes = res
   }
 
   public reset() {
-    this.msgs = []
-    this.resBody = null
+    this.sentMsgs = []
+    this.msgRes = null
   }
 }
