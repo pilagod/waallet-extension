@@ -1,6 +1,6 @@
 import * as ethers from "ethers"
 
-import type { BigNumberish } from "~typings"
+import type { BigNumberish } from "~typing"
 
 export default {
   /**

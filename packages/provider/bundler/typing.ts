@@ -1,4 +1,4 @@
-import type { BigNumberish, HexString } from "~typings"
+import type { BigNumberish, HexString } from "~typing"
 
 export type UserOperation = {
   sender: HexString

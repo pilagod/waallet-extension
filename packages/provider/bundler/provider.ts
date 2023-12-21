@@ -1,6 +1,6 @@
-import type { HexString, Nullable } from "~typings"
+import type { HexString, Nullable } from "~typing"
 
-import { JsonRpcProvider } from "../rpc/json/provider"
+import { JsonRpcProvider } from "../jsonrpc/provider"
 import { BundlerRpcMethod } from "./rpc"
 import type { UserOperation } from "./typing"
 
