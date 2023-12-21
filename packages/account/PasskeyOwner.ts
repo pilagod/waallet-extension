@@ -1,4 +1,4 @@
 export interface PasskeyOwner {
   set(credentialId: string): void
-  signMessage(message: string | Uint8Array): Promise<string>
+  signChallenge(challenge: string | Uint8Array): Promise<string>
 }
