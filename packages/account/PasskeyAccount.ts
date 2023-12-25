@@ -86,7 +86,7 @@ export class PasskeyAccount implements Account {
   }
 
   public async signMessage(message: string | Uint8Array) {
-    return this.owner.signChallenge(message)
+    return this.owner.sign(message)
   }
 }
 
