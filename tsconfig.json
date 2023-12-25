@@ -12,5 +12,11 @@
       "~*": ["./*"]
     },
     "baseUrl": "."
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs",
+      "verbatimModuleSyntax": false
+    }
   }
 }
