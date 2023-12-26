@@ -1,4 +1,6 @@
+import type { BytesLike } from "~typing"
+
 export interface PasskeyOwner {
   set(credentialId: string): void
-  sign(challenge: string | Uint8Array): Promise<string>
+  sign(challenge: BytesLike): Promise<string>
 }
