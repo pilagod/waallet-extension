@@ -1,25 +1,12 @@
-import type { BigNumberish, HexString, Nullable } from "~typings"
+import type { HexString, Nullable } from "~typings"
 
 import { JsonRpcProvider } from "../rpc/json/provider"
 import { BundlerRpcMethod } from "./rpc"
+import type { UserOperation } from "./typing"
 
 export enum BundlerMode {
   Manual = "manual",
   Auto = "auto"
-}
-
-export type UserOperation = {
-  sender: HexString
-  nonce: BigNumberish
-  initCode: HexString
-  callData: HexString
-  callGasLimit: BigNumberish
-  verificationGasLimit: BigNumberish
-  preVerificationGas: BigNumberish
-  maxFeePerGas: BigNumberish
-  maxPriorityFeePerGas: BigNumberish
-  paymasterAndData: HexString
-  signature: HexString
 }
 
 export class BundlerProvider extends JsonRpcProvider {
@@ -31,17 +18,27 @@ export class BundlerProvider extends JsonRpcProvider {
   }
 
   public async getChainId(): Promise<HexString> {
-    const chainId = this.send({
+    const chainId = await this.send({
       method: BundlerRpcMethod.eth_chainId
     })
     return chainId
   }
 
   public async getSupportedEntryPoints(): Promise<HexString[]> {
-    const entryPointAddresses = this.send({
+    const entryPointAddresses = await this.send({
       method: BundlerRpcMethod.eth_supportedEntryPoints
     })
     return entryPointAddresses
+  }
+
+  public async getUserOperationReceipt(userOpHash: HexString): Promise<{
+    success: boolean
+  }> {
+    const receipt = await this.send({
+      method: BundlerRpcMethod.eth_getUserOperationReceipt,
+      params: [userOpHash]
+    })
+    return receipt
   }
 
   public async estimateUserOperationGas(
@@ -52,7 +49,7 @@ export class BundlerProvider extends JsonRpcProvider {
     verificationGasLimit: HexString
     callGasLimit: HexString
   }> {
-    const gasLimits = this.send({
+    const gasLimits = await this.send({
       method: BundlerRpcMethod.eth_estimateUserOperationGas,
       params: [userOp, entryPointAddress]
     })
@@ -63,7 +60,7 @@ export class BundlerProvider extends JsonRpcProvider {
     userOp: UserOperation,
     entryPointAddress: HexString
   ): Promise<HexString> {
-    const userOpHash = this.send({
+    const userOpHash = await this.send({
       method: BundlerRpcMethod.eth_sendUserOperation,
       params: [userOp, entryPointAddress]
     })

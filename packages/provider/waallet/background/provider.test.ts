@@ -1,8 +1,11 @@
+import * as ethers from "ethers"
+
 import config from "~config/test"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
+import number from "~packages/utils/number"
 import type { HexString } from "~typings"
 
 import { WaalletRpcMethod } from "../rpc"
-import { EoaOwnedAccount } from "./account/eoa"
 import { WaalletBackgroundProvider } from "./provider"
 
 describe("Waallet Background Provider", () => {
@@ -14,11 +17,12 @@ describe("Waallet Background Provider", () => {
     config.provider.bundler
   )
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     waalletProvider.connect(
-      await EoaOwnedAccount.initWithAddress({
-        accountAddress: config.address.SimpleAccount,
-        ownerPrivateKey: config.account.operator.privateKey
+      await SimpleAccount.init({
+        address: config.address.SimpleAccount,
+        ownerPrivateKey: config.account.operator.privateKey,
+        nodeRpcUrl: config.rpc.node
       })
     )
   })
@@ -102,6 +106,40 @@ describe("Waallet Background Provider", () => {
     })
     const receipt = await node.getTransactionReceipt(txHash)
     expect(receipt.status).toBe(1)
+
+    const counterAfter = (await counter.number()) as bigint
+    expect(counterAfter - counterBefore).toBe(1n)
+  })
+
+  it("should deploy account and send transaction when account is not deployed", async () => {
+    const account = await SimpleAccount.initWithSalt({
+      ownerPrivateKey: config.account.operator.privateKey,
+      factoryAddress: config.address.SimpleAccountFactory,
+      salt: number.random(),
+      nodeRpcUrl: config.rpc.node
+    })
+    expect(await account.isDeployed()).toBe(false)
+
+    await config.account.operator.sendTransaction({
+      to: await account.getAddress(),
+      value: ethers.parseUnits("0.01", "ether")
+    })
+    waalletProvider.connect(account)
+
+    const counterBefore = (await counter.number()) as bigint
+
+    await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_sendTransaction,
+      params: [
+        {
+          from: await waalletProvider.account.getAddress(),
+          to: await counter.getAddress(),
+          data: counter.interface.encodeFunctionData("increment", [])
+        }
+      ]
+    })
+
+    expect(await account.isDeployed()).toBe(true)
 
     const counterAfter = (await counter.number()) as bigint
     expect(counterAfter - counterBefore).toBe(1n)
