@@ -1,21 +1,29 @@
-import { createHash } from "node:crypto"
 import { p256 } from "@noble/curves/p256"
 import * as ethers from "ethers"
 
+import byte from "~packages/byte"
 import type { BytesLike } from "~typing"
 
 import type { PasskeyOwner } from "./PasskeyOwner"
 
 export class PasskeyOwnerP256 implements PasskeyOwner {
-  private credentialId: string
-  private privateKey: Uint8Array
+  public credentialId: string
+  public privateKey: Uint8Array
+  public publicKey: Uint8Array
+  public x: bigint
+  public y: bigint
+
+  public constructor() {
+    this.privateKey = p256.utils.randomPrivateKey()
+    this.publicKey = p256.getPublicKey(this.privateKey)
+
+    const point = p256.ProjectivePoint.fromPrivateKey(this.privateKey)
+    this.x = point.x
+    this.y = point.y
+  }
 
   public set(credentialId: string) {
-    if (this.credentialId === credentialId) {
-      return
-    }
     this.credentialId = credentialId
-    this.privateKey = p256.utils.randomPrivateKey()
   }
 
   public async sign(challenge: BytesLike) {
@@ -29,7 +37,11 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
       clientDataJsonChallengeIndex,
       clientDataJsonTypeIndex
     } = this.getMessage(challenge)
-    const { r, s } = p256.sign(message, this.privateKey)
+
+    let { r, s } = p256.sign(message, this.privateKey)
+    if (s > p256.CURVE.n / 2n) {
+      s = p256.CURVE.n - s
+    }
     // (
     //     bytes memory authenticatorData,
     //     bool requireUserVerification,
@@ -42,6 +54,15 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     //     userOp.signature,
     //     (bytes, bool, string, uint256, uint256, uint256, uint256)
     // );
+    const payload = [
+      authenticatorData,
+      true,
+      clientDataJson,
+      clientDataJsonChallengeIndex,
+      clientDataJsonTypeIndex,
+      r,
+      s
+    ]
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
       ["bytes", "bool", "string", "uint256", "uint256", "uint256", "uint256"],
       [
@@ -59,10 +80,12 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
 
   private getMessage(challenge: BytesLike) {
     const authenticatorData = this.getAuthenticatorData()
-    const clientDataJson = this.getClientDataJson(this.normalize(challenge))
-    const message = this.sha256(
-      `${authenticatorData}${this.sha256(clientDataJson)}`
-    )
+    const clientDataJson = this.getClientDataJson(challenge)
+    const message = byte
+      .sha256(
+        `${authenticatorData}${byte.sha256(clientDataJson).toString("hex")}`
+      )
+      .toString("hex")
     return {
       message,
       authenticatorData,
@@ -72,34 +95,17 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     }
   }
 
-  private normalize(challenge: BytesLike) {
-    if (challenge instanceof Uint8Array) {
-      return challenge
-    }
-    const start = challenge.startsWith("0x") ? 2 : 0
-    return Uint8Array.from(
-      challenge
-        .slice(start)
-        .split("")
-        .map((c) => c.charCodeAt(0))
-    )
-  }
-
   private getAuthenticatorData() {
     return "4fb20856f24a6ae7dafc2781090ac8477ae6e2bd072660236cc614c6fb7c2ea00500000001"
   }
 
-  private getClientDataJson(challenge: Uint8Array) {
+  private getClientDataJson(challenge: BytesLike) {
     const clientJsonData = {
       type: "webauthn.get",
-      challenge: Buffer.from(challenge).toString("base64url"),
+      challenge: byte.normalize(challenge).toString("base64url"),
       origin: "https://webauthn.passwordless.id",
       crossOrigin: false
     }
     return JSON.stringify(clientJsonData)
-  }
-
-  private sha256(data: BytesLike) {
-    return createHash("sha256").update(data).digest("hex")
   }
 }

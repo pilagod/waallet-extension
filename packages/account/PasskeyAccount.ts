@@ -1,5 +1,6 @@
 import * as ethers from "ethers"
 
+import number from "~packages/number"
 import type { BigNumberish, HexString } from "~typing"
 
 import type { Account, Call } from "./index"
@@ -61,7 +62,11 @@ export class PasskeyAccount implements Account {
     const Passkey = "(string credId, uint256 pubKeyX, uint256 pubKeyY)"
     this.account = new ethers.Contract(
       opts.address,
-      [`function passkey() view returns (${Passkey} passkey)`],
+      [
+        `function passkey() view returns (${Passkey} passkey)`,
+        "function getNonce() view returns (uint256)",
+        "function execute(address dest, uint256 value, bytes calldata func)"
+      ],
       this.node
     )
     this.owner = opts.owner
@@ -69,7 +74,40 @@ export class PasskeyAccount implements Account {
   }
 
   public async createUserOperationCall(call: Call) {
-    return {} as any
+    const isDeployed = await this.isDeployed()
+
+    const sender = await this.account.getAddress()
+    const nonce =
+      call?.nonce ?? (isDeployed ? await this.account.getNonce() : 0)
+    const initCode = isDeployed
+      ? "0x"
+      : await this.mustGetFactory().getInitCode()
+    const callData = call
+      ? this.account.interface.encodeFunctionData("execute", [
+          call.to,
+          number.toHex(call.value ?? 0),
+          call.data ?? "0x"
+        ])
+      : "0x"
+    // TODO: In order to go through p256 signature verification,
+    // we need to provide a dummy signature based on the user op hash fed into gas estimation
+    const dummySignature =
+      "0x00000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000170000000000000000000000000000000000000000000000000000000000000001b0d896fce28a0d801e1c6b26e475b8bd9333439595984e10a84004ab16477bc685e6425a3d4f7418006877ade2ccfce544b3a26596b5b7b70bb737524e083e1e00000000000000000000000000000000000000000000000000000000000000254fb20856f24a6ae7dafc2781090ac8477ae6e2bd072660236cc614c6fb7c2ea0050000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000917b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a2235723236346f65657a6134354441416e4667534e4c796279704773593634476549613243355571626d526b222c226f726967696e223a2268747470733a2f2f776562617574686e2e70617373776f72646c6573732e6964222c2263726f73734f726967696e223a66616c73657d000000000000000000000000000000"
+
+    console.log({
+      sender,
+      nonce,
+      initCode,
+      callData
+    })
+
+    return {
+      sender,
+      nonce: number.toHex(nonce),
+      initCode,
+      callData,
+      signature: dummySignature
+    }
   }
 
   public async getCredentialId() {
@@ -87,6 +125,13 @@ export class PasskeyAccount implements Account {
 
   public async signMessage(message: string | Uint8Array) {
     return this.owner.sign(message)
+  }
+
+  private mustGetFactory() {
+    if (!this.factory) {
+      throw new Error("No factory")
+    }
+    return this.factory
   }
 }
 
