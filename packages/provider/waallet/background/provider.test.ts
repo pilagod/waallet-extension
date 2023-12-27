@@ -1,5 +1,3 @@
-import * as ethers from "ethers"
-
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import type { HexString } from "~typing"
