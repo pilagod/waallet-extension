@@ -54,18 +54,19 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     //     userOp.signature,
     //     (bytes, bool, string, uint256, uint256, uint256, uint256)
     // );
-    const payload = [
-      authenticatorData,
-      true,
-      clientDataJson,
-      clientDataJsonChallengeIndex,
-      clientDataJsonTypeIndex,
-      r,
-      s
-    ]
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
-      ["bytes", "bool", "string", "uint256", "uint256", "uint256", "uint256"],
       [
+        "bool",
+        "bytes",
+        "bool",
+        "string",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256"
+      ],
+      [
+        false,
         Uint8Array.from(Buffer.from(authenticatorData, "hex")),
         true,
         clientDataJson,
