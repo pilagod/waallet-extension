@@ -16,7 +16,7 @@ describe("SimpleAccount", () => {
 
     beforeEach(async () => {
       salt = number.random()
-      account = await SimpleAccount.initWithSalt({
+      account = await SimpleAccount.initWithFactory({
         ownerPrivateKey: owner.privateKey,
         factoryAddress: config.address.SimpleAccountFactory,
         salt,

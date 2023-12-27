@@ -25,7 +25,7 @@ export class SimpleAccount implements Account {
   /**
    * Use when account is not yet deployed
    */
-  public static async initWithSalt(opts: {
+  public static async initWithFactory(opts: {
     ownerPrivateKey: string
     factoryAddress: string
     salt: BigNumberish

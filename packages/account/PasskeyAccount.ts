@@ -12,6 +12,9 @@ export type PasskeyPublicKey = {
 }
 
 export class PasskeyAccount implements Account {
+  /**
+   * Use when account is already deployed
+   */
   public static async init(opts: {
     address: HexString
     owner: PasskeyOwner
@@ -22,6 +25,9 @@ export class PasskeyAccount implements Account {
     return account
   }
 
+  /**
+   * Use when account is not yet deployed
+   */
   public static async initWithFactory(opts: {
     owner: PasskeyOwner
     credentialId: string

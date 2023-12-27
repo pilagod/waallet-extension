@@ -98,7 +98,7 @@ describe("WaalletBackgroundProvider", () => {
   })
 
   it("should deploy account and send transaction when account is not deployed", async () => {
-    const account = await SimpleAccount.initWithSalt({
+    const account = await SimpleAccount.initWithFactory({
       ownerPrivateKey: config.account.operator.privateKey,
       factoryAddress: config.address.SimpleAccountFactory,
       salt: number.random(),
