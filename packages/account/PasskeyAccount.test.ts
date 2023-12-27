@@ -21,7 +21,7 @@ describe("PasskeyAccount", () => {
   const owner = new PasskeyOwnerP256()
   let account: PasskeyAccount
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     account = await PasskeyAccount.initWithFactory({
       owner,
       credentialId: Buffer.from(owner.publicKey).toString("hex"),
