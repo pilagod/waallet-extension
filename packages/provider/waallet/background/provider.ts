@@ -1,10 +1,10 @@
 import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
-import number from "~packages/number"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
+import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
 import {

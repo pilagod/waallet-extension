@@ -1,9 +1,9 @@
 import * as ethers from "ethers"
 
 import config from "~config/test"
-import number from "~packages/number"
 import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
+import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
 import { PasskeyAccount } from "./PasskeyAccount"
