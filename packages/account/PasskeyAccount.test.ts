@@ -34,12 +34,12 @@ describe("PasskeyAccount", () => {
       nodeRpcUrl: config.rpc.node
     })
     waalletProvider.connect(account)
-
-    const tx = await config.account.operator.sendTransaction({
-      to: await account.getAddress(),
-      value: ethers.parseEther("0.01")
-    })
-    await tx.wait()
+    await (
+      await config.account.operator.sendTransaction({
+        to: await account.getAddress(),
+        value: ethers.parseEther("1")
+      })
+    ).wait()
   })
 
   it("should get accounts", async () => {

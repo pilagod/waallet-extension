@@ -2,74 +2,91 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import number from "~packages/number"
-import { getUserOpHash } from "~packages/provider/bundler/util"
-import type { BigNumberish } from "~typing"
+import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
+import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
+import type { HexString } from "~typing"
 
 import { SimpleAccount } from "./SimpleAccount"
 
 describe("SimpleAccount", () => {
+  const { node } = config.provider
+  const { counter } = config.contract
+
+  // TODO: Extract a setup util for account testing
+  const waalletProvider = new WaalletBackgroundProvider(
+    config.rpc.node,
+    config.provider.bundler
+  )
   const owner = config.account.operator
+  let account: SimpleAccount
 
-  describe("With factory and salt", () => {
-    let salt: BigNumberish
-    let account: SimpleAccount
-
-    beforeEach(async () => {
-      salt = number.random()
-      account = await SimpleAccount.initWithFactory({
-        ownerPrivateKey: owner.privateKey,
-        factoryAddress: config.address.SimpleAccountFactory,
-        salt,
-        nodeRpcUrl: config.rpc.node
-      })
+  beforeAll(async () => {
+    account = await SimpleAccount.initWithFactory({
+      ownerPrivateKey: owner.privateKey,
+      factoryAddress: config.address.SimpleAccountFactory,
+      salt: number.random(),
+      nodeRpcUrl: config.rpc.node
     })
-
-    it("should compute address from factory", async () => {
-      const got = await account.getAddress()
-      const expected = await config.provider.node.call(
-        await config.contract.simpleAccountFactory
-          .getFunction("getAddress")
-          .populateTransaction(owner.address, salt)
-      )
-      expect(got).toMatch(/^0x/)
-      expect(got).toHaveLength(42)
-      expect(ethers.toBigInt(got)).toBe(ethers.toBigInt(expected))
-    })
-
-    it("should deploy account by first user operation", async () => {
+    waalletProvider.connect(account)
+    await (
       await owner.sendTransaction({
         to: await account.getAddress(),
-        value: ethers.parseUnits("0.01", "ether")
+        value: ethers.parseEther("1")
       })
-      const { node, bundler } = config.provider
-      const { gasPrice } = await node.getFeeData()
+    ).wait()
+  })
 
-      expect(await account.isDeployed()).toBe(false)
-
-      const userOpCall = await account.createUserOperationCall()
-      const userOp = {
-        ...userOpCall,
-        callGasLimit: number.toHex(50000),
-        verificationGasLimit: number.toHex(250000),
-        preVerificationGas: number.toHex(50000),
-        maxFeePerGas: number.toHex(gasPrice),
-        maxPriorityFeePerGas: number.toHex(gasPrice),
-        paymasterAndData: "0x"
-      }
-      userOp.signature = await account.signMessage(
-        await getUserOpHash(
-          userOp,
-          config.address.EntryPoint,
-          await bundler.getChainId()
-        )
-      )
-      const userOpHash = await bundler.sendUserOperation(
-        userOp,
-        config.address.EntryPoint
-      )
-      await bundler.wait(userOpHash)
-
-      expect(await account.isDeployed()).toBe(true)
+  it("should get accounts", async () => {
+    const accounts = await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_accounts
     })
+    expect(accounts.length).toBeGreaterThan(0)
+    expect(accounts[0]).toBe(await account.getAddress())
+  })
+
+  it("should request accounts", async () => {
+    const accounts = await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_requestAccounts
+    })
+    expect(accounts.length).toBeGreaterThan(0)
+    expect(accounts[0]).toBe(await account.getAddress())
+  })
+
+  it("should estimate gas", async () => {
+    const gas = await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_estimateGas,
+      params: [
+        {
+          from: await waalletProvider.account.getAddress(),
+          to: await counter.getAddress(),
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
+        }
+      ]
+    })
+    expect(parseInt(gas, 16)).toBeGreaterThan(0)
+  })
+
+  it("should send transaction to contract", async () => {
+    const balanceBefore = await node.getBalance(counter.getAddress())
+    const counterBefore = (await counter.number()) as bigint
+
+    await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_sendTransaction,
+      params: [
+        {
+          from: await waalletProvider.account.getAddress(),
+          to: await counter.getAddress(),
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
+        }
+      ]
+    })
+
+    const balanceAfter = await node.getBalance(counter.getAddress())
+    expect(balanceAfter - balanceBefore).toBe(1n)
+
+    const counterAfter = (await counter.number()) as bigint
+    expect(counterAfter - counterBefore).toBe(1n)
   })
 })
