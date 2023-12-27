@@ -89,4 +89,22 @@ describe("PasskeyAccount", () => {
     const balanceAfter = await node.getBalance(counter.getAddress())
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
+
+  it("should send transaction to contract", async () => {
+    const counterBefore = (await counter.number()) as bigint
+
+    await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_sendTransaction,
+      params: [
+        {
+          from: await waalletProvider.account.getAddress(),
+          to: await counter.getAddress(),
+          data: counter.interface.encodeFunctionData("increment", [])
+        }
+      ]
+    })
+
+    const counterAfter = (await counter.number()) as bigint
+    expect(counterAfter - counterBefore).toBe(1n)
+  })
 })
