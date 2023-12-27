@@ -14,8 +14,7 @@ describe("Waallet Content Provider", () => {
 
   it("should send JsonRpcRequest to background messenger", async () => {
     const txHash = "0xffff"
-
-    backgroundMessenger.mockResBody(txHash)
+    backgroundMessenger.mockMsgRes(txHash)
 
     const args: EthSendTransactionArguments = {
       method: WaalletRpcMethod.eth_sendTransaction,
@@ -29,7 +28,7 @@ describe("Waallet Content Provider", () => {
     }
     const result = await waalletContentProvider.request(args)
 
-    expect(backgroundMessenger.msgs[0]).toEqual({
+    expect(backgroundMessenger.getSentMsg(0)).toEqual({
       name: WaalletMessage.JsonRpcRequest,
       body: args
     })

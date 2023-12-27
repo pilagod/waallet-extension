@@ -1,9 +1,9 @@
 import * as ethers from "ethers"
 
 import config from "~config/test"
+import number from "~packages/number"
 import { getUserOpHash } from "~packages/provider/bundler/util"
-import number from "~packages/utils/number"
-import type { BigNumberish } from "~typings"
+import type { BigNumberish } from "~typing"
 
 import { SimpleAccount } from "./SimpleAccount"
 

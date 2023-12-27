@@ -2,8 +2,8 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import number from "~packages/utils/number"
-import type { HexString } from "~typings"
+import number from "~packages/number"
+import type { HexString } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
 import { WaalletBackgroundProvider } from "./provider"

@@ -3,7 +3,7 @@
   "exclude": ["node_modules"],
   "include": [
     ".plasmo/index.d.ts",
-    "./typings/global.d.ts",
+    "typing/global.d.ts",
     "./**/*.ts",
     "./**/*.tsx"
   ],

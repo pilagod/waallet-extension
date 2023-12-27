@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
-import number from "~packages/utils/number"
-import type { BigNumberish, HexString } from "~typings"
+import number from "~packages/number"
+import type { BigNumberish, HexString } from "~typing"
 
 import type { Account, Call } from "./index"
 

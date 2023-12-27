@@ -1,11 +1,11 @@
 import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
+import number from "~packages/number"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
-import { JsonRpcProvider } from "~packages/provider/rpc/json/provider"
-import number from "~packages/utils/number"
-import type { BigNumberish, HexString } from "~typings"
+import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
+import type { BigNumberish, HexString } from "~typing"
 
 import {
   WaalletRpcMethod,
