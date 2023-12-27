@@ -8,7 +8,7 @@ import type { HexString } from "~typing"
 import { WaalletRpcMethod } from "../rpc"
 import { WaalletBackgroundProvider } from "./provider"
 
-describe("Waallet Background Provider", () => {
+describe("WaalletBackgroundProvider", () => {
   const { node } = config.provider
   const { counter } = config.contract
 
@@ -64,6 +64,7 @@ describe("Waallet Background Provider", () => {
         {
           from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
+          value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
         }
       ]
@@ -71,27 +72,8 @@ describe("Waallet Background Provider", () => {
     expect(parseInt(gas, 16)).toBeGreaterThan(0)
   })
 
-  it("should send transaction with ether", async () => {
-    const balanceBefore = await node.getBalance(counter.getAddress())
-
-    const txHash = await waalletProvider.request<HexString>({
-      method: WaalletRpcMethod.eth_sendTransaction,
-      params: [
-        {
-          from: await waalletProvider.account.getAddress(),
-          to: await counter.getAddress(),
-          value: 1
-        }
-      ]
-    })
-    const receipt = await node.getTransactionReceipt(txHash)
-    expect(receipt.status).toBe(1)
-
-    const balanceAfter = await node.getBalance(counter.getAddress())
-    expect(balanceAfter - balanceBefore).toBe(1n)
-  })
-
   it("should send transaction to contract", async () => {
+    const balanceBefore = await node.getBalance(counter.getAddress())
     const counterBefore = (await counter.number()) as bigint
 
     const txHash = await waalletProvider.request<HexString>({
@@ -100,12 +82,16 @@ describe("Waallet Background Provider", () => {
         {
           from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
+          value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
         }
       ]
     })
     const receipt = await node.getTransactionReceipt(txHash)
     expect(receipt.status).toBe(1)
+
+    const balanceAfter = await node.getBalance(counter.getAddress())
+    expect(balanceAfter - balanceBefore).toBe(1n)
 
     const counterAfter = (await counter.number()) as bigint
     expect(counterAfter - counterBefore).toBe(1n)
