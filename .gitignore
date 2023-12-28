@@ -32,3 +32,6 @@ dist/
 
 # typescript
 *.tsbuildinfo
+
+# playground
+playground

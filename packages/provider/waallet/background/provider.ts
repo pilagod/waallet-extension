@@ -120,7 +120,13 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
     )
     userOp.signature = await this.account.signMessage(userOpHash)
 
-    await this.bundler.sendUserOperation(userOp, entryPointAddress)
+    const success = await this.bundler.sendUserOperation(
+      userOp,
+      entryPointAddress
+    )
+    if (!success) {
+      throw new Error("Send user operation fail")
+    }
     const txHash = await this.bundler.wait(userOpHash)
 
     return txHash

@@ -120,10 +120,12 @@ describe("Waallet Background Provider", () => {
     })
     expect(await account.isDeployed()).toBe(false)
 
-    await config.account.operator.sendTransaction({
+    const tx = await config.account.operator.sendTransaction({
       to: await account.getAddress(),
       value: ethers.parseUnits("0.01", "ether")
     })
+    await tx.wait()
+
     waalletProvider.connect(account)
 
     const counterBefore = (await counter.number()) as bigint
