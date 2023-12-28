@@ -1,8 +1,9 @@
 import * as ethers from "ethers"
 
+import type { AccountFactory } from "~packages/account/factory"
 import type { BigNumberish, HexString } from "~typing"
 
-export class SimpleAccountFactory {
+export class SimpleAccountFactory implements AccountFactory {
   private node: ethers.JsonRpcProvider
 
   private factory: ethers.Contract

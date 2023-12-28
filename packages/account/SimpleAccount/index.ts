@@ -1,12 +1,12 @@
 import * as ethers from "ethers"
 
-import number from "~packages/util/number"
+import type { Call } from "~packages/account"
+import { AccountSkeleton } from "~packages/account/skeleton"
 import type { BigNumberish, HexString } from "~typing"
 
-import type { Account, Call } from "../index"
 import { SimpleAccountFactory } from "./SimpleAccountFactory"
 
-export class SimpleAccount implements Account {
+export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   /**
    * Use when account is already deployed
    */
@@ -47,11 +47,8 @@ export class SimpleAccount implements Account {
     })
   }
 
-  private node: ethers.JsonRpcProvider
-
   private account: ethers.Contract
   private owner: ethers.Wallet
-  private factory?: SimpleAccountFactory
 
   private constructor(opts: {
     address: HexString
@@ -59,7 +56,11 @@ export class SimpleAccount implements Account {
     factory?: SimpleAccountFactory
     nodeRpcUrl: string
   }) {
-    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
+    super({
+      address: opts.address,
+      factory: opts.factory,
+      nodeRpcUrl: opts.nodeRpcUrl
+    })
     this.account = new ethers.Contract(
       opts.address,
       [
@@ -69,53 +70,25 @@ export class SimpleAccount implements Account {
       this.node
     )
     this.owner = opts.owner
-    this.factory = opts.factory
   }
 
-  public async createUserOperationCall(call?: Call) {
-    const isDeployed = await this.isDeployed()
-
-    const sender = await this.account.getAddress()
-    const nonce =
-      call?.nonce ?? (isDeployed ? await this.account.getNonce() : 0)
-    const initCode = isDeployed
-      ? "0x"
-      : await this.mustGetFactory().getInitCode()
-    const callData = call
-      ? this.account.interface.encodeFunctionData("execute", [
-          call.to,
-          number.toHex(call.value ?? 0),
-          call.data ?? "0x"
-        ])
-      : "0x"
-    const dummySignature =
-      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
-
-    return {
-      sender,
-      nonce: number.toHex(nonce),
-      initCode,
-      callData,
-      signature: dummySignature
-    }
-  }
-
-  public async getAddress() {
-    return this.account.getAddress()
-  }
-
-  public async isDeployed() {
-    return !!(await this.account.getDeployedCode())
-  }
-
-  public async signMessage(message: string | Uint8Array) {
+  public async sign(message: string | Uint8Array) {
     return this.owner.signMessage(ethers.getBytes(message))
   }
 
-  private mustGetFactory() {
-    if (!this.factory) {
-      throw new Error("No factory")
-    }
-    return this.factory
+  protected async getCallData(call: Call): Promise<HexString> {
+    return this.account.interface.encodeFunctionData("execute", [
+      call.to,
+      call.value ?? 0,
+      call.data ?? "0x"
+    ])
+  }
+  protected async getDummySignature(): Promise<HexString> {
+    return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
+  }
+
+  protected async getNonce(): Promise<BigNumberish> {
+    const nonce = (await this.account.getNonce()) as bigint
+    return nonce
   }
 }

@@ -118,7 +118,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       entryPointAddress,
       await this.bundler.getChainId()
     )
-    userOp.signature = await this.account.signMessage(userOpHash)
+    userOp.signature = await this.account.sign(userOpHash)
 
     const success = await this.bundler.sendUserOperation(
       userOp,

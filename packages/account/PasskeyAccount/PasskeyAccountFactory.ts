@@ -1,5 +1,6 @@
 import * as ethers from "ethers"
 
+import type { AccountFactory } from "~packages/account/factory"
 import type { BigNumberish, HexString } from "~typing"
 
 export type PasskeyPublicKey = {
@@ -7,7 +8,7 @@ export type PasskeyPublicKey = {
   y: BigNumberish
 }
 
-export class PasskeyAccountFactory {
+export class PasskeyAccountFactory implements AccountFactory {
   private node: ethers.JsonRpcProvider
 
   private factory: ethers.Contract
