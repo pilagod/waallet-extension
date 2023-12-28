@@ -22,7 +22,7 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     this.y = point.y
   }
 
-  public set(credentialId: string) {
+  public use(credentialId: string) {
     this.credentialId = credentialId
   }
 

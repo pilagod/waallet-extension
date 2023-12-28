@@ -1,6 +1,6 @@
-import type { BytesLike } from "~typing"
+import type { BytesLike, HexString } from "~typing"
 
 export interface PasskeyOwner {
-  set(credentialId: string): void
-  sign(challenge: BytesLike): Promise<string>
+  use(credentialId: string): void
+  sign(challenge: BytesLike): Promise<HexString>
 }

@@ -20,7 +20,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     nodeRpcUrl: string
   }) {
     const account = new PasskeyAccount({ ...opts })
-    opts.owner.set(await account.getCredentialId())
+    opts.owner.use(await account.getCredentialId())
     return account
   }
 
@@ -35,7 +35,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     factoryAddress: string
     nodeRpcUrl: string
   }) {
-    opts.owner.set(opts.credentialId)
+    opts.owner.use(opts.credentialId)
     const factory = new PasskeyAccountFactory({
       address: opts.factoryAddress,
       credentialId: opts.credentialId,
