@@ -2,7 +2,7 @@ import config from "~config/test"
 import number from "~packages/util/number"
 import { describeAccountTestBed } from "~packages/util/testing/testbed/account"
 
-import { SimpleAccount } from "./SimpleAccount"
+import { SimpleAccount } from "."
 
 describeAccountTestBed("SimpleAccount", async () => {
   return SimpleAccount.initWithFactory({

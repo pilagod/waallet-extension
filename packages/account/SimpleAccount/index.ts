@@ -3,7 +3,7 @@ import * as ethers from "ethers"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
-import type { Account, Call } from "./index"
+import type { Account, Call } from "../index"
 
 export class SimpleAccount implements Account {
   /**

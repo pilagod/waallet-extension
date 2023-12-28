@@ -2,7 +2,7 @@ import config from "~config/test"
 import number from "~packages/util/number"
 import { describeAccountTestBed } from "~packages/util/testing/testbed/account"
 
-import { PasskeyAccount } from "./PasskeyAccount"
+import { PasskeyAccount } from "."
 import { PasskeyOwnerP256 } from "./PasskeyOwnerP256"
 
 describeAccountTestBed(
