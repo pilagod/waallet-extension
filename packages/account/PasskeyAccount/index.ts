@@ -4,11 +4,8 @@ import { AccountSkeleton } from "~packages/account/skeleton"
 import type { BigNumberish, HexString } from "~typing"
 
 import type { Call } from "../index"
-import {
-  PasskeyAccountFactory,
-  type PasskeyPublicKey
-} from "./PasskeyAccountFactory"
-import type { PasskeyOwner } from "./PasskeyOwner"
+import { PasskeyAccountFactory, type PasskeyPublicKey } from "./factory"
+import type { PasskeyOwner } from "./passkeyOwner"
 
 export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   /**

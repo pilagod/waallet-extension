@@ -3,7 +3,7 @@ import number from "~packages/util/number"
 import { describeAccountTestBed } from "~packages/util/testing/testbed/account"
 
 import { PasskeyAccount } from "."
-import { PasskeyOwnerP256 } from "./PasskeyOwnerP256"
+import { PasskeyOwnerP256 } from "./passkeyOwnerP256"
 
 describeAccountTestBed(
   "PasskeyAccount",

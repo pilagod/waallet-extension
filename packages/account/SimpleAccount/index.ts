@@ -4,7 +4,7 @@ import type { Call } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import type { BigNumberish, HexString } from "~typing"
 
-import { SimpleAccountFactory } from "./SimpleAccountFactory"
+import { SimpleAccountFactory } from "./factory"
 
 export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   /**
