@@ -13,17 +13,15 @@ import {
   type WaalletRequestArguments
 } from "../rpc"
 
-export class WaalletBackgroundProvider extends JsonRpcProvider {
+export class WaalletBackgroundProvider {
   public account: Account
 
   private node: ethers.JsonRpcProvider
 
   public constructor(
-    nodeRpcUrl: string,
+    private nodeRpcUrl: string,
     private bundler: BundlerProvider
   ) {
-    // TODO: A way to distinguish node rpc url and bundler rpc url
-    super(nodeRpcUrl)
     // TODO: Refactor node provider
     this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
@@ -45,7 +43,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
-        return this.send(args)
+        return new JsonRpcProvider(this.nodeRpcUrl).send(args)
     }
   }
 
