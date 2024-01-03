@@ -1,10 +1,10 @@
 import { p256 } from "@noble/curves/p256"
 import * as ethers from "ethers"
 
-import byte from "~packages/byte"
+import byte from "~packages/util/byte"
 import type { BytesLike } from "~typing"
 
-import type { PasskeyOwner } from "./PasskeyOwner"
+import type { PasskeyOwner } from "./passkeyOwner"
 
 export class PasskeyOwnerP256 implements PasskeyOwner {
   public credentialId: string
@@ -22,7 +22,7 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     this.y = point.y
   }
 
-  public set(credentialId: string) {
+  public use(credentialId: string) {
     this.credentialId = credentialId
   }
 

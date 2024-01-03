@@ -1,8 +1,8 @@
-import { PasskeyOwnerP256 } from "./PasskeyOwnerP256"
+import { PasskeyOwnerP256 } from "./passkeyOwnerP256"
 
 describe("PasskeyOwnerP256", () => {
   const owner = new PasskeyOwnerP256()
-  owner.set("credential-id")
+  owner.use("credential-id")
 
   it("should sign challenge", async () => {
     const challenge = "challenge"

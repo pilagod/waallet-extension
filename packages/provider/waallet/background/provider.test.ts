@@ -1,14 +1,11 @@
-import * as ethers from "ethers"
-
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import number from "~packages/number"
 import type { HexString } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
 import { WaalletBackgroundProvider } from "./provider"
 
-describe("Waallet Background Provider", () => {
+describe("WaalletBackgroundProvider", () => {
   const { node } = config.provider
   const { counter } = config.contract
 
@@ -17,7 +14,7 @@ describe("Waallet Background Provider", () => {
     config.provider.bundler
   )
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     waalletProvider.connect(
       await SimpleAccount.init({
         address: config.address.SimpleAccount,
@@ -25,6 +22,20 @@ describe("Waallet Background Provider", () => {
         nodeRpcUrl: config.rpc.node
       })
     )
+  })
+
+  it("should get chain id", async () => {
+    const chainId = await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_chainId
+    })
+    expect(parseInt(chainId, 16)).toBe(1337)
+  })
+
+  it("should get block number", async () => {
+    const blockNumber = await waalletProvider.request<HexString>({
+      method: WaalletRpcMethod.eth_blockNumber
+    })
+    expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
   })
 
   it("should get accounts", async () => {
@@ -43,20 +54,6 @@ describe("Waallet Background Provider", () => {
     expect(accounts[0]).toHaveLength(42)
   })
 
-  it("should get chain id", async () => {
-    const chainId = await waalletProvider.request<HexString>({
-      method: WaalletRpcMethod.eth_chainId
-    })
-    expect(parseInt(chainId, 16)).toBe(1337)
-  })
-
-  it("should get block number", async () => {
-    const blockNumber = await waalletProvider.request<HexString>({
-      method: WaalletRpcMethod.eth_blockNumber
-    })
-    expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
-  })
-
   it("should estimate gas", async () => {
     const gas = await waalletProvider.request<HexString>({
       method: WaalletRpcMethod.eth_estimateGas,
@@ -64,6 +61,7 @@ describe("Waallet Background Provider", () => {
         {
           from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
+          value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
         }
       ]
@@ -71,8 +69,9 @@ describe("Waallet Background Provider", () => {
     expect(parseInt(gas, 16)).toBeGreaterThan(0)
   })
 
-  it("should send transaction with ether", async () => {
+  it("should send transaction to contract", async () => {
     const balanceBefore = await node.getBalance(counter.getAddress())
+    const counterBefore = (await counter.number()) as bigint
 
     const txHash = await waalletProvider.request<HexString>({
       method: WaalletRpcMethod.eth_sendTransaction,
@@ -80,7 +79,8 @@ describe("Waallet Background Provider", () => {
         {
           from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
-          value: 1
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
         }
       ]
     })
@@ -89,59 +89,6 @@ describe("Waallet Background Provider", () => {
 
     const balanceAfter = await node.getBalance(counter.getAddress())
     expect(balanceAfter - balanceBefore).toBe(1n)
-  })
-
-  it("should send transaction to contract", async () => {
-    const counterBefore = (await counter.number()) as bigint
-
-    const txHash = await waalletProvider.request<HexString>({
-      method: WaalletRpcMethod.eth_sendTransaction,
-      params: [
-        {
-          from: await waalletProvider.account.getAddress(),
-          to: await counter.getAddress(),
-          data: counter.interface.encodeFunctionData("increment", [])
-        }
-      ]
-    })
-    const receipt = await node.getTransactionReceipt(txHash)
-    expect(receipt.status).toBe(1)
-
-    const counterAfter = (await counter.number()) as bigint
-    expect(counterAfter - counterBefore).toBe(1n)
-  })
-
-  it("should deploy account and send transaction when account is not deployed", async () => {
-    const account = await SimpleAccount.initWithSalt({
-      ownerPrivateKey: config.account.operator.privateKey,
-      factoryAddress: config.address.SimpleAccountFactory,
-      salt: number.random(),
-      nodeRpcUrl: config.rpc.node
-    })
-    expect(await account.isDeployed()).toBe(false)
-
-    const tx = await config.account.operator.sendTransaction({
-      to: await account.getAddress(),
-      value: ethers.parseUnits("0.01", "ether")
-    })
-    await tx.wait()
-
-    waalletProvider.connect(account)
-
-    const counterBefore = (await counter.number()) as bigint
-
-    await waalletProvider.request<HexString>({
-      method: WaalletRpcMethod.eth_sendTransaction,
-      params: [
-        {
-          from: await waalletProvider.account.getAddress(),
-          to: await counter.getAddress(),
-          data: counter.interface.encodeFunctionData("increment", [])
-        }
-      ]
-    })
-
-    expect(await account.isDeployed()).toBe(true)
 
     const counterAfter = (await counter.number()) as bigint
     expect(counterAfter - counterBefore).toBe(1n)

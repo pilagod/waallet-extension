@@ -1,10 +1,10 @@
 import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
-import number from "~packages/number"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
+import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
 import {
@@ -118,7 +118,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       entryPointAddress,
       await this.bundler.getChainId()
     )
-    userOp.signature = await this.account.signMessage(userOpHash)
+    userOp.signature = await this.account.sign(userOpHash)
 
     const success = await this.bundler.sendUserOperation(
       userOp,

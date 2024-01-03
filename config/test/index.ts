@@ -40,7 +40,10 @@ const contract = {
   simpleAccount: new ethers.Contract(address.SimpleAccount, [], provider.node),
   counter: new ethers.Contract(
     address.Counter,
-    ["function number() view returns (uint256)", "function increment()"],
+    [
+      "function number() view returns (uint256)",
+      "function increment() payable"
+    ],
     provider.node
   ),
   passkeyAccountFactory: new ethers.Contract(

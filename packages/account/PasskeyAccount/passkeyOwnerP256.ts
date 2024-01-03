@@ -1,0 +1,112 @@
+import { p256 } from "@noble/curves/p256"
+import * as ethers from "ethers"
+
+import byte from "~packages/util/byte"
+import type { BytesLike } from "~typing"
+
+import type { PasskeyOwner } from "./passkeyOwner"
+
+export class PasskeyOwnerP256 implements PasskeyOwner {
+  public credentialId: string
+  public privateKey: Uint8Array
+  public publicKey: Uint8Array
+  public x: bigint
+  public y: bigint
+
+  public constructor() {
+    this.privateKey = p256.utils.randomPrivateKey()
+    this.publicKey = p256.getPublicKey(this.privateKey)
+
+    const point = p256.ProjectivePoint.fromPrivateKey(this.privateKey)
+    this.x = point.x
+    this.y = point.y
+  }
+
+  public use(credentialId: string) {
+    this.credentialId = credentialId
+  }
+
+  public async sign(challenge: BytesLike) {
+    if (!this.credentialId) {
+      throw new Error("Credential id is not set")
+    }
+    const {
+      message,
+      authenticatorData,
+      clientDataJson,
+      clientDataJsonChallengeIndex,
+      clientDataJsonTypeIndex
+    } = this.getMessage(challenge)
+
+    let { r, s } = p256.sign(message, this.privateKey)
+    if (s > p256.CURVE.n / 2n) {
+      s = p256.CURVE.n - s
+    }
+    // (
+    //     bytes memory authenticatorData,
+    //     bool requireUserVerification,
+    //     string memory clientDataJSON,
+    //     uint256 challengeLocation,
+    //     uint256 responseTypeLocation,
+    //     uint256 r,
+    //     uint256 s
+    // ) = abi.decode(
+    //     userOp.signature,
+    //     (bytes, bool, string, uint256, uint256, uint256, uint256)
+    // );
+    const signature = ethers.AbiCoder.defaultAbiCoder().encode(
+      [
+        "bool",
+        "bytes",
+        "bool",
+        "string",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256"
+      ],
+      [
+        false,
+        Uint8Array.from(Buffer.from(authenticatorData, "hex")),
+        true,
+        clientDataJson,
+        clientDataJsonChallengeIndex,
+        clientDataJsonTypeIndex,
+        r,
+        s
+      ]
+    )
+    return signature
+  }
+
+  private getMessage(challenge: BytesLike) {
+    const authenticatorData = this.getAuthenticatorData()
+    const clientDataJson = this.getClientDataJson(challenge)
+    const message = byte
+      .sha256(
+        `${authenticatorData}${byte.sha256(clientDataJson).toString("hex")}`
+      )
+      .toString("hex")
+    return {
+      message,
+      authenticatorData,
+      clientDataJson,
+      clientDataJsonChallengeIndex: 23,
+      clientDataJsonTypeIndex: 1
+    }
+  }
+
+  private getAuthenticatorData() {
+    return "4fb20856f24a6ae7dafc2781090ac8477ae6e2bd072660236cc614c6fb7c2ea00500000001"
+  }
+
+  private getClientDataJson(challenge: BytesLike) {
+    const clientJsonData = {
+      type: "webauthn.get",
+      challenge: byte.normalize(challenge).toString("base64url"),
+      origin: "https://webauthn.passwordless.id",
+      crossOrigin: false
+    }
+    return JSON.stringify(clientJsonData)
+  }
+}

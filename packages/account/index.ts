@@ -1,4 +1,4 @@
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export type UserOperationCall = {
   sender: HexString
@@ -19,5 +19,5 @@ export interface Account {
   createUserOperationCall(call: Call): Promise<UserOperationCall>
   getAddress(): Promise<HexString>
   isDeployed(): Promise<boolean>
-  signMessage(message: string | Uint8Array): Promise<HexString>
+  sign(message: BytesLike): Promise<HexString>
 }
