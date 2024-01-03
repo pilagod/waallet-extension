@@ -4,7 +4,6 @@ import { type Account } from "~packages/account"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
-import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
 import {
@@ -68,13 +67,13 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       {
         ...userOpCall,
         ...(tx.gas && {
-          callGasLimit: number.toHex(tx.gas)
+          callGasLimit: tx.gas
         }),
         paymasterAndData
       },
       entryPointAddress
     )
-    return number.toHex(callGasLimit)
+    return callGasLimit
   }
 
   private async handleSendTransaction(
@@ -101,7 +100,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       {
         ...userOpCall,
         ...(tx.gas && {
-          callGasLimit: number.toHex(tx.gas)
+          callGasLimit: tx.gas
         }),
         paymasterAndData
       },
@@ -133,21 +132,21 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
   }
 
   private async estimateGasFee(gasPrice?: BigNumberish): Promise<{
-    maxFeePerGas: HexString
-    maxPriorityFeePerGas: HexString
+    maxFeePerGas: BigNumberish
+    maxPriorityFeePerGas: BigNumberish
   }> {
     if (gasPrice) {
       return {
-        maxFeePerGas: number.toHex(gasPrice),
-        maxPriorityFeePerGas: number.toHex(gasPrice)
+        maxFeePerGas: gasPrice,
+        maxPriorityFeePerGas: gasPrice
       }
     }
     const fee = await this.node.getFeeData()
     const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
     // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
     return {
-      maxFeePerGas: number.toHex(gasPriceWithBuffer),
-      maxPriorityFeePerGas: number.toHex(gasPriceWithBuffer)
+      maxFeePerGas: gasPriceWithBuffer,
+      maxPriorityFeePerGas: gasPriceWithBuffer
     }
   }
 }

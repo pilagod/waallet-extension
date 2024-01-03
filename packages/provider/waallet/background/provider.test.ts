@@ -1,5 +1,6 @@
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import byte from "~packages/util/byte"
 import type { HexString } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
@@ -66,6 +67,7 @@ describe("WaalletBackgroundProvider", () => {
         }
       ]
     })
+    expect(byte.isHex(gas)).toBe(true)
     expect(parseInt(gas, 16)).toBeGreaterThan(0)
   })
 
