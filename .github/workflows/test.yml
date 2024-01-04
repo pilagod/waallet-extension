@@ -14,8 +14,8 @@ jobs:
           path: 'waallet-contract'
           submodules: recursive
 
-      - name: Expose GitHub runtime 
-        uses: crazy-max/ghaction-github-runtime@v3
+      # - name: Expose GitHub runtime
+      #   uses: crazy-max/ghaction-github-runtime@v3
 
       # - name: Clone `rundler`
       #   uses: actions/checkout@v4
