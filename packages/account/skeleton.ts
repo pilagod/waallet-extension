@@ -35,9 +35,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     const isDeployed = await this.isDeployed()
 
     const sender = await this.getAddress()
-    const nonce = number.toHex(
-      call?.nonce ?? (isDeployed ? await this.getNonce() : 0)
-    )
+    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce() : 0)
     const initCode = isDeployed
       ? "0x"
       : await this.mustGetFactory().getInitCode()
