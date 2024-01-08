@@ -2,41 +2,41 @@ import { useEffect } from "react"
 import { runtime } from "webextension-polyfill"
 
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
-import { createWebauthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn"
+import { requestWebauthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn"
 import type {
-  WebauthnCreation,
-  WebauthnRegistration
+  WebauthnAuthentication,
+  WebauthnRequest
 } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn/typing"
 import { objectFromUrlParams } from "~packages/util/url"
 
-export const CreateWebauthn = () => {
+export const RequestWebauthn = () => {
   useEffect(() => {
     // Extract parameters from the URL
     const urlParams = window.location.href.split("?")
     const params = objectFromUrlParams(
       urlParams[urlParams.length - 1].replace(window.location.hash, "")
     )
-    // Prepare WebAuthn creation data
-    const webauthnCreation: WebauthnCreation = {
-      user: params.user,
-      challenge: params.challengeCreation
-    } as WebauthnCreation
+    // Prepare WebAuthn request data
+    const webauthnRequest: WebauthnRequest = {
+      credentialId: params.credentialId,
+      challenge: params.challengeRequest
+    } as WebauthnRequest
 
     // Connect to the background script
     const port = runtime.connect({
       name: PortName.port_createWebauthn
     })
 
-    // Create a WebAuthn credential
-    createWebauthn(webauthnCreation)
-      .then((credential) => {
-        // Send the credential details to the background script
+    // Request a WebAuthn credential
+    requestWebauthn(webauthnRequest)
+      .then((signature) => {
+        // Send the signature details to the background script
         port.postMessage({
-          origin: credential.origin,
-          credentialId: credential.credentialId,
-          publicKeyX: credential.publicKeyX.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
-          publicKeyY: credential.publicKeyY.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
-        } as WebauthnRegistration)
+          authenticatorData: signature.authenticatorData,
+          clientDataJson: signature.clientDataJson,
+          sigantureR: signature.sigantureR.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
+          signatureS: signature.signatureS.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+        } as WebauthnAuthentication)
       })
       .catch((error) => {
         port.postMessage({ error: `[tab][createWebauthn] Error: ${error}` })
@@ -53,4 +53,4 @@ export const CreateWebauthn = () => {
   }, [])
 }
 
-export default CreateWebauthn
+export default RequestWebauthn

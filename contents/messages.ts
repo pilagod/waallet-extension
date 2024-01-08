@@ -22,6 +22,17 @@ import type { PlasmoCSConfig } from "plasmo"
 
 import { listen } from "@plasmohq/messaging/message"
 
+import { ContentMethod } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/content/method"
+import {
+  contentCreateWebauthn,
+  contentRequestWebauthn
+} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/content/webauthn"
+import type {
+  WebauthnCreation,
+  WebauthnRequest
+} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn/typing"
+import type { UrlB64String } from "~typing"
+
 const ethersAbi = AbiCoder.defaultAbiCoder()
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
@@ -31,23 +42,8 @@ export const config: PlasmoCSConfig = {
   run_at: "document_idle"
 }
 
-export enum ContentMethod {
-  content_createWebauthn = "content_createWebauthn"
-}
-
-export type ContentRequestArguments = ContentCreateWebauthnArguments
-
-export type ContentCreateWebauthnArguments = {
-  tabId?: number
-  name: ContentMethod.content_createWebauthn
-  body: {
-    tabId?: number
-    user?: string
-    challengeBase64Url?: string
-    authAttach?: AuthenticatorAttachment
-  }
-}
-
+// Record the latest Credential ID for signing in future WebAuthn requests.
+let credentialId: UrlB64String = ""
 // Non-hook usage reference: https://github.com/PlasmoHQ/plasmo/blob/888b6015c3829872f78428ca0f07640989f6608c/api/messaging/src/hook.ts#L18
 const Messages = () => {
   listen<Record<string, any>, Record<string, any>>(async (req, res) => {
@@ -60,13 +56,20 @@ const Messages = () => {
 
     switch (req.name) {
       case ContentMethod.content_createWebauthn: {
-        const cred = await handleCreateWebauthn(req.body)
-        console.log(
-          `[contents][messages] cred: ${JSON.stringify(cred, null, 2)}`
-        )
+        const cred = await contentCreateWebauthn(req.body as WebauthnCreation)
+        credentialId = cred.credentialId // Record the credentialId
+
         // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
-        res.send(cred)
-        console.log(`[contents][messages] status: Webauthn creation successful`)
+        // res.send(cred)
+        break
+      }
+      case ContentMethod.content_requestWebauthn: {
+        const sig = await contentRequestWebauthn({
+          credentialId: credentialId ? credentialId : req.body?.credentialId, // credentialId,
+          challenge: req.body.challenge
+        } as WebauthnRequest)
+        // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
+        // res.send(cred)
         break
       }
       default: {
