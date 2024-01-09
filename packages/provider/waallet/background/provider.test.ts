@@ -1,10 +1,17 @@
+import * as ethers from "ethers"
+
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import type { UserOperation } from "~packages/provider/bundler/typing"
 import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 import byte from "~packages/util/byte"
 import type { HexString } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
+import {
+  type UserOperationAuthorizeCallback,
+  type UserOperationAuthorizer
+} from "./authorizer/userOperation"
 import { NullUserOperationAuthorizer } from "./authorizer/userOperation/null"
 
 describe("WaalletBackgroundProvider", () => {
@@ -16,15 +23,15 @@ describe("WaalletBackgroundProvider", () => {
     config.provider.bundler,
     new NullUserOperationAuthorizer()
   )
+  let account: SimpleAccount
 
   beforeAll(async () => {
-    waalletProvider.connect(
-      await SimpleAccount.init({
-        address: config.address.SimpleAccount,
-        ownerPrivateKey: config.account.operator.privateKey,
-        nodeRpcUrl: config.rpc.node
-      })
-    )
+    account = await SimpleAccount.init({
+      address: config.address.SimpleAccount,
+      ownerPrivateKey: config.account.operator.privateKey,
+      nodeRpcUrl: config.rpc.node
+    })
+    waalletProvider.connect(account)
   })
 
   it("should get chain id", async () => {
@@ -96,5 +103,43 @@ describe("WaalletBackgroundProvider", () => {
 
     const counterAfter = (await counter.number()) as bigint
     expect(counterAfter - counterBefore).toBe(1n)
+  })
+
+  it("should send authorized user operation", async () => {
+    const authorizer = new (class CallGasAmplifierUserOperationAuthorizer
+      implements UserOperationAuthorizer
+    {
+      public userOpAuthorized: UserOperation = null
+
+      public async authorize(
+        userOp: UserOperation,
+        { onApproved }: UserOperationAuthorizeCallback
+      ) {
+        userOp.callGasLimit = ethers.toBigInt(userOp.callGasLimit) + 1n
+        this.userOpAuthorized = await onApproved(userOp)
+        return this.userOpAuthorized
+      }
+    })()
+    const provider = new WaalletBackgroundProvider(
+      config.rpc.node,
+      config.provider.bundler,
+      authorizer
+    )
+    provider.connect(account)
+
+    await provider.request<HexString>({
+      method: WaalletRpcMethod.eth_sendTransaction,
+      params: [
+        {
+          from: await provider.account.getAddress(),
+          to: await counter.getAddress(),
+          value: 1
+        }
+      ]
+    })
+
+    expect(config.provider.bundler.lastSentUserOperation).toEqual(
+      authorizer.userOpAuthorized
+    )
   })
 })
