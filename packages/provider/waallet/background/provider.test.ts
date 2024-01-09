@@ -3,7 +3,6 @@ import * as ethers from "ethers"
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import type { UserOperation } from "~packages/provider/bundler/typing"
-import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 import byte from "~packages/util/byte"
 import type { HexString } from "~typing"
 
@@ -13,6 +12,7 @@ import {
   type UserOperationAuthorizer
 } from "./authorizer/userOperation"
 import { NullUserOperationAuthorizer } from "./authorizer/userOperation/null"
+import { WaalletBackgroundProvider } from "./provider"
 
 describe("WaalletBackgroundProvider", () => {
   const { node } = config.provider
