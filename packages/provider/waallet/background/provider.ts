@@ -12,6 +12,7 @@ import {
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
+import { type UserOperationAuthorizer } from "./authorizer/userOperation"
 
 export class WaalletBackgroundProvider {
   public account: Account
@@ -20,7 +21,8 @@ export class WaalletBackgroundProvider {
 
   public constructor(
     private nodeRpcUrl: string,
-    private bundler: BundlerProvider
+    private bundler: BundlerProvider,
+    private userOperationAuthorizer: UserOperationAuthorizer
   ) {
     // TODO: Refactor node provider
     this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
@@ -115,10 +117,23 @@ export class WaalletBackgroundProvider {
       entryPointAddress,
       await this.bundler.getChainId()
     )
-    userOp.signature = await this.account.sign(userOpHash)
-
-    const success = await this.bundler.sendUserOperation(
+    const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,
+      {
+        onApproved: async (userOpAuthorized, metadata) => {
+          const userOpAuthorizedHash = await getUserOpHash(
+            userOpAuthorized,
+            entryPointAddress,
+            await this.bundler.getChainId()
+          )
+          userOpAuthorized.signature =
+            await this.account.sign(userOpAuthorizedHash)
+          return userOpAuthorized
+        }
+      }
+    )
+    const success = await this.bundler.sendUserOperation(
+      userOpAuthorized,
       entryPointAddress
     )
     if (!success) {

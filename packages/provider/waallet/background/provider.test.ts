@@ -1,10 +1,11 @@
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 import byte from "~packages/util/byte"
 import type { HexString } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
-import { WaalletBackgroundProvider } from "./provider"
+import { NullUserOperationAuthorizer } from "./authorizer/userOperation/null"
 
 describe("WaalletBackgroundProvider", () => {
   const { node } = config.provider
@@ -12,7 +13,8 @@ describe("WaalletBackgroundProvider", () => {
 
   const waalletProvider = new WaalletBackgroundProvider(
     config.rpc.node,
-    config.provider.bundler
+    config.provider.bundler,
+    new NullUserOperationAuthorizer()
   )
 
   beforeAll(async () => {

@@ -2,6 +2,7 @@ import {
   BundlerMode,
   BundlerProvider
 } from "~packages/provider/bundler/provider"
+import { NullUserOperationAuthorizer } from "~packages/provider/waallet/background/authorizer/userOperation/null"
 import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 
 let waalletBackgroundProvider: WaalletBackgroundProvider
@@ -16,7 +17,8 @@ export function setupWaalletBackgroundProvider(options: {
 }): WaalletBackgroundProvider {
   waalletBackgroundProvider = new WaalletBackgroundProvider(
     options.nodeRpcUrl,
-    new BundlerProvider(options.bundlerRpcUrl, BundlerMode.Manual)
+    new BundlerProvider(options.bundlerRpcUrl, BundlerMode.Manual),
+    new NullUserOperationAuthorizer()
   )
   return waalletBackgroundProvider
 }
