@@ -25,7 +25,7 @@ import type {
   WebauthnCreation,
   WebauthnRegistration,
   WebauthnRequest
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn/typing"
+} from "~packages/webauthn/typing"
 import type { UrlB64String } from "~typing"
 
 const ethersAbi = AbiCoder.defaultAbiCoder()

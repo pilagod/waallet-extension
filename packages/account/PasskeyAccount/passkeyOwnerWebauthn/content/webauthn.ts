@@ -1,16 +1,13 @@
 import { runtime, type Runtime } from "webextension-polyfill"
 
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
-import {
-  createWebauthn,
-  requestWebauthn
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn"
+import { createWebauthn, requestWebauthn } from "~packages/webauthn"
 import type {
   WebauthnAuthentication,
   WebauthnCreation,
   WebauthnRegistration,
   WebauthnRequest
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn/typing"
+} from "~packages/webauthn/typing"
 
 export const contentCreateWebauthn = async (
   params?: WebauthnCreation

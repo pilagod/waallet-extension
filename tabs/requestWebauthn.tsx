@@ -2,12 +2,12 @@ import { useEffect } from "react"
 import { runtime } from "webextension-polyfill"
 
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
-import { requestWebauthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn"
+import { objectFromUrlParams } from "~packages/util/url"
+import { requestWebauthn } from "~packages/webauthn"
 import type {
   WebauthnAuthentication,
   WebauthnRequest
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn/typing"
-import { objectFromUrlParams } from "~packages/util/url"
+} from "~packages/webauthn/typing"
 
 export const RequestWebauthn = () => {
   useEffect(() => {

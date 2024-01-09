@@ -8,17 +8,14 @@ import {
   type ContentRequestArguments
 } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/content/method"
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
-import {
-  createWebauthn,
-  requestWebauthn
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn"
+import { objectFromUrlParams } from "~packages/util/url"
+import { createWebauthn, requestWebauthn } from "~packages/webauthn"
 import type {
   WebauthnAuthentication,
   WebauthnCreation,
   WebauthnRegistration,
   WebauthnRequest
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn/typing"
-import { objectFromUrlParams } from "~packages/util/url"
+} from "~packages/webauthn/typing"
 import type { UrlB64String } from "~typing"
 
 export const Webauthn = () => {

@@ -1,7 +1,7 @@
 import type {
   WebauthnCreation,
   WebauthnRequest
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/webauthn/typing"
+} from "~packages/webauthn/typing"
 
 export enum ContentMethod {
   content_createWebauthn = "content_createWebauthn",
