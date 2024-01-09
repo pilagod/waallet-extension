@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import { AccountSkeleton } from "~packages/account/skeleton"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
 import { PasskeyAccountFactory, type PasskeyPublicKey } from "./factory"
@@ -80,7 +80,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     return credId as string
   }
 
-  public async sign(message: string | Uint8Array) {
+  public async sign(message: BytesLike) {
     return this.owner.sign(message)
   }
 

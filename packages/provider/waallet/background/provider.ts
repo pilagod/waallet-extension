@@ -126,8 +126,10 @@ export class WaalletBackgroundProvider {
             entryPointAddress,
             await this.bundler.getChainId()
           )
-          userOpAuthorized.signature =
-            await this.account.sign(userOpAuthorizedHash)
+          userOpAuthorized.signature = await this.account.sign(
+            userOpAuthorizedHash,
+            metadata
+          )
           return userOpAuthorized
         }
       }
