@@ -44,9 +44,17 @@ export const Webauthn = () => {
       challenge: params.challengeRequest
     } as WebauthnRequest)
 
-    const runtimePort = runtime.connect({
-      name: PortName.port_createWebauthn
-    })
+    let runtimePort: Runtime.Port
+    // The challengeRequest is the only required parameter.
+    if (params.challengeRequest) {
+      runtimePort = runtime.connect({
+        name: PortName.port_requestWebauthn
+      })
+    } else {
+      runtimePort = runtime.connect({
+        name: PortName.port_createWebauthn
+      })
+    }
     setPort(runtimePort)
     runtimePort.onMessage.addListener((message) => {
       console.log(

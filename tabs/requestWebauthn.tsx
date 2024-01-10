@@ -24,7 +24,7 @@ export const RequestWebauthn = () => {
 
     // Connect to the background script
     const port = runtime.connect({
-      name: PortName.port_createWebauthn
+      name: PortName.port_requestWebauthn
     })
 
     // Request a WebAuthn credential
