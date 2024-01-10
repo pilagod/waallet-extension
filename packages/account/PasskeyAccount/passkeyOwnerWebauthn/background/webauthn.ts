@@ -1,6 +1,7 @@
 import { runtime, tabs, windows, type Runtime } from "webextension-polyfill"
 
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
+import json from "~packages/util/json"
 import {
   isWebauthnError,
   type WebauthnAuthentication,
@@ -63,14 +64,8 @@ export const webauthnWindowAsync = async (
                 webauthnAuthentication = undefined
                 webauthnError = undefined
                 console.log(
-                  `[background][messaging][window] credential: ${JSON.stringify(
-                    webauthnRegistration,
-                    (_, value) => {
-                      return typeof value === "bigint"
-                        ? value.toString()
-                        : value
-                    },
-                    2
+                  `[background][messaging][window] credential: ${json.toString(
+                    webauthnRegistration
                   )}`
                 )
                 port.postMessage({ out: "got credential!" })
@@ -91,14 +86,8 @@ export const webauthnWindowAsync = async (
                 webauthnRegistration = undefined
                 webauthnError = undefined
                 console.log(
-                  `[background][messaging][window] signature: ${JSON.stringify(
-                    webauthnAuthentication,
-                    (_, value) => {
-                      return typeof value === "bigint"
-                        ? value.toString()
-                        : value
-                    },
-                    2
+                  `[background][messaging][window] signature: ${json.toString(
+                    webauthnAuthentication
                   )}`
                 )
                 port.postMessage({ out: "got signature!" })
@@ -172,14 +161,8 @@ export const webauthnTabAsync = async (
                 webauthnAuthentication = undefined
                 webauthnError = undefined
                 console.log(
-                  `[background][messaging][tab] credential: ${JSON.stringify(
-                    webauthnRegistration,
-                    (_, value) => {
-                      return typeof value === "bigint"
-                        ? value.toString()
-                        : value
-                    },
-                    2
+                  `[background][messaging][tab] credential: ${json.toString(
+                    webauthnRegistration
                   )}`
                 )
                 port.postMessage({ out: "got credential!" })
@@ -200,14 +183,8 @@ export const webauthnTabAsync = async (
                 webauthnRegistration = undefined
                 webauthnError = undefined
                 console.log(
-                  `[background][messaging][tab] signature: ${JSON.stringify(
-                    webauthnAuthentication,
-                    (_, value) => {
-                      return typeof value === "bigint"
-                        ? value.toString()
-                        : value
-                    },
-                    2
+                  `[background][messaging][tab] signature: ${json.toString(
+                    webauthnAuthentication
                   )}`
                 )
                 port.postMessage({ out: "got signature!" })

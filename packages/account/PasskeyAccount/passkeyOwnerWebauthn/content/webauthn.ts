@@ -1,6 +1,7 @@
 import { runtime, type Runtime } from "webextension-polyfill"
 
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
+import json from "~packages/util/json"
 import { createWebauthn, requestWebauthn } from "~packages/webauthn"
 import type {
   WebauthnAuthentication,
@@ -26,13 +27,7 @@ export const contentCreateWebauthn = async (
     )
     const cred = await createWebauthn(params)
     console.log(
-      `[content][message][createWebauthn] cred: ${JSON.stringify(
-        cred,
-        (_, value) => {
-          return typeof value === "bigint" ? value.toString() : value
-        },
-        2
-      )}`
+      `[content][message][createWebauthn] cred: ${json.toString(cred)}`
     )
     port.onMessage.addListener((message) => {
       console.log(
@@ -75,13 +70,7 @@ export const contentRequestWebauthn = async (
     )
     const sig = await requestWebauthn(params)
     console.log(
-      `[content][message][requestWebauthn] sig: ${JSON.stringify(
-        sig,
-        (_, value) => {
-          return typeof value === "bigint" ? value.toString() : value
-        },
-        2
-      )}`
+      `[content][message][requestWebauthn] sig: ${json.toString(sig)}`
     )
     port.onMessage.addListener((message) => {
       console.log(
