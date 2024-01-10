@@ -12,7 +12,7 @@ import type {
 } from "~packages/webauthn/typing"
 
 export type RequestBody = {
-  creation: WebauthnCreation
+  creation?: WebauthnCreation
   request: WebauthnRequest
 }
 
@@ -28,33 +28,32 @@ const handler: PlasmoMessaging.MessageHandler<
 
   const createWindowUrl = `${runtime.getURL("tabs/webauthn.html")}?tabId=${
     req.sender.tab.id
-  }&user=${encodeURI(req.body.creation.user)}&challengeCreation=${
-    req.body.creation.challenge
-  }&credentialId=${req.body.request.credentialId}&challengeRequest=${
-    req.body.request.challenge
-  }`
+  }&user=${encodeURI(req.body.creation?.user)}&challengeCreation=${req.body
+    .creation?.challenge}&credentialId=${
+    req.body.request.credentialId
+  }&challengeRequest=${req.body.request.challenge}`
 
   //   const createWindowUrl = `${runtime.getURL(
   //     "tabs/createWebauthn.html"
   //   )}?tabId=${req.sender.tab.id}&user=${encodeURI(
-  //     req.body.creation.user
-  //   )}&challengeCreation=${req.body.creation.challenge}&credentialId=${
-  //     req.body.request.credentialId
-  //   }&challengeRequest=${req.body.request.challenge}`
+  //     req.body.creation?.user
+  //   )}&challengeCreation=${req.body.creation?.challenge}`
 
   //   const createWindowUrl = `${runtime.getURL(
   //     "tabs/requestWebauthn.html"
-  //   )}?tabId=${req.sender.tab.id}&user=${encodeURI(
-  //     req.body.creation.user
-  //   )}&challengeCreation=${
-  //     req.body.creation.challenge
-  //   }&credentialId=${""}&challengeRequest=${req.body.request.challenge}`
+  //   )}?tabId=${req.sender.tab.id}&credentialId=${""}&challengeRequest=${
+  //     req.body.request.challenge
+  //   }`
 
   console.log(`createWindowUrl: ${createWindowUrl}`)
 
-  const window = await webauthnWindowAsync(createWindowUrl)
+  const response = await webauthnWindowAsync(createWindowUrl)
   console.log(
-    `[background][messaging][window] window: ${JSON.stringify(window, null, 2)}`
+    `[background][messaging][window] response: ${JSON.stringify(
+      response,
+      null,
+      2
+    )}`
   )
 
   //   const tab = await webauthnTabAsync(createWindowUrl)

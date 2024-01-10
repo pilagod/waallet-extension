@@ -37,7 +37,7 @@ export class WaalletContentProvider extends EventEmitter {
     creation: creation,
     request: request
   }: {
-    creation: WebauthnCreation
+    creation?: WebauthnCreation
     request: WebauthnRequest
   }): Promise<any> {
     const req = {
