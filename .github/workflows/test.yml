@@ -7,6 +7,25 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Use Node.js v16
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+
+      - name: Clone `waallet-extension`
+        uses: actions/checkout@v4
+        with:
+          repository: 'pilagod/waallet-extension'
+          path: 'waallet-extension'
+
+      - name: Set up `waallet-extension`
+        working-directory: 'waallet-extension'
+        run: npm ci
+
+      - name: Run linter
+        working-directory: 'waallet-extension'
+        run: npm run lint
+
       - name: Clone `waallet-contract`
         uses: actions/checkout@v4
         with:
@@ -25,21 +44,6 @@ jobs:
       - name: Set up testnet
         working-directory: 'waallet-contract'
         run: docker compose -f ./docker/testnet/docker-compose-node-setup.yml up --build
-
-      - name: Use Node.js v16
-        uses: actions/setup-node@v4
-        with:
-          node-version: 16
-
-      - name: Clone `waallet-extension`
-        uses: actions/checkout@v4
-        with:
-          repository: 'pilagod/waallet-extension'
-          path: 'waallet-extension'
-
-      - name: Set up `waallet-extension` 
-        working-directory: 'waallet-extension'
-        run: npm ci
 
       - name: Run tests
         working-directory: 'waallet-extension'
