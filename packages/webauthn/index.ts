@@ -18,7 +18,6 @@ import type {
   PublicKeyCredentialType,
   UserVerificationRequirement
 } from "@simplewebauthn/typescript-types"
-import { AbiCoder } from "ethers"
 
 import type {
   WebauthnAuthentication,
@@ -27,8 +26,6 @@ import type {
   WebauthnRequest
 } from "~packages/webauthn/typing"
 import type { UrlB64String } from "~typing"
-
-const ethersAbi = AbiCoder.defaultAbiCoder()
 
 export const createWebauthn = async (
   params?: WebauthnCreation
@@ -99,16 +96,10 @@ export const createWebauthn = async (
     1 + credPubKeyXLen
   )
   const credPubKeyXHex = `0x${isoUint8Array.toHex(credPubKeyXUint8Arr)}`
-  const credPubKeyXUint256 = ethersAbi.decode(
-    ["uint256"],
-    ethersAbi.encode(["bytes32"], [credPubKeyXHex])
-  )[0] as bigint
+  const credPubKeyXUint256 = BigInt(credPubKeyXHex)
   const credPubKeyYUint8Arr = credPubKeyObjUint8Arr.subarray(1 + credPubKeyXLen)
   const credPubKeyYHex = `0x${isoUint8Array.toHex(credPubKeyYUint8Arr)}`
-  const credPubKeyYUint256 = ethersAbi.decode(
-    ["uint256"],
-    ethersAbi.encode(["bytes32"], [credPubKeyYHex])
-  )[0] as bigint
+  const credPubKeyYUint256 = BigInt(credPubKeyYHex)
   console.log(
     `[webauthn][debug]\nuserDisplayName: ${userDisplayName}\nchallengeBase64Url: ${challengeBase64Url}\ncredPubKeyXHex: ${credPubKeyXHex}\ncredPubKeyYHex: ${credPubKeyYHex}`
   )
@@ -181,16 +172,12 @@ const parseSignature = (signature: UrlB64String): [bigint, bigint] => {
     console.log(`${signature} is not Base64Url`)
     return [BigInt(0), BigInt(0)] as const
   }
-  const n = BigInt(
-    "0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551"
-  )
   const p256Sig = p256.Signature.fromDER(
     isoUint8Array.toHex(isoBase64URL.toBuffer(signature))
   )
   // If your library generates malleable signatures, such as s-values in the upper range, calculate a new s-value
-  let p256SigS = p256Sig.s
-  if (p256SigS > n / BigInt(2)) {
-    p256SigS = n - p256SigS
-  }
+  const p256SigS =
+    p256Sig.s > p256.CURVE.n / 2n ? p256.CURVE.n - p256Sig.s : p256Sig.s
+
   return [p256Sig.r, p256SigS]
 }
