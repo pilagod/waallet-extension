@@ -5,6 +5,7 @@ import { createWebauthn, requestWebauthn } from "~packages/webauthn"
 import type {
   WebauthnAuthentication,
   WebauthnCreation,
+  WebauthnError,
   WebauthnRegistration,
   WebauthnRequest
 } from "~packages/webauthn/typing"
@@ -12,6 +13,9 @@ import type {
 export const contentCreateWebauthn = async (
   params?: WebauthnCreation
 ): Promise<WebauthnRegistration> => {
+  const port = runtime.connect({
+    name: PortName.port_createWebauthn
+  })
   try {
     console.log(
       `[content][message][createWebauthn] params: ${JSON.stringify(
@@ -30,9 +34,6 @@ export const contentCreateWebauthn = async (
         2
       )}`
     )
-    const port = runtime.connect({
-      name: PortName.port_createWebauthn
-    })
     port.onMessage.addListener((message) => {
       console.log(
         `[content][message][createWebauthn] port: ${JSON.stringify(
@@ -51,13 +52,19 @@ export const contentCreateWebauthn = async (
     } as WebauthnRegistration)
     return cred
   } catch (error) {
-    console.error("Error creating webauthn:", error)
+    console.error(`[content][createWebauthn] Error: ${error}`)
+    port.postMessage({
+      error: `[content][createWebauthn] Error: ${error}`
+    } as WebauthnError)
   }
 }
 
 export const contentRequestWebauthn = async (
   params: WebauthnRequest
 ): Promise<WebauthnAuthentication> => {
+  const port = runtime.connect({
+    name: PortName.port_requestWebauthn
+  })
   try {
     console.log(
       `[content][message][requestWebauthn] params: ${JSON.stringify(
@@ -76,9 +83,6 @@ export const contentRequestWebauthn = async (
         2
       )}`
     )
-    const port = runtime.connect({
-      name: PortName.port_requestWebauthn
-    })
     port.onMessage.addListener((message) => {
       console.log(
         `[content][message][requestWebauthn] port: ${JSON.stringify(
@@ -97,6 +101,9 @@ export const contentRequestWebauthn = async (
     } as WebauthnAuthentication)
     return sig
   } catch (error) {
-    console.error("Error requesting webauthn:", error)
+    console.error(`[content][requestWebauthn] Error: ${error}`)
+    port.postMessage({
+      error: `[content][requestWebauthn] Error: ${error}`
+    } as WebauthnError)
   }
 }

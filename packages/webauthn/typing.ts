@@ -22,3 +22,12 @@ export type WebauthnAuthentication = {
   sigantureR: BigNumberish
   signatureS: BigNumberish
 }
+
+/* Error */
+export type WebauthnError = {
+  error: string
+}
+
+export const isWebauthnError = (message: any): message is WebauthnError => {
+  return "error" in message
+}

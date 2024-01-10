@@ -6,6 +6,7 @@ import { objectFromUrlParams } from "~packages/util/url"
 import { requestWebauthn } from "~packages/webauthn"
 import type {
   WebauthnAuthentication,
+  WebauthnError,
   WebauthnRequest
 } from "~packages/webauthn/typing"
 
@@ -39,14 +40,17 @@ export const RequestWebauthn = () => {
         } as WebauthnAuthentication)
       })
       .catch((error) => {
-        port.postMessage({ error: `[tab][createWebauthn] Error: ${error}` })
+        console.error(`[tab][requestWebauthn] Error: ${error}`)
+        port.postMessage({
+          error: `[tab][requestWebauthn] Error: ${error}`
+        } as WebauthnError)
       })
       .finally(() => {
         // Disconnect the port
         port.disconnect()
         // Close this window asynchronously
+        window.onbeforeunload = null
         setTimeout(() => {
-          window.onbeforeunload = null
           window.close()
         }, 100) // After 0.1 seconds
       })

@@ -13,6 +13,7 @@ import { createWebauthn, requestWebauthn } from "~packages/webauthn"
 import type {
   WebauthnAuthentication,
   WebauthnCreation,
+  WebauthnError,
   WebauthnRegistration,
   WebauthnRequest
 } from "~packages/webauthn/typing"
@@ -23,8 +24,6 @@ export const Webauthn = () => {
   const [webauthnRequest, setWebauthnRequest] = useState<WebauthnRequest>()
   const [tabId, setTabId] = useState<number | undefined>()
   const [cred, setCred] = useState<WebauthnRegistration>()
-  // Record the latest Credential ID for signing in future WebAuthn requests.
-  const [credId, setCredId] = useState<UrlB64String>("")
   const [sig, setSig] = useState<WebauthnAuthentication>()
   const [port, setPort] = useState<Runtime.Port | null>(null)
 
@@ -62,7 +61,13 @@ export const Webauthn = () => {
       )
     })
     return () => {
+      // Disconnect the port
       runtimePort.disconnect()
+      // Close this window asynchronously
+      window.onbeforeunload = null
+      setTimeout(() => {
+        window.close()
+      }, 100) // After 0.1 seconds
     }
   }, [])
 
@@ -82,9 +87,7 @@ export const Webauthn = () => {
     const contentReq = {
       tabId: tabId,
       name: ContentMethod.content_requestWebauthn,
-      body: credId
-        ? { ...webauthnRequest, credentialId: credId }
-        : webauthnRequest
+      body: webauthnRequest
     } as ContentRequestArguments
     console.log(
       `[tab][createWebauthnViaContents] contentReq: ${JSON.stringify(
@@ -97,7 +100,7 @@ export const Webauthn = () => {
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
     const contentRes = await sendToContentScript(contentReq) // Always return undefined
     setSig(contentRes)
-  }, [tabId, credId, webauthnRequest])
+  }, [tabId, webauthnRequest])
 
   const buttonCreateWebauthn = useCallback(async () => {
     try {
@@ -123,7 +126,10 @@ export const Webauthn = () => {
         publicKeyY: credential.publicKeyY.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
       } as WebauthnRegistration)
     } catch (error) {
-      console.error("Error creating webauthn:", error)
+      console.error(`[tab][createWebauthn] Error: ${error}`)
+      port.postMessage({
+        error: `[tab][createWebauthn] Error: ${error}`
+      } as WebauthnError)
     }
   }, [webauthnCreation, port])
 
@@ -155,14 +161,22 @@ export const Webauthn = () => {
         signatureS: signature.signatureS.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
       } as WebauthnAuthentication)
     } catch (error) {
-      console.error("Error requesting webauthn:", error)
+      console.error(`[tab][requestWebauthn] Error: ${error}`)
+      port.postMessage({
+        error: `[tab][requestWebauthn] Error: ${error}`
+      } as WebauthnError)
     }
   }, [webauthnCreation, cred, port])
 
-  const buttonCloseWindow = () => {
+  const buttonCloseWindow = useCallback(() => {
+    // Disconnect the port
+    port.disconnect()
+    // Close this window asynchronously
     window.onbeforeunload = null
-    window.close()
-  }
+    setTimeout(() => {
+      window.close()
+    }, 100) // After 0.1 seconds
+  }, [port])
 
   return (
     <>
