@@ -5,10 +5,10 @@ import {
   BundlerProvider
 } from "~packages/provider/bundler/provider"
 import type { UserOperation } from "~packages/provider/bundler/typing"
-import type { HexString } from "~typing"
+import type { HexString, Nullable } from "~typing"
 
 class BundlerProviderWithCache extends BundlerProvider {
-  public lastSentUserOperation: UserOperation = null
+  public lastSentUserOperation: Nullable<UserOperation> = null
 
   public async sendUserOperation(
     userOp: UserOperation,

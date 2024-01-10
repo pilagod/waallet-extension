@@ -4,7 +4,7 @@ import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import type { UserOperation } from "~packages/provider/bundler/typing"
 import byte from "~packages/util/byte"
-import type { HexString } from "~typing"
+import type { HexString, Nullable } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
 import {
@@ -106,10 +106,10 @@ describe("WaalletBackgroundProvider", () => {
   })
 
   it("should send authorized user operation", async () => {
-    const authorizer = new (class CallGasAmplifierUserOperationAuthorizer
+    const authorizer = new (class MutatingUserOperationAuthorizer
       implements UserOperationAuthorizer
     {
-      public userOpAuthorized: UserOperation = null
+      public userOpAuthorized: Nullable<UserOperation> = null
 
       public async authorize(
         userOp: UserOperation,
@@ -127,7 +127,7 @@ describe("WaalletBackgroundProvider", () => {
     )
     provider.connect(account)
 
-    await provider.request<HexString>({
+    await provider.request({
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
