@@ -16,17 +16,21 @@ const UserOperationAuthorization = () => {
   }
 
   useEffect(() => {
-    const port = browser.runtime.connect({
-      name: "PopUpUserOperationAuthorizer"
-    })
-    port.onMessage.addListener((message) => {
-      console.log("message from background", message)
-      if (message.userOp) {
-        setUserOp(json.parse(message.userOp))
-      }
-    })
-    setPort(port)
-    port.postMessage({ init: true })
+    async function setup() {
+      const tab = await browser.tabs.getCurrent()
+      const port = browser.runtime.connect({
+        name: `PopUpUserOperationAuthorizer#${tab.id}`
+      })
+      port.onMessage.addListener(async (message) => {
+        console.log("message from background", message)
+        if (message.userOp) {
+          setUserOp(json.parse(message.userOp))
+        }
+      })
+      setPort(port)
+      port.postMessage({ init: true })
+    }
+    setup()
   }, [])
 
   return (

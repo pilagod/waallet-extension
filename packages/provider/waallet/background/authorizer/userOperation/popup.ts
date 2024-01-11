@@ -28,7 +28,7 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
       const portOnConnectHandler = (port: browser.Runtime.Port) => {
         if (
           port.sender?.tab?.id !== t.id ||
-          port.name !== "PopUpUserOperationAuthorizer"
+          port.name !== `PopUpUserOperationAuthorizer#${t.id}`
         ) {
           return
         }
