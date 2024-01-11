@@ -4,6 +4,7 @@ import config from "~config/test"
 import type { Account } from "~packages/account"
 import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
+import byte from "~packages/util/byte"
 import type { HexString } from "~typing"
 
 export function describeAccountTestBed<T extends Account>(
@@ -59,6 +60,7 @@ export function describeAccountTestBed<T extends Account>(
           }
         ]
       })
+      expect(byte.isHex(gas)).toBe(true)
       expect(parseInt(gas, 16)).toBeGreaterThan(0)
     })
 

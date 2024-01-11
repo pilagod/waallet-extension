@@ -4,7 +4,6 @@ import { type Account } from "~packages/account"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
-import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
 import {
@@ -14,17 +13,15 @@ import {
   type WaalletRequestArguments
 } from "../rpc"
 
-export class WaalletBackgroundProvider extends JsonRpcProvider {
+export class WaalletBackgroundProvider {
   public account: Account
 
   private node: ethers.JsonRpcProvider
 
   public constructor(
-    nodeRpcUrl: string,
+    private nodeRpcUrl: string,
     private bundler: BundlerProvider
   ) {
-    // TODO: A way to distinguish node rpc url and bundler rpc url
-    super(nodeRpcUrl)
     // TODO: Refactor node provider
     this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
@@ -46,7 +43,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
-        return this.send(args)
+        return new JsonRpcProvider(this.nodeRpcUrl).send(args)
     }
   }
 
@@ -68,13 +65,13 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       {
         ...userOpCall,
         ...(tx.gas && {
-          callGasLimit: number.toHex(tx.gas)
+          callGasLimit: tx.gas
         }),
         paymasterAndData
       },
       entryPointAddress
     )
-    return number.toHex(callGasLimit)
+    return callGasLimit
   }
 
   private async handleSendTransaction(
@@ -101,7 +98,7 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
       {
         ...userOpCall,
         ...(tx.gas && {
-          callGasLimit: number.toHex(tx.gas)
+          callGasLimit: tx.gas
         }),
         paymasterAndData
       },
@@ -133,21 +130,21 @@ export class WaalletBackgroundProvider extends JsonRpcProvider {
   }
 
   private async estimateGasFee(gasPrice?: BigNumberish): Promise<{
-    maxFeePerGas: HexString
-    maxPriorityFeePerGas: HexString
+    maxFeePerGas: BigNumberish
+    maxPriorityFeePerGas: BigNumberish
   }> {
     if (gasPrice) {
       return {
-        maxFeePerGas: number.toHex(gasPrice),
-        maxPriorityFeePerGas: number.toHex(gasPrice)
+        maxFeePerGas: gasPrice,
+        maxPriorityFeePerGas: gasPrice
       }
     }
     const fee = await this.node.getFeeData()
     const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
     // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
     return {
-      maxFeePerGas: number.toHex(gasPriceWithBuffer),
-      maxPriorityFeePerGas: number.toHex(gasPriceWithBuffer)
+      maxFeePerGas: gasPriceWithBuffer,
+      maxPriorityFeePerGas: gasPriceWithBuffer
     }
   }
 }

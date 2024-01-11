@@ -9,23 +9,25 @@ export enum BundlerMode {
   Auto = "auto"
 }
 
-export class BundlerProvider extends JsonRpcProvider {
+export class BundlerProvider {
+  private bundler: JsonRpcProvider
+
   public constructor(
     bundlerRpcUrl: string,
     private mode: BundlerMode = BundlerMode.Auto
   ) {
-    super(bundlerRpcUrl)
+    this.bundler = new JsonRpcProvider(bundlerRpcUrl)
   }
 
   public async getChainId(): Promise<HexString> {
-    const chainId = await this.send({
+    const chainId = await this.bundler.send({
       method: BundlerRpcMethod.eth_chainId
     })
     return chainId
   }
 
   public async getSupportedEntryPoints(): Promise<HexString[]> {
-    const entryPointAddresses = await this.send({
+    const entryPointAddresses = await this.bundler.send({
       method: BundlerRpcMethod.eth_supportedEntryPoints
     })
     return entryPointAddresses
@@ -34,7 +36,7 @@ export class BundlerProvider extends JsonRpcProvider {
   public async getUserOperationReceipt(userOpHash: HexString): Promise<{
     success: boolean
   }> {
-    const receipt = await this.send({
+    const receipt = await this.bundler.send({
       method: BundlerRpcMethod.eth_getUserOperationReceipt,
       params: [userOpHash]
     })
@@ -49,7 +51,7 @@ export class BundlerProvider extends JsonRpcProvider {
     verificationGasLimit: HexString
     callGasLimit: HexString
   }> {
-    const gasLimits = await this.send({
+    const gasLimits = await this.bundler.send({
       method: BundlerRpcMethod.eth_estimateUserOperationGas,
       params: [userOp, entryPointAddress]
     })
@@ -60,7 +62,7 @@ export class BundlerProvider extends JsonRpcProvider {
     userOp: UserOperation,
     entryPointAddress: HexString
   ): Promise<HexString> {
-    const userOpHash = await this.send({
+    const userOpHash = await this.bundler.send({
       method: BundlerRpcMethod.eth_sendUserOperation,
       params: [userOp, entryPointAddress]
     })
@@ -79,7 +81,7 @@ export class BundlerProvider extends JsonRpcProvider {
       >((resolve) => {
         setTimeout(async () => {
           resolve(
-            await this.send({
+            await this.bundler.send({
               method: BundlerRpcMethod.eth_getUserOperationByHash,
               params: [userOpHash]
             })
@@ -93,7 +95,7 @@ export class BundlerProvider extends JsonRpcProvider {
   }
 
   private async debugSendBundleNow() {
-    await this.send({
+    await this.bundler.send({
       method: BundlerRpcMethod.debug_bundler_sendBundleNow
     })
   }
