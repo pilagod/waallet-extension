@@ -170,7 +170,7 @@ export const defaultWebauthn = {
 const parseSignature = (signature: UrlB64String): [bigint, bigint] => {
   if (!isoBase64URL.isBase64url(signature)) {
     console.log(`${signature} is not Base64Url`)
-    return [BigInt(0), BigInt(0)] as const
+    return [BigInt(0), BigInt(0)]
   }
   const p256Sig = p256.Signature.fromDER(
     isoUint8Array.toHex(isoBase64URL.toBuffer(signature))
