@@ -6,30 +6,34 @@ import json from "~packages/util/json"
 import type { Nullable } from "~typing"
 
 const UserOperationAuthorization = () => {
+  const [port, setPort] = useState<browser.Runtime.Port>(null)
   const [userOp, setUserOp] = useState<UserOperation>(null)
 
   const sendUserOperation = () => {
-    browser.runtime.sendMessage(browser.runtime.id, {
-      userOp: json.stringify(userOp)
+    port.postMessage({
+      userOpAuthorized: json.stringify(userOp)
     })
   }
 
   useEffect(() => {
-    browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      console.log("message:", message)
-      console.log("sender:", sender)
-      const userOp = json.parse(message.userOp)
-      setUserOp(userOp)
-      ;(sendResponse as any)({
-        status: 0
-      })
+    const port = browser.runtime.connect({
+      name: "PopUpUserOperationAuthorizer"
     })
+    port.onMessage.addListener((message) => {
+      console.log("message from background", message)
+      if (message.userOp) {
+        setUserOp(json.parse(message.userOp))
+      }
+    })
+    setPort(port)
+    port.postMessage({ init: true })
   }, [])
 
   return (
     <div>
       <UserOperationPreview userOp={userOp} />
       <button onClick={() => sendUserOperation()}>Send</button>
+      <button onClick={() => window.close()}>Cancel</button>
     </div>
   )
 }

@@ -25,69 +25,46 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
       })
       const [t] = w.tabs.filter((t) => t.active)
 
-      const onMessageHandler = async (
-        message: any,
-        sender: browser.Runtime.MessageSender
-      ) => {
-        console.group("onMessageHandler")
-        console.log("message:", message)
-        console.log("sender", sender)
-        if (sender.tab.id === t.id) {
+      const portOnConnectHandler = (port: browser.Runtime.Port) => {
+        if (
+          port.sender?.tab?.id !== t.id ||
+          port.name !== "PopUpUserOperationAuthorizer"
+        ) {
+          return
+        }
+        port.onMessage.addListener(async (message) => {
+          console.log("message from popup", message)
+          // After popup is initialized, send user opreation to it for authorization.
+          if (message.init) {
+            port.postMessage({
+              userOp: json.stringify(userOp)
+            })
+            return
+          }
+          if (!message.userOpAuthorized) {
+            return
+          }
           const userOpAuthorized = await onApproved(
-            json.parse(message.userOp) as UserOperation
+            json.parse(message.userOpAuthorized)
           )
           resolve(userOpAuthorized)
           resolved = true
           browser.tabs.remove(t.id)
-        } else {
-          console.log(
-            `Ignore message from tab other than ${t.id}: ${sender.tab.id}`
-          )
-        }
-        console.groupEnd()
+        })
       }
-      browser.runtime.onMessage.addListener(onMessageHandler)
+      browser.runtime.onConnect.addListener(portOnConnectHandler)
 
-      const onTabUpdatedHandler = async (
-        tabId: number,
-        changeInfo: browser.Tabs.OnUpdatedChangeInfoType,
-        tab: browser.Tabs.Tab
-      ) => {
-        console.group("onTabUpdatedHandler")
-        console.log("tab:", tabId, tab)
-        console.log("change info:", changeInfo)
-        console.groupEnd()
+      const tabOnRemovedHandler = (tabId: number) => {
         if (tabId !== t.id) {
           return
         }
-        if (changeInfo.status !== "complete") {
-          return
-        }
-        const { status } = await browser.tabs.sendMessage(t.id, {
-          userOp: json.stringify(userOp)
-        })
-        if (status !== 0) {
-          // TODO: Retry when no status or its value is other than 0,
-        }
-      }
-      browser.tabs.onUpdated.addListener(onTabUpdatedHandler)
-
-      const onTabClosedHandler = (
-        tabId: number,
-        removeInfo: browser.Tabs.OnRemovedRemoveInfoType
-      ) => {
-        console.group("onTabClosedHandler")
-        console.log("tab id:", tabId)
-        console.log("remove info:", removeInfo)
-        console.groupEnd()
         if (!resolved) {
-          reject("UserOperation is rejected")
+          reject("User operation is rejected")
         }
-        browser.runtime.onMessage.removeListener(onMessageHandler)
-        browser.tabs.onUpdated.removeListener(onTabUpdatedHandler)
-        browser.tabs.onRemoved.removeListener(onTabClosedHandler)
+        browser.runtime.onConnect.removeListener(portOnConnectHandler)
+        browser.tabs.onRemoved.removeListener(tabOnRemovedHandler)
       }
-      browser.tabs.onRemoved.addListener(onTabClosedHandler)
+      browser.tabs.onRemoved.addListener(tabOnRemovedHandler)
     })
   }
 }
