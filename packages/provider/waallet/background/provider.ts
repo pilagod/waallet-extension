@@ -26,6 +26,10 @@ export class WaalletBackgroundProvider {
     this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
 
+  public clone() {
+    return new WaalletBackgroundProvider(this.nodeRpcUrl, this.bundler)
+  }
+
   public connect(account: Account) {
     this.account = account
   }

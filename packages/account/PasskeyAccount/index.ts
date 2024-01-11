@@ -62,11 +62,10 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       factory: opts.factory,
       nodeRpcUrl: opts.nodeRpcUrl
     })
-    const Passkey = "(string credId, uint256 pubKeyX, uint256 pubKeyY)"
     this.account = new ethers.Contract(
       opts.address,
       [
-        `function passkey() view returns (${Passkey} passkey)`,
+        `function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)`,
         "function getNonce() view returns (uint256)",
         "function execute(address dest, uint256 value, bytes calldata func)"
       ],

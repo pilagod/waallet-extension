@@ -27,7 +27,8 @@ const address = {
   SimpleAccountFactory: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   SimpleAccount: "0x1cee485cc83c5a17692904ff441a115fb223788e",
   Counter: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-  PasskeyAccountFactory: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+  PasskeyAccountFactory: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+  PasskeyAccount: "0x3c93bc637f7630b2d4ad51f4a02b786e81ff1498"
 }
 
 const contract = {

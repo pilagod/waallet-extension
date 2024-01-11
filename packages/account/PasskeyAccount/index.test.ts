@@ -22,6 +22,16 @@ describeAccountTestBed(
     })
   },
   (account, provider) => {
-    // TODO: Test existing passkey account
+    describe("init", () => {
+      it("should init with existing passkey account", async () => {
+        const pa = await PasskeyAccount.init({
+          address: config.address.PasskeyAccount,
+          owner: new PasskeyOwnerP256(),
+          nodeRpcUrl: config.rpc.node
+        })
+        expect(await pa.getAddress()).toBe(config.address.PasskeyAccount)
+        expect(await pa.getCredentialId()).toBeTruthy()
+      })
+    })
   }
 )
