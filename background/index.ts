@@ -1,5 +1,5 @@
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn"
+import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 
 import { setupWaalletBackgroundProvider } from "./provider"

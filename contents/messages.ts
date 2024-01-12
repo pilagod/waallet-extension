@@ -22,15 +22,15 @@ import type { PlasmoCSConfig } from "plasmo"
 
 import { listen } from "@plasmohq/messaging/message"
 
-import { ContentMethod } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/content/method"
+import { ContentMethod } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/content/method"
 import {
   contentCreateWebAuthn,
   contentRequestWebAuthn
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/content/webauthn"
+} from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/content/webAuthn"
 import type {
   WebAuthnCreation,
   WebAuthnRequest
-} from "~packages/webauthn/typing"
+} from "~packages/webAuthn/typing"
 import type { UrlB64String } from "~typing"
 
 const ethersAbi = AbiCoder.defaultAbiCoder()

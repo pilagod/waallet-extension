@@ -4,7 +4,7 @@ import { type BackgroundMessenger } from "~packages/messenger/background"
 import type {
   WebAuthnCreation,
   WebAuthnRequest
-} from "~packages/webauthn/typing"
+} from "~packages/webAuthn/typing"
 
 import { WaalletMessage } from "../message"
 import { type WaalletRequestArguments } from "../rpc"

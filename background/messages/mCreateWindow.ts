@@ -5,11 +5,11 @@ import { type PlasmoMessaging } from "@plasmohq/messaging"
 import {
   webAuthnTabAsync,
   webAuthnWindowAsync
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/background/webauthn"
+} from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/background/webAuthn"
 import type {
   WebAuthnCreation,
   WebAuthnRequest
-} from "~packages/webauthn/typing"
+} from "~packages/webAuthn/typing"
 
 export type RequestBody = {
   creation?: WebAuthnCreation
@@ -26,7 +26,7 @@ const handler: PlasmoMessaging.MessageHandler<
     `[background][messaging][window] Request: ${JSON.stringify(req, null, 2)}`
   )
 
-  const createWindowUrl = `${runtime.getURL("tabs/webauthn.html")}?tabId=${
+  const createWindowUrl = `${runtime.getURL("tabs/webAuthn.html")}?tabId=${
     req.sender.tab.id
   }&user=${encodeURI(req.body.creation?.user)}&challengeCreation=${req.body
     .creation?.challenge}&credentialId=${
@@ -34,13 +34,13 @@ const handler: PlasmoMessaging.MessageHandler<
   }&challengeRequest=${req.body.request.challenge}`
 
   //   const createWindowUrl = `${runtime.getURL(
-  //     "tabs/createWebauthn.html"
+  //     "tabs/createWebAuthn.html"
   //   )}?tabId=${req.sender.tab.id}&user=${encodeURI(
   //     req.body.creation?.user
   //   )}&challengeCreation=${req.body.creation?.challenge}`
 
   //   const createWindowUrl = `${runtime.getURL(
-  //     "tabs/requestWebauthn.html"
+  //     "tabs/requestWebAuthn.html"
   //   )}?tabId=${req.sender.tab.id}&credentialId=${""}&challengeRequest=${
   //     req.body.request.challenge
   //   }`
