@@ -3,14 +3,14 @@ import { runtime } from "webextension-polyfill"
 
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
 import { objectFromUrlParams } from "~packages/util/url"
-import { requestWebauthn } from "~packages/webauthn"
+import { requestWebAuthn } from "~packages/webauthn"
 import type {
-  WebauthnAuthentication,
-  WebauthnError,
-  WebauthnRequest
+  WebAuthnAuthentication,
+  WebAuthnError,
+  WebAuthnRequest
 } from "~packages/webauthn/typing"
 
-export const RequestWebauthn = () => {
+export const RequestWebAuthn = () => {
   useEffect(() => {
     // Extract parameters from the URL
     const urlParams = window.location.href.split("?")
@@ -18,18 +18,18 @@ export const RequestWebauthn = () => {
       urlParams[urlParams.length - 1].replace(window.location.hash, "")
     )
     // Prepare WebAuthn request data
-    const webauthnRequest: WebauthnRequest = {
+    const webAuthnRequest: WebAuthnRequest = {
       credentialId: params.credentialId,
       challenge: params.challengeRequest
-    } as WebauthnRequest
+    } as WebAuthnRequest
 
     // Connect to the background script
     const port = runtime.connect({
-      name: PortName.port_requestWebauthn
+      name: PortName.port_requestWebAuthn
     })
 
     // Request a WebAuthn credential
-    requestWebauthn(webauthnRequest)
+    requestWebAuthn(webAuthnRequest)
       .then((signature) => {
         // Send the signature details to the background script
         port.postMessage({
@@ -37,13 +37,13 @@ export const RequestWebauthn = () => {
           clientDataJson: signature.clientDataJson,
           sigantureR: signature.sigantureR.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
           signatureS: signature.signatureS.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
-        } as WebauthnAuthentication)
+        } as WebAuthnAuthentication)
       })
       .catch((error) => {
-        console.error(`[tab][requestWebauthn] Error: ${error}`)
+        console.error(`[tab][requestWebAuthn] Error: ${error}`)
         port.postMessage({
-          error: `[tab][requestWebauthn] Error: ${error}`
-        } as WebauthnError)
+          error: `[tab][requestWebAuthn] Error: ${error}`
+        } as WebAuthnError)
       })
       .finally(() => {
         // Disconnect the port
@@ -57,4 +57,4 @@ export const RequestWebauthn = () => {
   }, [])
 }
 
-export default RequestWebauthn
+export default RequestWebAuthn

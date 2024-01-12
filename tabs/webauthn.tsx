@@ -10,21 +10,21 @@ import {
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
 import json from "~packages/util/json"
 import { objectFromUrlParams } from "~packages/util/url"
-import { createWebauthn, requestWebauthn } from "~packages/webauthn"
+import { createWebAuthn, requestWebAuthn } from "~packages/webauthn"
 import type {
-  WebauthnAuthentication,
-  WebauthnCreation,
-  WebauthnError,
-  WebauthnRegistration,
-  WebauthnRequest
+  WebAuthnAuthentication,
+  WebAuthnCreation,
+  WebAuthnError,
+  WebAuthnRegistration,
+  WebAuthnRequest
 } from "~packages/webauthn/typing"
 
-export const Webauthn = () => {
-  const [webauthnCreation, setWebauthnCreation] = useState<WebauthnCreation>()
-  const [webauthnRequest, setWebauthnRequest] = useState<WebauthnRequest>()
+export const WebAuthn = () => {
+  const [webAuthnCreation, setWebAuthnCreation] = useState<WebAuthnCreation>()
+  const [webAuthnRequest, setWebAuthnRequest] = useState<WebAuthnRequest>()
   const [tabId, setTabId] = useState<number | undefined>()
-  const [cred, setCred] = useState<WebauthnRegistration>()
-  const [sig, setSig] = useState<WebauthnAuthentication>()
+  const [cred, setCred] = useState<WebAuthnRegistration>()
+  const [sig, setSig] = useState<WebAuthnAuthentication>()
   const [port, setPort] = useState<Runtime.Port | null>(null)
 
   // When a Content Script requests window or tab creation via Service Worker Messaging, passing req.sender.tab.id to the newly created window or tab is recommended. This facilitates sending processed information back to the original Content Script using the specified tabId.
@@ -34,30 +34,30 @@ export const Webauthn = () => {
       urlParams[urlParams.length - 1].replace(window.location.hash, "")
     )
     setTabId(params.tabId ? params.tabId : undefined)
-    setWebauthnCreation({
+    setWebAuthnCreation({
       user: params.user,
       challenge: params.challengeCreation
-    } as WebauthnCreation)
-    setWebauthnRequest({
+    } as WebAuthnCreation)
+    setWebAuthnRequest({
       credentialId: params.credentialId,
       challenge: params.challengeRequest
-    } as WebauthnRequest)
+    } as WebAuthnRequest)
 
     let runtimePort: Runtime.Port
     // The challengeRequest is the only required parameter.
     if (params.challengeRequest) {
       runtimePort = runtime.connect({
-        name: PortName.port_requestWebauthn
+        name: PortName.port_requestWebAuthn
       })
     } else {
       runtimePort = runtime.connect({
-        name: PortName.port_createWebauthn
+        name: PortName.port_createWebAuthn
       })
     }
     setPort(runtimePort)
     runtimePort.onMessage.addListener((message) => {
       console.log(
-        `[tab][createWebauthn] runtimePort: ${JSON.stringify(message, null, 2)}`
+        `[tab][createWebAuthn] runtimePort: ${JSON.stringify(message, null, 2)}`
       )
     })
     return () => {
@@ -71,26 +71,26 @@ export const Webauthn = () => {
     }
   }, [])
 
-  const buttonCreateWebauthnViaContents = useCallback(async () => {
+  const buttonCreateWebAuthnViaContents = useCallback(async () => {
     const contentReq = {
       tabId: tabId,
-      name: ContentMethod.content_createWebauthn,
-      body: webauthnCreation
+      name: ContentMethod.content_createWebAuthn,
+      body: webAuthnCreation
     } as ContentRequestArguments
 
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
     const contentRes = await sendToContentScript(contentReq) // Always return undefined
     setCred(contentRes)
-  }, [tabId, webauthnCreation])
+  }, [tabId, webAuthnCreation])
 
-  const buttonRequestWebauthnViaContents = useCallback(async () => {
+  const buttonRequestWebAuthnViaContents = useCallback(async () => {
     const contentReq = {
       tabId: tabId,
-      name: ContentMethod.content_requestWebauthn,
-      body: webauthnRequest
+      name: ContentMethod.content_requestWebAuthn,
+      body: webAuthnRequest
     } as ContentRequestArguments
     console.log(
-      `[tab][createWebauthnViaContents] contentReq: ${JSON.stringify(
+      `[tab][createWebAuthnViaContents] contentReq: ${JSON.stringify(
         contentReq,
         null,
         2
@@ -100,15 +100,15 @@ export const Webauthn = () => {
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
     const contentRes = await sendToContentScript(contentReq) // Always return undefined
     setSig(contentRes)
-  }, [tabId, webauthnRequest])
+  }, [tabId, webAuthnRequest])
 
-  const buttonCreateWebauthn = useCallback(async () => {
+  const buttonCreateWebAuthn = useCallback(async () => {
     try {
-      const credential = await createWebauthn(webauthnCreation)
+      const credential = await createWebAuthn(webAuthnCreation)
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
       console.log(
-        `[tab][createWebauthn] credential: ${json.toString(credential)}`
+        `[tab][createWebAuthn] credential: ${json.toString(credential)}`
       )
       setCred(credential)
 
@@ -118,26 +118,26 @@ export const Webauthn = () => {
         credentialId: credential.credentialId,
         publicKeyX: credential.publicKeyX.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
         publicKeyY: credential.publicKeyY.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
-      } as WebauthnRegistration)
+      } as WebAuthnRegistration)
     } catch (error) {
-      console.error(`[tab][createWebauthn] Error: ${error}`)
+      console.error(`[tab][createWebAuthn] Error: ${error}`)
       port.postMessage({
-        error: `[tab][createWebauthn] Error: ${error}`
-      } as WebauthnError)
+        error: `[tab][createWebAuthn] Error: ${error}`
+      } as WebAuthnError)
     }
-  }, [webauthnCreation, port])
+  }, [webAuthnCreation, port])
 
-  const buttonRequestWebauthn = useCallback(async () => {
+  const buttonRequestWebAuthn = useCallback(async () => {
     try {
-      const signature = await requestWebauthn(
+      const signature = await requestWebAuthn(
         cred?.credentialId
-          ? { ...webauthnRequest, credentialId: cred.credentialId }
-          : webauthnRequest
+          ? { ...webAuthnRequest, credentialId: cred.credentialId }
+          : webAuthnRequest
       )
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
       console.log(
-        `[tab][requestWebauthn] signature: ${json.toString(signature)}`
+        `[tab][requestWebAuthn] signature: ${json.toString(signature)}`
       )
       setSig(signature)
 
@@ -147,14 +147,14 @@ export const Webauthn = () => {
         clientDataJson: signature.clientDataJson,
         sigantureR: signature.sigantureR.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
         signatureS: signature.signatureS.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
-      } as WebauthnAuthentication)
+      } as WebAuthnAuthentication)
     } catch (error) {
-      console.error(`[tab][requestWebauthn] Error: ${error}`)
+      console.error(`[tab][requestWebAuthn] Error: ${error}`)
       port.postMessage({
-        error: `[tab][requestWebauthn] Error: ${error}`
-      } as WebauthnError)
+        error: `[tab][requestWebAuthn] Error: ${error}`
+      } as WebAuthnError)
     }
-  }, [webauthnCreation, cred, port])
+  }, [webAuthnCreation, cred, port])
 
   const buttonCloseWindow = useCallback(() => {
     // Disconnect the port
@@ -169,32 +169,32 @@ export const Webauthn = () => {
   return (
     <>
       <div>
-        <button onClick={buttonCreateWebauthnViaContents}>
-          Create Webauthn via Contents
+        <button onClick={buttonCreateWebAuthnViaContents}>
+          Create WebAuthn via Contents
         </button>
-        <button onClick={buttonRequestWebauthnViaContents}>
-          Request Webauthn via Contents
+        <button onClick={buttonRequestWebAuthnViaContents}>
+          Request WebAuthn via Contents
         </button>
-        <button onClick={buttonCreateWebauthn}>Create Webauthn here</button>
-        <button onClick={buttonRequestWebauthn}>Request Webauthn here</button>
+        <button onClick={buttonCreateWebAuthn}>Create WebAuthn here</button>
+        <button onClick={buttonRequestWebAuthn}>Request WebAuthn here</button>
         <button onClick={buttonCloseWindow}>Close Window</button>
       </div>
       {cred === undefined ? (
         <div></div>
       ) : (
         <div>
-          <p>Webauthn credential: {json.toString(cred)}</p>
+          <p>WebAuthn credential: {json.toString(cred)}</p>
         </div>
       )}
       {sig === undefined ? (
         <div></div>
       ) : (
         <div>
-          <p>Webauthn signature: {json.toString(sig)}</p>
+          <p>WebAuthn signature: {json.toString(sig)}</p>
         </div>
       )}
     </>
   )
 }
 
-export default Webauthn
+export default WebAuthn

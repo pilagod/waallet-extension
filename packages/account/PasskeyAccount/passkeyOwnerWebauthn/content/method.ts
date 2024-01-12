@@ -1,25 +1,25 @@
 import type {
-  WebauthnCreation,
-  WebauthnRequest
+  WebAuthnCreation,
+  WebAuthnRequest
 } from "~packages/webauthn/typing"
 
 export enum ContentMethod {
-  content_createWebauthn = "content_createWebauthn",
-  content_requestWebauthn = "content_requestWebauthn"
+  content_createWebAuthn = "content_createWebAuthn",
+  content_requestWebAuthn = "content_requestWebAuthn"
 }
 
 export type ContentRequestArguments =
-  | ContentCreateWebauthnArguments
-  | ContentRequestWebauthnArguments
+  | ContentCreateWebAuthnArguments
+  | ContentRequestWebAuthnArguments
 
-export type ContentCreateWebauthnArguments = {
+export type ContentCreateWebAuthnArguments = {
   tabId?: number
-  name: ContentMethod.content_createWebauthn
-  body: WebauthnCreation
+  name: ContentMethod.content_createWebAuthn
+  body: WebAuthnCreation
 }
 
-export type ContentRequestWebauthnArguments = {
+export type ContentRequestWebAuthnArguments = {
   tabId?: number
-  name: ContentMethod.content_requestWebauthn
-  body: WebauthnRequest
+  name: ContentMethod.content_requestWebAuthn
+  body: WebAuthnRequest
 }

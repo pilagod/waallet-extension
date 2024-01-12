@@ -20,16 +20,16 @@ import type {
 } from "@simplewebauthn/typescript-types"
 
 import type {
-  WebauthnAuthentication,
-  WebauthnCreation,
-  WebauthnRegistration,
-  WebauthnRequest
+  WebAuthnAuthentication,
+  WebAuthnCreation,
+  WebAuthnRegistration,
+  WebAuthnRequest
 } from "~packages/webauthn/typing"
 import type { UrlB64String } from "~typing"
 
-export const createWebauthn = async (
-  params?: WebauthnCreation
-): Promise<WebauthnRegistration> => {
+export const createWebAuthn = async (
+  params?: WebAuthnCreation
+): Promise<WebAuthnRegistration> => {
   const challengeBase64Url =
     params && params.challenge && isoBase64URL.isBase64(params.challenge)
       ? params.challenge
@@ -44,12 +44,12 @@ export const createWebauthn = async (
     .replace("T", "_")
     .replace(".", "_")
   const userId = `${name}_${id}`
-  const userName = `${name}_${id}@${defaultWebauthn.rpName}`
+  const userName = `${name}_${id}@${defaultWebAuthn.rpName}`
 
-  // Create Webauthn
+  // Create WebAuthn
   const regResJSON = await startRegistration({
     rp: {
-      name: defaultWebauthn.rpName
+      name: defaultWebAuthn.rpName
     },
     user: {
       id: userId,
@@ -59,22 +59,22 @@ export const createWebauthn = async (
     challenge: challengeBase64Url,
     pubKeyCredParams: [
       {
-        alg: defaultWebauthn.pubKeyCredAlgEs256,
-        type: defaultWebauthn.pubKeyCredType
+        alg: defaultWebAuthn.pubKeyCredAlgEs256,
+        type: defaultWebAuthn.pubKeyCredType
       },
       {
-        alg: defaultWebauthn.pubKeyCredAlgRs256,
-        type: defaultWebauthn.pubKeyCredType
+        alg: defaultWebAuthn.pubKeyCredAlgRs256,
+        type: defaultWebAuthn.pubKeyCredType
       }
     ],
-    timeout: defaultWebauthn.timeout,
+    timeout: defaultWebAuthn.timeout,
     authenticatorSelection: {
-      requireResidentKey: defaultWebauthn.requireResidentKey,
-      residentKey: defaultWebauthn.residentKeyRequirement,
-      userVerification: defaultWebauthn.userVerificationRequirement
+      requireResidentKey: defaultWebAuthn.requireResidentKey,
+      residentKey: defaultWebAuthn.residentKeyRequirement,
+      userVerification: defaultWebAuthn.userVerificationRequirement
     },
-    attestation: defaultWebauthn.attestationConveyancePreference,
-    extensions: defaultWebauthn.extensions
+    attestation: defaultWebAuthn.attestationConveyancePreference,
+    extensions: defaultWebAuthn.extensions
   } as PublicKeyCredentialCreationOptionsJSON)
 
   const credIdBase64Url = regResJSON.id
@@ -101,28 +101,28 @@ export const createWebauthn = async (
   const credPubKeyYHex = `0x${isoUint8Array.toHex(credPubKeyYUint8Arr)}`
   const credPubKeyYUint256 = BigInt(credPubKeyYHex)
   console.log(
-    `[webauthn][debug]\nuserDisplayName: ${userDisplayName}\nchallengeBase64Url: ${challengeBase64Url}\ncredPubKeyXHex: ${credPubKeyXHex}\ncredPubKeyYHex: ${credPubKeyYHex}`
+    `[webAuthn][debug]\nuserDisplayName: ${userDisplayName}\nchallengeBase64Url: ${challengeBase64Url}\ncredPubKeyXHex: ${credPubKeyXHex}\ncredPubKeyYHex: ${credPubKeyYHex}`
   )
   return {
     origin: origin,
     credentialId: credIdBase64Url,
     publicKeyX: credPubKeyXUint256,
     publicKeyY: credPubKeyYUint256
-  } as WebauthnRegistration
+  } as WebAuthnRegistration
 }
 
-export const requestWebauthn = async (
-  params: WebauthnRequest
-): Promise<WebauthnAuthentication> => {
+export const requestWebAuthn = async (
+  params: WebAuthnRequest
+): Promise<WebAuthnAuthentication> => {
   const authResJson = await startAuthentication({
     ...(params.credentialId
       ? {
           allowCredentials: [
-            { id: params.credentialId, type: defaultWebauthn.pubKeyCredType }
+            { id: params.credentialId, type: defaultWebAuthn.pubKeyCredType }
           ] as PublicKeyCredentialDescriptorJSON[]
         }
       : {}),
-    userVerification: defaultWebauthn.userVerificationRequirement,
+    userVerification: defaultWebAuthn.userVerificationRequirement,
     challenge: params.challenge
   } as PublicKeyCredentialRequestOptionsJSON)
 
@@ -143,13 +143,13 @@ export const requestWebauthn = async (
     clientDataJson: clientDataJsonUtf8,
     sigantureR: sigRUint,
     signatureS: sigSUint
-  } as WebauthnAuthentication
+  } as WebAuthnAuthentication
 }
 
-export const defaultWebauthn = {
+export const defaultWebAuthn = {
   attestationConveyancePreference: "none" as AttestationConveyancePreference,
   // This Relying Party will accept either an ES256 or RS256 credential, but prefers an ES256 credential.
-  pubKeyCredAlgEs256: -7 as COSEAlgorithmIdentifier, // ES256 (Webauthn's default algorithm)
+  pubKeyCredAlgEs256: -7 as COSEAlgorithmIdentifier, // ES256 (WebAuthn's default algorithm)
   pubKeyCredAlgRs256: -257 as COSEAlgorithmIdentifier, // RS256 (for Windows Hello and others)
   // Try to use UV if possible. This is also the default.
   pubKeyCredType: "public-key" as PublicKeyCredentialType,

@@ -1,4 +1,4 @@
 export enum PortName {
-  port_createWebauthn = "port_createWebauthn",
-  port_requestWebauthn = "port_requestWebauthn"
+  port_createWebAuthn = "port_createWebAuthn",
+  port_requestWebAuthn = "port_requestWebAuthn"
 }

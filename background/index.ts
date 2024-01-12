@@ -1,5 +1,5 @@
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { PasskeyOwnerWebauthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn"
+import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 
 import { setupWaalletBackgroundProvider } from "./provider"
@@ -21,7 +21,7 @@ SimpleAccount.init({
 })
 // PasskeyAccount.init({
 //   address: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT,
-//   owner: new PasskeyOwnerWebauthn(),
+//   owner: new PasskeyOwnerWebAuthn(),
 //   nodeRpcUrl: process.env.PLASMO_PUBLIC_NODE_RPC_URL
 // }).then((account) => {
 //   provider.connect(account)

@@ -2,8 +2,8 @@ import { EventEmitter } from "events"
 
 import { type BackgroundMessenger } from "~packages/messenger/background"
 import type {
-  WebauthnCreation,
-  WebauthnRequest
+  WebAuthnCreation,
+  WebAuthnRequest
 } from "~packages/webauthn/typing"
 
 import { WaalletMessage } from "../message"
@@ -37,8 +37,8 @@ export class WaalletContentProvider extends EventEmitter {
     creation: creation,
     request: request
   }: {
-    creation?: WebauthnCreation
-    request: WebauthnRequest
+    creation?: WebAuthnCreation
+    request: WebAuthnRequest
   }): Promise<any> {
     const req = {
       name: "mCreateWindow",

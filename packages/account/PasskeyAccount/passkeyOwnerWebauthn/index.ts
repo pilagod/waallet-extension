@@ -3,17 +3,17 @@ import * as ethers from "ethers"
 import { runtime } from "webextension-polyfill"
 
 import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
-import { webauthnWindowAsync } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/background/webauthn"
+import { webAuthnWindowAsync } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/background/webauthn"
 import json from "~packages/util/json"
 import type {
-  WebauthnAuthentication,
-  WebauthnCreation,
-  WebauthnRegistration,
-  WebauthnRequest
+  WebAuthnAuthentication,
+  WebAuthnCreation,
+  WebAuthnRegistration,
+  WebAuthnRequest
 } from "~packages/webauthn/typing"
 import type { BytesLike, UrlB64String } from "~typing"
 
-export class PasskeyOwnerWebauthn implements PasskeyOwner {
+export class PasskeyOwnerWebAuthn implements PasskeyOwner {
   public credentialId: UrlB64String
 
   public use(credentialId: UrlB64String) {
@@ -37,17 +37,17 @@ export class PasskeyOwnerWebauthn implements PasskeyOwner {
       "tabs/requestWebauthn.html"
     )}?credentialId=${this.credentialId}&challengeRequest=${challengeUrlB64}`
 
-    const webauthnAuthentication: WebauthnAuthentication =
-      (await webauthnWindowAsync(createWindowUrl)) as WebauthnAuthentication
+    const webAuthnAuthentication: WebAuthnAuthentication =
+      (await webAuthnWindowAsync(createWindowUrl)) as WebAuthnAuthentication
 
     console.log(
-      `[passkeyOwnerWebauthn] webauthnAuthentication: ${json.toString(
-        webauthnAuthentication
+      `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${json.toString(
+        webAuthnAuthentication
       )}`
     )
 
     const authenticatorDataUint8Arr = isoUint8Array.fromHex(
-      webauthnAuthentication.authenticatorData.slice(2)
+      webAuthnAuthentication.authenticatorData.slice(2)
     )
 
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
@@ -65,28 +65,28 @@ export class PasskeyOwnerWebauthn implements PasskeyOwner {
         false,
         authenticatorDataUint8Arr,
         true,
-        webauthnAuthentication.clientDataJson,
+        webAuthnAuthentication.clientDataJson,
         23,
         1,
-        BigInt(webauthnAuthentication.sigantureR),
-        BigInt(webauthnAuthentication.signatureS)
+        BigInt(webAuthnAuthentication.sigantureR),
+        BigInt(webAuthnAuthentication.signatureS)
       ]
     )
     return signature
   }
 
   // Temp: Create and set the new WebAuthn credential ID.
-  public async new(opts?: WebauthnCreation): Promise<WebauthnRegistration> {
+  public async new(opts?: WebAuthnCreation): Promise<WebAuthnRegistration> {
     const createWindowUrl = `${runtime.getURL(
       "tabs/createWebauthn.html"
     )}?user=${encodeURI(opts?.user)}&challengeCreation=${opts?.challenge}`
 
-    const webauthnCreation = (await webauthnWindowAsync(
+    const webAuthnCreation = (await webAuthnWindowAsync(
       createWindowUrl
-    )) as WebauthnRegistration
+    )) as WebAuthnRegistration
 
-    this.credentialId = webauthnCreation.credentialId
+    this.credentialId = webAuthnCreation.credentialId
 
-    return webauthnCreation
+    return webAuthnCreation
   }
 }

@@ -24,12 +24,12 @@ import { listen } from "@plasmohq/messaging/message"
 
 import { ContentMethod } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/content/method"
 import {
-  contentCreateWebauthn,
-  contentRequestWebauthn
+  contentCreateWebAuthn,
+  contentRequestWebAuthn
 } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/content/webauthn"
 import type {
-  WebauthnCreation,
-  WebauthnRequest
+  WebAuthnCreation,
+  WebAuthnRequest
 } from "~packages/webauthn/typing"
 import type { UrlB64String } from "~typing"
 
@@ -55,19 +55,19 @@ const Messages = () => {
     }
 
     switch (req.name) {
-      case ContentMethod.content_createWebauthn: {
-        const cred = await contentCreateWebauthn(req.body as WebauthnCreation)
+      case ContentMethod.content_createWebAuthn: {
+        const cred = await contentCreateWebAuthn(req.body as WebAuthnCreation)
         credentialId = cred.credentialId // Record the credentialId
 
         // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
         // res.send(cred)
         break
       }
-      case ContentMethod.content_requestWebauthn: {
-        const sig = await contentRequestWebauthn({
+      case ContentMethod.content_requestWebAuthn: {
+        const sig = await contentRequestWebAuthn({
           credentialId: credentialId ? credentialId : req.body?.credentialId, // credentialId,
           challenge: req.body.challenge
-        } as WebauthnRequest)
+        } as WebAuthnRequest)
         // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
         // res.send(cred)
         break
@@ -87,7 +87,7 @@ Messages()
 /*********************************
  *            Helpers            *
  *********************************/
-export const handleCreateWebauthn = async (params: {
+export const handleCreateWebAuthn = async (params: {
   tabId?: number // Not to use
   user?: string
   challengeBase64Url?: string
@@ -117,13 +117,13 @@ export const handleCreateWebauthn = async (params: {
   const name = userDisplayName.toLowerCase().replace(/[^\w]/g, "")
   const id = Date.now().toString()
   const userId = `${name}-${id}`
-  const userName = `${name}-${id}@${defaultWebauthn.rpName}`
+  const userName = `${name}-${id}@${defaultWebAuthn.rpName}`
 
-  // Create Webauthn
+  // Create WebAuthn
   const regResJSON = await startRegistration({
     rp: {
-      name: defaultWebauthn.rpName
-      // id: defaultWebauthn.rpId
+      name: defaultWebAuthn.rpName
+      //   id: defaultWebAuthn.rpId
     },
     user: {
       id: userId,
@@ -133,24 +133,24 @@ export const handleCreateWebauthn = async (params: {
     challenge: challengeBase64Url,
     pubKeyCredParams: [
       {
-        alg: defaultWebauthn.pubKeyCredAlgEs256,
-        type: defaultWebauthn.pubKeyCredType
+        alg: defaultWebAuthn.pubKeyCredAlgEs256,
+        type: defaultWebAuthn.pubKeyCredType
       },
       {
-        alg: defaultWebauthn.pubKeyCredAlgRs256,
-        type: defaultWebauthn.pubKeyCredType
+        alg: defaultWebAuthn.pubKeyCredAlgRs256,
+        type: defaultWebAuthn.pubKeyCredType
       }
     ],
-    timeout: defaultWebauthn.timeout,
-    excludeCredentials: defaultWebauthn.excludeCredentials,
+    timeout: defaultWebAuthn.timeout,
+    excludeCredentials: defaultWebAuthn.excludeCredentials,
     authenticatorSelection: {
       authenticatorAttachment: authAttach,
-      requireResidentKey: defaultWebauthn.requireResidentKey,
-      residentKey: defaultWebauthn.residentKeyRequirement,
-      userVerification: defaultWebauthn.userVerificationRequirement
+      requireResidentKey: defaultWebAuthn.requireResidentKey,
+      residentKey: defaultWebAuthn.residentKeyRequirement,
+      userVerification: defaultWebAuthn.userVerificationRequirement
     },
-    attestation: defaultWebauthn.attestationConveyancePreference,
-    extensions: defaultWebauthn.extensions
+    attestation: defaultWebAuthn.attestationConveyancePreference,
+    extensions: defaultWebAuthn.extensions
   } as PublicKeyCredentialCreationOptionsJSON)
 
   const credIdBase64Url = regResJSON.id
@@ -183,7 +183,7 @@ export const handleCreateWebauthn = async (params: {
     ethersAbi.encode(["bytes32"], [credPubKeyYHex])
   )[0] as bigint
   console.log(
-    `[webauthn][debug]\nuserDisplayName: ${userDisplayName}\nchallengeBase64Url: ${challengeBase64Url}\nauthAttach: ${authAttach}\ncredPubKeyXHex: ${credPubKeyXHex}\ncredPubKeyYHex: ${credPubKeyYHex}`
+    `[webAuthn][debug]\nuserDisplayName: ${userDisplayName}\nchallengeBase64Url: ${challengeBase64Url}\nauthAttach: ${authAttach}\ncredPubKeyXHex: ${credPubKeyXHex}\ncredPubKeyYHex: ${credPubKeyYHex}`
   )
   return {
     orig: origin,
@@ -193,7 +193,7 @@ export const handleCreateWebauthn = async (params: {
   }
 }
 
-export const defaultWebauthn = {
+export const defaultWebAuthn = {
   attestationConveyancePreference: "none" as AttestationConveyancePreference,
   // This Relying Party will accept either an ES256 or RS256 credential, but prefers an ES256 credential.
   pubKeyCredAlgEs256: -7 as COSEAlgorithmIdentifier,

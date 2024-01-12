@@ -3,10 +3,10 @@ import { runtime, tabs, windows, type Runtime } from "webextension-polyfill"
 import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/tabs/port"
 import json from "~packages/util/json"
 import {
-  isWebauthnError,
-  type WebauthnAuthentication,
-  type WebauthnError,
-  type WebauthnRegistration
+  isWebAuthnError,
+  type WebAuthnAuthentication,
+  type WebAuthnError,
+  type WebAuthnRegistration
 } from "~packages/webauthn/typing"
 
 /**
@@ -14,13 +14,13 @@ import {
  * @param {string} createWindowUrl - The URL for creating the new window.
  * @returns {Promise<chrome.windows.Window>} A Promise that resolves to the created window.
  */
-export const webauthnWindowAsync = async (
+export const webAuthnWindowAsync = async (
   createWindowUrl: string
-): Promise<WebauthnRegistration | WebauthnAuthentication> => {
+): Promise<WebAuthnRegistration | WebAuthnAuthentication> => {
   return new Promise(async (resolve, reject) => {
-    let webauthnRegistration: WebauthnRegistration
-    let webauthnAuthentication: WebauthnAuthentication
-    let webauthnError: WebauthnError
+    let webAuthnRegistration: WebAuthnRegistration
+    let webAuthnAuthentication: WebAuthnAuthentication
+    let webAuthnError: WebAuthnError
     try {
       // Create a new popup window
       const createdWindow = await windows.create({
@@ -35,14 +35,14 @@ export const webauthnWindowAsync = async (
       const removedListener = (removedWindowId: number) => {
         if (removedWindowId === createdWindow.id) {
           windows.onRemoved.removeListener(removedListener)
-          if (webauthnError) {
-            reject(`${webauthnError.error}`)
+          if (webAuthnError) {
+            reject(`${webAuthnError.error}`)
           }
-          if (webauthnRegistration) {
-            resolve(webauthnRegistration)
+          if (webAuthnRegistration) {
+            resolve(webAuthnRegistration)
           }
-          if (webauthnAuthentication) {
-            resolve(webauthnAuthentication)
+          if (webAuthnAuthentication) {
+            resolve(webAuthnAuthentication)
           }
         }
       }
@@ -51,21 +51,21 @@ export const webauthnWindowAsync = async (
 
       // Define a listener for port communication
       const portListener = (port: Runtime.Port) => {
-        if (port.name === PortName.port_createWebauthn) {
+        if (port.name === PortName.port_createWebAuthn) {
           // Listener for credential messages from the new window
           port.onMessage.addListener(
-            (message: WebauthnRegistration | WebauthnError) => {
-              if (isWebauthnError(message)) {
-                webauthnRegistration = undefined
-                webauthnAuthentication = undefined
-                webauthnError = message
+            (message: WebAuthnRegistration | WebAuthnError) => {
+              if (isWebAuthnError(message)) {
+                webAuthnRegistration = undefined
+                webAuthnAuthentication = undefined
+                webAuthnError = message
               } else {
-                webauthnRegistration = message as WebauthnRegistration
-                webauthnAuthentication = undefined
-                webauthnError = undefined
+                webAuthnRegistration = message as WebAuthnRegistration
+                webAuthnAuthentication = undefined
+                webAuthnError = undefined
                 console.log(
                   `[background][messaging][window] credential: ${json.toString(
-                    webauthnRegistration
+                    webAuthnRegistration
                   )}`
                 )
                 port.postMessage({ out: "got credential!" })
@@ -73,21 +73,21 @@ export const webauthnWindowAsync = async (
             }
           )
         }
-        if (port.name === PortName.port_requestWebauthn) {
+        if (port.name === PortName.port_requestWebAuthn) {
           // Listener for signature messages from the new window
           port.onMessage.addListener(
-            (message: WebauthnAuthentication | WebauthnError) => {
-              if (isWebauthnError(message)) {
-                webauthnRegistration = undefined
-                webauthnAuthentication = undefined
-                webauthnError = message
+            (message: WebAuthnAuthentication | WebAuthnError) => {
+              if (isWebAuthnError(message)) {
+                webAuthnRegistration = undefined
+                webAuthnAuthentication = undefined
+                webAuthnError = message
               } else {
-                webauthnAuthentication = message as WebauthnAuthentication
-                webauthnRegistration = undefined
-                webauthnError = undefined
+                webAuthnAuthentication = message as WebAuthnAuthentication
+                webAuthnRegistration = undefined
+                webAuthnError = undefined
                 console.log(
                   `[background][messaging][window] signature: ${json.toString(
-                    webauthnAuthentication
+                    webAuthnAuthentication
                   )}`
                 )
                 port.postMessage({ out: "got signature!" })
@@ -115,13 +115,13 @@ export const webauthnWindowAsync = async (
  * @param {string} createTabUrl - The URL for creating the new tab.
  * @returns {Promise<chrome.tabs.Tab>} A Promise that resolves to the created tab.
  */
-export const webauthnTabAsync = async (
+export const webAuthnTabAsync = async (
   createTabUrl: string
-): Promise<WebauthnRegistration | WebauthnAuthentication> => {
+): Promise<WebAuthnRegistration | WebAuthnAuthentication> => {
   return new Promise(async (resolve, reject) => {
-    let webauthnRegistration: WebauthnRegistration
-    let webauthnAuthentication: WebauthnAuthentication
-    let webauthnError: WebauthnError
+    let webAuthnRegistration: WebAuthnRegistration
+    let webAuthnAuthentication: WebAuthnAuthentication
+    let webAuthnError: WebAuthnError
     try {
       // Create a new inactive tab
       const createdTab = await tabs.create({
@@ -132,14 +132,14 @@ export const webauthnTabAsync = async (
       const removedListener = (removedTabId: number) => {
         if (removedTabId === createdTab.id) {
           tabs.onRemoved.removeListener(removedListener)
-          if (webauthnError) {
-            reject(`${webauthnError.error}`)
+          if (webAuthnError) {
+            reject(`${webAuthnError.error}`)
           }
-          if (webauthnRegistration) {
-            resolve(webauthnRegistration)
+          if (webAuthnRegistration) {
+            resolve(webAuthnRegistration)
           }
-          if (webauthnAuthentication) {
-            resolve(webauthnAuthentication)
+          if (webAuthnAuthentication) {
+            resolve(webAuthnAuthentication)
           }
         }
       }
@@ -148,21 +148,21 @@ export const webauthnTabAsync = async (
 
       // Define a listener for port communication
       const portListener = (port: Runtime.Port) => {
-        if (port.name === PortName.port_createWebauthn) {
+        if (port.name === PortName.port_createWebAuthn) {
           // Listener for credential messages from the new tab
           port.onMessage.addListener(
-            (message: WebauthnRegistration | WebauthnError) => {
-              if (isWebauthnError(message)) {
-                webauthnRegistration = undefined
-                webauthnAuthentication = undefined
-                webauthnError = message
+            (message: WebAuthnRegistration | WebAuthnError) => {
+              if (isWebAuthnError(message)) {
+                webAuthnRegistration = undefined
+                webAuthnAuthentication = undefined
+                webAuthnError = message
               } else {
-                webauthnRegistration = message as WebauthnRegistration
-                webauthnAuthentication = undefined
-                webauthnError = undefined
+                webAuthnRegistration = message as WebAuthnRegistration
+                webAuthnAuthentication = undefined
+                webAuthnError = undefined
                 console.log(
                   `[background][messaging][tab] credential: ${json.toString(
-                    webauthnRegistration
+                    webAuthnRegistration
                   )}`
                 )
                 port.postMessage({ out: "got credential!" })
@@ -170,21 +170,21 @@ export const webauthnTabAsync = async (
             }
           )
         }
-        if (port.name === PortName.port_requestWebauthn) {
+        if (port.name === PortName.port_requestWebAuthn) {
           // Listener for signature messages from the new tab
           port.onMessage.addListener(
-            (message: WebauthnAuthentication | WebauthnError) => {
-              if (isWebauthnError(message)) {
-                webauthnRegistration = undefined
-                webauthnAuthentication = undefined
-                webauthnError = message
+            (message: WebAuthnAuthentication | WebAuthnError) => {
+              if (isWebAuthnError(message)) {
+                webAuthnRegistration = undefined
+                webAuthnAuthentication = undefined
+                webAuthnError = message
               } else {
-                webauthnAuthentication = message as WebauthnAuthentication
-                webauthnRegistration = undefined
-                webauthnError = undefined
+                webAuthnAuthentication = message as WebAuthnAuthentication
+                webAuthnRegistration = undefined
+                webAuthnError = undefined
                 console.log(
                   `[background][messaging][tab] signature: ${json.toString(
-                    webauthnAuthentication
+                    webAuthnAuthentication
                   )}`
                 )
                 port.postMessage({ out: "got signature!" })

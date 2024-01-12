@@ -3,17 +3,17 @@ import { runtime } from "webextension-polyfill"
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 import {
-  webauthnTabAsync,
-  webauthnWindowAsync
+  webAuthnTabAsync,
+  webAuthnWindowAsync
 } from "~packages/account/PasskeyAccount/passkeyOwnerWebauthn/background/webauthn"
 import type {
-  WebauthnCreation,
-  WebauthnRequest
+  WebAuthnCreation,
+  WebAuthnRequest
 } from "~packages/webauthn/typing"
 
 export type RequestBody = {
-  creation?: WebauthnCreation
-  request: WebauthnRequest
+  creation?: WebAuthnCreation
+  request: WebAuthnRequest
 }
 
 export type ResponseBody = { out: string }
@@ -47,7 +47,7 @@ const handler: PlasmoMessaging.MessageHandler<
 
   console.log(`createWindowUrl: ${createWindowUrl}`)
 
-  const response = await webauthnWindowAsync(createWindowUrl)
+  const response = await webAuthnWindowAsync(createWindowUrl)
   console.log(
     `[background][messaging][window] response: ${JSON.stringify(
       response,
@@ -56,7 +56,7 @@ const handler: PlasmoMessaging.MessageHandler<
     )}`
   )
 
-  //   const tab = await webauthnTabAsync(createWindowUrl)
+  //   const tab = await webAuthnTabAsync(createWindowUrl)
   //   console.log(
   //     `[background][messaging][tqb] tab: ${JSON.stringify(tab, null, 2)}`
   //   )

@@ -1,22 +1,22 @@
 import type { BigNumberish, HexString, UriString, UrlB64String } from "~typing"
 
 /* Input */
-export type WebauthnCreation = {
+export type WebAuthnCreation = {
   user?: UriString
   challenge?: UrlB64String
 }
-export type WebauthnRequest = {
+export type WebAuthnRequest = {
   credentialId?: UrlB64String
   challenge: UrlB64String
 }
 /* Output */
-export type WebauthnRegistration = {
+export type WebAuthnRegistration = {
   origin: string
   credentialId: UrlB64String
   publicKeyX: BigNumberish
   publicKeyY: BigNumberish
 }
-export type WebauthnAuthentication = {
+export type WebAuthnAuthentication = {
   authenticatorData: HexString
   clientDataJson: string
   sigantureR: BigNumberish
@@ -24,10 +24,10 @@ export type WebauthnAuthentication = {
 }
 
 /* Error */
-export type WebauthnError = {
+export type WebAuthnError = {
   error: string
 }
 
-export const isWebauthnError = (message: any): message is WebauthnError => {
+export const isWebAuthnError = (message: any): message is WebAuthnError => {
   return "error" in message
 }
