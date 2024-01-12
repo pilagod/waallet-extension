@@ -158,7 +158,6 @@ export const defaultWebAuthn = {
   timeout: 300000, // 5 minutes
   // Relying Party
   rpName: "Waallet Extension",
-  // Make excludeCredentials check backwards compatible with credentials registered with U2F
   extensions: {
     largeBlob: {
       support: "preferred" // "required", "preferred"

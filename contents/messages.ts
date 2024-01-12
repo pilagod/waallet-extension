@@ -9,13 +9,8 @@ import {
   parseAuthenticatorData
 } from "@simplewebauthn/server/helpers"
 import type {
-  AttestationConveyancePreference,
   AuthenticatorAttachment,
-  COSEAlgorithmIdentifier,
-  PublicKeyCredentialCreationOptionsJSON,
-  PublicKeyCredentialDescriptorJSON,
-  PublicKeyCredentialType,
-  UserVerificationRequirement
+  PublicKeyCredentialCreationOptionsJSON
 } from "@simplewebauthn/typescript-types"
 import { AbiCoder } from "ethers"
 import type { PlasmoCSConfig } from "plasmo"
@@ -27,6 +22,7 @@ import {
   contentCreateWebAuthn,
   contentRequestWebAuthn
 } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/content/webAuthn"
+import { defaultWebAuthn } from "~packages/webAuthn"
 import type {
   WebAuthnCreation,
   WebAuthnRequest
@@ -123,7 +119,6 @@ export const handleCreateWebAuthn = async (params: {
   const regResJSON = await startRegistration({
     rp: {
       name: defaultWebAuthn.rpName
-      //   id: defaultWebAuthn.rpId
     },
     user: {
       id: userId,
@@ -142,9 +137,7 @@ export const handleCreateWebAuthn = async (params: {
       }
     ],
     timeout: defaultWebAuthn.timeout,
-    excludeCredentials: defaultWebAuthn.excludeCredentials,
     authenticatorSelection: {
-      authenticatorAttachment: authAttach,
       requireResidentKey: defaultWebAuthn.requireResidentKey,
       residentKey: defaultWebAuthn.residentKeyRequirement,
       userVerification: defaultWebAuthn.userVerificationRequirement
@@ -191,31 +184,4 @@ export const handleCreateWebAuthn = async (params: {
     credPubKeyXUint256String: `${credPubKeyXUint256}`,
     credPubKeyYUint256String: `${credPubKeyYUint256}`
   }
-}
-
-export const defaultWebAuthn = {
-  attestationConveyancePreference: "none" as AttestationConveyancePreference,
-  // This Relying Party will accept either an ES256 or RS256 credential, but prefers an ES256 credential.
-  pubKeyCredAlgEs256: -7 as COSEAlgorithmIdentifier,
-  pubKeyCredAlgRs256: -257 as COSEAlgorithmIdentifier,
-  // Try to use UV if possible. This is also the default.
-  pubKeyCredType: "public-key" as PublicKeyCredentialType,
-  // https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client
-  authenticatorAttachment: "cross-platform" as AuthenticatorAttachment,
-  residentKeyRequirement: "required" as ResidentKeyRequirement,
-  userVerificationRequirement: "required" as UserVerificationRequirement,
-  timeout: 300000, // 5 minutes
-  // Relying Party
-  rpName: "Waallet Extension",
-  // localhost
-  rpId: `${window.location.hostname}`,
-  // Make excludeCredentials check backwards compatible with credentials registered with U2F
-  extensions: {
-    largeBlob: {
-      support: "preferred" // "required", "preferred"
-    }
-  },
-  requireResidentKey: true,
-  // Don’t re-register any authenticator that has one of these credentials
-  excludeCredentials: [] as PublicKeyCredentialDescriptorJSON[]
 }
