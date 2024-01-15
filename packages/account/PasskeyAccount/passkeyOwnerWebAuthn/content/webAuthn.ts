@@ -19,7 +19,7 @@ export const contentCreateWebAuthn = async (
   })
   try {
     console.log(
-      `[content][message][createWebAuthn] params: ${JSON.stringify(
+      `[content][message][createWebAuthn] params: ${json.stringify(
         params,
         null,
         2
@@ -27,11 +27,15 @@ export const contentCreateWebAuthn = async (
     )
     const cred = await createWebAuthn(params)
     console.log(
-      `[content][message][createWebAuthn] cred: ${json.toString(cred)}`
+      `[content][message][createWebAuthn] cred: ${json.stringify(
+        cred,
+        null,
+        2
+      )}`
     )
     port.onMessage.addListener((message) => {
       console.log(
-        `[content][message][createWebAuthn] port: ${JSON.stringify(
+        `[content][message][createWebAuthn] port: ${json.stringify(
           message,
           null,
           2
@@ -62,7 +66,7 @@ export const contentRequestWebAuthn = async (
   })
   try {
     console.log(
-      `[content][message][requestWebAuthn] params: ${JSON.stringify(
+      `[content][message][requestWebAuthn] params: ${json.stringify(
         params,
         null,
         2
@@ -70,11 +74,11 @@ export const contentRequestWebAuthn = async (
     )
     const sig = await requestWebAuthn(params)
     console.log(
-      `[content][message][requestWebAuthn] sig: ${json.toString(sig)}`
+      `[content][message][requestWebAuthn] sig: ${json.stringify(sig, null, 2)}`
     )
     port.onMessage.addListener((message) => {
       console.log(
-        `[content][message][requestWebAuthn] port: ${JSON.stringify(
+        `[content][message][requestWebAuthn] port: ${json.stringify(
           message,
           null,
           2

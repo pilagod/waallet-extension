@@ -67,8 +67,10 @@ export const webAuthnWindowAsync = async (
                 webAuthnAuthentication = undefined
                 webAuthnError = undefined
                 console.log(
-                  `[background][messaging][window] credential: ${json.toString(
-                    webAuthnRegistration
+                  `[background][messaging][window] credential: ${json.stringify(
+                    webAuthnRegistration,
+                    null,
+                    2
                   )}`
                 )
                 port.postMessage({ out: "got credential!" })
@@ -89,8 +91,10 @@ export const webAuthnWindowAsync = async (
                 webAuthnRegistration = undefined
                 webAuthnError = undefined
                 console.log(
-                  `[background][messaging][window] signature: ${json.toString(
-                    webAuthnAuthentication
+                  `[background][messaging][window] signature: ${json.stringify(
+                    webAuthnAuthentication,
+                    null,
+                    2
                   )}`
                 )
                 port.postMessage({ out: "got signature!" })
@@ -167,8 +171,10 @@ export const webAuthnTabAsync = async (
                 webAuthnAuthentication = undefined
                 webAuthnError = undefined
                 console.log(
-                  `[background][messaging][tab] credential: ${json.toString(
-                    webAuthnRegistration
+                  `[background][messaging][tab] credential: ${json.stringify(
+                    webAuthnRegistration,
+                    null,
+                    2
                   )}`
                 )
                 port.postMessage({ out: "got credential!" })
@@ -189,8 +195,10 @@ export const webAuthnTabAsync = async (
                 webAuthnRegistration = undefined
                 webAuthnError = undefined
                 console.log(
-                  `[background][messaging][tab] signature: ${json.toString(
-                    webAuthnAuthentication
+                  `[background][messaging][tab] signature: ${json.stringify(
+                    webAuthnAuthentication,
+                    null,
+                    2
                   )}`
                 )
                 port.postMessage({ out: "got signature!" })

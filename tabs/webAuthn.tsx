@@ -57,7 +57,7 @@ export const WebAuthn = () => {
     setPort(runtimePort)
     runtimePort.onMessage.addListener((message) => {
       console.log(
-        `[tab][createWebAuthn] runtimePort: ${JSON.stringify(message, null, 2)}`
+        `[tab][createWebAuthn] runtimePort: ${json.stringify(message, null, 2)}`
       )
     })
     return () => {
@@ -90,7 +90,7 @@ export const WebAuthn = () => {
       body: webAuthnRequest
     } as ContentRequestArguments
     console.log(
-      `[tab][createWebAuthnViaContents] contentReq: ${JSON.stringify(
+      `[tab][createWebAuthnViaContents] contentReq: ${json.stringify(
         contentReq,
         null,
         2
@@ -108,7 +108,11 @@ export const WebAuthn = () => {
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
       console.log(
-        `[tab][createWebAuthn] credential: ${json.toString(credential)}`
+        `[tab][createWebAuthn] credential: ${json.stringify(
+          credential,
+          null,
+          2
+        )}`
       )
       setCred(credential)
 
@@ -137,7 +141,11 @@ export const WebAuthn = () => {
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
       console.log(
-        `[tab][requestWebAuthn] signature: ${json.toString(signature)}`
+        `[tab][requestWebAuthn] signature: ${json.stringify(
+          signature,
+          null,
+          2
+        )}`
       )
       setSig(signature)
 
@@ -183,14 +191,14 @@ export const WebAuthn = () => {
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn credential: {json.toString(cred)}</p>
+          <p>WebAuthn credential: {json.stringify(cred, null, 2)}</p>
         </div>
       )}
       {sig === undefined ? (
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn signature: {json.toString(sig)}</p>
+          <p>WebAuthn signature: {json.stringify(sig, null, 2)}</p>
         </div>
       )}
     </>

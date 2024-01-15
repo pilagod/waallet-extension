@@ -41,8 +41,10 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       (await webAuthnWindowAsync(createWindowUrl)) as WebAuthnAuthentication
 
     console.log(
-      `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${json.toString(
-        webAuthnAuthentication
+      `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${json.stringify(
+        webAuthnAuthentication,
+        null,
+        2
       )}`
     )
 
