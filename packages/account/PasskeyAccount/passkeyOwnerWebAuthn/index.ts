@@ -3,8 +3,8 @@ import * as ethers from "ethers"
 import { runtime } from "webextension-polyfill"
 
 import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
-import { webAuthnWindowAsync } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/background/webAuthn"
 import json from "~packages/util/json"
+import { webAuthnWindowAsync } from "~packages/webAuthn/background/webAuthn"
 import type {
   WebAuthnAuthentication,
   WebAuthnCreation,

@@ -1,9 +1,9 @@
 import { useEffect } from "react"
 import { runtime } from "webextension-polyfill"
 
-import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/tabs/port"
 import { objectFromUrlParams } from "~packages/util/url"
 import { requestWebAuthn } from "~packages/webAuthn"
+import { PortName } from "~packages/webAuthn/tabs/port"
 import type {
   WebAuthnAuthentication,
   WebAuthnError,

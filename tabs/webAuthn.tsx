@@ -3,14 +3,14 @@ import { runtime, type Runtime } from "webextension-polyfill"
 
 import { sendToContentScript } from "@plasmohq/messaging"
 
-import {
-  ContentMethod,
-  type ContentRequestArguments
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/content/method"
-import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/tabs/port"
 import json from "~packages/util/json"
 import { objectFromUrlParams } from "~packages/util/url"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
+import {
+  ContentMethod,
+  type ContentRequestArguments
+} from "~packages/webAuthn/content/method"
+import { PortName } from "~packages/webAuthn/tabs/port"
 import type {
   WebAuthnAuthentication,
   WebAuthnCreation,

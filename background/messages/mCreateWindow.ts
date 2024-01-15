@@ -5,7 +5,7 @@ import { type PlasmoMessaging } from "@plasmohq/messaging"
 import {
   webAuthnTabAsync,
   webAuthnWindowAsync
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/background/webAuthn"
+} from "~packages/webAuthn/background/webAuthn"
 import type {
   WebAuthnCreation,
   WebAuthnRequest

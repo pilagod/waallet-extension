@@ -17,12 +17,12 @@ import type { PlasmoCSConfig } from "plasmo"
 
 import { listen } from "@plasmohq/messaging/message"
 
-import { ContentMethod } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/content/method"
+import { defaultWebAuthn } from "~packages/webAuthn"
+import { ContentMethod } from "~packages/webAuthn/content/method"
 import {
   contentCreateWebAuthn,
   contentRequestWebAuthn
-} from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/content/webAuthn"
-import { defaultWebAuthn } from "~packages/webAuthn"
+} from "~packages/webAuthn/content/webAuthn"
 import type {
   WebAuthnCreation,
   WebAuthnRequest

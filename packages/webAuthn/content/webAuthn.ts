@@ -1,8 +1,8 @@
 import { runtime, type Runtime } from "webextension-polyfill"
 
-import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/tabs/port"
 import json from "~packages/util/json"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
+import { PortName } from "~packages/webAuthn/tabs/port"
 import type {
   WebAuthnAuthentication,
   WebAuthnCreation,

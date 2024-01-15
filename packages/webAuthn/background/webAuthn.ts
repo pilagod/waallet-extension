@@ -1,7 +1,7 @@
 import { runtime, tabs, windows, type Runtime } from "webextension-polyfill"
 
-import { PortName } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn/tabs/port"
 import json from "~packages/util/json"
+import { PortName } from "~packages/webAuthn/tabs/port"
 import {
   isWebAuthnError,
   type WebAuthnAuthentication,
