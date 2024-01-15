@@ -37,12 +37,15 @@ export const webAuthnWindowAsync = async (
           windows.onRemoved.removeListener(removedListener)
           if (webAuthnError) {
             reject(`${webAuthnError.error}`)
+            return
           }
           if (webAuthnRegistration) {
             resolve(webAuthnRegistration)
+            return
           }
           if (webAuthnAuthentication) {
             resolve(webAuthnAuthentication)
+            return
           }
         }
       }
@@ -134,12 +137,15 @@ export const webAuthnTabAsync = async (
           tabs.onRemoved.removeListener(removedListener)
           if (webAuthnError) {
             reject(`${webAuthnError.error}`)
+            return
           }
           if (webAuthnRegistration) {
             resolve(webAuthnRegistration)
+            return
           }
           if (webAuthnAuthentication) {
             resolve(webAuthnAuthentication)
+            return
           }
         }
       }
