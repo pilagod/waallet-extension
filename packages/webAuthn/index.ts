@@ -106,8 +106,10 @@ export const createWebAuthn = async (
   return {
     origin: origin,
     credentialId: credIdBase64Url,
-    publicKeyX: credPubKeyXUint256,
-    publicKeyY: credPubKeyYUint256
+    publicKey: {
+      x: credPubKeyXUint256,
+      y: credPubKeyYUint256
+    }
   } as WebAuthnRegistration
 }
 
@@ -141,8 +143,10 @@ export const requestWebAuthn = async (
   return {
     authenticatorData: authDataHex,
     clientDataJson: clientDataJsonUtf8,
-    sigantureR: sigRUint,
-    signatureS: sigSUint
+    signature: {
+      r: sigRUint,
+      s: sigSUint
+    }
   } as WebAuthnAuthentication
 }
 

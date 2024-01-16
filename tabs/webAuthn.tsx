@@ -23,8 +23,8 @@ export const WebAuthn = () => {
   const [webAuthnCreation, setWebAuthnCreation] = useState<WebAuthnCreation>()
   const [webAuthnRequest, setWebAuthnRequest] = useState<WebAuthnRequest>()
   const [tabId, setTabId] = useState<number | undefined>()
-  const [cred, setCred] = useState<WebAuthnRegistration>()
-  const [sig, setSig] = useState<WebAuthnAuthentication>()
+  const [credential, setCredential] = useState<WebAuthnRegistration>()
+  const [signature, setSignature] = useState<WebAuthnAuthentication>()
   const [port, setPort] = useState<Runtime.Port | null>(null)
 
   // When a Content Script requests window or tab creation via Service Worker Messaging, passing req.sender.tab.id to the newly created window or tab is recommended. This facilitates sending processed information back to the original Content Script using the specified tabId.
@@ -80,7 +80,7 @@ export const WebAuthn = () => {
 
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
     const contentRes = await sendToContentScript(contentReq) // Always return undefined
-    setCred(contentRes)
+    setCredential(contentRes)
   }, [tabId, webAuthnCreation])
 
   const buttonRequestWebAuthnViaContents = useCallback(async () => {
@@ -99,29 +99,27 @@ export const WebAuthn = () => {
 
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
     const contentRes = await sendToContentScript(contentReq) // Always return undefined
-    setSig(contentRes)
+    setSignature(contentRes)
   }, [tabId, webAuthnRequest])
 
   const buttonCreateWebAuthn = useCallback(async () => {
     try {
-      const credential = await createWebAuthn(webAuthnCreation)
+      const cred = await createWebAuthn(webAuthnCreation)
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
       console.log(
-        `[tab][createWebAuthn] credential: ${json.stringify(
-          credential,
-          null,
-          2
-        )}`
+        `[tab][createWebAuthn] credential: ${json.stringify(cred, null, 2)}`
       )
-      setCred(credential)
+      setCredential(cred)
 
       // send to background that create this window
       port.postMessage({
-        origin: credential.origin,
-        credentialId: credential.credentialId,
-        publicKeyX: credential.publicKeyX.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
-        publicKeyY: credential.publicKeyY.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+        origin: cred.origin,
+        credentialId: cred.credentialId,
+        publicKey: {
+          x: cred.publicKey.x.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
+          y: cred.publicKey.y.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+        }
       } as WebAuthnRegistration)
     } catch (error) {
       console.error(`[tab][createWebAuthn] Error: ${error}`)
@@ -133,28 +131,26 @@ export const WebAuthn = () => {
 
   const buttonRequestWebAuthn = useCallback(async () => {
     try {
-      const signature = await requestWebAuthn(
-        cred?.credentialId
-          ? { ...webAuthnRequest, credentialId: cred.credentialId }
+      const sig = await requestWebAuthn(
+        credential?.credentialId
+          ? { ...webAuthnRequest, credentialId: credential.credentialId }
           : webAuthnRequest
       )
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
       console.log(
-        `[tab][requestWebAuthn] signature: ${json.stringify(
-          signature,
-          null,
-          2
-        )}`
+        `[tab][requestWebAuthn] signature: ${json.stringify(sig, null, 2)}`
       )
-      setSig(signature)
+      setSignature(sig)
 
       // send to background that create this window
       port.postMessage({
-        authenticatorData: signature.authenticatorData,
-        clientDataJson: signature.clientDataJson,
-        sigantureR: signature.sigantureR.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
-        signatureS: signature.signatureS.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+        authenticatorData: sig.authenticatorData,
+        clientDataJson: sig.clientDataJson,
+        signature: {
+          r: sig.signature.r.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
+          s: sig.signature.s.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+        }
       } as WebAuthnAuthentication)
     } catch (error) {
       console.error(`[tab][requestWebAuthn] Error: ${error}`)
@@ -162,7 +158,7 @@ export const WebAuthn = () => {
         error: `[tab][requestWebAuthn] Error: ${error}`
       } as WebAuthnError)
     }
-  }, [webAuthnCreation, cred, port])
+  }, [webAuthnCreation, credential, port])
 
   const buttonCloseWindow = useCallback(() => {
     // Disconnect the port
@@ -187,18 +183,18 @@ export const WebAuthn = () => {
         <button onClick={buttonRequestWebAuthn}>Request WebAuthn here</button>
         <button onClick={buttonCloseWindow}>Close Window</button>
       </div>
-      {cred === undefined ? (
+      {credential === undefined ? (
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn credential: {json.stringify(cred, null, 2)}</p>
+          <p>WebAuthn credential: {json.stringify(credential, null, 2)}</p>
         </div>
       )}
-      {sig === undefined ? (
+      {signature === undefined ? (
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn signature: {json.stringify(sig, null, 2)}</p>
+          <p>WebAuthn signature: {json.stringify(signature, null, 2)}</p>
         </div>
       )}
     </>

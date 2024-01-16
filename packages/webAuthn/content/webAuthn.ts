@@ -46,8 +46,10 @@ export const contentCreateWebAuthn = async (
     port.postMessage({
       origin: cred.origin,
       credentialId: cred.credentialId,
-      publicKeyX: cred.publicKeyX.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
-      publicKeyY: cred.publicKeyY.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+      publicKey: {
+        x: cred.publicKey.x.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
+        y: cred.publicKey.y.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+      }
     } as WebAuthnRegistration)
     return cred
   } catch (error) {
@@ -89,8 +91,10 @@ export const contentRequestWebAuthn = async (
     port.postMessage({
       authenticatorData: sig.authenticatorData,
       clientDataJson: sig.clientDataJson,
-      sigantureR: sig.sigantureR.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
-      signatureS: sig.signatureS.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+      signature: {
+        r: sig.signature.r.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
+        s: sig.signature.s.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+      }
     } as WebAuthnAuthentication)
     return sig
   } catch (error) {

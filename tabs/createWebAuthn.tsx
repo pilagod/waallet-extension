@@ -30,13 +30,15 @@ export const CreateWebAuthn = () => {
 
     // Create a WebAuthn credential
     createWebAuthn(webAuthnCreation)
-      .then((credential) => {
+      .then((cred) => {
         // Send the credential details to the background script
         port.postMessage({
-          origin: credential.origin,
-          credentialId: credential.credentialId,
-          publicKeyX: credential.publicKeyX.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
-          publicKeyY: credential.publicKeyY.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+          origin: cred.origin,
+          credentialId: cred.credentialId,
+          publicKey: {
+            x: cred.publicKey.x.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
+            y: cred.publicKey.y.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+          }
         } as WebAuthnRegistration)
       })
       .catch((error) => {

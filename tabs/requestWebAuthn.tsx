@@ -30,13 +30,15 @@ export const RequestWebAuthn = () => {
 
     // Request a WebAuthn credential
     requestWebAuthn(webAuthnRequest)
-      .then((signature) => {
+      .then((sig) => {
         // Send the signature details to the background script
         port.postMessage({
-          authenticatorData: signature.authenticatorData,
-          clientDataJson: signature.clientDataJson,
-          sigantureR: signature.sigantureR.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
-          signatureS: signature.signatureS.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+          authenticatorData: sig.authenticatorData,
+          clientDataJson: sig.clientDataJson,
+          signature: {
+            r: sig.signature.r.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
+            s: sig.signature.s.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
+          }
         } as WebAuthnAuthentication)
       })
       .catch((error) => {

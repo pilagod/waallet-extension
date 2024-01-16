@@ -70,8 +70,8 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
         webAuthnAuthentication.clientDataJson,
         23,
         1,
-        BigInt(webAuthnAuthentication.sigantureR),
-        BigInt(webAuthnAuthentication.signatureS)
+        BigInt(webAuthnAuthentication.signature.r),
+        BigInt(webAuthnAuthentication.signature.s)
       ]
     )
     return signature
