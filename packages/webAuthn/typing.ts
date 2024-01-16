@@ -1,8 +1,8 @@
-import type { BigNumberish, HexString, UriString, UrlB64String } from "~typing"
+import type { BigNumberish, HexString, UrlB64String } from "~typing"
 
 /* Input */
 export type WebAuthnCreation = {
-  user?: UriString
+  user?: string
   challenge?: UrlB64String
 }
 export type WebAuthnRequest = {
