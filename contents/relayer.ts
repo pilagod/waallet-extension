@@ -6,7 +6,8 @@ import { relay } from "@plasmohq/messaging/relay"
 import { WaalletMessage } from "~packages/provider/waallet/message"
 
 export const config: PlasmoCSConfig = {
-  matches: ["<all_urls>"]
+  matches: ["<all_urls>"],
+  run_at: "document_start"
 }
 
 relay(
