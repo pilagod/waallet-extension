@@ -9,6 +9,11 @@ export type WebAuthnRequest = {
   credentialId?: UrlB64String
   challenge: UrlB64String
 }
+export type WebAuthnParams = {
+  // Resolve error: A required parameter cannot follow an optional parameter.
+  webAuthnCreation?: WebAuthnCreation
+  webAuthnRequest: WebAuthnRequest
+}
 
 /* Output */
 export type PublicKey = {

@@ -1,10 +1,10 @@
-import { runtime } from "webextension-polyfill"
-
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 import {
-  webAuthnTabAsync,
-  webAuthnWindowAsync
+  webAuthnAsyncTab,
+  webAuthnAsyncWindow,
+  webAuthnCreationAsyncWindow,
+  webAuthnRequestAsyncWindow
 } from "~packages/webAuthn/background/webAuthn"
 import type {
   WebAuthnCreation,
@@ -26,28 +26,26 @@ const handler: PlasmoMessaging.MessageHandler<
     `[background][messaging][window] Request: ${JSON.stringify(req, null, 2)}`
   )
 
-  const createWindowUrl = `${runtime.getURL("tabs/webAuthn.html")}?tabId=${
-    req.sender.tab.id
-  }&user=${encodeURI(req.body.creation?.user)}&challengeCreation=${req.body
-    .creation?.challenge}&credentialId=${
-    req.body.request.credentialId
-  }&challengeRequest=${req.body.request.challenge}`
+  const response = await webAuthnAsyncWindow(req.sender.tab.id, {
+    webAuthnCreation: req.body.creation,
+    webAuthnRequest: req.body.request
+  })
 
-  //   const createWindowUrl = `${runtime.getURL(
-  //     "tabs/createWebAuthn.html"
-  //   )}?tabId=${req.sender.tab.id}&user=${encodeURI(
-  //     req.body.creation?.user
-  //   )}&challengeCreation=${req.body.creation?.challenge}`
+  //   const response = await webAuthnAsyncTab(req.sender.tab.id, {
+  //     webAuthnCreation: req.body.creation,
+  //     webAuthnRequest: req.body.request
+  //   })
 
-  //   const createWindowUrl = `${runtime.getURL(
-  //     "tabs/requestWebAuthn.html"
-  //   )}?tabId=${req.sender.tab.id}&credentialId=${""}&challengeRequest=${
-  //     req.body.request.challenge
-  //   }`
+  //   const response = await webAuthnCreationAsyncWindow({
+  //     user: req.body.creation?.user,
+  //     challenge: req.body.creation?.challenge
+  //   })
 
-  console.log(`createWindowUrl: ${createWindowUrl}`)
+  //   const response = await webAuthnRequestAsyncWindow({
+  //     credentialId: "",
+  //     challenge: req.body.request.challenge
+  //   })
 
-  const response = await webAuthnWindowAsync(createWindowUrl)
   console.log(
     `[background][messaging][window] response: ${JSON.stringify(
       response,
@@ -56,13 +54,8 @@ const handler: PlasmoMessaging.MessageHandler<
     )}`
   )
 
-  //   const tab = await webAuthnTabAsync(createWindowUrl)
-  //   console.log(
-  //     `[background][messaging][tqb] tab: ${JSON.stringify(tab, null, 2)}`
-  //   )
-
   res.send({
-    out: `Opened: ${createWindowUrl}`
+    out: `Done`
   })
 }
 

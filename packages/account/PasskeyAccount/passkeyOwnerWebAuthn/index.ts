@@ -1,16 +1,10 @@
 import { isoBase64URL, isoUint8Array } from "@simplewebauthn/server/helpers"
 import * as ethers from "ethers"
-import { runtime } from "webextension-polyfill"
 
 import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
 import json from "~packages/util/json"
-import { webAuthnWindowAsync } from "~packages/webAuthn/background/webAuthn"
-import type {
-  WebAuthnAuthentication,
-  WebAuthnCreation,
-  WebAuthnRegistration,
-  WebAuthnRequest
-} from "~packages/webAuthn/typing"
+import { webAuthnRequestAsyncWindow } from "~packages/webAuthn/background/webAuthn"
+import type { WebAuthnAuthentication } from "~packages/webAuthn/typing"
 import type { BytesLike, UrlB64String } from "~typing"
 
 export class PasskeyOwnerWebAuthn implements PasskeyOwner {
@@ -33,12 +27,11 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
         : challenge
     )
 
-    const createWindowUrl = `${runtime.getURL(
-      "tabs/requestWebauthn.html"
-    )}?credentialId=${this.credentialId}&challengeRequest=${challengeUrlB64}`
-
     const webAuthnAuthentication: WebAuthnAuthentication =
-      (await webAuthnWindowAsync(createWindowUrl)) as WebAuthnAuthentication
+      (await webAuthnRequestAsyncWindow({
+        credentialId: this.credentialId,
+        challenge: challengeUrlB64
+      })) as WebAuthnAuthentication
 
     console.log(
       `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${json.stringify(
