@@ -76,19 +76,4 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
     )
     return signature
   }
-
-  // Temp: Create and set the new WebAuthn credential ID.
-  public async new(opts?: WebAuthnCreation): Promise<WebAuthnRegistration> {
-    const createWindowUrl = `${runtime.getURL(
-      "tabs/createWebauthn.html"
-    )}?user=${encodeURI(opts?.user)}&challengeCreation=${opts?.challenge}`
-
-    const webAuthnCreation = (await webAuthnWindowAsync(
-      createWindowUrl
-    )) as WebAuthnRegistration
-
-    this.credentialId = webAuthnCreation.credentialId
-
-    return webAuthnCreation
-  }
 }
