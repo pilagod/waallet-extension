@@ -51,20 +51,15 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
           resolved = true
           browser.tabs.remove(t.id)
         })
+
+        port.onDisconnect.addListener(() => {
+          if (!resolved) {
+            reject("User operation is rejected")
+          }
+          browser.runtime.onConnect.removeListener(portOnConnectHandler)
+        })
       }
       browser.runtime.onConnect.addListener(portOnConnectHandler)
-
-      const tabOnRemovedHandler = (tabId: number) => {
-        if (tabId !== t.id) {
-          return
-        }
-        if (!resolved) {
-          reject("User operation is rejected")
-        }
-        browser.runtime.onConnect.removeListener(portOnConnectHandler)
-        browser.tabs.onRemoved.removeListener(tabOnRemovedHandler)
-      }
-      browser.tabs.onRemoved.addListener(tabOnRemovedHandler)
     })
   }
 }
