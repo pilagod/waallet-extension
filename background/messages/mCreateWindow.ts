@@ -1,10 +1,9 @@
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 import {
-  webAuthnAsyncTab,
-  webAuthnAsyncWindow,
-  webAuthnCreationAsyncWindow,
-  webAuthnRequestAsyncWindow
+  createWebAuthn,
+  requestWebAuthn,
+  testWebAuthn
 } from "~packages/webAuthn/background/webAuthn"
 import type {
   WebAuthnCreation,
@@ -26,22 +25,17 @@ const handler: PlasmoMessaging.MessageHandler<
     `[background][messaging][window] Request: ${JSON.stringify(req, null, 2)}`
   )
 
-  const response = await webAuthnAsyncWindow(req.sender.tab.id, {
+  const response = await testWebAuthn(req.sender.tab.id, {
     webAuthnCreation: req.body.creation,
     webAuthnRequest: req.body.request
   })
 
-  //   const response = await webAuthnAsyncTab(req.sender.tab.id, {
-  //     webAuthnCreation: req.body.creation,
-  //     webAuthnRequest: req.body.request
-  //   })
-
-  //   const response = await webAuthnCreationAsyncWindow({
+  //   const response = await createWebAuthn({
   //     user: req.body.creation?.user,
   //     challenge: req.body.creation?.challenge
   //   })
 
-  //   const response = await webAuthnRequestAsyncWindow({
+  //   const response = await requestWebAuthn({
   //     credentialId: "",
   //     challenge: req.body.request.challenge
   //   })

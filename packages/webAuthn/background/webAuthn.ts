@@ -19,99 +19,62 @@ import {
   type WebAuthnRequest
 } from "~packages/webAuthn/typing"
 
-export const webAuthnCreationAsyncWindow = async (
+export const createWebAuthn = async (
   webAuthnCreation?: WebAuthnCreation
 ): Promise<WebAuthnRegistration> => {
+  const createWebAuthnParams = new URLSearchParams({
+    user: webAuthnCreation?.user ? encodeURI(webAuthnCreation.user) : "",
+    challengeCreation: webAuthnCreation?.challenge
+      ? webAuthnCreation.challenge
+      : ""
+  })
   const createWindowUrl = `${runtime.getURL(
     "tabs/createWebAuthn.html"
-  )}?user=${encodeURI(
-    webAuthnCreation?.user
-  )}&challengeCreation=${webAuthnCreation?.challenge}`
+  )}?${createWebAuthnParams.toString()}`
 
-  return (await webAuthnWindowOrTabAsync(
-    createWindowUrl,
-    true
-  )) as WebAuthnRegistration
+  return (await openWebAuthnUrl(createWindowUrl)) as WebAuthnRegistration
 }
 
-export const webAuthnRequestAsyncWindow = async (
+export const requestWebAuthn = async (
   webAuthnRequest: WebAuthnRequest
 ): Promise<WebAuthnAuthentication> => {
+  const requestWebAuthnParams = new URLSearchParams({
+    credentialId: webAuthnRequest.credentialId
+      ? webAuthnRequest.credentialId
+      : "",
+    challengeRequest: webAuthnRequest.challenge
+  })
   const requestWebauthnUrl = `${runtime.getURL(
     "tabs/requestWebauthn.html"
-  )}?credentialId=${webAuthnRequest.credentialId}&challengeRequest=${
-    webAuthnRequest.challenge
-  }`
+  )}?${requestWebAuthnParams.toString()}`
 
-  return (await webAuthnWindowOrTabAsync(
-    requestWebauthnUrl,
-    true
-  )) as WebAuthnAuthentication
+  return (await openWebAuthnUrl(requestWebauthnUrl)) as WebAuthnAuthentication
 }
 
-export const webAuthnAsyncWindow = async (
+export const testWebAuthn = async (
   tabId: number,
   { webAuthnCreation, webAuthnRequest }: WebAuthnParams
 ): Promise<WebAuthnRegistration | WebAuthnAuthentication> => {
+  const webAuthnParams = new URLSearchParams({
+    tabId: tabId.toString(),
+    user: webAuthnCreation?.user ? encodeURI(webAuthnCreation.user) : "",
+    challengeCreation: webAuthnCreation?.challenge
+      ? webAuthnCreation.challenge
+      : "",
+    credentialId: webAuthnRequest.credentialId
+      ? webAuthnRequest.credentialId
+      : "",
+    challengeRequest: webAuthnRequest.challenge
+  })
   const webAuthnUrl = `${runtime.getURL(
     "tabs/webAuthn.html"
-  )}?tabId=${tabId}&user=${encodeURI(
-    webAuthnCreation?.user
-  )}&challengeCreation=${webAuthnCreation?.challenge}&credentialId=${
-    webAuthnRequest.credentialId
-  }&challengeRequest=${webAuthnRequest.challenge}`
+  )}?${webAuthnParams.toString()}`
 
-  return await webAuthnWindowOrTabAsync(webAuthnUrl, true)
+  return await openWebAuthnUrl(webAuthnUrl)
 }
 
-export const webAuthnCreationAsyncTab = async (
-  webAuthnCreation?: WebAuthnCreation
-): Promise<WebAuthnRegistration> => {
-  const createWindowUrl = `${runtime.getURL(
-    "tabs/createWebAuthn.html"
-  )}?user=${encodeURI(
-    webAuthnCreation?.user
-  )}&challengeCreation=${webAuthnCreation?.challenge}`
-
-  return (await webAuthnWindowOrTabAsync(
-    createWindowUrl,
-    false
-  )) as WebAuthnRegistration
-}
-
-export const webAuthnRequestAsyncTab = async (
-  webAuthnRequest: WebAuthnRequest
-): Promise<WebAuthnAuthentication> => {
-  const requestWebauthnUrl = `${runtime.getURL(
-    "tabs/requestWebauthn.html"
-  )}?credentialId=${webAuthnRequest.credentialId}&challengeRequest=${
-    webAuthnRequest.challenge
-  }`
-
-  return (await webAuthnWindowOrTabAsync(
-    requestWebauthnUrl,
-    false
-  )) as WebAuthnAuthentication
-}
-
-export const webAuthnAsyncTab = async (
-  tabId: number,
-  { webAuthnCreation, webAuthnRequest }: WebAuthnParams
-): Promise<WebAuthnRegistration | WebAuthnAuthentication> => {
-  const webAuthnUrl = `${runtime.getURL(
-    "tabs/webAuthn.html"
-  )}?tabId=${tabId}&user=${encodeURI(
-    webAuthnCreation?.user
-  )}&challengeCreation=${webAuthnCreation?.challenge}&credentialId=${
-    webAuthnRequest.credentialId
-  }&challengeRequest=${webAuthnRequest.challenge}`
-
-  return await webAuthnWindowOrTabAsync(webAuthnUrl, false)
-}
-
-const webAuthnWindowOrTabAsync = async (
-  url: string,
-  isWindow: boolean
+const openWebAuthnUrl = async (
+  url: string
 ): Promise<WebAuthnRegistration | WebAuthnAuthentication> => {
   let webAuthnRegistration: WebAuthnRegistration
   let webAuthnAuthentication: WebAuthnAuthentication
@@ -175,26 +138,15 @@ const webAuthnWindowOrTabAsync = async (
   // Return custom promise
   return new Promise(async (resolve, reject) => {
     try {
-      // Create a new popup window or tab
-      let createdWindowOrTab: Windows.Window | Tabs.Tab
-      if (isWindow) {
-        createdWindowOrTab = await windows.create({
-          url: url,
-          focused: true,
-          type: "popup",
-          width: 480,
-          height: 720
-        })
-      } else {
-        const newWindow = await windows.create({ type: "normal" })
-        createdWindowOrTab = await tabs.create({
-          windowId: newWindow.id,
-          url: url,
-          active: true
-        })
-      }
-
-      // Define a listener for window or tab removal
+      // Create a new popup window
+      const createdWindowOrTab = await windows.create({
+        url: url,
+        focused: true,
+        type: "popup",
+        width: 480,
+        height: 720
+      })
+      // Define a listener for window removal
       const removedListener = (removedWindowId: number) => {
         if (removedWindowId === createdWindowOrTab.id) {
           windows.onRemoved.removeListener(removedListener)

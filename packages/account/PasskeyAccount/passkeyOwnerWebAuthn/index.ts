@@ -3,7 +3,7 @@ import * as ethers from "ethers"
 
 import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
 import json from "~packages/util/json"
-import { webAuthnRequestAsyncWindow } from "~packages/webAuthn/background/webAuthn"
+import { requestWebAuthn } from "~packages/webAuthn/background/webAuthn"
 import type { WebAuthnAuthentication } from "~packages/webAuthn/typing"
 import type { BytesLike, UrlB64String } from "~typing"
 
@@ -28,7 +28,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
     )
 
     const webAuthnAuthentication: WebAuthnAuthentication =
-      (await webAuthnRequestAsyncWindow({
+      (await requestWebAuthn({
         credentialId: this.credentialId,
         challenge: challengeUrlB64
       })) as WebAuthnAuthentication
