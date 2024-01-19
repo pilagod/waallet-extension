@@ -2,7 +2,7 @@
 
 ## Demo 1: Swap ETH for UNI tokens in the AA contract on the Sepolia testnet within the Uniswap DApp.
 
-[![Waallet Demo](https://i.imgur.com/iEtCnl0.png)](https://youtu.be/PviRgMoooII)
+[![Waallet Demo](https://i.imgur.com/f1QHreR.gif)](https://youtu.be/PviRgMoooII)
 
 ### Reproduce the process
 
@@ -81,7 +81,7 @@ npm run dev
 
 ## Demo 2: Transfer with SimpleAccount on Local Testnet
 
-[![Waallet Demo](https://i.imgur.com/KOIudK8.png)](https://youtu.be/V3xA95UXuQo)
+[![Waallet Demo](https://i.imgur.com/dKjIltD.gif)](https://youtu.be/V3xA95UXuQo)
 
 ### Reproduce the process
 
@@ -89,7 +89,7 @@ npm run dev
 
 ## Demo 3: Transfer with PasskeyAccount on Local Testnet
 
-[![Waallet Demo](https://i.imgur.com/fMWz5X3.png)](https://youtu.be/5MlbRI152us)
+[![Waallet Demo](https://i.imgur.com/UgYa0QR.gif)](https://youtu.be/5MlbRI152us)
 
 ### Reproduce the process
 
