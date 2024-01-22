@@ -1,16 +1,21 @@
-import { runtime, tabs, windows } from "webextension-polyfill"
-
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
+import {
+  createWebAuthn,
+  requestWebAuthn,
+  testWebAuthn
+} from "~packages/webAuthn/background/webAuthn"
+import type {
+  WebAuthnCreation,
+  WebAuthnRequest
+} from "~packages/webAuthn/typing"
+
 export type RequestBody = {
-  user?: string
-  challengeBase64Url?: string
-  authAttach?: AuthenticatorAttachment
+  creation?: WebAuthnCreation
+  request: WebAuthnRequest
 }
 
-export type ResponseBody = {
-  out: string
-}
+export type ResponseBody = { out: string }
 
 const handler: PlasmoMessaging.MessageHandler<
   RequestBody,
@@ -20,76 +25,31 @@ const handler: PlasmoMessaging.MessageHandler<
     `[background][messaging][window] Request: ${JSON.stringify(req, null, 2)}`
   )
 
-  const createWindowUrl = `${runtime.getURL(
-    "tabs/createWebauthn.html"
-  )}?tabId=${req.sender.tab.id}&user=${encodeURI(
-    req.body.user
-  )}&challengeBase64Url=${req.body.challengeBase64Url}&authAttach=${
-    req.body.authAttach
-  }`
-  console.log(`createWindowUrl: ${createWindowUrl}`)
+  const response = await testWebAuthn(req.sender.tab.id, {
+    webAuthnCreation: req.body.creation,
+    webAuthnRequest: req.body.request
+  })
 
-  const window = await createWindowAsync(createWindowUrl)
+  //   const response = await createWebAuthn({
+  //     user: req.body.creation?.user,
+  //     challenge: req.body.creation?.challenge
+  //   })
+
+  //   const response = await requestWebAuthn({
+  //     credentialId: "",
+  //     challenge: req.body.request.challenge
+  //   })
+
   console.log(
-    `[background][messaging][window] window: ${JSON.stringify(window, null, 2)}`
+    `[background][messaging][window] response: ${JSON.stringify(
+      response,
+      null,
+      2
+    )}`
   )
 
-  //   const tab = await createTabAsync(createWindowUrl)
-  //   console.log(
-  //     `[background][messaging][tab] tab: ${JSON.stringify(window, null, 2)}`
-  //   )
-
   res.send({
-    out: `Opened: ${createWindowUrl}`
-  })
-}
-
-function createWindowAsync(createWindowUrl: string) {
-  return new Promise(async (resolve, reject) => {
-    let createdWindow = null
-    try {
-      createdWindow = await windows.create({
-        url: createWindowUrl,
-        focused: true,
-        type: "popup",
-        width: 480,
-        height: 720
-      })
-    } catch (e) {
-      reject(e)
-      return
-    }
-
-    const removedListener = (removedWindowId: number) => {
-      if (removedWindowId === createdWindow.id) {
-        windows.onRemoved.removeListener(removedListener)
-        resolve(createdWindow)
-      }
-    }
-    windows.onRemoved.addListener(removedListener)
-  })
-}
-
-function createTabAsync(createTabUrl: string) {
-  return new Promise(async (resolve, reject) => {
-    let createdTab = null
-    try {
-      createdTab = await tabs.create({
-        url: createTabUrl,
-        active: false
-      })
-    } catch (e) {
-      reject(e)
-      return
-    }
-
-    const removedListener = (removedTabId: number) => {
-      if (removedTabId === createdTab.id) {
-        tabs.onRemoved.removeListener(removedListener)
-        resolve(createdTab)
-      }
-    }
-    tabs.onRemoved.addListener(removedListener)
+    out: `Done`
   })
 }
 
