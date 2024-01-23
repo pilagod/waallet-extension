@@ -29,7 +29,11 @@ export class WaalletBackgroundProvider {
   }
 
   public clone() {
-    return new WaalletBackgroundProvider(this.nodeRpcUrl, this.bundler)
+    return new WaalletBackgroundProvider(
+      this.nodeRpcUrl,
+      this.bundler,
+      this.userOperationAuthorizer
+    )
   }
 
   public connect(account: Account) {
