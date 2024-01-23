@@ -4,6 +4,7 @@ import { type Account } from "~packages/account"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
+import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
 import {
@@ -77,7 +78,7 @@ export class WaalletBackgroundProvider {
       },
       entryPointAddress
     )
-    return callGasLimit
+    return number.toHex(callGasLimit)
   }
 
   private async handleSendTransaction(

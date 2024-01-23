@@ -1,3 +1,4 @@
+import number from "~packages/util/number"
 import type { HexString, Nullable } from "~typing"
 
 import { JsonRpcProvider } from "../jsonrpc/provider"
@@ -47,15 +48,18 @@ export class BundlerProvider {
     userOp: Partial<UserOperation>,
     entryPointAddress: HexString
   ): Promise<{
-    preVerificationGas: HexString
-    verificationGasLimit: HexString
-    callGasLimit: HexString
+    preVerificationGas: bigint
+    verificationGasLimit: bigint
+    callGasLimit: bigint
   }> {
-    const gasLimits = await this.bundler.send({
+    const gasLimit = await this.bundler.send({
       method: BundlerRpcMethod.eth_estimateUserOperationGas,
       params: [userOp, entryPointAddress]
     })
-    return gasLimits
+    for (const key of Object.keys(gasLimit)) {
+      gasLimit[key] = number.toBigInt(gasLimit[key])
+    }
+    return gasLimit
   }
 
   public async sendUserOperation(
