@@ -12,6 +12,7 @@ import {
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
+import { type UserOperationAuthorizer } from "./authorizer/userOperation"
 
 export class WaalletBackgroundProvider {
   public account: Account
@@ -20,7 +21,8 @@ export class WaalletBackgroundProvider {
 
   public constructor(
     private nodeRpcUrl: string,
-    private bundler: BundlerProvider
+    private bundler: BundlerProvider,
+    private userOperationAuthorizer: UserOperationAuthorizer
   ) {
     // TODO: Refactor node provider
     this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
@@ -114,21 +116,31 @@ export class WaalletBackgroundProvider {
       ...userOpGasFee,
       paymasterAndData
     }
-    const userOpHash = await getUserOpHash(
+    const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,
-      entryPointAddress,
-      await this.bundler.getChainId()
+      {
+        onApproved: async (userOpAuthorized, metadata) => {
+          const userOpAuthorizedHash = await getUserOpHash(
+            userOpAuthorized,
+            entryPointAddress,
+            await this.bundler.getChainId()
+          )
+          userOpAuthorized.signature = await this.account.sign(
+            userOpAuthorizedHash,
+            metadata
+          )
+          return userOpAuthorized
+        }
+      }
     )
-    userOp.signature = await this.account.sign(userOpHash)
-
-    const success = await this.bundler.sendUserOperation(
-      userOp,
+    const userOpAuthorizedHash = await this.bundler.sendUserOperation(
+      userOpAuthorized,
       entryPointAddress
     )
-    if (!success) {
+    if (!userOpAuthorizedHash) {
       throw new Error("Send user operation fail")
     }
-    const txHash = await this.bundler.wait(userOpHash)
+    const txHash = await this.bundler.wait(userOpAuthorizedHash)
 
     return txHash
   }

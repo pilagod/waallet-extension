@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import type { Account } from "~packages/account"
+import { NullUserOperationAuthorizer } from "~packages/provider/waallet/background/authorizer/userOperation/null"
 import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import byte from "~packages/util/byte"
@@ -17,7 +18,8 @@ export function describeAccountTestBed<T extends Account>(
     const { counter } = config.contract
     const provider = new WaalletBackgroundProvider(
       config.rpc.node,
-      config.provider.bundler
+      config.provider.bundler,
+      new NullUserOperationAuthorizer()
     )
     let account: T
 

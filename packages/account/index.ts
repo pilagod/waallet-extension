@@ -19,5 +19,5 @@ export interface Account {
   createUserOperationCall(call: Call): Promise<UserOperationCall>
   getAddress(): Promise<HexString>
   isDeployed(): Promise<boolean>
-  sign(message: BytesLike): Promise<HexString>
+  sign(message: BytesLike, metadata?: any): Promise<HexString>
 }

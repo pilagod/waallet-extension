@@ -4,6 +4,20 @@ import {
   BundlerMode,
   BundlerProvider
 } from "~packages/provider/bundler/provider"
+import type { UserOperation } from "~packages/provider/bundler/typing"
+import type { HexString, Nullable } from "~typing"
+
+class BundlerProviderWithCache extends BundlerProvider {
+  public lastSentUserOperation: Nullable<UserOperation> = null
+
+  public async sendUserOperation(
+    userOp: UserOperation,
+    entryPointAddress: HexString
+  ): Promise<HexString> {
+    this.lastSentUserOperation = userOp
+    return super.sendUserOperation(userOp, entryPointAddress)
+  }
+}
 
 const rpc = {
   node: "http://localhost:8545",
@@ -12,7 +26,7 @@ const rpc = {
 
 const provider = {
   node: new ethers.JsonRpcProvider(rpc.node),
-  bundler: new BundlerProvider(rpc.bundler, BundlerMode.Manual)
+  bundler: new BundlerProviderWithCache(rpc.bundler, BundlerMode.Manual)
 }
 
 const account = {
