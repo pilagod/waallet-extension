@@ -12,7 +12,9 @@ import {
   type WebAuthnRequest
 } from "~packages/webAuthn/typing"
 
-export const createWebAuthn = async (webAuthnCreation?: WebAuthnCreation) => {
+export const createWebAuthn = async (
+  webAuthnCreation?: WebAuthnCreation
+): Promise<WebAuthnRegistration> => {
   const createWebAuthnParams = new URLSearchParams({
     user: webAuthnCreation?.user ? encodeURI(webAuthnCreation.user) : "",
     challengeCreation: webAuthnCreation?.challenge
@@ -23,12 +25,12 @@ export const createWebAuthn = async (webAuthnCreation?: WebAuthnCreation) => {
     "tabs/createWebAuthn.html"
   )}?${createWebAuthnParams.toString()}`
 
-  const { result, cancel } = await openWebAuthnUrl(createWindowUrl)
-
-  return { result: result as Promise<WebAuthnRegistration>, cancel }
+  return (await openWebAuthnUrl(createWindowUrl)) as WebAuthnRegistration
 }
 
-export const requestWebAuthn = async (webAuthnRequest: WebAuthnRequest) => {
+export const requestWebAuthn = async (
+  webAuthnRequest: WebAuthnRequest
+): Promise<WebAuthnAuthentication> => {
   const requestWebAuthnParams = new URLSearchParams({
     credentialId: webAuthnRequest.credentialId
       ? webAuthnRequest.credentialId
@@ -39,18 +41,13 @@ export const requestWebAuthn = async (webAuthnRequest: WebAuthnRequest) => {
     "tabs/requestWebauthn.html"
   )}?${requestWebAuthnParams.toString()}`
 
-  const { result, cancel } = await openWebAuthnUrl(requestWebauthnUrl)
-
-  return {
-    result: result as Promise<WebAuthnAuthentication>,
-    cancel
-  }
+  return (await openWebAuthnUrl(requestWebauthnUrl)) as WebAuthnAuthentication
 }
 
 export const testWebAuthn = async (
   tabId: number,
   { webAuthnCreation, webAuthnRequest }: WebAuthnParams
-) => {
+): Promise<WebAuthnRegistration | WebAuthnAuthentication> => {
   const webAuthnParams = new URLSearchParams({
     tabId: tabId.toString(),
     user: webAuthnCreation?.user ? encodeURI(webAuthnCreation.user) : "",
@@ -66,16 +63,17 @@ export const testWebAuthn = async (
     "tabs/webAuthn.html"
   )}?${webAuthnParams.toString()}`
 
-  return openWebAuthnUrl(webAuthnUrl)
+  return await openWebAuthnUrl(webAuthnUrl)
 }
 
-// TODO: Split it due to too many responsibilities.
-const openWebAuthnUrl = async (url: string) => {
+const openWebAuthnUrl = async (
+  url: string
+): Promise<WebAuthnRegistration | WebAuthnAuthentication> => {
   let webAuthnRegistration: WebAuthnRegistration
   let webAuthnAuthentication: WebAuthnAuthentication
   let webAuthnError: WebAuthnError
   // Define a listener for port communication
-  const portOnConnectHandler = (port: Runtime.Port) => {
+  const portListener = (port: Runtime.Port) => {
     if (port.name === PortName.port_createWebAuthn) {
       // Listener for credential messages from the new window
       port.onMessage.addListener(
@@ -100,7 +98,6 @@ const openWebAuthnUrl = async (url: string) => {
         }
       )
     }
-
     if (port.name === PortName.port_requestWebAuthn) {
       // Listener for signature messages from the new window
       port.onMessage.addListener(
@@ -127,10 +124,9 @@ const openWebAuthnUrl = async (url: string) => {
     }
     // Remove the port listener on disconnect
     port.onDisconnect.addListener(() => {
-      runtime.onConnect.removeListener(portOnConnectHandler)
+      runtime.onConnect.removeListener(portListener)
     })
   }
-
   const w = await windows.create({
     url: url,
     focused: true,
@@ -139,37 +135,37 @@ const openWebAuthnUrl = async (url: string) => {
     height: 0
   })
 
-  const result = new Promise<WebAuthnRegistration | WebAuthnAuthentication>(
-    async (resolve, reject) => {
+  // Return custom promise
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Create a new popup window
       // Define a listener for window removal
-      const windowOnRemovedHandler = (removedWindowId: number) => {
-        if (removedWindowId !== w.id) {
-          return
+      const removedListener = (removedWindowId: number) => {
+        if (removedWindowId === w.id) {
+          windows.onRemoved.removeListener(removedListener)
+          if (webAuthnError) {
+            reject(`${webAuthnError.error}`)
+            return
+          }
+          if (webAuthnRegistration) {
+            resolve(webAuthnRegistration)
+            return
+          }
+          if (webAuthnAuthentication) {
+            resolve(webAuthnAuthentication)
+            return
+          }
         }
-        windows.onRemoved.removeListener(windowOnRemovedHandler)
-
-        if (webAuthnError) {
-          return reject(`${webAuthnError.error}`)
-        }
-        if (webAuthnRegistration) {
-          return resolve(webAuthnRegistration)
-        }
-        if (webAuthnAuthentication) {
-          return resolve(webAuthnAuthentication)
-        }
-        return reject("Cannot get response from WebAuthn window")
       }
       // Add the window or tab removal listener
-      windows.onRemoved.addListener(windowOnRemovedHandler)
+      windows.onRemoved.addListener(removedListener)
 
       // Add the port listener
-      runtime.onConnect.addListener(portOnConnectHandler)
+      runtime.onConnect.addListener(portListener)
+    } catch (e) {
+      // Reject the Promise if an error occurs
+      reject(e)
+      return
     }
-  )
-
-  const cancel = async () => {
-    await windows.remove(w.id)
-  }
-
-  return { result, cancel }
+  })
 }

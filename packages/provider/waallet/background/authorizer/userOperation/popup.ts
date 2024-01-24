@@ -45,7 +45,10 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
             return
           }
           const userOpAuthorized = await onApproved(
-            json.parse(message.userOpAuthorized)
+            json.parse(message.userOpAuthorized),
+            {
+              sender: port.sender
+            }
           )
           resolve(userOpAuthorized)
           resolved = true
