@@ -19,13 +19,14 @@ export const createWebAuthn = async (webAuthnCreation?: WebAuthnCreation) => {
       ? webAuthnCreation.challenge
       : ""
   })
-  const createWindowUrl = `${runtime.getURL(
+  const url = `${runtime.getURL(
     "tabs/createWebAuthn.html"
   )}?${createWebAuthnParams.toString()}`
 
-  const { result, cancel } = await openWebAuthnUrl(createWindowUrl)
-
-  return { result: result as Promise<WebAuthnRegistration>, cancel }
+  return {
+    result: listenToWebAuthnRegistration(),
+    cancel: await openWebAuthnWindow(url)
+  }
 }
 
 export const requestWebAuthn = async (webAuthnRequest: WebAuthnRequest) => {
@@ -35,15 +36,13 @@ export const requestWebAuthn = async (webAuthnRequest: WebAuthnRequest) => {
       : "",
     challengeRequest: webAuthnRequest.challenge
   })
-  const requestWebauthnUrl = `${runtime.getURL(
+  const url = `${runtime.getURL(
     "tabs/requestWebauthn.html"
   )}?${requestWebAuthnParams.toString()}`
 
-  const { result, cancel } = await openWebAuthnUrl(requestWebauthnUrl)
-
   return {
-    result: result as Promise<WebAuthnAuthentication>,
-    cancel
+    result: listenToWebAuthnAuthentication(),
+    cancel: await openWebAuthnWindow(url)
   }
 }
 
@@ -62,114 +61,90 @@ export const testWebAuthn = async (
       : "",
     challengeRequest: webAuthnRequest.challenge
   })
-  const webAuthnUrl = `${runtime.getURL(
+  const url = `${runtime.getURL(
     "tabs/webAuthn.html"
   )}?${webAuthnParams.toString()}`
 
-  return openWebAuthnUrl(webAuthnUrl)
+  return {
+    result: Promise.any([
+      listenToWebAuthnRegistration(),
+      listenToWebAuthnAuthentication()
+    ]),
+    cancel: await openWebAuthnWindow(url)
+  }
 }
 
-// TODO: Split it due to too many responsibilities.
-const openWebAuthnUrl = async (url: string) => {
-  let webAuthnRegistration: WebAuthnRegistration
-  let webAuthnAuthentication: WebAuthnAuthentication
-  let webAuthnError: WebAuthnError
-  // Define a listener for port communication
-  const portOnConnectHandler = (port: Runtime.Port) => {
-    if (port.name === PortName.port_createWebAuthn) {
-      // Listener for credential messages from the new window
-      port.onMessage.addListener(
-        (message: WebAuthnRegistration | WebAuthnError) => {
-          if (isWebAuthnError(message)) {
-            webAuthnRegistration = undefined
-            webAuthnAuthentication = undefined
-            webAuthnError = message
-          } else {
-            webAuthnRegistration = message as WebAuthnRegistration
-            webAuthnAuthentication = undefined
-            webAuthnError = undefined
-            console.log(
-              `[background][messaging][window] credential: ${json.stringify(
-                webAuthnRegistration,
-                null,
-                2
-              )}`
-            )
-            port.postMessage({ out: "got credential!" })
-          }
-        }
-      )
-    }
-
-    if (port.name === PortName.port_requestWebAuthn) {
-      // Listener for signature messages from the new window
-      port.onMessage.addListener(
-        (message: WebAuthnAuthentication | WebAuthnError) => {
-          if (isWebAuthnError(message)) {
-            webAuthnRegistration = undefined
-            webAuthnAuthentication = undefined
-            webAuthnError = message
-          } else {
-            webAuthnAuthentication = message as WebAuthnAuthentication
-            webAuthnRegistration = undefined
-            webAuthnError = undefined
-            console.log(
-              `[background][messaging][window] signature: ${json.stringify(
-                webAuthnAuthentication,
-                null,
-                2
-              )}`
-            )
-            port.postMessage({ out: "got signature!" })
-          }
-        }
-      )
-    }
-    // Remove the port listener on disconnect
-    port.onDisconnect.addListener(() => {
-      runtime.onConnect.removeListener(portOnConnectHandler)
-    })
-  }
-
+const openWebAuthnWindow = async (url: string) => {
   const w = await windows.create({
-    url: url,
+    url,
     focused: true,
     type: "popup",
     width: 0,
     height: 0
   })
-
-  const result = new Promise<WebAuthnRegistration | WebAuthnAuthentication>(
-    async (resolve, reject) => {
-      // Define a listener for window removal
-      const windowOnRemovedHandler = (removedWindowId: number) => {
-        if (removedWindowId !== w.id) {
-          return
-        }
-        windows.onRemoved.removeListener(windowOnRemovedHandler)
-
-        if (webAuthnError) {
-          return reject(`${webAuthnError.error}`)
-        }
-        if (webAuthnRegistration) {
-          return resolve(webAuthnRegistration)
-        }
-        if (webAuthnAuthentication) {
-          return resolve(webAuthnAuthentication)
-        }
-        return reject("Cannot get response from WebAuthn window")
-      }
-      // Add the window or tab removal listener
-      windows.onRemoved.addListener(windowOnRemovedHandler)
-
-      // Add the port listener
-      runtime.onConnect.addListener(portOnConnectHandler)
-    }
-  )
-
-  const cancel = async () => {
+  return async () => {
     await windows.remove(w.id)
   }
+}
 
-  return { result, cancel }
+const listenToWebAuthnRegistration = () => {
+  return new Promise<WebAuthnRegistration>((resolve, reject) => {
+    const portOnConnectHandler = (port: Runtime.Port) => {
+      if (port.name !== PortName.port_createWebAuthn) {
+        return
+      }
+      // Listen to credential message
+      port.onMessage.addListener(
+        (message: WebAuthnRegistration | WebAuthnError) => {
+          if (isWebAuthnError(message)) {
+            return reject(message.error)
+          }
+          console.log(
+            `[background][messaging][window] credential: ${json.stringify(
+              message,
+              null,
+              2
+            )}`
+          )
+          return resolve(message)
+        }
+      )
+      // Remove the port handler on disconnect
+      port.onDisconnect.addListener(() => {
+        runtime.onConnect.removeListener(portOnConnectHandler)
+      })
+    }
+    runtime.onConnect.addListener(portOnConnectHandler)
+  })
+}
+
+const listenToWebAuthnAuthentication = () => {
+  return new Promise<WebAuthnAuthentication>((resolve, reject) => {
+    const portOnConnectHandler = (port: Runtime.Port) => {
+      if (port.name !== PortName.port_requestWebAuthn) {
+        return
+      }
+      // Listen to signature message
+      port.onMessage.addListener(
+        (message: WebAuthnAuthentication | WebAuthnError) => {
+          if (isWebAuthnError(message)) {
+            return reject(message.error)
+          }
+          console.log(
+            `[background][messaging][window] signature: ${json.stringify(
+              message,
+              null,
+              2
+            )}`
+          )
+          return resolve(message)
+        }
+      )
+      // Remove the port handler on disconnect
+      port.onDisconnect.addListener(() => {
+        runtime.onConnect.removeListener(portOnConnectHandler)
+      })
+    }
+    runtime.onConnect.addListener(portOnConnectHandler)
+  })
 }

@@ -1,10 +1,7 @@
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
-import {
-  createWebAuthn,
-  requestWebAuthn,
-  testWebAuthn
-} from "~packages/webAuthn/background/webAuthn"
+import json from "~packages/util/json"
+import { testWebAuthn } from "~packages/webAuthn/background/webAuthn"
 import type {
   WebAuthnCreation,
   WebAuthnRequest
@@ -25,7 +22,7 @@ const handler: PlasmoMessaging.MessageHandler<
     `[background][messaging][window] Request: ${JSON.stringify(req, null, 2)}`
   )
 
-  const response = await testWebAuthn(req.sender.tab.id, {
+  const { result } = await testWebAuthn(req.sender.tab.id, {
     webAuthnCreation: req.body.creation,
     webAuthnRequest: req.body.request
   })
@@ -41,8 +38,8 @@ const handler: PlasmoMessaging.MessageHandler<
   //   })
 
   console.log(
-    `[background][messaging][window] response: ${JSON.stringify(
-      response,
+    `[background][messaging][window] response: ${json.stringify(
+      await result,
       null,
       2
     )}`
