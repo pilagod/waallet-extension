@@ -1,4 +1,4 @@
-import { runtime, windows, type Runtime } from "webextension-polyfill"
+import browser from "webextension-polyfill"
 
 import json from "~packages/util/json"
 import { PortName } from "~packages/webAuthn/tabs/port"
@@ -19,7 +19,7 @@ export const createWebAuthn = async (webAuthnCreation?: WebAuthnCreation) => {
       ? webAuthnCreation.challenge
       : ""
   })
-  const url = `${runtime.getURL(
+  const url = `${browser.runtime.getURL(
     "tabs/createWebAuthn.html"
   )}?${createWebAuthnParams.toString()}`
 
@@ -36,7 +36,7 @@ export const requestWebAuthn = async (webAuthnRequest: WebAuthnRequest) => {
       : "",
     challengeRequest: webAuthnRequest.challenge
   })
-  const url = `${runtime.getURL(
+  const url = `${browser.runtime.getURL(
     "tabs/requestWebauthn.html"
   )}?${requestWebAuthnParams.toString()}`
 
@@ -61,7 +61,7 @@ export const testWebAuthn = async (
       : "",
     challengeRequest: webAuthnRequest.challenge
   })
-  const url = `${runtime.getURL(
+  const url = `${browser.runtime.getURL(
     "tabs/webAuthn.html"
   )}?${webAuthnParams.toString()}`
 
@@ -75,7 +75,7 @@ export const testWebAuthn = async (
 }
 
 const openWebAuthnWindow = async (url: string) => {
-  const w = await windows.create({
+  const w = await browser.windows.create({
     url,
     focused: true,
     type: "popup",
@@ -83,13 +83,13 @@ const openWebAuthnWindow = async (url: string) => {
     height: 0
   })
   return async () => {
-    await windows.remove(w.id)
+    await browser.windows.remove(w.id)
   }
 }
 
 const listenToWebAuthnRegistration = () => {
   return new Promise<WebAuthnRegistration>((resolve, reject) => {
-    const portOnConnectHandler = (port: Runtime.Port) => {
+    const portOnConnectHandler = (port: browser.Runtime.Port) => {
       if (port.name !== PortName.port_createWebAuthn) {
         return
       }
@@ -111,16 +111,16 @@ const listenToWebAuthnRegistration = () => {
       )
       // Remove the port handler on disconnect
       port.onDisconnect.addListener(() => {
-        runtime.onConnect.removeListener(portOnConnectHandler)
+        browser.runtime.onConnect.removeListener(portOnConnectHandler)
       })
     }
-    runtime.onConnect.addListener(portOnConnectHandler)
+    browser.runtime.onConnect.addListener(portOnConnectHandler)
   })
 }
 
 const listenToWebAuthnAuthentication = () => {
   return new Promise<WebAuthnAuthentication>((resolve, reject) => {
-    const portOnConnectHandler = (port: Runtime.Port) => {
+    const portOnConnectHandler = (port: browser.Runtime.Port) => {
       if (port.name !== PortName.port_requestWebAuthn) {
         return
       }
@@ -142,9 +142,9 @@ const listenToWebAuthnAuthentication = () => {
       )
       // Remove the port handler on disconnect
       port.onDisconnect.addListener(() => {
-        runtime.onConnect.removeListener(portOnConnectHandler)
+        browser.runtime.onConnect.removeListener(portOnConnectHandler)
       })
     }
-    runtime.onConnect.addListener(portOnConnectHandler)
+    browser.runtime.onConnect.addListener(portOnConnectHandler)
   })
 }
