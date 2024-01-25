@@ -1,10 +1,10 @@
 import { isoBase64URL, isoUint8Array } from "@simplewebauthn/server/helpers"
 import * as ethers from "ethers"
+import browser from "webextension-polyfill"
 
 import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
 import json from "~packages/util/json"
 import { requestWebAuthn } from "~packages/webAuthn/background/webAuthn"
-import type { WebAuthnAuthentication } from "~packages/webAuthn/typing"
 import type { BytesLike, UrlB64String } from "~typing"
 
 export class PasskeyOwnerWebAuthn implements PasskeyOwner {
@@ -14,7 +14,12 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
     this.credentialId = credentialId
   }
 
-  public async sign(challenge: BytesLike): Promise<string> {
+  public async sign(
+    challenge: BytesLike,
+    metadata?: {
+      sender?: browser.Runtime.MessageSender
+    }
+  ): Promise<string> {
     if (!this.credentialId) {
       throw new Error("Credential id is not set")
     }
@@ -27,11 +32,24 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
         : challenge
     )
 
-    const webAuthnAuthentication: WebAuthnAuthentication =
-      (await requestWebAuthn({
+    const { result: webAuthnAuthenticationPromise, cancel } =
+      await requestWebAuthn({
         credentialId: this.credentialId,
         challenge: challengeUrlB64
-      })) as WebAuthnAuthentication
+      })
+
+    if (metadata?.sender) {
+      const senderOnRemovedHandler = async (tabId: number) => {
+        if (tabId !== metadata.sender.tab.id) {
+          return
+        }
+        await cancel()
+        browser.tabs.onRemoved.removeListener(senderOnRemovedHandler)
+      }
+      browser.tabs.onRemoved.addListener(senderOnRemovedHandler)
+    }
+
+    const webAuthnAuthentication = await webAuthnAuthenticationPromise
 
     console.log(
       `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${json.stringify(
@@ -39,10 +57,6 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
         null,
         2
       )}`
-    )
-
-    const authenticatorDataUint8Arr = isoUint8Array.fromHex(
-      webAuthnAuthentication.authenticatorData.slice(2)
     )
 
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
@@ -58,7 +72,9 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       ],
       [
         false,
-        authenticatorDataUint8Arr,
+        isoUint8Array.fromHex(
+          webAuthnAuthentication.authenticatorData.slice(2)
+        ),
         true,
         webAuthnAuthentication.clientDataJson,
         23,

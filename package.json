@@ -21,7 +21,7 @@
     "ethers": "^6.8.1",
     "isomorphic-fetch": "^3.0.0",
     "json-bigint": "^1.0.0",
-    "plasmo": "^0.84.0",
+    "plasmo": "^0.84.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "webextension-polyfill": "^0.10.0"

@@ -79,8 +79,8 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     return credId as string
   }
 
-  public async sign(message: BytesLike) {
-    return this.owner.sign(message)
+  public async sign(message: BytesLike, metadata?: any) {
+    return this.owner.sign(message, metadata)
   }
 
   protected async getCallData(call: Call): Promise<HexString> {
