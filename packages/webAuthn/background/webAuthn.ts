@@ -79,8 +79,8 @@ const openWebAuthnWindow = async (url: string) => {
     url,
     focused: true,
     type: "popup",
-    width: 0,
-    height: 0
+    width: 1,
+    height: 1
   })
   return async () => {
     await browser.windows.remove(w.id)
