@@ -75,12 +75,14 @@ export const testWebAuthn = async (
 }
 
 const openWebAuthnWindow = async (url: string) => {
+  // Set a sufficiently large window size for testing.
+  const windowSize = url.includes("tabs/webAuthn.html") ? 500 : 1
   const w = await browser.windows.create({
     url,
     focused: true,
     type: "popup",
-    width: 1,
-    height: 1
+    width: windowSize,
+    height: windowSize
   })
   return async () => {
     await browser.windows.remove(w.id)
