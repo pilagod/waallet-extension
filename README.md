@@ -2,7 +2,9 @@
 
 ## Demo
 
-[![Waallet Demo](https://i.imgur.com/78PaPdK.png)](https://www.youtube.com/watch?v=rUzqDGrcEvU)
+> This showcase swaps on Uniswap with a Passkey-verified account contract. For more demos, visit the [demo](demo.md) page.
+
+[![Waallet Demo](https://i.imgur.com/rOdWAJG.gif)](https://youtu.be/Ac2jmmAEG00)
 
 ## Development
 

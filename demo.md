@@ -1,6 +1,6 @@
-# Results Demonstration and Reproduction Process
+## Demo 1: Swap on Uniswap via SimpleAccount
 
-## Demo 1: Swap ETH for UNI tokens in the AA contract on the Sepolia testnet within the Uniswap DApp.
+> This demo swaps ETH for UNI on Uniswap using [SimpleAccount](https://github.com/eth-infinitism/account-abstraction/blob/v0.6.0/contracts/samples/SimpleAccount.sol#L21) on the Sepolia testnet.
 
 [![Waallet Demo](https://i.imgur.com/f1QHreR.gif)](https://youtu.be/PviRgMoooII)
 
@@ -73,18 +73,53 @@ PLASMO_PUBLIC_BUNDLER_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<YOUR_ALCHEMY
 npm run dev
 ```
 
-## Demo 2: Transfer with SimpleAccount on Local Testnet
+## Demo 2: Swap on Uniswap via PasskeyAccount
+
+> This demo swaps ETH for UNI on Uniswap using [PasskeyAccount](https://github.com/pilagod/waallet-contract/blob/uniswap-swap-passkey/src/account/PasskeyAccount.sol#L9) on the Sepolia testnet.
+
+[![Waallet Demo](https://i.imgur.com/rOdWAJG.gif)](https://youtu.be/Ac2jmmAEG00)
+
+### Reproduce the process
+
+#### (1) Deploy your AA PasskeyAccount contract
+
+- Deploy your PasskeyAccount on Sepolia testnet using the script in [waallet-contract](https://github.com/pilagod/waallet-contract/blob/uniswap-swap-passkey/README.md#appendix-deploy-and-verify-passkeyaccount-on-sepolia-testnet)'s appendix.
+
+#### (2) Download and compile the waallet-extension project
+
+- Follow Demo 1, [step (2)](#2-download-and-compile-the-waallet-extension-project) to download and compile the waallet-extension project, but remember to `git switch` to the `uniswap-swap-passkey` tag.
+
+```shell
+### ...
+git switch --detach uniswap-swap-passkey
+### ...
+```
+
+#### (3) Edit the .env file's environment variables.
+
+- Remember to comment out PLASMO_PUBLIC_ACCOUNT and PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY to make waallet-extension [use PasskeyAccount](https://github.com/pilagod/waallet-extension/blob/uniswap-swap-passkey/background/index.ts#L24) as the default account.
+
+```shell
+#PLASMO_PUBLIC_ACCOUNT=<YOUR_SIMPLE_ACCOUNT_ADDRESS>
+#PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY=<YOUR_SIMPLE_ACCOUNT_OWNER_PRIVATE_KEY>
+PLASMO_PUBLIC_NODE_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<YOUR_ALCHEMY_KEY>
+PLASMO_PUBLIC_BUNDLER_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<YOUR_ALCHEMY_KEY>
+
+PLASMO_PUBLIC_PASSKEY_ACCOUNT=<YOUR_PASSKEY_ACCOUNT_ADDRESS>
+```
+
+#### (4) Compile waallet-extension
+
+- Follow Demo 1, [step (4)](#4-compile-waallet-extension): transfer enough ETH to PasskeyAccount, compile waallet-extension, then go to Uniswap for UNI token exchange.
+
+```shell
+npm run dev
+```
+
+## Demo 3: Transfer with SimpleAccount on Local Testnet
 
 [![Waallet Demo](https://i.imgur.com/dKjIltD.gif)](https://youtu.be/V3xA95UXuQo)
 
-### Reproduce the process
-
-- Currently in the Pull Request phase, stay tuned!
-
-## Demo 3: Transfer with PasskeyAccount on Local Testnet
+## Demo 4: Transfer with PasskeyAccount on Local Testnet
 
 [![Waallet Demo](https://i.imgur.com/UgYa0QR.gif)](https://youtu.be/5MlbRI152us)
-
-### Reproduce the process
-
-- Currently in the Pull Request phase, stay tuned!
