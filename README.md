@@ -2,7 +2,7 @@
 
 ## Demo
 
-> This showcases swaps on Uniswap with a Passkey-verified account contract. For more demos, visit the [demo](demo.md) page.
+> This showcase swaps on Uniswap with a Passkey-verified account contract. For more demos, visit the [demo](demo.md) page.
 
 [![Waallet Demo](https://i.imgur.com/rOdWAJG.gif)](https://youtu.be/Ac2jmmAEG00)
 
