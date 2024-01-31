@@ -1,5 +1,3 @@
-# Results Demonstration and Reproduction Process
-
 ## Demo 1: Swap on Uniswap via SimpleAccount
 
 > This demo swaps ETH for UNI on Uniswap using [SimpleAccount](https://github.com/eth-infinitism/account-abstraction/blob/v0.6.0/contracts/samples/SimpleAccount.sol#L21) on the Sepolia testnet.
