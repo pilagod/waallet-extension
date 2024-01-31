@@ -1,6 +1,8 @@
 # Results Demonstration and Reproduction Process
 
-## Demo 1: Swap ETH for UNI tokens in the AA contract on the Sepolia testnet within the Uniswap DApp.
+## Demo 1: Swap on Uniswap via SimpleAccount
+
+> This demo swaps ETH for UNI on Uniswap using [SimpleAccount](https://github.com/eth-infinitism/account-abstraction/blob/v0.6.0/contracts/samples/SimpleAccount.sol#L21) on the Sepolia testnet.
 
 [![Waallet Demo](https://i.imgur.com/f1QHreR.gif)](https://youtu.be/PviRgMoooII)
 
@@ -73,7 +75,9 @@ PLASMO_PUBLIC_BUNDLER_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<YOUR_ALCHEMY
 npm run dev
 ```
 
-## Demo 2: Swap ETH for UNI tokens with passkey verification in the AA contract on the Sepolia testnet within the Uniswap DApp.
+## Demo 2: Swap on Uniswap via PasskeyAccount
+
+> This demo swaps ETH for UNI on Uniswap using [PasskeyAccount](https://github.com/pilagod/waallet-contract/blob/uniswap-swap-passkey/src/account/PasskeyAccount.sol#L9) on the Sepolia testnet.
 
 [![Waallet Demo](https://i.imgur.com/rOdWAJG.gif)](https://youtu.be/Ac2jmmAEG00)
 
