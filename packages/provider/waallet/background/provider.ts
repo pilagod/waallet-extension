@@ -2,7 +2,6 @@ import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
 import { type Paymaster } from "~packages/paymaster"
-import { createPaymaster } from "~packages/paymaster/factory"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
