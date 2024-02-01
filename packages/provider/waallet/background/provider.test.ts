@@ -2,7 +2,7 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import type { UserOperation } from "~packages/provider/bundler/typing"
+import type { UserOperation } from "~packages/provider/bundler"
 import byte from "~packages/util/byte"
 import type { HexString, Nullable } from "~typing"
 

@@ -2,8 +2,8 @@ import number from "~packages/util/number"
 import type { HexString, Nullable } from "~typing"
 
 import { JsonRpcProvider } from "../jsonrpc/provider"
+import type { UserOperation } from "./index"
 import { BundlerRpcMethod } from "./rpc"
-import type { UserOperation } from "./typing"
 
 export enum BundlerMode {
   Manual = "manual",
