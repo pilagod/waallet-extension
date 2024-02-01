@@ -10,5 +10,7 @@ export type Payment = {
 }
 
 export interface Paymaster {
-  requestPaymasterAndData(userOp: Partial<UserOperation>): Promise<HexString>
+  requestPaymasterAndData(
+    userOp: Partial<Omit<UserOperation, "paymasterAndData" | "signature">>
+  ): Promise<HexString>
 }

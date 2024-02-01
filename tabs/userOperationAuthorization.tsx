@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import browser from "webextension-polyfill"
 
+import { PaymasterType } from "~packages/paymaster"
+import { createPaymaster } from "~packages/paymaster/factory"
 import type { UserOperation } from "~packages/provider/bundler/typing"
 import json from "~packages/util/json"
 import type { Nullable } from "~typing"
@@ -9,9 +11,16 @@ const UserOperationAuthorization = () => {
   const [port, setPort] = useState<browser.Runtime.Port>(null)
   const [userOp, setUserOp] = useState<UserOperation>(null)
 
-  const sendUserOperation = () => {
+  const sendUserOperation = async () => {
+    // TODO: Let user choose supported paymaster
+    const paymaster = createPaymaster({
+      paymasterType: PaymasterType.Null
+    })
     port.postMessage({
-      userOpAuthorized: json.stringify(userOp)
+      userOpAuthorized: json.stringify({
+        ...userOp,
+        paymasterAndData: await paymaster.requestPaymasterAndData(userOp)
+      })
     })
   }
 

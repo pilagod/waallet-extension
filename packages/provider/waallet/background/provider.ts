@@ -135,12 +135,7 @@ export class WaalletBackgroundProvider {
       userOp,
       {
         // TODO: Accept additional parameter for payment information
-        onApproved: async (userOpAuthorized, payment, metadata) => {
-          // TODO: Paymaster send transaction phase
-          userOpAuthorized.paymasterAndData =
-            await createPaymaster(payment).requestPaymasterAndData(
-              userOpAuthorized
-            )
+        onApproved: async (userOpAuthorized, metadata) => {
           const userOpAuthorizedHash = await getUserOpHash(
             userOpAuthorized,
             entryPointAddress,

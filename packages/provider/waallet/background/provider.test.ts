@@ -117,9 +117,7 @@ describe("WaalletBackgroundProvider", () => {
         { onApproved }: UserOperationAuthorizeCallback
       ) {
         userOp.callGasLimit = ethers.toBigInt(userOp.callGasLimit) + 1n
-        this.userOpAuthorized = await onApproved(userOp, {
-          paymasterType: PaymasterType.Null
-        })
+        this.userOpAuthorized = await onApproved(userOp)
         return this.userOpAuthorized
       }
     })()
