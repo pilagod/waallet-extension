@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
 import { type Paymaster } from "~packages/paymaster"
+import { createPaymaster } from "~packages/paymaster/factory"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
@@ -65,7 +66,10 @@ export class WaalletBackgroundProvider {
     params: EthEstimateGasArguments["params"]
   ): Promise<HexString> {
     const [tx] = params
-    // TODO: When `to` is empty, it should estimate gas for contract creation
+    if (!tx.to) {
+      // TODO: When `to` is empty, it should estimate gas for contract creation
+      return
+    }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     const userOpCall = await this.account.createUserOperationCall({
@@ -129,10 +133,10 @@ export class WaalletBackgroundProvider {
       userOp,
       {
         // TODO: Accept additional parameter for payment information
-        onApproved: async (userOpAuthorized, metadata) => {
+        onApproved: async (userOpAuthorized, payment, metadata) => {
           // TODO: Paymaster send transaction phase
           userOpAuthorized.paymasterAndData =
-            await this.paymaster.requestPayment(userOpAuthorized)
+            await createPaymaster(payment).requestPayment(userOpAuthorized)
           const userOpAuthorizedHash = await getUserOpHash(
             userOpAuthorized,
             entryPointAddress,
