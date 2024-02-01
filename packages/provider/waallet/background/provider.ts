@@ -1,6 +1,8 @@
 import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
+import { type Paymaster } from "~packages/paymaster"
+import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
@@ -19,6 +21,7 @@ export class WaalletBackgroundProvider {
   public account: Account
 
   private node: ethers.JsonRpcProvider
+  private paymaster: Paymaster = new NullPaymaster()
 
   public constructor(
     private nodeRpcUrl: string,
@@ -97,7 +100,6 @@ export class WaalletBackgroundProvider {
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     // TODO: Integrate paymaster
-    const paymasterAndData = "0x"
     const userOpCall = await this.account.createUserOperationCall({
       to: tx.to,
       value: tx.value,
@@ -105,6 +107,8 @@ export class WaalletBackgroundProvider {
       nonce: tx.nonce
     })
     const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
+    // TODO: Paymaster gas estimation phase
+    const paymasterAndData = await this.paymaster.requestPayment(userOpCall)
     const userOpGasLimit = await this.bundler.estimateUserOperationGas(
       {
         ...userOpCall,
@@ -124,7 +128,11 @@ export class WaalletBackgroundProvider {
     const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,
       {
+        // TODO: Accept additional parameter for payment information
         onApproved: async (userOpAuthorized, metadata) => {
+          // TODO: Paymaster send transaction phase
+          userOpAuthorized.paymasterAndData =
+            await this.paymaster.requestPayment(userOpAuthorized)
           const userOpAuthorizedHash = await getUserOpHash(
             userOpAuthorized,
             entryPointAddress,
