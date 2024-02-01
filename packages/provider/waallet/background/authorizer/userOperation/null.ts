@@ -1,3 +1,4 @@
+import { PaymasterType } from "~packages/paymaster"
 import type { UserOperation } from "~packages/provider/bundler/typing"
 
 import {
@@ -10,6 +11,6 @@ export class NullUserOperationAuthorizer implements UserOperationAuthorizer {
     userOp: UserOperation,
     { onApproved }: UserOperationAuthorizeCallback
   ) {
-    return onApproved(userOp)
+    return onApproved(userOp, { paymasterType: PaymasterType.Null })
   }
 }

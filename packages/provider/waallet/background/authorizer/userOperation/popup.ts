@@ -1,5 +1,6 @@
 import browser from "webextension-polyfill"
 
+import { PaymasterType } from "~packages/paymaster"
 import type { UserOperation } from "~packages/provider/bundler/typing"
 import json from "~packages/util/json"
 
@@ -46,6 +47,9 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
           }
           const userOpAuthorized = await onApproved(
             json.parse(message.userOpAuthorized),
+            {
+              paymasterType: PaymasterType.Null
+            },
             {
               sender: port.sender
             }

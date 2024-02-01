@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import { PaymasterType } from "~packages/paymaster"
 import type { UserOperation } from "~packages/provider/bundler/typing"
 import byte from "~packages/util/byte"
 import type { HexString, Nullable } from "~typing"
@@ -116,7 +117,9 @@ describe("WaalletBackgroundProvider", () => {
         { onApproved }: UserOperationAuthorizeCallback
       ) {
         userOp.callGasLimit = ethers.toBigInt(userOp.callGasLimit) + 1n
-        this.userOpAuthorized = await onApproved(userOp)
+        this.userOpAuthorized = await onApproved(userOp, {
+          paymasterType: PaymasterType.Null
+        })
         return this.userOpAuthorized
       }
     })()
