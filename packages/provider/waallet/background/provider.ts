@@ -53,7 +53,7 @@ export class WaalletBackgroundProvider {
       case WaalletRpcMethod.eth_chainId:
         return this.bundler.getChainId() as T
       case WaalletRpcMethod.eth_estimateGas:
-        return this.handleEstimateUserOperationGas(args.params) as T
+        return this.handleEstimateGas(args.params) as T
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
@@ -61,20 +61,20 @@ export class WaalletBackgroundProvider {
     }
   }
 
-  private async handleEstimateUserOperationGas(
+  private async handleEstimateGas(
     params: EthEstimateGasArguments["params"]
   ): Promise<HexString> {
     const [tx] = params
     // TODO: When `to` is empty, it should estimate gas for contract creation
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    // TODO: Integrate paymaster
-    const paymasterAndData = "0x"
     const userOpCall = await this.account.createUserOperationCall({
       to: tx.to,
       value: tx.value,
       data: tx.data
     })
+    // TODO: Paymaster gas estimation phase
+    const paymasterAndData = await this.paymaster.requestPayment(userOpCall)
     const { callGasLimit } = await this.bundler.estimateUserOperationGas(
       {
         ...userOpCall,
