@@ -8,14 +8,20 @@ import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import byte from "~packages/util/byte"
 import type { HexString } from "~typing"
 
+export class AccountTestBedContext<T extends Account> {
+  public account: T
+  public provider: WaalletBackgroundProvider
+}
+
 export function describeAccountTestBed<T extends Account>(
   name: string,
   setup: () => Promise<T>,
-  suite?: (account: T, waalletProvider: WaalletBackgroundProvider) => void
+  suite?: (context: AccountTestBedContext<T>) => void
 ) {
   describe(name, () => {
     const { node } = config.provider
     const { counter } = config.contract
+    const context = new AccountTestBedContext<T>()
     const provider = new WaalletBackgroundProvider(
       config.rpc.node,
       config.provider.bundler,
@@ -26,6 +32,10 @@ export function describeAccountTestBed<T extends Account>(
     beforeAll(async () => {
       account = await setup()
       provider.connect(account)
+
+      context.account = account
+      context.provider = provider
+
       await (
         await config.account.operator.sendTransaction({
           to: await account.getAddress(),
@@ -90,7 +100,7 @@ export function describeAccountTestBed<T extends Account>(
     })
 
     if (suite) {
-      suite(account, provider)
+      suite(context)
     }
   })
 }
