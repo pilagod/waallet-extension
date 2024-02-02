@@ -76,7 +76,6 @@ export class WaalletBackgroundProvider {
       value: tx.value,
       data: tx.data
     })
-    // TODO: Paymaster gas estimation phase
     const paymasterAndData =
       await this.paymaster.requestPaymasterAndData(userOpCall)
     const { callGasLimit } = await this.bundler.estimateUserOperationGas(
@@ -111,7 +110,6 @@ export class WaalletBackgroundProvider {
       nonce: tx.nonce
     })
     const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
-    // TODO: Paymaster gas estimation phase
     const paymasterAndData =
       await this.paymaster.requestPaymasterAndData(userOpCall)
     const userOpGasLimit = await this.bundler.estimateUserOperationGas(
@@ -133,7 +131,6 @@ export class WaalletBackgroundProvider {
     const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,
       {
-        // TODO: Accept additional parameter for payment information
         onApproved: async (userOpAuthorized, metadata) => {
           const userOpAuthorizedHash = await getUserOpHash(
             userOpAuthorized,
