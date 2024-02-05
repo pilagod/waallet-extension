@@ -1,6 +1,8 @@
 import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
+import { type Paymaster } from "~packages/paymaster"
+import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
@@ -19,6 +21,7 @@ export class WaalletBackgroundProvider {
   public account: Account
 
   private node: ethers.JsonRpcProvider
+  private paymaster: Paymaster = new NullPaymaster()
 
   public constructor(
     private nodeRpcUrl: string,
@@ -50,7 +53,7 @@ export class WaalletBackgroundProvider {
       case WaalletRpcMethod.eth_chainId:
         return this.bundler.getChainId() as T
       case WaalletRpcMethod.eth_estimateGas:
-        return this.handleEstimateUserOperationGas(args.params) as T
+        return this.handleEstimateGas(args.params) as T
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
@@ -58,20 +61,23 @@ export class WaalletBackgroundProvider {
     }
   }
 
-  private async handleEstimateUserOperationGas(
+  private async handleEstimateGas(
     params: EthEstimateGasArguments["params"]
   ): Promise<HexString> {
     const [tx] = params
-    // TODO: When `to` is empty, it should estimate gas for contract creation
+    if (!tx.to) {
+      // TODO: When `to` is empty, it should estimate gas for contract creation
+      return
+    }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    // TODO: Integrate paymaster
-    const paymasterAndData = "0x"
     const userOpCall = await this.account.createUserOperationCall({
       to: tx.to,
       value: tx.value,
       data: tx.data
     })
+    const paymasterAndData =
+      await this.paymaster.requestPaymasterAndData(userOpCall)
     const { callGasLimit } = await this.bundler.estimateUserOperationGas(
       {
         ...userOpCall,
@@ -97,7 +103,6 @@ export class WaalletBackgroundProvider {
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     // TODO: Integrate paymaster
-    const paymasterAndData = "0x"
     const userOpCall = await this.account.createUserOperationCall({
       to: tx.to,
       value: tx.value,
@@ -105,6 +110,8 @@ export class WaalletBackgroundProvider {
       nonce: tx.nonce
     })
     const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
+    const paymasterAndData =
+      await this.paymaster.requestPaymasterAndData(userOpCall)
     const userOpGasLimit = await this.bundler.estimateUserOperationGas(
       {
         ...userOpCall,
