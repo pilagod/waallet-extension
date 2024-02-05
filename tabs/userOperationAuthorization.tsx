@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import browser from "webextension-polyfill"
 
-import type { UserOperation } from "~packages/provider/bundler/typing"
+import type { UserOperation } from "~packages/provider/bundler"
 import json from "~packages/util/json"
 import type { Nullable } from "~typing"
 

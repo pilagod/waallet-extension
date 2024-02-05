@@ -2,7 +2,7 @@ import * as ethers from "ethers"
 
 import type { BigNumberish, HexString } from "~typing"
 
-import type { UserOperation } from "./typing"
+import type { UserOperation } from "./index"
 
 export async function getUserOpHash(
   userOp: UserOperation,
