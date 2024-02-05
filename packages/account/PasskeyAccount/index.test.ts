@@ -21,16 +21,19 @@ describeAccountTestBed(
       nodeRpcUrl: config.rpc.node
     })
   },
-  (account, provider) => {
+  (context) => {
     describe("init", () => {
+      // TODO: This test at this moment relies on tests in test bed to deploy the account.
+      // It would be better to decouple it.
       it("should init with existing passkey account", async () => {
-        const pa = await PasskeyAccount.init({
-          address: config.address.PasskeyAccount,
+        const { account } = context
+        const a = await PasskeyAccount.init({
+          address: await account.getAddress(),
           owner: new PasskeyOwnerP256(),
           nodeRpcUrl: config.rpc.node
         })
-        expect(await pa.getAddress()).toBe(config.address.PasskeyAccount)
-        expect(await pa.getCredentialId()).toBeTruthy()
+        expect(await a.getAddress()).toBe(await account.getAddress())
+        expect(await a.getCredentialId()).toBe(await account.getCredentialId())
       })
     })
   }

@@ -3,7 +3,7 @@ import browser from "webextension-polyfill"
 
 import { PaymasterType } from "~packages/paymaster"
 import { createPaymaster } from "~packages/paymaster/factory"
-import type { UserOperation } from "~packages/provider/bundler/typing"
+import type { UserOperation } from "~packages/provider/bundler"
 import json from "~packages/util/json"
 import type { Nullable } from "~typing"
 

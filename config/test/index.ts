@@ -1,10 +1,10 @@
 import * as ethers from "ethers"
 
+import type { UserOperation } from "~packages/provider/bundler"
 import {
   BundlerMode,
   BundlerProvider
 } from "~packages/provider/bundler/provider"
-import type { UserOperation } from "~packages/provider/bundler/typing"
 import type { HexString, Nullable } from "~typing"
 
 class BundlerProviderWithCache extends BundlerProvider {

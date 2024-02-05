@@ -1,4 +1,4 @@
-import type { UserOperation } from "~packages/provider/bundler/typing"
+import type { UserOperation } from "~packages/provider/bundler"
 import type { HexString } from "~typing"
 
 export enum PaymasterType {
