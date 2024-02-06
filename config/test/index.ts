@@ -42,11 +42,16 @@ const address = {
   SimpleAccount: "0x661b4a3909b486a3da520403ecc78f7a7b683c63",
   Counter: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
   PasskeyAccountFactory: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-  PasskeyAccount: "0xf30a89a6a3836e2b270650822e3f3cebff3b7497"
+  PasskeyAccount: "0xf30a89a6a3836e2b270650822e3f3cebff3b7497",
+  VerifyingPaymaster: "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
 }
 
 const contract = {
-  entryPoint: new ethers.Contract(address.EntryPoint, [], provider.node),
+  entryPoint: new ethers.Contract(
+    address.EntryPoint,
+    ["function balanceOf(address account) public view returns (uint256)"],
+    provider.node
+  ),
   simpleAccountFactory: new ethers.Contract(
     address.SimpleAccountFactory,
     ["function getAddress(address owner, uint256 salt) view returns (address)"],

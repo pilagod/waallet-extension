@@ -21,7 +21,7 @@ export class WaalletBackgroundProvider {
   public account: Account
 
   private node: ethers.JsonRpcProvider
-  private paymaster: Paymaster = new NullPaymaster()
+  public paymaster: Paymaster = new NullPaymaster()
 
   public constructor(
     private nodeRpcUrl: string,
@@ -76,8 +76,10 @@ export class WaalletBackgroundProvider {
       value: tx.value,
       data: tx.data
     })
-    const paymasterAndData =
-      await this.paymaster.requestPaymasterAndData(userOpCall)
+    const paymasterAndData = await this.paymaster.requestPaymasterAndData(
+      userOpCall,
+      { isGasEstimation: true }
+    )
     const { callGasLimit } = await this.bundler.estimateUserOperationGas(
       {
         ...userOpCall,
@@ -110,8 +112,10 @@ export class WaalletBackgroundProvider {
       nonce: tx.nonce
     })
     const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
-    const paymasterAndData =
-      await this.paymaster.requestPaymasterAndData(userOpCall)
+    const paymasterAndData = await this.paymaster.requestPaymasterAndData(
+      userOpCall,
+      { isGasEstimation: true }
+    )
     const userOpGasLimit = await this.bundler.estimateUserOperationGas(
       {
         ...userOpCall,
