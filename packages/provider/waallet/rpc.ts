@@ -46,7 +46,7 @@ export type EthSendTransactionArguments = {
   method: WaalletRpcMethod.eth_sendTransaction
   params: [
     {
-      from: HexString
+      from?: HexString
       to?: HexString
       gas?: BigNumberish
       gasPrice?: BigNumberish

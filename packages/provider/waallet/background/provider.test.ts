@@ -69,7 +69,6 @@ describe("WaalletBackgroundProvider", () => {
       method: WaalletRpcMethod.eth_estimateGas,
       params: [
         {
-          from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
@@ -88,7 +87,6 @@ describe("WaalletBackgroundProvider", () => {
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
-          from: await waalletProvider.account.getAddress(),
           to: await counter.getAddress(),
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
@@ -131,7 +129,6 @@ describe("WaalletBackgroundProvider", () => {
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
-          from: await provider.account.getAddress(),
           to: await counter.getAddress(),
           value: 1
         }
