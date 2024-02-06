@@ -10,30 +10,28 @@ export class WaalletTestBedContext {
 
 export function describeWaalletTestBed(
   name: string,
-  suite?: (context: WaalletTestBedContext) => void
+  suite?: (ctx: WaalletTestBedContext) => void
 ) {
   describe(name, () => {
-    const context = new WaalletTestBedContext()
-    const provider = new WaalletBackgroundProvider(
+    const ctx = new WaalletTestBedContext()
+
+    ctx.provider = new WaalletBackgroundProvider(
       config.rpc.node,
       config.provider.bundler,
       new NullUserOperationAuthorizer()
     )
-    let account: SimpleAccount
 
     beforeAll(async () => {
-      account = await SimpleAccount.init({
+      ctx.account = await SimpleAccount.init({
         address: config.address.SimpleAccount,
         ownerPrivateKey: config.account.operator.privateKey,
         nodeRpcUrl: config.rpc.node
       })
-      provider.connect(account)
-      context.account = account
-      context.provider = provider
+      ctx.provider.connect(ctx.account)
     })
 
     if (suite) {
-      suite(context)
+      suite(ctx)
     }
   })
 }
