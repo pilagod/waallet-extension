@@ -75,7 +75,6 @@ describe("Verifying Paymaster", () => {
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
-          from: await account.getAddress(),
           to: await account.getAddress(),
           value: 0
         }
