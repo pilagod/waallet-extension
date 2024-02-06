@@ -7,23 +7,23 @@ import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import byte from "~packages/util/byte"
 import type { HexString } from "~typing"
 
-import { describeWaalletTestBed } from "./waallet"
+import { describeWaalletSuite } from "./waallet"
 
-export class AccountTestBedContext<T extends Account> {
+export class AccountSuiteContext<T extends Account> {
   public account: T
   public provider: WaalletBackgroundProvider
 }
 
-export function describeAccountTestBed<T extends Account>(
+export function describeAccountSuite<T extends Account>(
   name: string,
   setup: () => Promise<T>,
-  suite?: (ctx: AccountTestBedContext<T>) => void
+  suite?: (ctx: AccountSuiteContext<T>) => void
 ) {
-  describeWaalletTestBed(name, ({ provider }) => {
+  describeWaalletSuite(name, ({ provider }) => {
     const { node } = config.provider
     const { counter } = config.contract
 
-    const ctx = new AccountTestBedContext<T>()
+    const ctx = new AccountSuiteContext<T>()
     ctx.provider = provider.clone()
 
     beforeAll(async () => {

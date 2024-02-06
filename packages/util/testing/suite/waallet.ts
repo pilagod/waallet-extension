@@ -3,17 +3,17 @@ import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { NullUserOperationAuthorizer } from "~packages/provider/waallet/background/authorizer/userOperation/null"
 import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 
-export class WaalletTestBedContext {
+export class WaalletSuiteContext {
   public account: SimpleAccount
   public provider: WaalletBackgroundProvider
 }
 
-export function describeWaalletTestBed(
+export function describeWaalletSuite(
   name: string,
-  suite?: (ctx: WaalletTestBedContext) => void
+  suite?: (ctx: WaalletSuiteContext) => void
 ) {
   describe(name, () => {
-    const ctx = new WaalletTestBedContext()
+    const ctx = new WaalletSuiteContext()
 
     ctx.provider = new WaalletBackgroundProvider(
       config.rpc.node,

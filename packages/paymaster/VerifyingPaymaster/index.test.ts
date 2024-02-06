@@ -5,7 +5,7 @@ import type {
   UserOperationAuthorizer
 } from "~packages/provider/waallet/background/authorizer/userOperation"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
-import { describeWaalletTestBed } from "~packages/util/testing/testbed/waallet"
+import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 
 import { VerifyingPaymaster } from "./index"
 
@@ -26,7 +26,7 @@ class VerifyingPaymasterUserOperationAuthorizer
   }
 }
 
-describeWaalletTestBed("Verifying Paymaster", (ctx) => {
+describeWaalletSuite("Verifying Paymaster", (ctx) => {
   const verifyingPaymaster = new VerifyingPaymaster({
     address: config.address.VerifyingPaymaster,
     ownerPrivateKey: config.account.operator.privateKey,
