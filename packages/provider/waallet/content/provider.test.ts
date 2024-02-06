@@ -20,7 +20,6 @@ describe("Waallet Content Provider", () => {
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
-          from: "0x1234",
           to: "0x5678",
           value: 123
         }

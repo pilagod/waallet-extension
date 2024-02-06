@@ -1,3 +1,4 @@
+import type { UserOperation } from "~packages/provider/bundler"
 import type { BigNumberish, HexString } from "~typing"
 
 export enum WaalletRpcMethod {
@@ -5,12 +6,14 @@ export enum WaalletRpcMethod {
   eth_blockNumber = "eth_blockNumber",
   eth_chainId = "eth_chainId",
   eth_estimateGas = "eth_estimateGas",
+  eth_estimateUserOperationGas = "eth_estimateUserOperationGas",
   eth_requestAccounts = "eth_requestAccounts",
   eth_sendTransaction = "eth_sendTransaction"
 }
 
 export type WaalletRequestArguments =
   | EthEstimateGasArguments
+  | EthEstimateUserOperationGasArguments
   | EthSendTransactionArguments
   | {
       method:
@@ -34,11 +37,16 @@ export type EthEstimateGasArguments = {
   ]
 }
 
+export type EthEstimateUserOperationGasArguments = {
+  method: WaalletRpcMethod.eth_estimateUserOperationGas
+  params: [Partial<UserOperation>]
+}
+
 export type EthSendTransactionArguments = {
   method: WaalletRpcMethod.eth_sendTransaction
   params: [
     {
-      from: HexString
+      from?: HexString
       to?: HexString
       gas?: BigNumberish
       gasPrice?: BigNumberish

@@ -12,6 +12,7 @@ import type { BigNumberish, HexString } from "~typing"
 import {
   WaalletRpcMethod,
   type EthEstimateGasArguments,
+  type EthEstimateUserOperationGasArguments,
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
@@ -54,6 +55,8 @@ export class WaalletBackgroundProvider {
         return this.bundler.getChainId() as T
       case WaalletRpcMethod.eth_estimateGas:
         return this.handleEstimateGas(args.params) as T
+      case WaalletRpcMethod.eth_estimateUserOperationGas:
+        return this.handleEstimateUserOperationGas(args.params) as T
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
@@ -68,6 +71,9 @@ export class WaalletBackgroundProvider {
     if (!tx.to) {
       // TODO: When `to` is empty, it should estimate gas for contract creation
       return
+    }
+    if (tx.from && tx.from !== (await this.account.getAddress())) {
+      throw new Error("Address `from` doesn't match connected account")
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
@@ -93,6 +99,24 @@ export class WaalletBackgroundProvider {
     return number.toHex(callGasLimit)
   }
 
+  private async handleEstimateUserOperationGas(
+    params: EthEstimateUserOperationGasArguments["params"]
+  ): Promise<{
+    preVerificationGas: HexString
+    verificationGasLimit: HexString
+    callGasLimit: HexString
+  }> {
+    const [userOp] = params
+    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
+    const { callGasLimit, verificationGasLimit, preVerificationGas } =
+      await this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
+    return {
+      callGasLimit: number.toHex(callGasLimit),
+      verificationGasLimit: number.toHex(verificationGasLimit),
+      preVerificationGas: number.toHex(preVerificationGas)
+    }
+  }
+
   private async handleSendTransaction(
     params: EthSendTransactionArguments["params"]
   ): Promise<HexString> {
@@ -101,6 +125,9 @@ export class WaalletBackgroundProvider {
     if (!tx.to) {
       // TODO: When `to` is empty, it should create contract
       return
+    }
+    if (tx.from && tx.from !== (await this.account.getAddress())) {
+      throw new Error("Address `from` doesn't match connected account")
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
