@@ -65,7 +65,6 @@ export function describeAccountTestBed<T extends Account>(
         method: WaalletRpcMethod.eth_estimateGas,
         params: [
           {
-            from: await provider.account.getAddress(),
             to: await counter.getAddress(),
             value: 1,
             data: counter.interface.encodeFunctionData("increment", [])
@@ -84,7 +83,6 @@ export function describeAccountTestBed<T extends Account>(
         method: WaalletRpcMethod.eth_sendTransaction,
         params: [
           {
-            from: await provider.account.getAddress(),
             to: await counter.getAddress(),
             value: 1,
             data: counter.interface.encodeFunctionData("increment", [])
