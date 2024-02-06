@@ -16,7 +16,7 @@ export class VerifyingPaymaster implements Paymaster {
   public constructor(option: {
     address: HexString
     ownerPrivateKey: HexString
-    intervalSecs: number
+    expirationSecs: number
     nodeRpcUrl: string
   }) {
     this.paymaster = new ethers.Contract(
@@ -27,7 +27,7 @@ export class VerifyingPaymaster implements Paymaster {
       new ethers.JsonRpcProvider(option.nodeRpcUrl)
     )
     this.owner = new ethers.Wallet(option.ownerPrivateKey)
-    this.intervalSecs = option.intervalSecs
+    this.intervalSecs = option.expirationSecs
   }
 
   public async requestPaymasterAndData(

@@ -33,7 +33,7 @@ describe("Verifying Paymaster", () => {
   const verifyingPaymaster = new VerifyingPaymaster({
     address: config.address.VerifyingPaymaster,
     ownerPrivateKey: config.account.operator.privateKey,
-    intervalSecs: 300,
+    expirationSecs: 300,
     nodeRpcUrl: config.rpc.node
   })
   const provider = new WaalletBackgroundProvider(
