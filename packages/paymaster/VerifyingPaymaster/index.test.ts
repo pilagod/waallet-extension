@@ -9,7 +9,6 @@ import type {
 } from "~packages/provider/waallet/background/authorizer/userOperation"
 import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
-import number from "~packages/util/number"
 
 import { VerifyingPaymaster } from "./index"
 
@@ -31,8 +30,6 @@ class VerifyingPaymasterUserOperationAuthorizer
 }
 
 describe("Verifying Paymaster", () => {
-  const { node } = config.provider
-
   const verifyingPaymaster = new VerifyingPaymaster({
     address: config.address.VerifyingPaymaster,
     ownerPrivateKey: config.account.operator.privateKey,
@@ -42,19 +39,18 @@ describe("Verifying Paymaster", () => {
   const provider = new WaalletBackgroundProvider(
     config.rpc.node,
     config.provider.bundler,
-    new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster)
+    new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster),
+    verifyingPaymaster
   )
   let account: SimpleAccount
 
   beforeAll(async () => {
-    account = await SimpleAccount.initWithFactory({
+    account = await SimpleAccount.init({
+      address: config.address.SimpleAccount,
       ownerPrivateKey: config.account.operator.privateKey,
-      factoryAddress: config.address.SimpleAccountFactory,
-      salt: number.random(),
       nodeRpcUrl: config.rpc.node
     })
     provider.connect(account)
-    provider.paymaster = verifyingPaymaster
 
     await (
       await config.account.operator.sendTransaction({
@@ -65,6 +61,8 @@ describe("Verifying Paymaster", () => {
   })
 
   it("should pay for account", async () => {
+    const { node } = config.provider
+
     const accountBalanceBefore = await node.getBalance(
       await account.getAddress()
     )
@@ -87,11 +85,12 @@ describe("Verifying Paymaster", () => {
     const accountBalanceAfter = await node.getBalance(
       await account.getAddress()
     )
+    expect(accountBalanceBefore).toBe(accountBalanceAfter)
+
     const paymasterDepositBalanceAfter =
       await config.contract.entryPoint.balanceOf(
         config.address.VerifyingPaymaster
       )
-    expect(accountBalanceBefore).toBe(accountBalanceAfter)
     expect(paymasterDepositBalanceBefore).toBeGreaterThan(
       paymasterDepositBalanceAfter
     )

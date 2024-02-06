@@ -21,12 +21,12 @@ export class WaalletBackgroundProvider {
   public account: Account
 
   private node: ethers.JsonRpcProvider
-  public paymaster: Paymaster = new NullPaymaster()
 
   public constructor(
     private nodeRpcUrl: string,
     private bundler: BundlerProvider,
-    private userOperationAuthorizer: UserOperationAuthorizer
+    private userOperationAuthorizer: UserOperationAuthorizer,
+    private paymaster: Paymaster = new NullPaymaster()
   ) {
     // TODO: Refactor node provider
     this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
