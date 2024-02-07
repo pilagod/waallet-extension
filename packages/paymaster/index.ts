@@ -9,8 +9,17 @@ export type Payment = {
   paymasterType: PaymasterType.Null
 }
 
+export type PaymasterUserOperation = Partial<
+  Omit<UserOperation, "paymasterAndData" | "signature">
+>
+
+export type PaymasterRequestOption = {
+  isGasEstimation: boolean
+}
+
 export interface Paymaster {
   requestPaymasterAndData(
-    userOp: Partial<Omit<UserOperation, "paymasterAndData" | "signature">>
+    userOp: PaymasterUserOperation,
+    option?: PaymasterRequestOption
   ): Promise<HexString>
 }
