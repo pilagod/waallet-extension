@@ -18,6 +18,11 @@ import {
 } from "../rpc"
 import { type UserOperationAuthorizer } from "./authorizer/userOperation"
 
+export type WaalletBackgroundProviderOption = {
+  userOperationAuthorizer?: UserOperationAuthorizer
+  paymaster?: Paymaster
+}
+
 export class WaalletBackgroundProvider {
   public account: Account
 
@@ -33,12 +38,15 @@ export class WaalletBackgroundProvider {
     this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
   }
 
-  public clone() {
-    return new WaalletBackgroundProvider(
+  public clone(option?: WaalletBackgroundProviderOption) {
+    const provider = new WaalletBackgroundProvider(
       this.nodeRpcUrl,
       this.bundler,
-      this.userOperationAuthorizer
+      option?.userOperationAuthorizer ?? this.userOperationAuthorizer,
+      option?.paymaster ?? this.paymaster
     )
+    provider.connect(this.account)
+    return provider
   }
 
   public connect(account: Account) {

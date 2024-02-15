@@ -1,10 +1,10 @@
 import config from "~config/test"
 import number from "~packages/util/number"
-import { describeAccountTestBed } from "~packages/util/testing/testbed/account"
+import { describeAccountSuite } from "~packages/util/testing/suite/account"
 
-import { SimpleAccount } from "."
+import { SimpleAccount } from "./index"
 
-describeAccountTestBed("SimpleAccount", async () => {
+describeAccountSuite("SimpleAccount", () => {
   return SimpleAccount.initWithFactory({
     ownerPrivateKey: config.account.operator.privateKey,
     factoryAddress: config.address.SimpleAccountFactory,

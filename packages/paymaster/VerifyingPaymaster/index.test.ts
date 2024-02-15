@@ -1,14 +1,11 @@
-import * as ethers from "ethers"
-
 import config from "~config/test"
-import { SimpleAccount } from "~packages/account/SimpleAccount"
 import type { UserOperation } from "~packages/provider/bundler"
 import type {
   UserOperationAuthorizeCallback,
   UserOperationAuthorizer
 } from "~packages/provider/waallet/background/authorizer/userOperation"
-import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
+import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 
 import { VerifyingPaymaster } from "./index"
 
@@ -29,60 +26,43 @@ class VerifyingPaymasterUserOperationAuthorizer
   }
 }
 
-describe("Verifying Paymaster", () => {
+describeWaalletSuite("Verifying Paymaster", (ctx) => {
   const verifyingPaymaster = new VerifyingPaymaster({
     address: config.address.VerifyingPaymaster,
     ownerPrivateKey: config.account.operator.privateKey,
     expirationSecs: 300,
     nodeRpcUrl: config.rpc.node
   })
-  const provider = new WaalletBackgroundProvider(
-    config.rpc.node,
-    config.provider.bundler,
-    new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster),
-    verifyingPaymaster
-  )
-  let account: SimpleAccount
-
-  beforeAll(async () => {
-    account = await SimpleAccount.init({
-      address: config.address.SimpleAccount,
-      ownerPrivateKey: config.account.operator.privateKey,
-      nodeRpcUrl: config.rpc.node
-    })
-    provider.connect(account)
-
-    await (
-      await config.account.operator.sendTransaction({
-        to: await account.getAddress(),
-        value: ethers.parseEther("1")
-      })
-    ).wait()
+  ctx.provider = ctx.provider.clone({
+    userOperationAuthorizer: new VerifyingPaymasterUserOperationAuthorizer(
+      verifyingPaymaster
+    ),
+    paymaster: verifyingPaymaster
   })
 
   it("should pay for account", async () => {
     const { node } = config.provider
 
     const accountBalanceBefore = await node.getBalance(
-      await account.getAddress()
+      await ctx.account.getAddress()
     )
     const paymasterDepositBalanceBefore =
       await config.contract.entryPoint.balanceOf(
         config.address.VerifyingPaymaster
       )
 
-    await provider.request({
+    await ctx.provider.request({
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
-          to: await account.getAddress(),
+          to: await ctx.account.getAddress(),
           value: 0
         }
       ]
     })
 
     const accountBalanceAfter = await node.getBalance(
-      await account.getAddress()
+      await ctx.account.getAddress()
     )
     expect(accountBalanceBefore).toBe(accountBalanceAfter)
 
