@@ -14,6 +14,7 @@ function IndexPopup() {
   const [accountIndex, setAccountIndex] = useState<number>(0)
   const [accounts, setAccounts] = useState<string[]>([""])
   const [balances, setBalances] = useState<bigint[]>([0n])
+  const [transactionHashes, setTransactionHashes] = useState<string[]>([""])
   const [internalTransactionHashes, setInternalTransactionHashes] = useState<
     string[]
   >([""])
@@ -39,6 +40,12 @@ function IndexPopup() {
       )
       setBalances(_balances)
 
+      const _transactionHashes = await accountTransactions(
+        _explorerUrl,
+        _accounts[_accountIndex]
+      )
+      setTransactionHashes(_transactionHashes)
+
       const _internalTransactionHashes = await accountInternalTransactions(
         _explorerUrl,
         _accounts[_accountIndex]
@@ -57,6 +64,10 @@ function IndexPopup() {
         index={accountIndex}
       />
       <AccountBalance balances={balances} index={accountIndex} />
+      <AccountTransactions
+        explorerUrl={explorerUrl}
+        hashes={transactionHashes}
+      />
       <AccountInternalTransactions
         explorerUrl={explorerUrl}
         hashes={internalTransactionHashes}
@@ -150,21 +161,57 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   }
 }
 
+enum transactionType {
+  normal = "normal",
+  internal = "internal"
+}
+
+const accountTransactions = async (
+  explorerUrl: string,
+  address: string
+): Promise<string[]> => {
+  return transactionsCrawler(
+    transactionType.normal,
+    `${explorerUrl}address/${address}`
+  )
+}
+
 const accountInternalTransactions = async (
   explorerUrl: string,
   address: string
-) => {
+): Promise<string[]> => {
+  return transactionsCrawler(
+    transactionType.internal,
+    `${explorerUrl}address/${address}#internaltx`
+  )
+}
+
+const transactionsCrawler = async (type: transactionType, url: string) => {
   try {
-    const response = await fetch(`${explorerUrl}address/${address}#internaltx`)
+    const response = await fetch(url)
     const html = await response.text()
     const doc = new DOMParser().parseFromString(html, "text/html")
 
-    const transactionXpath =
-      "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[1]/div/a"
-    const blockXpath =
-      "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[2]/a"
-    const dateXpath =
-      "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[4]/span"
+    let transactionXpath = ""
+    let blockXpath = ""
+    let dateXpath = ""
+
+    if (type === transactionType.internal) {
+      transactionXpath =
+        "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[1]/div/a"
+      blockXpath =
+        "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[2]/a"
+      dateXpath =
+        "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[4]/span"
+    }
+    if (type === transactionType.normal) {
+      transactionXpath =
+        "/html/body/main/section[2]/div[4]/div[1]/div/div[2]/table/tbody/tr/td[2]/div/a"
+      blockXpath =
+        "/html/body/main/section[2]/div[4]/div[1]/div/div[2]/table/tbody/tr/td[4]/a"
+      dateXpath =
+        "/html/body/main/section[2]/div[4]/div[1]/div/div[2]/table/tbody/tr/td[6]/span"
+    }
 
     const transactionNodes = doc.evaluate(
       transactionXpath,
