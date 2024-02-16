@@ -14,7 +14,9 @@ function IndexPopup() {
   const [accountIndex, setAccountIndex] = useState<number>(0)
   const [accounts, setAccounts] = useState<string[]>([""])
   const [balances, setBalances] = useState<bigint[]>([0n])
-  const [transactionHashes, setTransactionHashes] = useState<string[]>([""])
+  const [internalTransactionHashes, setInternalTransactionHashes] = useState<
+    string[]
+  >([""])
   const [explorerUrl, setExplorerUrl] = useState<string>("")
 
   useEffect(() => {
@@ -31,19 +33,17 @@ function IndexPopup() {
       setAccounts(_accounts)
 
       const _balances = await Promise.all(
-        accounts.map(async (account) => {
+        _accounts.map(async (account) => {
           return await provider.getBalance(account)
         })
       )
       setBalances(_balances)
 
-      const _transactionHashes = await accountTransactionHashes(
+      const _internalTransactionHashes = await accountInternalTransactions(
         _explorerUrl,
         _accounts[_accountIndex]
       )
-      setTransactionHashes(_transactionHashes)
-
-      console.log(`tx: ${JSON.stringify(_transactionHashes, null, 2)}`)
+      setInternalTransactionHashes(_internalTransactionHashes)
     }
 
     asyncFn()
@@ -57,9 +57,9 @@ function IndexPopup() {
         index={accountIndex}
       />
       <AccountBalance balances={balances} index={accountIndex} />
-      <AccountTransactionHashes
+      <AccountInternalTransactions
         explorerUrl={explorerUrl}
-        transactionHashes={transactionHashes}
+        hashes={internalTransactionHashes}
       />
     </>
   )
@@ -98,15 +98,41 @@ const AccountBalance: React.FC<{ balances: bigint[]; index: number }> = ({
   return <></>
 }
 
-const AccountTransactionHashes: React.FC<{
-  transactionHashes: string[]
+const AccountTransactions: React.FC<{
+  hashes: string[]
   explorerUrl: string
-}> = ({ transactionHashes, explorerUrl }) => {
-  if (transactionHashes) {
+}> = ({ hashes, explorerUrl }) => {
+  if (hashes) {
     return (
       <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        {transactionHashes.map((hash, _) => (
-          <button onClick={handleClick} data-url={`${explorerUrl}tx/${hash}`}>
+        <div>Transactions</div>
+        {hashes.map((hash, index) => (
+          <button
+            key={index}
+            onClick={handleClick}
+            data-url={`${explorerUrl}tx/${hash}`}>
+            {`${hash}`}
+          </button>
+        ))}
+      </div>
+    )
+  }
+  return <></>
+}
+
+const AccountInternalTransactions: React.FC<{
+  hashes: string[]
+  explorerUrl: string
+}> = ({ hashes, explorerUrl }) => {
+  if (hashes) {
+    return (
+      <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+        <div>Internal Transactions</div>
+        {hashes.map((hash, index) => (
+          <button
+            key={index}
+            onClick={handleClick}
+            data-url={`${explorerUrl}tx/${hash}`}>
             {`${hash}`}
           </button>
         ))}
@@ -124,34 +150,75 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   }
 }
 
-const accountTransactionHashes = async (
+const accountInternalTransactions = async (
   explorerUrl: string,
   address: string
-): Promise<string[]> => {
+) => {
   try {
     const response = await fetch(`${explorerUrl}address/${address}#internaltx`)
-    console.log(`url: ${`${explorerUrl}address/${address}#internaltx`}`)
     const html = await response.text()
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(html, "text/html")
+    const doc = new DOMParser().parseFromString(html, "text/html")
+
+    const transactionXpath =
+      "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[1]/div/a"
+    const blockXpath =
+      "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[2]/a"
+    const dateXpath =
+      "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[4]/span"
 
     const transactionNodes = doc.evaluate(
-      "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[1]/div/a",
+      transactionXpath,
+      doc,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    )
+    const blockNodes = doc.evaluate(
+      blockXpath,
+      doc,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    )
+    const dateNodes = doc.evaluate(
+      dateXpath,
       doc,
       null,
       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
       null
     )
 
-    const hashes = []
+    const hashes: string[] = []
+    const blocksSet: Set<number> = new Set()
+    const dates: Date[] = []
 
     for (let i = 0; i < transactionNodes.snapshotLength; i++) {
       const hash = transactionNodes.snapshotItem(i).textContent.trim()
-      hashes.push(hash)
+      const blockNumber = parseInt(
+        blockNodes.snapshotItem(i).textContent.trim(),
+        10
+      )
+      const dateString =
+        (dateNodes.snapshotItem(i) as Element)?.getAttribute("data-bs-title") ||
+        ""
+      if (!blocksSet.has(blockNumber)) {
+        hashes.push(hash)
+        blocksSet.add(isNaN(blockNumber) ? 0 : blockNumber)
+        dates.push(new Date(dateString))
+      }
     }
 
-    // Remove the duplicate part.
-    return hashes
+    const blocks: number[] = [...blocksSet]
+
+    console.log(
+      `hashes: ${JSON.stringify(hashes, null, 2)}\nblocks: ${JSON.stringify(
+        blocks,
+        null,
+        2
+      )}`
+    )
+
+    return Promise.resolve(hashes)
   } catch (error) {
     console.error("Error fetching transaction data:", error)
     return Promise.reject("Error fetching transaction data")
