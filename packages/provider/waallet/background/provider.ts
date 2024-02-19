@@ -45,7 +45,9 @@ export class WaalletBackgroundProvider {
       option?.userOperationAuthorizer ?? this.userOperationAuthorizer,
       option?.paymaster ?? this.paymaster
     )
-    provider.connect(this.account)
+    if (this.account) {
+      provider.connect(this.account)
+    }
     return provider
   }
 
