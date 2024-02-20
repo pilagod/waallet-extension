@@ -1,25 +1,26 @@
-import { useState } from "react"
+import { Redirect, Route, Router, Switch } from "wouter"
+
+import { ProviderCtxProvider } from "~popup/ctx/provider"
+import { Info } from "~popup/pages/info"
+import { useHashLocation } from "~popup/util/location"
+import { PopupPath } from "~popup/util/page"
 
 import "~style.css"
 
 function IndexPopup() {
-  const [data, setData] = useState("")
-
   return (
-    <div className="flex flex-col p-16">
-      <h2>
-        Welcome to your
-        <a href="https://www.plasmo.com" target="_blank">
-          {" "}
-          Plasmo
-        </a>{" "}
-        Extension!
-      </h2>
-      <input onChange={(e) => setData(e.target.value)} value={data} />
-      <a href="https://docs.plasmo.com" target="_blank">
-        View Docs {process.env.PLASMO_PUBLIC_SITE_URL}
-      </a>
-    </div>
+    <>
+      <Router hook={useHashLocation}>
+        <Switch>
+          <Route path={PopupPath.root}>
+            <Redirect to={PopupPath.info} />
+          </Route>
+          <ProviderCtxProvider>
+            <Route path={PopupPath.info} component={Info}></Route>
+          </ProviderCtxProvider>
+        </Switch>
+      </Router>
+    </>
   )
 }
 
