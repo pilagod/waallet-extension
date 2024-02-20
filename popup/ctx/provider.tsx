@@ -1,4 +1,5 @@
 import { type BrowserProvider } from "ethers"
+import * as ethers from "ethers"
 import {
   createContext,
   useContext,
@@ -8,6 +9,9 @@ import {
   type ReactNode,
   type SetStateAction
 } from "react"
+
+import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
+import { WaalletContentProvider } from "~packages/provider/waallet/content/provider"
 
 type ProviderCtxInterface = {
   provider: BrowserProvider
@@ -26,7 +30,11 @@ export const ProviderCtx = createContext<ProviderCtxInterface>({
 export const ProviderCtxProvider: FunctionComponent<{
   children: ReactNode
 }> = ({ children }) => {
-  const [provider, setProvider] = useState<BrowserProvider | null>(null)
+  const [provider, setProvider] = useState<BrowserProvider | null>(
+    new ethers.BrowserProvider(
+      new WaalletContentProvider(new BackgroundDirectMessenger())
+    )
+  )
   const [index, setIndex] = useState<number>(0)
 
   const account: ProviderCtxInterface = {
