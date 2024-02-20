@@ -57,16 +57,22 @@ export function Info() {
 
   return (
     <>
-      <AccountAddress account={account} explorerUrl={explorerUrl} />
-      <AccountBalance balance={balance} />
-      <AccountTransactions
-        explorerUrl={explorerUrl}
-        hashes={transactionHashes}
-      />
-      <AccountInternalTransactions
-        explorerUrl={explorerUrl}
-        hashes={internalTransactionHashes}
-      />
+      {account && (
+        <AccountAddress account={account} explorerUrl={explorerUrl} />
+      )}
+      {balance && <AccountBalance balance={balance} />}
+      {transactionHashes && (
+        <AccountTransactions
+          explorerUrl={explorerUrl}
+          hashes={transactionHashes}
+        />
+      )}
+      {internalTransactionHashes && (
+        <AccountInternalTransactions
+          explorerUrl={explorerUrl}
+          hashes={internalTransactionHashes}
+        />
+      )}
     </>
   )
 }
@@ -75,75 +81,61 @@ const AccountAddress: React.FC<{
   account: string
   explorerUrl: string
 }> = ({ account, explorerUrl }) => {
-  if (account) {
-    return (
-      <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        <button
-          onClick={handleClick}
-          data-url={`${explorerUrl}address/${account}#code`}>
-          {`${account}`}
-        </button>
-      </div>
-    )
-  }
-  return <></>
+  return (
+    <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+      <button
+        onClick={handleClick}
+        data-url={`${explorerUrl}address/${account}#code`}>
+        {`${account}`}
+      </button>
+    </div>
+  )
 }
 
-const AccountBalance: React.FC<{ balance: bigint }> = ({
-  balance: balance
-}) => {
-  if (balance) {
-    return (
-      <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        <span>${ethers.formatEther(balance)}</span>
-      </div>
-    )
-  }
-  return <></>
+const AccountBalance: React.FC<{ balance: bigint }> = ({ balance }) => {
+  return (
+    <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+      <span>${ethers.formatEther(balance)}</span>
+    </div>
+  )
 }
 
 const AccountTransactions: React.FC<{
   hashes: string[]
   explorerUrl: string
 }> = ({ hashes, explorerUrl }) => {
-  if (hashes) {
-    return (
-      <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        <div>Transactions</div>
-        {hashes.map((hash, index) => (
-          <button
-            key={index}
-            onClick={handleClick}
-            data-url={`${explorerUrl}tx/${hash}`}>
-            {`${hash}`}
-          </button>
-        ))}
-      </div>
-    )
-  }
-  return <></>
+  return (
+    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+      <div>Transactions</div>
+      {hashes.map((hash, i, _) => (
+        <button
+          key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning.
+          onClick={handleClick}
+          data-url={`${explorerUrl}tx/${hash}`}>
+          {`${hash}`}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 const AccountInternalTransactions: React.FC<{
   hashes: string[]
   explorerUrl: string
 }> = ({ hashes, explorerUrl }) => {
-  if (hashes) {
-    return (
-      <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        <div>Internal Transactions</div>
-        {hashes.map((hash, index) => (
-          <button
-            key={index}
-            onClick={handleClick}
-            data-url={`${explorerUrl}tx/${hash}`}>
-            {`${hash}`}
-          </button>
-        ))}
-      </div>
-    )
-  }
-  return <></>
+  return (
+    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+      <div>Internal Transactions</div>
+      {hashes.map((hash, i, _) => (
+        <button
+          key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning.
+          onClick={handleClick}
+          data-url={`${explorerUrl}tx/${hash}`}>
+          {`${hash}`}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
