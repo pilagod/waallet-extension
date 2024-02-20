@@ -8,8 +8,8 @@ import "~style.css"
 export function Info() {
   const providerCtx = useContext(ProviderCtx)
 
-  const [accounts, setAccounts] = useState<string[]>([""])
-  const [balances, setBalances] = useState<bigint[]>([0n])
+  const [account, setAccount] = useState<string>("")
+  const [balance, setBalance] = useState<bigint>(0n)
   const [transactionHashes, setTransactionHashes] = useState<string[]>([""])
   const [internalTransactionHashes, setInternalTransactionHashes] = useState<
     string[]
@@ -30,14 +30,14 @@ export function Info() {
       const _accounts = (await providerCtx.provider.listAccounts()).map(
         (account) => account.address
       )
-      setAccounts(_accounts)
+      setAccount(_accounts[providerCtx.index])
 
       const _balances = await Promise.all(
         _accounts.map(async (account) => {
           return await providerCtx.provider.getBalance(account)
         })
       )
-      setBalances(_balances)
+      setBalance(_balances[providerCtx.index])
 
       const _transactionHashes = await accountTransactions(
         _explorerUrl,
@@ -57,12 +57,8 @@ export function Info() {
 
   return (
     <>
-      <AccountAddress
-        accounts={accounts}
-        explorerUrl={explorerUrl}
-        index={providerCtx.index}
-      />
-      <AccountBalance balances={balances} index={providerCtx.index} />
+      <AccountAddress account={account} explorerUrl={explorerUrl} />
+      <AccountBalance balance={balance} />
       <AccountTransactions
         explorerUrl={explorerUrl}
         hashes={transactionHashes}
@@ -76,17 +72,16 @@ export function Info() {
 }
 
 const AccountAddress: React.FC<{
-  accounts: string[]
+  account: string
   explorerUrl: string
-  index: number
-}> = ({ accounts, explorerUrl, index }) => {
-  if (accounts && accounts[index]) {
+}> = ({ account, explorerUrl }) => {
+  if (account) {
     return (
       <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
         <button
           onClick={handleClick}
-          data-url={`${explorerUrl}address/${accounts[index]}#code`}>
-          {`${accounts[index]}`}
+          data-url={`${explorerUrl}address/${account}#code`}>
+          {`${account}`}
         </button>
       </div>
     )
@@ -94,14 +89,13 @@ const AccountAddress: React.FC<{
   return <></>
 }
 
-const AccountBalance: React.FC<{ balances: bigint[]; index: number }> = ({
-  balances,
-  index
+const AccountBalance: React.FC<{ balance: bigint }> = ({
+  balance: balance
 }) => {
-  if (balances[index]) {
+  if (balance) {
     return (
       <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        <span>${ethers.formatEther(balances[index])}</span>
+        <span>${ethers.formatEther(balance)}</span>
       </div>
     )
   }
