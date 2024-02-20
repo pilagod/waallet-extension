@@ -1,5 +1,3 @@
-import { useEffect } from "react"
-// Plasmo can't resolve wouter v3, so we use wouter v2
 import { Redirect, Route, Router, Switch } from "wouter"
 
 import { ProviderCtxProvider } from "~popup/ctx/provider"
