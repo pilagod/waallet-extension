@@ -2,17 +2,18 @@ import * as ethers from "ethers"
 import { useContext, useEffect, useState, type MouseEvent } from "react"
 
 import { ProviderCtx } from "~popup/ctx/provider"
+import type { BigNumberish, HexString } from "~typing"
 
 import "~style.css"
 
 export function Info() {
   const providerCtx = useContext(ProviderCtx)
 
-  const [account, setAccount] = useState<string>("")
-  const [balance, setBalance] = useState<bigint>(0n)
-  const [transactionHashes, setTransactionHashes] = useState<string[]>([""])
+  const [address, setAddress] = useState<HexString>("")
+  const [balance, setBalance] = useState<BigNumberish>(0n)
+  const [transactionHashes, setTransactionHashes] = useState<HexString[]>([""])
   const [internalTransactionHashes, setInternalTransactionHashes] = useState<
-    string[]
+    HexString[]
   >([""])
   const [explorerUrl, setExplorerUrl] = useState<string>("")
 
@@ -22,34 +23,34 @@ export function Info() {
     const asyncFn = async () => {
       if (!providerCtx.provider) return
 
-      const _explorerUrl = getExplorerUrl(
+      const explorer = getExplorerUrl(
         (await providerCtx.provider.getNetwork()).name
       )
-      setExplorerUrl(_explorerUrl)
+      setExplorerUrl(explorer)
 
-      const _accounts = (await providerCtx.provider.listAccounts()).map(
+      const addresses = (await providerCtx.provider.listAccounts()).map(
         (account) => account.address
       )
-      setAccount(_accounts[providerCtx.index])
+      setAddress(addresses[providerCtx.index])
 
-      const _balances = await Promise.all(
-        _accounts.map(async (account) => {
+      const balances = await Promise.all(
+        addresses.map(async (account) => {
           return await providerCtx.provider.getBalance(account)
         })
       )
-      setBalance(_balances[providerCtx.index])
+      setBalance(balances[providerCtx.index])
 
-      const _transactionHashes = await accountTransactions(
-        _explorerUrl,
-        _accounts[providerCtx.index]
+      const txHashes = await accountTransactions(
+        explorer,
+        addresses[providerCtx.index]
       )
-      setTransactionHashes(_transactionHashes)
+      setTransactionHashes(txHashes)
 
-      const _internalTransactionHashes = await accountInternalTransactions(
-        _explorerUrl,
-        _accounts[providerCtx.index]
+      const internalTxHashes = await accountInternalTransactions(
+        explorer,
+        addresses[providerCtx.index]
       )
-      setInternalTransactionHashes(_internalTransactionHashes)
+      setInternalTransactionHashes(internalTxHashes)
     }
 
     asyncFn()
@@ -57,8 +58,8 @@ export function Info() {
 
   return (
     <>
-      {account && (
-        <AccountAddress account={account} explorerUrl={explorerUrl} />
+      {address && (
+        <AccountAddress account={address} explorerUrl={explorerUrl} />
       )}
       {balance && <AccountBalance balance={balance} />}
       {transactionHashes && (
@@ -78,7 +79,7 @@ export function Info() {
 }
 
 const AccountAddress: React.FC<{
-  account: string
+  account: HexString
   explorerUrl: string
 }> = ({ account, explorerUrl }) => {
   return (
@@ -92,7 +93,7 @@ const AccountAddress: React.FC<{
   )
 }
 
-const AccountBalance: React.FC<{ balance: bigint }> = ({ balance }) => {
+const AccountBalance: React.FC<{ balance: BigNumberish }> = ({ balance }) => {
   return (
     <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
       <span>${ethers.formatEther(balance)}</span>
@@ -101,7 +102,7 @@ const AccountBalance: React.FC<{ balance: bigint }> = ({ balance }) => {
 }
 
 const AccountTransactions: React.FC<{
-  hashes: string[]
+  hashes: HexString[]
   explorerUrl: string
 }> = ({ hashes, explorerUrl }) => {
   return (
@@ -120,7 +121,7 @@ const AccountTransactions: React.FC<{
 }
 
 const AccountInternalTransactions: React.FC<{
-  hashes: string[]
+  hashes: HexString[]
   explorerUrl: string
 }> = ({ hashes, explorerUrl }) => {
   return (
@@ -153,7 +154,7 @@ enum transactionType {
 
 const accountTransactions = async (
   explorerUrl: string,
-  address: string
+  address: HexString
 ): Promise<string[]> => {
   return transactionsCrawler(
     transactionType.normal,
@@ -163,7 +164,7 @@ const accountTransactions = async (
 
 const accountInternalTransactions = async (
   explorerUrl: string,
-  address: string
+  address: HexString
 ): Promise<string[]> => {
   return transactionsCrawler(
     transactionType.internal,
@@ -220,7 +221,7 @@ const transactionsCrawler = async (type: transactionType, url: string) => {
       null
     )
 
-    const hashes: string[] = []
+    const hashes: HexString[] = []
     const blocksSet: Set<number> = new Set()
     const dates: Date[] = []
 
