@@ -4,8 +4,6 @@ import { useContext, useEffect, useState, type MouseEvent } from "react"
 import { ProviderCtx } from "~popup/ctx/provider"
 import type { BigNumberish, HexString } from "~typing"
 
-import "~style.css"
-
 export function Info() {
   const providerCtx = useContext(ProviderCtx)
 
@@ -110,7 +108,7 @@ const AccountTransactions: React.FC<{
       <div>Transactions</div>
       {hashes.map((hash, i, _) => (
         <button
-          key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning."
+          key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning.
           onClick={handleClick}
           data-url={`${explorerUrl}tx/${hash}`}>
           {`${hash}`}
@@ -129,7 +127,7 @@ const AccountInternalTransactions: React.FC<{
       <div>Internal Transactions</div>
       {hashes.map((hash, i, _) => (
         <button
-          key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning."
+          key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning.
           onClick={handleClick}
           data-url={`${explorerUrl}tx/${hash}`}>
           {`${hash}`}
