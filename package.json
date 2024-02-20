@@ -26,7 +26,7 @@
     "react-dom": "18.2.0",
     "react-router-dom": "^6.22.1",
     "webextension-polyfill": "^0.10.0",
-    "wouter": "^2.12.1"
+    "wouter": "^3.0.0"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "4.1.0",
@@ -48,6 +48,9 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "5.2.2"
+  },
+  "@parcel/resolver-default": {
+    "packageExports": true
   },
   "manifest": {
     "host_permissions": [

@@ -2,12 +2,12 @@ import { useEffect } from "react"
 import {
   navigate,
   useLocationProperty,
-  type BaseLocationHook
-} from "wouter/use-location"
+  type BrowserLocationHook
+} from "wouter/use-browser-location"
 
 // Returns the current hash location in a normalized form
 // (excluding the leading '#' symbol)
-export const useHashLocation: BaseLocationHook = () => {
+export const useHashLocation: BrowserLocationHook = () => {
   const hashLocation = () => window.location.hash.replace(/^#/, "") || "/"
 
   const hashNavigate = (to: string) => {
