@@ -58,6 +58,7 @@ const UserOperationAuthorization = () => {
 
   const onPaymentOptionSelected = async (o: PaymentOption) => {
     // TODO: Be able to select token
+    // Should show only tokens imported by user
     setPayment({
       option: o,
       token: ETH,
