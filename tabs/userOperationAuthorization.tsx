@@ -56,17 +56,16 @@ const UserOperationAuthorization = () => {
     }
   })
 
-  const onPaymentOptionSelected = async (paymentOption: PaymentOption) => {
+  const onPaymentOptionSelected = async (o: PaymentOption) => {
     // TODO: Be able to select token
     setPayment({
-      option: paymentOption,
+      option: o,
       token: ETH,
-      exchangeRate: await paymentOption.paymaster.getExchangeRate(ETH)
+      exchangeRate: await o.paymaster.getExchangeRate(ETH)
     })
     const paymasterUserOp = {
       ...userOp,
-      paymasterAndData:
-        await paymentOption.paymaster.requestPaymasterAndData(userOp)
+      paymasterAndData: await o.paymaster.requestPaymasterAndData(userOp)
     }
     const gasLimits = await provider.send(
       WaalletRpcMethod.eth_estimateUserOperationGas,
@@ -122,16 +121,17 @@ const UserOperationAuthorization = () => {
       <div>
         <h1>Paymaster Option</h1>
         {paymentOptions.map((o, i) => {
+          const id = i.toString()
           return (
             <div key={i}>
               <input
                 type="checkbox"
-                id={i.toString()}
+                id={id}
                 name={o.name}
                 checked={o.name === payment.option.name}
                 onChange={() => onPaymentOptionSelected(o)}
               />
-              <label htmlFor={i.toString()}>{o.name}</label>
+              <label htmlFor={id}>{o.name}</label>
             </div>
           )
         })}
