@@ -1,25 +1,22 @@
 import fetch from "isomorphic-fetch"
 
-import number from "~packages/util/number"
+import json, { replacer } from "~packages/util/json"
 
 export class JsonRpcProvider {
   public constructor(public readonly rpcUrl: string) {}
 
   public async send(args: { method: string; params?: any[] }) {
-    const body = JSON.stringify(
+    const body = json.stringify(
       {
         jsonrpc: "2.0",
         id: 0,
         ...args
       },
       (k, v) => {
-        if (!k || k === "id") {
+        if (k === "id") {
           return v
         }
-        if (["number", "bigint"].includes(typeof v)) {
-          return number.toHex(v)
-        }
-        return v
+        return replacer.numberToHex(k, v)
       }
     )
     console.log(`[JsonRpcProvider][${args.method}][request] ${body}`)
