@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import type { Paymaster, PaymasterUserOperation } from "~packages/paymaster"
 import { UserOperationStruct } from "~packages/provider/bundler"
+import { ETH, Token } from "~packages/token"
 import type { HexString } from "~typing"
 
 export class VerifyingPaymaster implements Paymaster {
@@ -24,6 +25,17 @@ export class VerifyingPaymaster implements Paymaster {
     )
     this.owner = new ethers.Wallet(option.ownerPrivateKey)
     this.intervalSecs = option.expirationSecs
+  }
+
+  public getAcceptedTokens(): Token[] {
+    return [ETH]
+  }
+
+  public getExchangeRate(base: Token): number {
+    if (base !== ETH) {
+      throw new Error(`Unsupported token: ${base.symbol}`)
+    }
+    return 0
   }
 
   public async requestPaymasterAndData(userOp: PaymasterUserOperation) {
