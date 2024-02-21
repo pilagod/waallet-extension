@@ -27,15 +27,14 @@ export class VerifyingPaymaster implements Paymaster {
     this.intervalSecs = option.expirationSecs
   }
 
-  public getAcceptedTokens(): Token[] {
-    return [ETH]
-  }
-
-  public getExchangeRate(base: Token): number {
-    if (base !== ETH) {
-      throw new Error(`Unsupported token: ${base.symbol}`)
+  public async getExchangeRate(quote: Token) {
+    if (quote !== ETH) {
+      throw new Error(`Unsupported token: ${quote.symbol}`)
     }
-    return 0
+    return {
+      rate: 0n,
+      decimals: 0
+    }
   }
 
   public async requestPaymasterAndData(userOp: PaymasterUserOperation) {

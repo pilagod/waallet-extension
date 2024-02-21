@@ -2,15 +2,14 @@ import type { Paymaster } from "~packages/paymaster"
 import { ETH, Token } from "~packages/token"
 
 export class NullPaymaster implements Paymaster {
-  public getAcceptedTokens(): Token[] {
-    return [ETH]
-  }
-
-  public getExchangeRate(base: Token): number {
-    if (base !== ETH) {
-      throw new Error(`Unsupported token: ${base.symbol}`)
+  public async getExchangeRate(quote: Token) {
+    if (quote !== ETH) {
+      throw new Error(`Unsupported token: ${quote.symbol}`)
     }
-    return 1
+    return {
+      rate: 1n,
+      decimals: 0
+    }
   }
 
   public async requestPaymasterAndData() {
