@@ -2,7 +2,6 @@ import * as ethers from "ethers"
 
 import type { Account, Call, UserOperationCall } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
-import number from "~packages/util/number"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export abstract class AccountSkeleton<T extends AccountFactory>
@@ -18,7 +17,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     nodeRpcUrl: string
   }) {
     this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
-    this.address = opts.address
+    this.address = ethers.getAddress(opts.address)
     this.factory = opts.factory
   }
 

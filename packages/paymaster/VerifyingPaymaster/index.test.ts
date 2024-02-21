@@ -31,7 +31,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
     address: config.address.VerifyingPaymaster,
     ownerPrivateKey: config.account.operator.privateKey,
     expirationSecs: 300,
-    nodeRpcUrl: config.rpc.node
+    provider: config.provider.node
   })
   ctx.provider = ctx.provider.clone({
     userOperationAuthorizer: new VerifyingPaymasterUserOperationAuthorizer(

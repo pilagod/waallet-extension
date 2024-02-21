@@ -2,11 +2,8 @@ import type { UserOperation } from "~packages/provider/bundler"
 import type { HexString } from "~typing"
 
 export enum PaymasterType {
-  Null
-}
-
-export type Payment = {
-  paymasterType: PaymasterType.Null
+  Null,
+  Verifying
 }
 
 export type PaymasterUserOperation = Partial<

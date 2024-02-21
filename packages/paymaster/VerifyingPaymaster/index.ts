@@ -17,14 +17,14 @@ export class VerifyingPaymaster implements Paymaster {
     address: HexString
     ownerPrivateKey: HexString
     expirationSecs: number
-    nodeRpcUrl: string
+    provider: ethers.ContractRunner
   }) {
     this.paymaster = new ethers.Contract(
       option.address,
       [
         `function getHash(${UserOperationStruct} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
       ],
-      new ethers.JsonRpcProvider(option.nodeRpcUrl)
+      option.provider
     )
     this.owner = new ethers.Wallet(option.ownerPrivateKey)
     this.intervalSecs = option.expirationSecs
