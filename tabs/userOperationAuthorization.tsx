@@ -11,7 +11,7 @@ import { WaalletContentProvider } from "~packages/provider/waallet/content/provi
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import { ETH, Token } from "~packages/token"
 import json from "~packages/util/json"
-import type { HexString, Nullable } from "~typing"
+import type { Nullable } from "~typing"
 
 type PaymentOption = {
   name: string
@@ -56,21 +56,18 @@ const UserOperationAuthorization = () => {
   const onPaymentOptionSelected = async (o: PaymentOption) => {
     // TODO: Be able to select token
     // Should show only tokens imported by user
-    const paymasterUserOp = {
-      ...userOp,
-      paymasterAndData: await o.paymaster.requestPaymasterAndData(userOp)
-    }
-    const gasLimit: {
-      callGasLimit: HexString
-      verificationGasLimit: HexString
-      preVerificationGas: HexString
-    } = await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
-      paymasterUserOp
-    ])
     setPayment({
       ...payment,
       option: o
     })
+    const paymasterUserOp = {
+      ...userOp,
+      paymasterAndData: await o.paymaster.requestPaymasterAndData(userOp)
+    }
+    const gasLimit = await provider.send(
+      WaalletRpcMethod.eth_estimateUserOperationGas,
+      [paymasterUserOp]
+    )
     setUserOp({
       ...paymasterUserOp,
       ...gasLimit
