@@ -12,6 +12,13 @@ export class NullPaymaster implements Paymaster {
     }
   }
 
+  public async quoteFee(fee: bigint, quote: Token) {
+    if (quote !== ETH) {
+      throw new Error(`Unsupported token: ${quote.symbol}`)
+    }
+    return fee
+  }
+
   public async requestPaymasterAndData() {
     return "0x"
   }

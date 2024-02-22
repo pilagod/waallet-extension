@@ -22,6 +22,10 @@ export interface Paymaster {
    */
   getExchangeRate(quote: Token): Promise<ExchangeRate>
   /**
+   * Quote fee in `quote` token
+   */
+  quoteFee(fee: bigint, quote: Token): Promise<bigint>
+  /**
    * Request `paymasterAndData` for user operation.
    */
   requestPaymasterAndData(userOp: PaymasterUserOperation): Promise<HexString>

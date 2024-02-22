@@ -11,7 +11,7 @@ import { WaalletContentProvider } from "~packages/provider/waallet/content/provi
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import { ETH, Token } from "~packages/token"
 import json from "~packages/util/json"
-import type { Nullable } from "~typing"
+import type { HexString, Nullable } from "~typing"
 
 type PaymentOption = {
   name: string
@@ -21,6 +21,7 @@ type PaymentOption = {
 type Payment = {
   option: PaymentOption
   token: Token
+  tokenFee: bigint
   exchangeRate: ExchangeRate
 }
 
@@ -50,6 +51,7 @@ const UserOperationAuthorization = () => {
   const [payment, setPayment] = useState<Payment>({
     option: paymentOptions[0],
     token: ETH,
+    tokenFee: 0n,
     exchangeRate: {
       rate: 1n,
       decimals: 0
@@ -59,22 +61,24 @@ const UserOperationAuthorization = () => {
   const onPaymentOptionSelected = async (o: PaymentOption) => {
     // TODO: Be able to select token
     // Should show only tokens imported by user
-    setPayment({
-      option: o,
-      token: ETH,
-      exchangeRate: await o.paymaster.getExchangeRate(ETH)
-    })
     const paymasterUserOp = {
       ...userOp,
       paymasterAndData: await o.paymaster.requestPaymasterAndData(userOp)
     }
-    const gasLimits = await provider.send(
-      WaalletRpcMethod.eth_estimateUserOperationGas,
-      [paymasterUserOp]
-    )
+    const gasLimit: {
+      callGasLimit: HexString
+      verificationGasLimit: HexString
+      preVerificationGas: HexString
+    } = await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
+      paymasterUserOp
+    ])
+    setPayment({
+      ...payment,
+      option: o
+    })
     setUserOp({
       ...paymasterUserOp,
-      ...gasLimits
+      ...gasLimit
     })
   }
 
@@ -89,7 +93,7 @@ const UserOperationAuthorization = () => {
   }
 
   useEffect(() => {
-    async function setup() {
+    async function initUserOp() {
       const tab = await browser.tabs.getCurrent()
       const port = browser.runtime.connect({
         name: `PopUpUserOperationAuthorizer#${tab.id}`
@@ -103,15 +107,25 @@ const UserOperationAuthorization = () => {
       setPort(port)
       port.postMessage({ init: true })
     }
-    setup()
+    initUserOp()
   }, [])
 
-  const estimatedGasFee = userOp
-    ? (ethers.toBigInt(userOp.callGasLimit) +
-        ethers.toBigInt(userOp.verificationGasLimit) +
-        ethers.toBigInt(userOp.preVerificationGas)) *
-      ethers.toBigInt(userOp.maxFeePerGas)
-    : 0n
+  useEffect(() => {
+    async function updatePayment() {
+      setPayment({
+        ...payment,
+        // TODO: Extract user operation fee calculation
+        tokenFee: await payment.option.paymaster.quoteFee(
+          (ethers.toBigInt(userOp.callGasLimit) +
+            ethers.toBigInt(userOp.verificationGasLimit) +
+            ethers.toBigInt(userOp.preVerificationGas)) *
+            ethers.toBigInt(userOp.maxFeePerGas),
+          ETH
+        )
+      })
+    }
+    updatePayment()
+  }, [userOp])
 
   return (
     <div>
@@ -140,14 +154,20 @@ const UserOperationAuthorization = () => {
       <div>
         <h1>Transaction Cost</h1>
         <p>
-          Estimated gas fee: {ethers.formatEther(estimatedGasFee)} {ETH.symbol}
+          Estimated gas fee:{" "}
+          {ethers.formatEther(
+            userOp
+              ? (ethers.toBigInt(userOp.callGasLimit) +
+                  ethers.toBigInt(userOp.verificationGasLimit) +
+                  ethers.toBigInt(userOp.preVerificationGas)) *
+                  ethers.toBigInt(userOp.maxFeePerGas)
+              : 0n
+          )}{" "}
+          {ETH.symbol}
         </p>
         <p>
           Expected to pay:{" "}
-          {ethers.formatUnits(
-            estimatedGasFee * payment.exchangeRate.rate,
-            ETH.decimals + payment.exchangeRate.decimals
-          )}{" "}
+          {ethers.formatUnits(payment.tokenFee, payment.token.decimals)}{" "}
           {payment.token.symbol}
         </p>
       </div>

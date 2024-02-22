@@ -37,6 +37,13 @@ export class VerifyingPaymaster implements Paymaster {
     }
   }
 
+  public async quoteFee(fee: bigint, quote: Token) {
+    if (quote !== ETH) {
+      throw new Error(`Unsupported token: ${quote.symbol}`)
+    }
+    return 0n
+  }
+
   public async requestPaymasterAndData(userOp: PaymasterUserOperation) {
     const validAfter = 0
     const validUntil =
