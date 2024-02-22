@@ -1,3 +1,4 @@
+import { UserOperationData } from "~packages/provider/bundler"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export type UserOperationCall = {
@@ -16,7 +17,7 @@ export type Call = {
 }
 
 export interface Account {
-  createUserOperationCall(call: Call): Promise<UserOperationCall>
+  createUserOperation(call: Call): Promise<UserOperationData>
   getAddress(): Promise<HexString>
   isDeployed(): Promise<boolean>
   sign(message: BytesLike, metadata?: any): Promise<HexString>

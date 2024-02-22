@@ -1,4 +1,4 @@
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperationData } from "~packages/provider/bundler"
 
 import {
   type UserOperationAuthorizeCallback,
@@ -7,7 +7,7 @@ import {
 
 export class NullUserOperationAuthorizer implements UserOperationAuthorizer {
   public authorize(
-    userOp: UserOperation,
+    userOp: UserOperationData,
     { onApproved }: UserOperationAuthorizeCallback
   ) {
     return onApproved(userOp)

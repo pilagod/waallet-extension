@@ -4,7 +4,6 @@ import { type Account } from "~packages/account"
 import { type Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
-import { getUserOpHash } from "~packages/provider/bundler/util"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -87,20 +86,20 @@ export class WaalletBackgroundProvider {
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOpCall = await this.account.createUserOperationCall({
+    const userOp = await this.account.createUserOperation({
       to: tx.to,
       value: tx.value,
       data: tx.data
     })
-    const paymasterAndData =
-      await this.paymaster.requestPaymasterAndData(userOpCall)
+    userOp.setPaymasterAndData(
+      await this.paymaster.requestPaymasterAndData(userOp)
+    )
     const { callGasLimit } = await this.bundler.estimateUserOperationGas(
       {
-        ...userOpCall,
+        ...userOp.data(),
         ...(tx.gas && {
           callGasLimit: tx.gas
-        }),
-        paymasterAndData
+        })
       },
       entryPointAddress
     )
@@ -140,43 +139,39 @@ export class WaalletBackgroundProvider {
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     // TODO: Integrate paymaster
-    const userOpCall = await this.account.createUserOperationCall({
+    const userOp = await this.account.createUserOperation({
       to: tx.to,
       value: tx.value,
       data: tx.data,
       nonce: tx.nonce
     })
-    const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
-    const paymasterAndData =
-      await this.paymaster.requestPaymasterAndData(userOpCall)
-    const userOpGasLimit = await this.bundler.estimateUserOperationGas(
-      {
-        ...userOpCall,
-        ...(tx.gas && {
-          callGasLimit: tx.gas
-        }),
-        paymasterAndData
-      },
-      entryPointAddress
+    userOp.setPaymasterAndData(
+      await this.paymaster.requestPaymasterAndData(userOp)
     )
-    const userOp = {
-      ...userOpCall,
-      ...userOpGasLimit,
-      ...userOpGasFee,
-      paymasterAndData
-    }
+    userOp.setGasFee(await this.estimateGasFee(tx.gasPrice))
+    userOp.setGasLimit(
+      await this.bundler.estimateUserOperationGas(
+        {
+          ...userOp.data(),
+          ...(tx.gas && {
+            callGasLimit: tx.gas
+          })
+        },
+        entryPointAddress
+      )
+    )
     const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,
       {
         onApproved: async (userOpAuthorized, metadata) => {
-          const userOpAuthorizedHash = await getUserOpHash(
-            userOpAuthorized,
-            entryPointAddress,
-            await this.bundler.getChainId()
-          )
-          userOpAuthorized.signature = await this.account.sign(
-            userOpAuthorizedHash,
-            metadata
+          userOpAuthorized.setSignature(
+            await this.account.sign(
+              userOpAuthorized.hash(
+                entryPointAddress,
+                await this.bundler.getChainId()
+              ),
+              metadata
+            )
           )
           return userOpAuthorized
         }

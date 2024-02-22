@@ -1,7 +1,8 @@
 import * as ethers from "ethers"
 
-import type { Account, Call, UserOperationCall } from "~packages/account"
+import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
+import { UserOperationData } from "~packages/provider/bundler"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export abstract class AccountSkeleton<T extends AccountFactory>
@@ -30,7 +31,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   /* public */
 
-  public async createUserOperationCall(call: Call): Promise<UserOperationCall> {
+  public async createUserOperation(call: Call): Promise<UserOperationData> {
     const isDeployed = await this.isDeployed()
 
     const sender = await this.getAddress()
@@ -41,13 +42,13 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     const callData = call ? await this.getCallData(call) : "0x"
     const signature = await this.getDummySignature()
 
-    return {
+    return new UserOperationData({
       sender,
       nonce,
       initCode,
       callData,
       signature
-    }
+    })
   }
 
   public async getAddress(): Promise<HexString> {

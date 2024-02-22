@@ -2,8 +2,9 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperationData } from "~packages/provider/bundler"
 import byte from "~packages/util/byte"
+import number from "~packages/util/number"
 import type { HexString, Nullable } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
@@ -107,13 +108,13 @@ describe("WaalletBackgroundProvider", () => {
     const authorizer = new (class MutatingUserOperationAuthorizer
       implements UserOperationAuthorizer
     {
-      public userOpAuthorized: Nullable<UserOperation> = null
+      public userOpAuthorized: Nullable<UserOperationData> = null
 
       public async authorize(
-        userOp: UserOperation,
+        userOp: UserOperationData,
         { onApproved }: UserOperationAuthorizeCallback
       ) {
-        userOp.callGasLimit = ethers.toBigInt(userOp.callGasLimit) + 1n
+        userOp.callGasLimit += 1n
         this.userOpAuthorized = await onApproved(userOp)
         return this.userOpAuthorized
       }
