@@ -3,7 +3,7 @@ import * as ethers from "ethers"
 import { type Account } from "~packages/account"
 import { type Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
-import { UserOperationData } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
 import number from "~packages/util/number"
@@ -112,7 +112,7 @@ export class WaalletBackgroundProvider {
     verificationGasLimit: HexString
     callGasLimit: HexString
   }> {
-    const userOp = new UserOperationData(params[0])
+    const userOp = new UserOperation(params[0])
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     return this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
   }

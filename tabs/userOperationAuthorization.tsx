@@ -6,7 +6,7 @@ import { BackgroundDirectMessenger } from "~packages/messenger/background/direct
 import { PaymasterType } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
-import { UserOperationData } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import { WaalletContentProvider } from "~packages/provider/waallet/content/provider"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import json from "~packages/util/json"
@@ -19,8 +19,8 @@ const UserOperationAuthorization = () => {
   const [port, setPort] = useState<browser.Runtime.Port>(null)
   // TODO: Refactor class state usage
   const [userOpData, setUserOpData] =
-    useState<ReturnType<UserOperationData["data"]>>(null)
-  const userOp = userOpData ? new UserOperationData(userOpData) : null
+    useState<ReturnType<UserOperation["data"]>>(null)
+  const userOp = userOpData ? new UserOperation(userOpData) : null
   const [paymasterSelected, setPaymasterSelected] = useState(PaymasterType.Null)
 
   const onPaymasterSelected = async (paymasterType: PaymasterType) => {
@@ -73,9 +73,7 @@ const UserOperationAuthorization = () => {
       port.onMessage.addListener(async (message) => {
         console.log("message from background", message)
         if (message.userOp) {
-          setUserOpData(
-            new UserOperationData(json.parse(message.userOp)).data()
-          )
+          setUserOpData(new UserOperation(json.parse(message.userOp)).data())
         }
       })
       setPort(port)
@@ -138,7 +136,7 @@ const UserOperationAuthorization = () => {
 const UserOperationPreview = ({
   userOp
 }: {
-  userOp: Nullable<UserOperationData>
+  userOp: Nullable<UserOperation>
 }) => {
   if (!userOp) {
     return <div>Loading...</div>

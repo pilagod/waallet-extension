@@ -1,4 +1,4 @@
-import { UserOperationData } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import type { BigNumberish, HexString, PartialPick } from "~typing"
 
 export enum WaalletRpcMethod {
@@ -41,7 +41,7 @@ export type EthEstimateUserOperationGasArguments = {
   method: WaalletRpcMethod.eth_estimateUserOperationGas
   params: [
     PartialPick<
-      ReturnType<UserOperationData["data"]>,
+      ReturnType<UserOperation["data"]>,
       | "callGasLimit"
       | "verificationGasLimit"
       | "preVerificationGas"

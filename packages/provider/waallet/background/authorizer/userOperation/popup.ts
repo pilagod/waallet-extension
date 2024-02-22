@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill"
 
-import { UserOperationData } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import json from "~packages/util/json"
 
 import {
@@ -10,10 +10,10 @@ import {
 
 export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
   public async authorize(
-    userOp: UserOperationData,
+    userOp: UserOperation,
     { onApproved }: UserOperationAuthorizeCallback
   ) {
-    return new Promise<UserOperationData>(async (resolve, reject) => {
+    return new Promise<UserOperation>(async (resolve, reject) => {
       let resolved = false
 
       const w = await browser.windows.create({
@@ -45,7 +45,7 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
             return
           }
           const userOpAuthorized = await onApproved(
-            new UserOperationData(json.parse(message.userOpAuthorized)),
+            new UserOperation(json.parse(message.userOpAuthorized)),
             {
               sender: port.sender
             }

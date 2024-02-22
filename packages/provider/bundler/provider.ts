@@ -1,7 +1,7 @@
 import type { HexString, Nullable } from "~typing"
 
 import { JsonRpcProvider } from "../jsonrpc/provider"
-import { UserOperationData } from "./index"
+import { UserOperation } from "./index"
 import { BundlerRpcMethod } from "./rpc"
 
 export enum BundlerMode {
@@ -44,7 +44,7 @@ export class BundlerProvider {
   }
 
   public async estimateUserOperationGas(
-    userOp: UserOperationData,
+    userOp: UserOperation,
     entryPointAddress: HexString
   ): Promise<{
     preVerificationGas: HexString
@@ -59,7 +59,7 @@ export class BundlerProvider {
   }
 
   public async sendUserOperation(
-    userOp: UserOperationData,
+    userOp: UserOperation,
     entryPointAddress: HexString
   ): Promise<HexString> {
     const userOpHash = await this.bundler.send({

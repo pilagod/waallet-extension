@@ -1,4 +1,4 @@
-import { UserOperationData } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import type { HexString } from "~typing"
 
 export enum PaymasterType {
@@ -7,5 +7,5 @@ export enum PaymasterType {
 }
 
 export interface Paymaster {
-  requestPaymasterAndData(userOp: UserOperationData): Promise<HexString>
+  requestPaymasterAndData(userOp: UserOperation): Promise<HexString>
 }

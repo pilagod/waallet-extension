@@ -1,6 +1,6 @@
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { UserOperationData } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import byte from "~packages/util/byte"
 import type { HexString, Nullable } from "~typing"
 
@@ -105,10 +105,10 @@ describe("WaalletBackgroundProvider", () => {
     const mutatingAuthorizer = new (class MutatingUserOperationAuthorizer
       implements UserOperationAuthorizer
     {
-      public userOpAuthorized: Nullable<UserOperationData> = null
+      public userOpAuthorized: Nullable<UserOperation> = null
 
       public async authorize(
-        userOp: UserOperationData,
+        userOp: UserOperation,
         { onApproved }: UserOperationAuthorizeCallback
       ) {
         userOp.setCallGasLimit(userOp.callGasLimit + 1n)

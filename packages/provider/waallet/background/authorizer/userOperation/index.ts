@@ -1,15 +1,15 @@
-import { UserOperationData } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 
 export type UserOperationAuthorizeCallback = {
   onApproved: (
-    userOpAuthorized: UserOperationData,
+    userOpAuthorized: UserOperation,
     metadata?: any
-  ) => Promise<UserOperationData>
+  ) => Promise<UserOperation>
 }
 
 export interface UserOperationAuthorizer {
   authorize(
-    userOp: UserOperationData,
+    userOp: UserOperation,
     callback: UserOperationAuthorizeCallback
-  ): Promise<UserOperationData>
+  ): Promise<UserOperation>
 }
