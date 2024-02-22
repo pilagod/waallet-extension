@@ -11,16 +11,7 @@ export type PaymasterUserOperation = Partial<
   Omit<UserOperation, "paymasterAndData" | "signature">
 >
 
-export type ExchangeRate = {
-  rate: bigint
-  decimals: number
-}
-
 export interface Paymaster {
-  /**
-   * Quote the exchange rate of quote token to native token in order to pay gas fee.
-   */
-  getExchangeRate(quote: Token): Promise<ExchangeRate>
   /**
    * Quote fee in `quote` token
    */

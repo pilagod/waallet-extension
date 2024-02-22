@@ -27,17 +27,7 @@ export class VerifyingPaymaster implements Paymaster {
     this.intervalSecs = option.expirationSecs
   }
 
-  public async getExchangeRate(quote: Token) {
-    if (quote !== ETH) {
-      throw new Error(`Unsupported token: ${quote.symbol}`)
-    }
-    return {
-      rate: 0n,
-      decimals: 0
-    }
-  }
-
-  public async quoteFee(fee: bigint, quote: Token) {
+  public async quoteFee(_: bigint, quote: Token) {
     if (quote !== ETH) {
       throw new Error(`Unsupported token: ${quote.symbol}`)
     }

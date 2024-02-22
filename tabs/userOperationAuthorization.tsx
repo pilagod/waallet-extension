@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import browser from "webextension-polyfill"
 
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
-import type { ExchangeRate, Paymaster } from "~packages/paymaster"
+import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import type { UserOperation } from "~packages/provider/bundler"
@@ -22,7 +22,6 @@ type Payment = {
   option: PaymentOption
   token: Token
   tokenFee: bigint
-  exchangeRate: ExchangeRate
 }
 
 const UserOperationAuthorization = () => {
@@ -51,11 +50,7 @@ const UserOperationAuthorization = () => {
   const [payment, setPayment] = useState<Payment>({
     option: paymentOptions[0],
     token: ETH,
-    tokenFee: 0n,
-    exchangeRate: {
-      rate: 1n,
-      decimals: 0
-    }
+    tokenFee: 0n
   })
 
   const onPaymentOptionSelected = async (o: PaymentOption) => {
