@@ -1,10 +1,7 @@
-import * as ethers from "ethers"
-
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { UserOperationData } from "~packages/provider/bundler"
 import byte from "~packages/util/byte"
-import number from "~packages/util/number"
 import type { HexString, Nullable } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
@@ -19,7 +16,7 @@ describe("WaalletBackgroundProvider", () => {
   const { node } = config.provider
   const { counter } = config.contract
 
-  const waalletProvider = new WaalletBackgroundProvider(
+  const provider = new WaalletBackgroundProvider(
     config.rpc.node,
     config.provider.bundler,
     new NullUserOperationAuthorizer()
@@ -32,25 +29,25 @@ describe("WaalletBackgroundProvider", () => {
       ownerPrivateKey: config.account.operator.privateKey,
       nodeRpcUrl: config.rpc.node
     })
-    waalletProvider.connect(account)
+    provider.connect(account)
   })
 
   it("should get chain id", async () => {
-    const chainId = await waalletProvider.request<HexString>({
+    const chainId = await provider.request<HexString>({
       method: WaalletRpcMethod.eth_chainId
     })
     expect(parseInt(chainId, 16)).toBe(1337)
   })
 
   it("should get block number", async () => {
-    const blockNumber = await waalletProvider.request<HexString>({
+    const blockNumber = await provider.request<HexString>({
       method: WaalletRpcMethod.eth_blockNumber
     })
     expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
   })
 
   it("should get accounts", async () => {
-    const accounts = await waalletProvider.request<HexString>({
+    const accounts = await provider.request<HexString>({
       method: WaalletRpcMethod.eth_accounts
     })
     expect(accounts.length).toBeGreaterThan(0)
@@ -58,7 +55,7 @@ describe("WaalletBackgroundProvider", () => {
   })
 
   it("should request accounts", async () => {
-    const accounts = await waalletProvider.request<HexString>({
+    const accounts = await provider.request<HexString>({
       method: WaalletRpcMethod.eth_requestAccounts
     })
     expect(accounts.length).toBeGreaterThan(0)
@@ -66,7 +63,7 @@ describe("WaalletBackgroundProvider", () => {
   })
 
   it("should estimate gas", async () => {
-    const gas = await waalletProvider.request<HexString>({
+    const gas = await provider.request<HexString>({
       method: WaalletRpcMethod.eth_estimateGas,
       params: [
         {
@@ -84,7 +81,7 @@ describe("WaalletBackgroundProvider", () => {
     const balanceBefore = await node.getBalance(counter.getAddress())
     const counterBefore = (await counter.number()) as bigint
 
-    const txHash = await waalletProvider.request<HexString>({
+    const txHash = await provider.request<HexString>({
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
@@ -105,7 +102,7 @@ describe("WaalletBackgroundProvider", () => {
   })
 
   it("should send authorized user operation", async () => {
-    const authorizer = new (class MutatingUserOperationAuthorizer
+    const mutatingAuthorizer = new (class MutatingUserOperationAuthorizer
       implements UserOperationAuthorizer
     {
       public userOpAuthorized: Nullable<UserOperationData> = null
@@ -114,19 +111,17 @@ describe("WaalletBackgroundProvider", () => {
         userOp: UserOperationData,
         { onApproved }: UserOperationAuthorizeCallback
       ) {
-        userOp.callGasLimit += 1n
+        userOp.setCallGasLimit(userOp.callGasLimit + 1n)
         this.userOpAuthorized = await onApproved(userOp)
         return this.userOpAuthorized
       }
     })()
-    const provider = new WaalletBackgroundProvider(
-      config.rpc.node,
-      config.provider.bundler,
-      authorizer
-    )
-    provider.connect(account)
 
-    await provider.request({
+    const mutatingProvider = provider.clone({
+      userOperationAuthorizer: mutatingAuthorizer
+    })
+
+    await mutatingProvider.request({
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
         {
@@ -137,7 +132,7 @@ describe("WaalletBackgroundProvider", () => {
     })
 
     expect(config.provider.bundler.lastSentUserOperation).toEqual(
-      authorizer.userOpAuthorized
+      mutatingAuthorizer.userOpAuthorized
     )
   })
 })

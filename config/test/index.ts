@@ -1,6 +1,6 @@
 import * as ethers from "ethers"
 
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperationData } from "~packages/provider/bundler"
 import {
   BundlerMode,
   BundlerProvider
@@ -8,10 +8,10 @@ import {
 import type { HexString, Nullable } from "~typing"
 
 class BundlerProviderWithCache extends BundlerProvider {
-  public lastSentUserOperation: Nullable<UserOperation> = null
+  public lastSentUserOperation: Nullable<UserOperationData> = null
 
   public async sendUserOperation(
-    userOp: UserOperation,
+    userOp: UserOperationData,
     entryPointAddress: HexString
   ): Promise<HexString> {
     this.lastSentUserOperation = userOp

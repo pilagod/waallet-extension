@@ -1,7 +1,10 @@
 import * as ethers from "ethers"
 
-import type { Paymaster, PaymasterUserOperation } from "~packages/paymaster"
-import { UserOperationStruct } from "~packages/provider/bundler"
+import type { Paymaster } from "~packages/paymaster"
+import {
+  UserOperationData,
+  UserOperationStruct
+} from "~packages/provider/bundler"
 import type { HexString } from "~typing"
 
 export class VerifyingPaymaster implements Paymaster {
@@ -26,7 +29,7 @@ export class VerifyingPaymaster implements Paymaster {
     this.intervalSecs = option.expirationSecs
   }
 
-  public async requestPaymasterAndData(userOp: PaymasterUserOperation) {
+  public async requestPaymasterAndData(userOp: UserOperationData) {
     const validAfter = 0
     const validUntil =
       Math.floor(new Date().getTime() / 1000) + this.intervalSecs
@@ -43,16 +46,11 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   private async getSignature(
-    userOp: PaymasterUserOperation,
+    userOp: UserOperationData,
     validUntil: number,
     validAfter: number
   ) {
-    const isGasEstimation = !(
-      userOp.callGasLimit &&
-      userOp.verificationGasLimit &&
-      userOp.preVerificationGas
-    )
-    if (isGasEstimation) {
+    if (!userOp.isGasEstimated()) {
       return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
     }
     const hash = await this.paymaster.getHash(userOp, validUntil, validAfter)

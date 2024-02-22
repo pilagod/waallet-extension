@@ -3,6 +3,7 @@ import * as ethers from "ethers"
 import { type Account } from "~packages/account"
 import { type Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
+import { UserOperationData } from "~packages/provider/bundler"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
 import number from "~packages/util/number"
@@ -94,13 +95,11 @@ export class WaalletBackgroundProvider {
     userOp.setPaymasterAndData(
       await this.paymaster.requestPaymasterAndData(userOp)
     )
+    if (tx.gas) {
+      userOp.setCallGasLimit(tx.gas)
+    }
     const { callGasLimit } = await this.bundler.estimateUserOperationGas(
-      {
-        ...userOp.data(),
-        ...(tx.gas && {
-          callGasLimit: tx.gas
-        })
-      },
+      userOp,
       entryPointAddress
     )
     return number.toHex(callGasLimit)
@@ -113,15 +112,9 @@ export class WaalletBackgroundProvider {
     verificationGasLimit: HexString
     callGasLimit: HexString
   }> {
-    const [userOp] = params
+    const userOp = new UserOperationData(params[0])
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const { callGasLimit, verificationGasLimit, preVerificationGas } =
-      await this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
-    return {
-      callGasLimit: number.toHex(callGasLimit),
-      verificationGasLimit: number.toHex(verificationGasLimit),
-      preVerificationGas: number.toHex(preVerificationGas)
-    }
+    return this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
   }
 
   private async handleSendTransaction(
@@ -138,7 +131,6 @@ export class WaalletBackgroundProvider {
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    // TODO: Integrate paymaster
     const userOp = await this.account.createUserOperation({
       to: tx.to,
       value: tx.value,
@@ -148,17 +140,12 @@ export class WaalletBackgroundProvider {
     userOp.setPaymasterAndData(
       await this.paymaster.requestPaymasterAndData(userOp)
     )
+    if (tx.gas) {
+      userOp.setCallGasLimit(tx.gas)
+    }
     userOp.setGasFee(await this.estimateGasFee(tx.gasPrice))
     userOp.setGasLimit(
-      await this.bundler.estimateUserOperationGas(
-        {
-          ...userOp.data(),
-          ...(tx.gas && {
-            callGasLimit: tx.gas
-          })
-        },
-        entryPointAddress
-      )
+      await this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
     )
     const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,

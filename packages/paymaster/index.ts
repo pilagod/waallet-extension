@@ -1,4 +1,4 @@
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperationData } from "~packages/provider/bundler"
 import type { HexString } from "~typing"
 
 export enum PaymasterType {
@@ -6,10 +6,6 @@ export enum PaymasterType {
   Verifying
 }
 
-export type PaymasterUserOperation = Partial<
-  Omit<UserOperation, "paymasterAndData" | "signature">
->
-
 export interface Paymaster {
-  requestPaymasterAndData(userOp: PaymasterUserOperation): Promise<HexString>
+  requestPaymasterAndData(userOp: UserOperationData): Promise<HexString>
 }

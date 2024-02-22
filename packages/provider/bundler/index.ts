@@ -3,6 +3,9 @@ import * as ethers from "ethers"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
+export const UserOperationStruct =
+  "(address sender, uint256 nonce, bytes initCode, bytes callData, uint256 callGasLimit, uint256 verificationGasLimit, uint256 preVerificationGas, uint256 maxFeePerGas, uint256 maxPriorityFeePerGas, bytes paymasterAndData, bytes signature)"
+
 export class UserOperationData {
   public sender: HexString
   public nonce: bigint
@@ -30,7 +33,7 @@ export class UserOperationData {
     signature?: HexString
   }) {
     this.sender = data.sender
-    this.nonce = ethers.toBigInt(data.nonce)
+    this.nonce = number.toBigInt(data.nonce)
     this.initCode = data.initCode
     this.callData = data.callData
     if (data.callGasLimit) {
@@ -108,12 +111,16 @@ export class UserOperationData {
     }
   }
 
+  public setCallGasLimit(callGasLimit: BigNumberish) {
+    this.callGasLimit = number.toBigInt(callGasLimit)
+  }
+
   public setGasLimit(data: {
     callGasLimit: BigNumberish
     verificationGasLimit: BigNumberish
     preVerificationGas: BigNumberish
   }) {
-    this.callGasLimit = number.toBigInt(data.callGasLimit)
+    this.setCallGasLimit(data.callGasLimit)
     this.verificationGasLimit = number.toBigInt(data.verificationGasLimit)
     this.preVerificationGas = number.toBigInt(data.preVerificationGas)
   }
@@ -133,21 +140,21 @@ export class UserOperationData {
   public setSignature(signature: HexString) {
     this.signature = signature
   }
-}
 
-export type UserOperation = {
-  sender: HexString
-  nonce: BigNumberish
-  initCode: HexString
-  callData: HexString
-  callGasLimit: BigNumberish
-  verificationGasLimit: BigNumberish
-  preVerificationGas: BigNumberish
-  maxFeePerGas: BigNumberish
-  maxPriorityFeePerGas: BigNumberish
-  paymasterAndData: HexString
-  signature: HexString
-}
+  public calculateGasFee() {
+    return (
+      (this.callGasLimit +
+        this.verificationGasLimit * (this.paymasterAndData === "0x" ? 1n : 3n) +
+        this.preVerificationGas) *
+      this.maxFeePerGas
+    )
+  }
 
-export const UserOperationStruct =
-  "(address sender, uint256 nonce, bytes initCode, bytes callData, uint256 callGasLimit, uint256 verificationGasLimit, uint256 preVerificationGas, uint256 maxFeePerGas, uint256 maxPriorityFeePerGas, bytes paymasterAndData, bytes signature)"
+  public isGasEstimated() {
+    return !!(
+      this.callGasLimit &&
+      this.verificationGasLimit &&
+      this.preVerificationGas
+    )
+  }
+}

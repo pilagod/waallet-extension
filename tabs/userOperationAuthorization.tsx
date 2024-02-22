@@ -6,7 +6,7 @@ import { BackgroundDirectMessenger } from "~packages/messenger/background/direct
 import { PaymasterType } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperationData } from "~packages/provider/bundler"
 import { WaalletContentProvider } from "~packages/provider/waallet/content/provider"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import json from "~packages/util/json"
@@ -17,8 +17,10 @@ const UserOperationAuthorization = () => {
     new WaalletContentProvider(new BackgroundDirectMessenger())
   )
   const [port, setPort] = useState<browser.Runtime.Port>(null)
-  // TODO: Refine typing from Bignumberish to bigint
-  const [userOp, setUserOp] = useState<UserOperation>(null)
+  // TODO: Refactor class state usage
+  const [userOpData, setUserOpData] =
+    useState<ReturnType<UserOperationData["data"]>>(null)
+  const userOp = userOpData ? new UserOperationData(userOpData) : null
   const [paymasterSelected, setPaymasterSelected] = useState(PaymasterType.Null)
 
   const onPaymasterSelected = async (paymasterType: PaymasterType) => {
@@ -26,18 +28,13 @@ const UserOperationAuthorization = () => {
     const paymaster = createPaymaster(paymasterType)
     // TODO: Can we skip the estimation phase?
     // This is a special phase for verifying paymaster to construct dummy signature
-    const paymasterUserOp = {
-      ...userOp,
-      paymasterAndData: await paymaster.requestPaymasterAndData(userOp)
-    }
-    const gasLimits = await provider.send(
-      WaalletRpcMethod.eth_estimateUserOperationGas,
-      [paymasterUserOp]
+    userOp.setPaymasterAndData(await paymaster.requestPaymasterAndData(userOp))
+    userOp.setGasLimit(
+      await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
+        userOp.data()
+      ])
     )
-    setUserOp({
-      ...paymasterUserOp,
-      ...gasLimits
-    })
+    setUserOpData(userOp.data())
   }
 
   const createPaymaster = (paymasterType: PaymasterType) => {
@@ -61,7 +58,7 @@ const UserOperationAuthorization = () => {
     const paymaster = createPaymaster(paymasterSelected)
     port.postMessage({
       userOpAuthorized: json.stringify({
-        ...userOp,
+        ...userOp.data(),
         paymasterAndData: await paymaster.requestPaymasterAndData(userOp)
       })
     })
@@ -76,7 +73,9 @@ const UserOperationAuthorization = () => {
       port.onMessage.addListener(async (message) => {
         console.log("message from background", message)
         if (message.userOp) {
-          setUserOp(json.parse(message.userOp))
+          setUserOpData(
+            new UserOperationData(json.parse(message.userOp)).data()
+          )
         }
       })
       setPort(port)
@@ -120,16 +119,11 @@ const UserOperationAuthorization = () => {
       </div>
       <div>
         <h1>Estimated Gas Fee</h1>
-        {userOp && (
+        {userOpData && (
           <span>
             {paymasterSelected === PaymasterType.Verifying
               ? 0
-              : ethers.formatEther(
-                  (ethers.toBigInt(userOp.callGasLimit) +
-                    ethers.toBigInt(userOp.verificationGasLimit) +
-                    ethers.toBigInt(userOp.preVerificationGas)) *
-                    ethers.toBigInt(userOp.maxFeePerGas)
-                )}
+              : ethers.formatEther(userOp.calculateGasFee())}
           </span>
         )}
       </div>
@@ -144,17 +138,17 @@ const UserOperationAuthorization = () => {
 const UserOperationPreview = ({
   userOp
 }: {
-  userOp: Nullable<UserOperation>
+  userOp: Nullable<UserOperationData>
 }) => {
   if (!userOp) {
     return <div>Loading...</div>
   }
   return (
     <div>
-      {Object.keys(userOp).map((key, i) => {
+      {Object.entries(userOp.data()).map(([key, value], i) => {
         return (
           <div key={i}>
-            {key}: {userOp[key]}
+            {key}: {value}
           </div>
         )
       })}
