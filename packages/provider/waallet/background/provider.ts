@@ -92,10 +92,8 @@ export class WaalletBackgroundProvider {
       value: tx.value,
       data: tx.data
     })
-    const paymasterAndData = await this.paymaster.requestPaymasterAndData(
-      userOpCall,
-      { isGasEstimation: true }
-    )
+    const paymasterAndData =
+      await this.paymaster.requestPaymasterAndData(userOpCall)
     const { callGasLimit } = await this.bundler.estimateUserOperationGas(
       {
         ...userOpCall,
@@ -149,10 +147,8 @@ export class WaalletBackgroundProvider {
       nonce: tx.nonce
     })
     const userOpGasFee = await this.estimateGasFee(tx.gasPrice)
-    const paymasterAndData = await this.paymaster.requestPaymasterAndData(
-      userOpCall,
-      { isGasEstimation: true }
-    )
+    const paymasterAndData =
+      await this.paymaster.requestPaymasterAndData(userOpCall)
     const userOpGasLimit = await this.bundler.estimateUserOperationGas(
       {
         ...userOpCall,

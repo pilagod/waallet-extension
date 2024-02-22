@@ -28,9 +28,7 @@ const UserOperationAuthorization = () => {
     // This is a special phase for verifying paymaster to construct dummy signature
     const paymasterUserOp = {
       ...userOp,
-      paymasterAndData: await paymaster.requestPaymasterAndData(userOp, {
-        isGasEstimation: true
-      })
+      paymasterAndData: await paymaster.requestPaymasterAndData(userOp)
     }
     const gasLimits = await provider.send(
       WaalletRpcMethod.eth_estimateUserOperationGas,

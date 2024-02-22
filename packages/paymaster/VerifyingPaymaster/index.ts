@@ -1,10 +1,6 @@
 import * as ethers from "ethers"
 
-import type {
-  Paymaster,
-  PaymasterRequestOption,
-  PaymasterUserOperation
-} from "~packages/paymaster"
+import type { Paymaster, PaymasterUserOperation } from "~packages/paymaster"
 import { UserOperationStruct } from "~packages/provider/bundler"
 import type { HexString } from "~typing"
 
@@ -30,19 +26,12 @@ export class VerifyingPaymaster implements Paymaster {
     this.intervalSecs = option.expirationSecs
   }
 
-  public async requestPaymasterAndData(
-    userOp: PaymasterUserOperation,
-    option?: PaymasterRequestOption
-  ) {
+  public async requestPaymasterAndData(userOp: PaymasterUserOperation) {
     const validAfter = 0
     const validUntil =
       Math.floor(new Date().getTime() / 1000) + this.intervalSecs
-    const signature = await this.getSignature({
-      userOp,
-      validUntil,
-      validAfter,
-      isGasEstimation: !!option?.isGasEstimation
-    })
+    const signature = await this.getSignature(userOp, validUntil, validAfter)
+
     return ethers.concat([
       await this.paymaster.getAddress(),
       ethers.AbiCoder.defaultAbiCoder().encode(
@@ -53,20 +42,20 @@ export class VerifyingPaymaster implements Paymaster {
     ])
   }
 
-  private async getSignature(option: {
-    userOp: PaymasterUserOperation
-    validUntil: number
+  private async getSignature(
+    userOp: PaymasterUserOperation,
+    validUntil: number,
     validAfter: number
-    isGasEstimation: boolean
-  }) {
-    if (option.isGasEstimation) {
+  ) {
+    const isGasEstimation = !(
+      userOp.callGasLimit &&
+      userOp.verificationGasLimit &&
+      userOp.preVerificationGas
+    )
+    if (isGasEstimation) {
       return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
     }
-    const hash = await this.paymaster.getHash(
-      option.userOp,
-      option.validUntil,
-      option.validAfter
-    )
+    const hash = await this.paymaster.getHash(userOp, validUntil, validAfter)
     return this.owner.signMessage(ethers.getBytes(hash))
   }
 }
