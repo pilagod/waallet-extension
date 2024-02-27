@@ -82,13 +82,16 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should estimate gas for contract creation
       return
     }
-    if (tx.from && tx.from !== (await this.account.getAddress())) {
+    if (
+      tx.from &&
+      ethers.getAddress(tx.from) !== (await this.account.getAddress())
+    ) {
       throw new Error("Address `from` doesn't match connected account")
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     const userOpCall = await this.account.createUserOperationCall({
-      to: tx.to,
+      to: ethers.getAddress(tx.to),
       value: tx.value,
       data: tx.data
     })
@@ -136,14 +139,17 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should create contract
       return
     }
-    if (tx.from && tx.from !== (await this.account.getAddress())) {
+    if (
+      tx.from &&
+      ethers.getAddress(tx.from) !== (await this.account.getAddress())
+    ) {
       throw new Error("Address `from` doesn't match connected account")
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     // TODO: Integrate paymaster
     const userOpCall = await this.account.createUserOperationCall({
-      to: tx.to,
+      to: ethers.getAddress(tx.to),
       value: tx.value,
       data: tx.data,
       nonce: tx.nonce
