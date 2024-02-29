@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import type { Paymaster } from "~packages/paymaster"
 import { UserOperation, UserOperationStruct } from "~packages/provider/bundler"
+import { ETH, Token } from "~packages/token"
 import type { HexString } from "~typing"
 
 export class VerifyingPaymaster implements Paymaster {
@@ -24,6 +25,13 @@ export class VerifyingPaymaster implements Paymaster {
     )
     this.owner = new ethers.Wallet(option.ownerPrivateKey)
     this.intervalSecs = option.expirationSecs
+  }
+
+  public async quoteFee(_: bigint, quote: Token) {
+    if (quote !== ETH) {
+      throw new Error(`Unsupported token: ${quote.symbol}`)
+    }
+    return 0n
   }
 
   public async requestPaymasterAndData(userOp: UserOperation) {
