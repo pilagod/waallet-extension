@@ -82,7 +82,10 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should estimate gas for contract creation
       return
     }
-    if (tx.from && tx.from !== (await this.account.getAddress())) {
+    if (
+      tx.from &&
+      ethers.getAddress(tx.from) !== (await this.account.getAddress())
+    ) {
       throw new Error("Address `from` doesn't match connected account")
     }
     // TODO: Use account's entry point
@@ -134,7 +137,10 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should create contract
       return
     }
-    if (tx.from && tx.from !== (await this.account.getAddress())) {
+    if (
+      tx.from &&
+      ethers.getAddress(tx.from) !== (await this.account.getAddress())
+    ) {
       throw new Error("Address `from` doesn't match connected account")
     }
     // TODO: Use account's entry point
