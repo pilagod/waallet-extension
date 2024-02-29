@@ -91,7 +91,7 @@ export class WaalletBackgroundProvider {
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     const userOpCall = await this.account.createUserOperationCall({
-      to: ethers.getAddress(tx.to),
+      to: tx.to,
       value: tx.value,
       data: tx.data
     })
@@ -149,7 +149,7 @@ export class WaalletBackgroundProvider {
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
     // TODO: Integrate paymaster
     const userOpCall = await this.account.createUserOperationCall({
-      to: ethers.getAddress(tx.to),
+      to: tx.to,
       value: tx.value,
       data: tx.data,
       nonce: tx.nonce
