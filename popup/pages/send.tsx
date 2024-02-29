@@ -28,7 +28,6 @@ export function Send() {
   // Button state
   const [sendLock, setSendLock] = useState<boolean>(true)
 
-  // Only for test, set the to address as the from address
   useEffect(() => {
     const asyncFn = async () => {
       setTxToSuggestions(
@@ -75,7 +74,6 @@ export function Send() {
   )
 
   const handleSend = useCallback(async () => {
-    // const paymaster = createPaymaster(paymasterSelected)
     const accountAddress = (await providerCtx.provider.listAccounts()).map(
       (account) => account.address
     )[providerCtx.index]
