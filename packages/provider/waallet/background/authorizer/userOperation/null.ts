@@ -1,4 +1,4 @@
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 
 import {
   type UserOperationAuthorizeCallback,

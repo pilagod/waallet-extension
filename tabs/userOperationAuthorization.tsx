@@ -1,12 +1,13 @@
 import * as ethers from "ethers"
 import { useEffect, useState } from "react"
+import useDeepCompareEffect from "use-deep-compare-effect"
 import browser from "webextension-polyfill"
 
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import { WaalletContentProvider } from "~packages/provider/waallet/content/provider"
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import { ETH, Token } from "~packages/token"
@@ -45,8 +46,10 @@ const UserOperationAuthorization = () => {
     }
   ]
   const [port, setPort] = useState<browser.Runtime.Port>(null)
-  // TODO: Refine typing from Bignumberish to bigint
-  const [userOp, setUserOp] = useState<UserOperation>(null)
+  // TODO: Refactor class state usage
+  const [userOpData, setUserOpData] =
+    useState<ReturnType<UserOperation["data"]>>(null)
+  const userOp = userOpData ? new UserOperation(userOpData) : null
   const [payment, setPayment] = useState<Payment>({
     option: paymentOptions[0],
     token: ETH,
@@ -60,24 +63,21 @@ const UserOperationAuthorization = () => {
       ...payment,
       option: o
     })
-    const paymasterUserOp = {
-      ...userOp,
-      paymasterAndData: await o.paymaster.requestPaymasterAndData(userOp)
-    }
-    const gasLimit = await provider.send(
-      WaalletRpcMethod.eth_estimateUserOperationGas,
-      [paymasterUserOp]
+    userOp.setPaymasterAndData(
+      await o.paymaster.requestPaymasterAndData(userOp)
     )
-    setUserOp({
-      ...paymasterUserOp,
-      ...gasLimit
-    })
+    userOp.setGasLimit(
+      await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
+        userOp.data()
+      ])
+    )
+    setUserOpData(userOp.data())
   }
 
   const sendUserOperation = async () => {
     port.postMessage({
       userOpAuthorized: json.stringify({
-        ...userOp,
+        ...userOp.data(),
         paymasterAndData:
           await payment.option.paymaster.requestPaymasterAndData(userOp)
       })
@@ -93,7 +93,7 @@ const UserOperationAuthorization = () => {
       port.onMessage.addListener(async (message) => {
         console.log("message from background", message)
         if (message.userOp) {
-          setUserOp(json.parse(message.userOp))
+          setUserOpData(new UserOperation(json.parse(message.userOp)).data())
         }
       })
       setPort(port)
@@ -102,22 +102,20 @@ const UserOperationAuthorization = () => {
     initUserOp()
   }, [])
 
-  useEffect(() => {
+  useDeepCompareEffect(() => {
     async function updatePayment() {
       setPayment({
         ...payment,
-        // TODO: Extract user operation fee calculation
         tokenFee: await payment.option.paymaster.quoteFee(
-          (ethers.toBigInt(userOp.callGasLimit) +
-            ethers.toBigInt(userOp.verificationGasLimit) +
-            ethers.toBigInt(userOp.preVerificationGas)) *
-            ethers.toBigInt(userOp.maxFeePerGas),
+          userOp.calculateGasFee(),
           ETH
         )
       })
     }
-    updatePayment()
-  }, [userOp])
+    if (userOp) {
+      updatePayment()
+    }
+  }, [userOpData, payment])
 
   return (
     <div>
@@ -147,14 +145,7 @@ const UserOperationAuthorization = () => {
         <h1>Transaction Cost</h1>
         <p>
           Estimated gas fee:{" "}
-          {ethers.formatEther(
-            userOp
-              ? (ethers.toBigInt(userOp.callGasLimit) +
-                  ethers.toBigInt(userOp.verificationGasLimit) +
-                  ethers.toBigInt(userOp.preVerificationGas)) *
-                  ethers.toBigInt(userOp.maxFeePerGas)
-              : 0n
-          )}{" "}
+          {ethers.formatEther(userOp ? userOp.calculateGasFee() : 0n)}{" "}
           {ETH.symbol}
         </p>
         <p>
@@ -181,10 +172,10 @@ const UserOperationPreview = ({
   }
   return (
     <div>
-      {Object.keys(userOp).map((key, i) => {
+      {Object.entries(userOp.data()).map(([key, value], i) => {
         return (
           <div key={i}>
-            {key}: {userOp[key]}
+            {key}: {value}
           </div>
         )
       })}

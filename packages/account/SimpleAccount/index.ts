@@ -2,7 +2,7 @@ import * as ethers from "ethers"
 
 import type { Call } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
 
@@ -72,7 +72,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     this.owner = opts.owner
   }
 
-  public async sign(message: string | Uint8Array) {
+  public async sign(message: BytesLike) {
     return this.owner.signMessage(ethers.getBytes(message))
   }
 

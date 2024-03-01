@@ -1,6 +1,6 @@
 import * as ethers from "ethers"
 
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import {
   BundlerMode,
   BundlerProvider

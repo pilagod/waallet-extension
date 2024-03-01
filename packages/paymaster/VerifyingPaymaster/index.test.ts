@@ -1,5 +1,5 @@
 import config from "~config/test"
-import type { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/provider/bundler"
 import type {
   UserOperationAuthorizeCallback,
   UserOperationAuthorizer
@@ -18,11 +18,10 @@ class VerifyingPaymasterUserOperationAuthorizer
     userOp: UserOperation,
     { onApproved }: UserOperationAuthorizeCallback
   ) {
-    return onApproved({
-      ...userOp,
-      paymasterAndData:
-        await this.verifyingPaymaster.requestPaymasterAndData(userOp)
-    })
+    userOp.setPaymasterAndData(
+      await this.verifyingPaymaster.requestPaymasterAndData(userOp)
+    )
+    return onApproved(userOp)
   }
 }
 

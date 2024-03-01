@@ -1,7 +1,7 @@
 import browser from "webextension-polyfill"
 
-import type { UserOperation } from "~packages/provider/bundler"
-import json, { replacer } from "~packages/util/json"
+import { UserOperation } from "~packages/provider/bundler"
+import json from "~packages/util/json"
 
 import {
   type UserOperationAuthorizeCallback,
@@ -37,7 +37,7 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
           // After popup is initialized, send user opreation to it for authorization.
           if (message.init) {
             port.postMessage({
-              userOp: json.stringify(userOp, replacer.numberToHex)
+              userOp: json.stringify(userOp.data())
             })
             return
           }
@@ -45,7 +45,7 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
             return
           }
           const userOpAuthorized = await onApproved(
-            json.parse(message.userOpAuthorized),
+            new UserOperation(json.parse(message.userOpAuthorized)),
             {
               sender: port.sender
             }
