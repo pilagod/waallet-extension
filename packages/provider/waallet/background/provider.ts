@@ -1,4 +1,8 @@
 import * as ethers from "ethers"
+import {
+  EthEstimateGas,
+  EthSendTransaction
+} from "packages/provider/waallet/background"
 
 import { type Account } from "~packages/account"
 import { type Paymaster } from "~packages/paymaster"
@@ -77,15 +81,12 @@ export class WaalletBackgroundProvider {
   private async handleEstimateGas(
     params: EthEstimateGasArguments["params"]
   ): Promise<HexString> {
-    const [tx] = params
+    const tx = new EthEstimateGas(params[0])
     if (!tx.to) {
       // TODO: When `to` is empty, it should estimate gas for contract creation
       return
     }
-    if (
-      tx.from &&
-      ethers.getAddress(tx.from) !== (await this.account.getAddress())
-    ) {
+    if (tx.from && tx.from !== (await this.account.getAddress())) {
       throw new Error("Address `from` doesn't match connected account")
     }
     // TODO: Use account's entry point
@@ -93,7 +94,7 @@ export class WaalletBackgroundProvider {
     const userOp = await this.account.createUserOperation({
       to: tx.to,
       value: tx.value,
-      data: tx.data
+      data: tx.input
     })
     userOp.setPaymasterAndData(
       await this.paymaster.requestPaymasterAndData(userOp)
@@ -123,16 +124,13 @@ export class WaalletBackgroundProvider {
   private async handleSendTransaction(
     params: EthSendTransactionArguments["params"]
   ): Promise<HexString> {
-    const [tx] = params
+    const tx = new EthSendTransaction(params[0])
     // TODO: Check tx from is same as account
     if (!tx.to) {
       // TODO: When `to` is empty, it should create contract
       return
     }
-    if (
-      tx.from &&
-      ethers.getAddress(tx.from) !== (await this.account.getAddress())
-    ) {
+    if (tx.from && tx.from !== (await this.account.getAddress())) {
       throw new Error("Address `from` doesn't match connected account")
     }
     // TODO: Use account's entry point
@@ -140,7 +138,7 @@ export class WaalletBackgroundProvider {
     const userOp = await this.account.createUserOperation({
       to: tx.to,
       value: tx.value,
-      data: tx.data,
+      data: tx.input,
       nonce: tx.nonce
     })
     userOp.setPaymasterAndData(

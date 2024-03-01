@@ -1,3 +1,8 @@
+import {
+  EthEstimateGas,
+  EthSendTransaction
+} from "packages/provider/waallet/background"
+
 import { UserOperation } from "~packages/provider/bundler"
 import type { BigNumberish, HexString, OptionalPick } from "~typing"
 
@@ -25,16 +30,7 @@ export type WaalletRequestArguments =
 
 export type EthEstimateGasArguments = {
   method: WaalletRpcMethod.eth_estimateGas
-  params: [
-    {
-      from?: HexString
-      to?: HexString
-      gas?: BigNumberish
-      gasPrice?: BigNumberish
-      value?: BigNumberish
-      data?: HexString
-    }
-  ]
+  params: [ReturnType<EthEstimateGas["params"]>]
 }
 
 export type EthEstimateUserOperationGasArguments = {
@@ -53,16 +49,5 @@ export type EthEstimateUserOperationGasArguments = {
 
 export type EthSendTransactionArguments = {
   method: WaalletRpcMethod.eth_sendTransaction
-  params: [
-    {
-      from?: HexString
-      to?: HexString
-      gas?: BigNumberish
-      gasPrice?: BigNumberish
-      value?: BigNumberish
-      input?: HexString
-      data?: HexString
-      nonce?: BigNumberish
-    }
-  ]
+  params: [ReturnType<EthSendTransaction["params"]>]
 }
