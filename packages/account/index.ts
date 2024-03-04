@@ -1,4 +1,4 @@
-import { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/bundler"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export type UserOperationCall = {

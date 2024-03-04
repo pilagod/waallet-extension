@@ -1,5 +1,5 @@
 import config from "~config/test"
-import { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/bundler"
 import type {
   UserOperationAuthorizeCallback,
   UserOperationAuthorizer
