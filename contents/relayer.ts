@@ -3,7 +3,7 @@ import type { PlasmoCSConfig } from "plasmo"
 import { sendToBackground } from "@plasmohq/messaging"
 import { relay } from "@plasmohq/messaging/relay"
 
-import { WaalletMessage } from "~packages/provider/waallet/message"
+import { WaalletMessage } from "~packages/waallet/message"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],

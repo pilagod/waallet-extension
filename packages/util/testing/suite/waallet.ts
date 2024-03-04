@@ -1,7 +1,7 @@
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { NullUserOperationAuthorizer } from "~packages/provider/waallet/background/authorizer/userOperation/null"
-import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
+import { NullUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/null"
+import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 
 export class WaalletSuiteContext {
   public account: SimpleAccount

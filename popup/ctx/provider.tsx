@@ -11,7 +11,7 @@ import {
 } from "react"
 
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
-import { WaalletContentProvider } from "~packages/provider/waallet/content/provider"
+import { WaalletContentProvider } from "~packages/waallet/content/provider"
 
 type ProviderCtxInterface = {
   provider: BrowserProvider
