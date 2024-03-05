@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import number from "~packages/util/number"
-import type { BigNumberish, HexString, RequiredPick } from "~typing"
+import type { BigNumberish, HexString } from "~typing"
 
 export type AccessListEntry = {
   address: HexString
@@ -33,7 +33,7 @@ export type Transaction = {
 // - https://docs.web3js.org/api/web3-types/interface/BaseTransactionAPI
 // - https://docs.metamask.io/wallet/reference/json-rpc-api/
 export class BaseTransaction {
-  public transaction: Transaction = {}
+  public transaction: Partial<Transaction> = {}
 
   public constructor(params: Transaction) {
     if (params.type) {
@@ -190,34 +190,12 @@ export class BaseTransaction {
   }
 }
 
-export class EthEstimateGas extends BaseTransaction {
+export class EthTransaction extends BaseTransaction {
   public isContractCreation() {
     return !this.transaction.to
   }
 
   public equalFrom(sender: HexString) {
     return this.transaction.from && this.transaction.from !== sender
-  }
-}
-
-export class EthSendTransaction extends BaseTransaction {
-  // The `from` parameter is required in the `eth_sendTransaction` request
-  public constructor(params: RequiredPick<Transaction, "from">) {
-    super(params)
-  }
-
-  public isContractCreation() {
-    return !this.transaction.to
-  }
-
-  public equalFrom(sender: HexString) {
-    return this.transaction.from && this.transaction.from !== sender
-  }
-
-  public params(): RequiredPick<Transaction, "from"> {
-    return {
-      ...super.params(),
-      from: ethers.getAddress(this.transaction.from)
-    }
   }
 }

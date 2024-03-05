@@ -6,10 +6,7 @@ import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { UserOperation } from "~packages/provider/bundler"
 import { BundlerProvider } from "~packages/provider/bundler/provider"
 import { JsonRpcProvider } from "~packages/provider/jsonrpc/provider"
-import {
-  EthEstimateGas,
-  EthSendTransaction
-} from "~packages/provider/waallet/background"
+import { EthTransaction } from "~packages/provider/waallet/background"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -81,7 +78,7 @@ export class WaalletBackgroundProvider {
   private async handleEstimateGas(
     params: EthEstimateGasArguments["params"]
   ): Promise<HexString> {
-    const tx = new EthEstimateGas(params[0])
+    const tx = new EthTransaction(params[0])
     if (tx.isContractCreation()) {
       // TODO: When `to` is empty, it should estimate gas for contract creation
       return
@@ -124,7 +121,7 @@ export class WaalletBackgroundProvider {
   private async handleSendTransaction(
     params: EthSendTransactionArguments["params"]
   ): Promise<HexString> {
-    const tx = new EthSendTransaction(params[0])
+    const tx = new EthTransaction(params[0])
     // TODO: Check tx from is same as account
     if (tx.isContractCreation()) {
       // TODO: When `to` is empty, it should create contract

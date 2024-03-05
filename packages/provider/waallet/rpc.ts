@@ -1,8 +1,5 @@
 import { UserOperation } from "~packages/provider/bundler"
-import {
-  EthEstimateGas,
-  EthSendTransaction
-} from "~packages/provider/waallet/background"
+import { EthTransaction } from "~packages/provider/waallet/background"
 import type { OptionalPick } from "~typing"
 
 export enum WaalletRpcMethod {
@@ -29,7 +26,7 @@ export type WaalletRequestArguments =
 
 export type EthEstimateGasArguments = {
   method: WaalletRpcMethod.eth_estimateGas
-  params: [ReturnType<EthEstimateGas["params"]>]
+  params: [ReturnType<EthTransaction["params"]>]
 }
 
 export type EthEstimateUserOperationGasArguments = {
@@ -48,5 +45,5 @@ export type EthEstimateUserOperationGasArguments = {
 
 export type EthSendTransactionArguments = {
   method: WaalletRpcMethod.eth_sendTransaction
-  params: [ReturnType<EthSendTransaction["params"]>]
+  params: [ReturnType<EthTransaction["params"]>]
 }
