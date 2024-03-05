@@ -1,10 +1,9 @@
+import { UserOperation } from "~packages/provider/bundler"
 import {
   EthEstimateGas,
   EthSendTransaction
-} from "packages/provider/waallet/background"
-
-import { UserOperation } from "~packages/provider/bundler"
-import type { BigNumberish, HexString, OptionalPick } from "~typing"
+} from "~packages/provider/waallet/background"
+import type { OptionalPick } from "~typing"
 
 export enum WaalletRpcMethod {
   eth_accounts = "eth_accounts",
