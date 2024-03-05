@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import useDeepCompareEffect from "use-deep-compare-effect"
 import browser from "webextension-polyfill"
 
+import { useClassState } from "~hook"
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
@@ -46,10 +47,7 @@ const UserOperationAuthorization = () => {
     }
   ]
   const [port, setPort] = useState<browser.Runtime.Port>(null)
-  // TODO: Refactor class state usage
-  const [userOpData, setUserOpData] =
-    useState<ReturnType<UserOperation["data"]>>(null)
-  const userOp = userOpData ? new UserOperation(userOpData) : null
+  const [userOp, setUserOp] = useClassState<UserOperation>(null)
   const [payment, setPayment] = useState<Payment>({
     option: paymentOptions[0],
     token: ETH,
@@ -71,7 +69,7 @@ const UserOperationAuthorization = () => {
         userOp.data()
       ])
     )
-    setUserOpData(userOp.data())
+    setUserOp(userOp)
   }
 
   const sendUserOperation = async () => {
@@ -93,7 +91,7 @@ const UserOperationAuthorization = () => {
       port.onMessage.addListener(async (message) => {
         console.log("message from background", message)
         if (message.userOp) {
-          setUserOpData(new UserOperation(json.parse(message.userOp)).data())
+          setUserOp(new UserOperation(json.parse(message.userOp)))
         }
       })
       setPort(port)
@@ -115,7 +113,7 @@ const UserOperationAuthorization = () => {
     if (userOp) {
       updatePayment()
     }
-  }, [userOpData, payment])
+  }, [userOp, payment])
 
   return (
     <div>
