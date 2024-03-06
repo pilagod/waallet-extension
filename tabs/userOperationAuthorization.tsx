@@ -1,9 +1,9 @@
 import * as ethers from "ethers"
 import { useEffect, useState } from "react"
+import { useClsState } from "use-cls-state"
 import useDeepCompareEffect from "use-deep-compare-effect"
 import browser from "webextension-polyfill"
 
-import { useClassState } from "~hook"
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
@@ -47,7 +47,7 @@ const UserOperationAuthorization = () => {
     }
   ]
   const [port, setPort] = useState<browser.Runtime.Port>(null)
-  const [userOp, setUserOp] = useClassState<UserOperation>(null)
+  const [userOp, setUserOp] = useClsState<UserOperation>(null)
   const [payment, setPayment] = useState<Payment>({
     option: paymentOptions[0],
     token: ETH,
