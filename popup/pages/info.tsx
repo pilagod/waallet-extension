@@ -1,6 +1,6 @@
 import * as ethers from "ethers"
 import { useContext, useEffect, useState, type MouseEvent } from "react"
-import { useLocation } from "wouter"
+import { Link } from "wouter"
 
 import { ProviderCtx } from "~popup/ctx/provider"
 import { PopupPath } from "~popup/util/page"
@@ -8,7 +8,6 @@ import type { BigNumberish, HexString } from "~typing"
 
 export function Info() {
   const providerCtx = useContext(ProviderCtx)
-  const [_, setLocation] = useLocation()
 
   const [address, setAddress] = useState<HexString>("")
   const [balance, setBalance] = useState<BigNumberish>(0n)
@@ -63,7 +62,7 @@ export function Info() {
         <AccountAddress account={address} explorerUrl={explorerUrl} />
       )}
       {balance && <AccountBalance balance={balance} />}
-      <SwitchToSendPage setLocation={setLocation} />
+      <SwitchToSendPage />
       {transactionHashes && (
         <AccountTransactions
           explorerUrl={explorerUrl}
@@ -141,12 +140,10 @@ const AccountInternalTransactions: React.FC<{
   )
 }
 
-const SwitchToSendPage: React.FC<{
-  setLocation: (to: string) => void
-}> = ({ setLocation }) => {
+const SwitchToSendPage: React.FC = () => {
   return (
     <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      <button onClick={() => setLocation(PopupPath.send)}>Send ↗</button>
+      <Link href={PopupPath.send}>Send ↗</Link>
     </div>
   )
 }
