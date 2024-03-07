@@ -6,7 +6,7 @@ import {
   useState,
   type ChangeEvent
 } from "react"
-import { useLocation } from "wouter"
+import { Link } from "wouter"
 
 import { ProviderCtx } from "~popup/ctx/provider"
 import { PopupPath } from "~popup/util/page"
@@ -14,7 +14,6 @@ import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
   const providerCtx = useContext(ProviderCtx)
-  const [_, setLocation] = useLocation()
   const [txHash, setTxHash] = useState<HexString>("")
 
   // Input state
@@ -114,9 +113,9 @@ export function Send() {
           className="flex-1">
           Send
         </button>
-        <button onClick={() => setLocation(PopupPath.info)} className="flex-1">
+        <Link href={PopupPath.info} className="flex-1">
           Cancel
-        </button>
+        </Link>
       </div>
       {txHash && (
         <div className="flex">
