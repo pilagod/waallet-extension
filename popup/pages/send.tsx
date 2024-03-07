@@ -21,12 +21,8 @@ export function Send() {
   const [txTo, setTxTo] = useState<HexString>("")
   const [txToSuggestions, setTxToSuggestions] = useState<HexString[]>([""])
   const [txValue, setTxValue] = useState<BigNumberish>("0")
-  const [toBorderColor, setToBorderColor] = useState<string>("border-gray-300")
-  const [amountBorderColor, setAmountBorderColor] =
-    useState<string>("border-gray-300")
-
-  // Button state
-  const [sendLock, setSendLock] = useState<boolean>(true)
+  const [invalidTo, setInvalidTo] = useState<boolean>(false)
+  const [invalidValue, setInvalidValue] = useState<boolean>(false)
 
   useEffect(() => {
     const asyncFn = async () => {
@@ -44,11 +40,10 @@ export function Send() {
     setTxTo(value)
     try {
       console.log(`${ethers.getAddress(value)}`)
-      setToBorderColor("border-gray-300")
-      setSendLock(false)
+      setInvalidTo(false)
     } catch (error) {
-      setToBorderColor("border-red-500")
-      setSendLock(true)
+      console.log(`Invalid to`)
+      setInvalidTo(true)
     }
   }
 
@@ -57,11 +52,10 @@ export function Send() {
     setTxValue(value)
     try {
       console.log(`${ethers.parseUnits(value, "ether")}`)
-      setAmountBorderColor("border-gray-300")
-      setSendLock(false)
+      setInvalidValue(false)
     } catch (error) {
-      setAmountBorderColor("border-red-500")
-      setSendLock(true)
+      console.log(`Invalid value`)
+      setInvalidValue(true)
     }
   }
 
@@ -93,7 +87,11 @@ export function Send() {
           value={`${txTo}`}
           onChange={handleToChange}
           list="suggestionTo"
-          className={`border ${toBorderColor} w-96 outline-none`}></input>
+          className={
+            invalidTo
+              ? "border border-red-500 w-96 outline-none"
+              : "border border-gray-300 w-96 outline-none"
+          }></input>
         <datalist id="suggestionTo">
           {txToSuggestions.map((to, index) => {
             return <option key={index} value={to} />
@@ -107,10 +105,17 @@ export function Send() {
           id={`${InputId.amount}`}
           value={`${txValue}`}
           onChange={handleAmountChange}
-          className={`border ${amountBorderColor} w-96 outline-none`}></input>
+          className={
+            invalidValue
+              ? "border border-red-500 w-96 outline-none"
+              : "border border-gray-300 w-96 outline-none"
+          }></input>
       </div>
       <div className="flex">
-        <button onClick={handleSend} disabled={sendLock} className="flex-1">
+        <button
+          onClick={handleSend}
+          disabled={invalidTo || invalidValue}
+          className="flex-1">
           Send
         </button>
         <button onClick={() => setLocation(PopupPath.info)} className="flex-1">
