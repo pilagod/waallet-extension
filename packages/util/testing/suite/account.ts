@@ -2,9 +2,9 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import type { Account } from "~packages/account"
-import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
-import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import byte from "~packages/util/byte"
+import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
 import { describeWaalletSuite } from "./waallet"

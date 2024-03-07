@@ -2,7 +2,7 @@ import * as ethers from "ethers"
 
 import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
-import { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/bundler"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export abstract class AccountSkeleton<T extends AccountFactory>

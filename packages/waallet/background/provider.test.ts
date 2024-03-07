@@ -1,6 +1,6 @@
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/bundler"
 import byte from "~packages/util/byte"
 import type { HexString, Nullable } from "~typing"
 
