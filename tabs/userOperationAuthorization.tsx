@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 import { useEffect, useState } from "react"
 import { useClsState } from "use-cls-state"
-import useDeepCompareEffect from "use-deep-compare-effect"
+import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
 import browser from "webextension-polyfill"
 
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
@@ -13,7 +13,6 @@ import { WaalletContentProvider } from "~packages/provider/waallet/content/provi
 import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import { ETH, Token } from "~packages/token"
 import json from "~packages/util/json"
-import type { Nullable } from "~typing"
 
 type PaymentOption = {
   name: string
@@ -53,10 +52,12 @@ const UserOperationAuthorization = () => {
     token: ETH,
     tokenFee: 0n
   })
+  const [paymentCalculating, setPaymentCalculating] = useState(false)
 
   const onPaymentOptionSelected = async (o: PaymentOption) => {
     // TODO: Be able to select token
     // Should show only tokens imported by user
+    setPaymentCalculating(true)
     setPayment({
       ...payment,
       option: o
@@ -100,8 +101,9 @@ const UserOperationAuthorization = () => {
     initUserOp()
   }, [])
 
-  useDeepCompareEffect(() => {
+  useDeepCompareEffectNoCheck(() => {
     async function updatePayment() {
+      setPaymentCalculating(true)
       setPayment({
         ...payment,
         tokenFee: await payment.option.paymaster.quoteFee(
@@ -109,17 +111,29 @@ const UserOperationAuthorization = () => {
           ETH
         )
       })
+      setPaymentCalculating(false)
     }
     if (userOp) {
       updatePayment()
     }
-  }, [userOp, payment])
+  }, [userOp])
 
+  if (!userOp) {
+    return <div>Loading...</div>
+  }
   return (
     <div>
       <div>
         <h1>Transaction Detail</h1>
-        <UserOperationPreview userOp={userOp} />
+        <div>
+          {Object.entries(userOp.data()).map(([key, value], i) => {
+            return (
+              <div key={i}>
+                {key}: {value}
+              </div>
+            )
+          })}
+        </div>
       </div>
       <div>
         <h1>Paymaster Option</h1>
@@ -132,6 +146,7 @@ const UserOperationAuthorization = () => {
                 id={id}
                 name={o.name}
                 checked={o.name === payment.option.name}
+                disabled={paymentCalculating}
                 onChange={() => onPaymentOptionSelected(o)}
               />
               <label htmlFor={id}>{o.name}</label>
@@ -148,35 +163,22 @@ const UserOperationAuthorization = () => {
         </p>
         <p>
           Expected to pay:{" "}
-          {ethers.formatUnits(payment.tokenFee, payment.token.decimals)}{" "}
-          {payment.token.symbol}
+          {paymentCalculating
+            ? "Calculating..."
+            : `${ethers.formatUnits(
+                payment.tokenFee,
+                payment.token.decimals
+              )} ${payment.token.symbol}`}
         </p>
       </div>
       <div style={{ marginTop: "1em" }}>
-        <button onClick={() => sendUserOperation()}>Send</button>
+        <button
+          onClick={() => sendUserOperation()}
+          disabled={paymentCalculating}>
+          Send
+        </button>
         <button onClick={() => window.close()}>Cancel</button>
       </div>
-    </div>
-  )
-}
-
-const UserOperationPreview = ({
-  userOp
-}: {
-  userOp: Nullable<UserOperation>
-}) => {
-  if (!userOp) {
-    return <div>Loading...</div>
-  }
-  return (
-    <div>
-      {Object.entries(userOp.data()).map(([key, value], i) => {
-        return (
-          <div key={i}>
-            {key}: {value}
-          </div>
-        )
-      })}
     </div>
   )
 }
