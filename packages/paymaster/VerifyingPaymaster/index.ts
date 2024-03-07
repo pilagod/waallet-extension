@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
+import { UserOperation, UserOperationStruct } from "~packages/bundler"
 import type { Paymaster } from "~packages/paymaster"
-import { UserOperation, UserOperationStruct } from "~packages/provider/bundler"
 import { ETH, Token } from "~packages/token"
 import type { HexString } from "~typing"
 

@@ -4,15 +4,15 @@ import { useClsState } from "use-cls-state"
 import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
 import browser from "webextension-polyfill"
 
+import { UserOperation } from "~packages/bundler"
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
-import { UserOperation } from "~packages/provider/bundler"
-import { WaalletContentProvider } from "~packages/provider/waallet/content/provider"
-import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import { ETH, Token } from "~packages/token"
 import json from "~packages/util/json"
+import { WaalletContentProvider } from "~packages/waallet/content/provider"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
 type PaymentOption = {
   name: string

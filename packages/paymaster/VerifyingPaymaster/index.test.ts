@@ -1,11 +1,11 @@
 import config from "~config/test"
-import { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/bundler"
+import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import type {
   UserOperationAuthorizeCallback,
   UserOperationAuthorizer
-} from "~packages/provider/waallet/background/authorizer/userOperation"
-import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
-import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
+} from "~packages/waallet/background/authorizer/userOperation"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
 import { VerifyingPaymaster } from "./index"
 

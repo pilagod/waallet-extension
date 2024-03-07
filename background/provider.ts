@@ -1,10 +1,7 @@
-import {
-  BundlerMode,
-  BundlerProvider
-} from "~packages/provider/bundler/provider"
-import { NullUserOperationAuthorizer } from "~packages/provider/waallet/background/authorizer/userOperation/null"
-import { PopUpUserOperationAuthorizer } from "~packages/provider/waallet/background/authorizer/userOperation/popup"
-import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
+import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
+import { NullUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/null"
+import { PopUpUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/popup"
+import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 
 let waalletBackgroundProvider: WaalletBackgroundProvider
 

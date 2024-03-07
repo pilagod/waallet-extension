@@ -2,7 +2,7 @@ import waalletIcon from "data-base64:~assets/waallet.svg"
 import type { PlasmoCSConfig } from "plasmo"
 
 import { BackgroundRelayMessenger } from "~packages/messenger/background/relay"
-import { WaalletContentProvider } from "~packages/provider/waallet/content/provider"
+import { WaalletContentProvider } from "~packages/waallet/content/provider"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
