@@ -26,16 +26,12 @@ jobs:
         working-directory: "waallet-extension"
         run: npm run lint
 
-      - name: Setup deploy key
-        run: |
-          eval `ssh-agent -s`
-          ssh-add - <<< '${{ secrets.IMAA_DEPLOY_PRIVATE_KEY }}'
-
       - name: Clone `waallet-contract`
         uses: actions/checkout@v4
         with:
           repository: "pilagod/waallet-contract"
           path: "waallet-contract"
+          ssh-key: "${{ secrets.IMAA_DEPLOY_PRIVATE_KEY }}"
           submodules: recursive
           ref: imAccount
 
