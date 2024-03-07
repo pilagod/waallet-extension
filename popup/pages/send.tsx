@@ -87,11 +87,9 @@ export function Send() {
           value={`${txTo}`}
           onChange={handleToChange}
           list="suggestionTo"
-          className={
-            invalidTo
-              ? "border border-red-500 w-96 outline-none"
-              : "border border-gray-300 w-96 outline-none"
-          }></input>
+          className={`border w-96 outline-none ${
+            invalidTo ? "border-red-500" : "border-gray-300"
+          }`}></input>
         <datalist id="suggestionTo">
           {txToSuggestions.map((to, index) => {
             return <option key={index} value={to} />
@@ -105,11 +103,9 @@ export function Send() {
           id={`${InputId.amount}`}
           value={`${txValue}`}
           onChange={handleAmountChange}
-          className={
-            invalidValue
-              ? "border border-red-500 w-96 outline-none"
-              : "border border-gray-300 w-96 outline-none"
-          }></input>
+          className={`border w-96 outline-none ${
+            invalidValue ? "border-red-500" : "border-gray-300"
+          }`}></input>
       </div>
       <div className="flex">
         <button
