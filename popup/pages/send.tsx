@@ -39,39 +39,31 @@ export function Send() {
     asyncFn()
   }, [])
 
-  const inputChange = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
-      const { id, value } = event.target
-      switch (id) {
-        case InputId.to:
-          setTxTo(value)
-          try {
-            console.log(`${ethers.getAddress(value)}`)
-            setToBorderColor("border-gray-300")
-            setSendLock(false)
-          } catch (error) {
-            setToBorderColor("border-red-500")
-            setSendLock(true)
-          }
-          break
-        case InputId.amount:
-          setTxValue(value)
-          try {
-            console.log(`${ethers.parseUnits(value, "ether")}`)
-            setAmountBorderColor("border-gray-300")
-            setSendLock(false)
-          } catch (error) {
-            setAmountBorderColor("border-red-500")
-            setSendLock(true)
-          }
-          break
-        default:
-          break
-      }
-      console.log(`Input: ${id} = ${value}`)
-    },
-    []
-  )
+  const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setTxTo(value)
+    try {
+      console.log(`${ethers.getAddress(value)}`)
+      setToBorderColor("border-gray-300")
+      setSendLock(false)
+    } catch (error) {
+      setToBorderColor("border-red-500")
+      setSendLock(true)
+    }
+  }
+
+  const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setTxValue(value)
+    try {
+      console.log(`${ethers.parseUnits(value, "ether")}`)
+      setAmountBorderColor("border-gray-300")
+      setSendLock(false)
+    } catch (error) {
+      setAmountBorderColor("border-red-500")
+      setSendLock(true)
+    }
+  }
 
   const handleSend = useCallback(async () => {
     const accountAddress = (await providerCtx.provider.listAccounts()).map(
@@ -99,9 +91,9 @@ export function Send() {
           type="text"
           id={`${InputId.to}`}
           value={`${txTo}`}
-          onChange={inputChange}
+          onChange={handleToChange}
           list="suggestionTo"
-          className={`border-2 ${toBorderColor} w-96 outline-none`}></input>
+          className={`border ${toBorderColor} w-96 outline-none`}></input>
         <datalist id="suggestionTo">
           {txToSuggestions.map((to, index) => {
             return <option key={index} value={to} />
@@ -114,7 +106,7 @@ export function Send() {
           type="text"
           id={`${InputId.amount}`}
           value={`${txValue}`}
-          onChange={inputChange}
+          onChange={handleAmountChange}
           className={`border ${amountBorderColor} w-96 outline-none`}></input>
       </div>
       <div className="flex">
