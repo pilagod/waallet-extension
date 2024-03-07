@@ -82,7 +82,7 @@ export function Send() {
         <label className="flex-1">To:</label>
         <input
           type="text"
-          id={`${InputId.to}`}
+          id="to"
           value={`${txTo}`}
           onChange={handleToChange}
           list="suggestionTo"
@@ -99,7 +99,7 @@ export function Send() {
         <label className="flex-1">Amount:</label>
         <input
           type="text"
-          id={`${InputId.amount}`}
+          id="amount"
           value={`${txValue}`}
           onChange={handleAmountChange}
           className={`border w-96 outline-none ${
@@ -125,9 +125,4 @@ export function Send() {
       )}
     </div>
   )
-}
-
-enum InputId {
-  to = "to",
-  amount = "amount"
 }
