@@ -32,6 +32,7 @@ jobs:
           repository: "pilagod/waallet-contract"
           path: "waallet-contract"
           submodules: recursive
+          ref: imAccount
 
       - name: Spin up testnet
         working-directory: "waallet-contract"
