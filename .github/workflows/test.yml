@@ -15,26 +15,26 @@ jobs:
       - name: Clone `waallet-extension`
         uses: actions/checkout@v4
         with:
-          repository: 'pilagod/waallet-extension'
-          path: 'waallet-extension'
+          repository: "pilagod/waallet-extension"
+          path: "waallet-extension"
 
       - name: Set up `waallet-extension`
-        working-directory: 'waallet-extension'
+        working-directory: "waallet-extension"
         run: npm ci
 
       - name: Run linter
-        working-directory: 'waallet-extension'
+        working-directory: "waallet-extension"
         run: npm run lint
 
       - name: Clone `waallet-contract`
         uses: actions/checkout@v4
         with:
-          repository: 'pilagod/waallet-contract'
-          path: 'waallet-contract'
+          repository: "pilagod/waallet-contract"
+          path: "waallet-contract"
           submodules: recursive
 
       - name: Spin up testnet
-        working-directory: 'waallet-contract'
+        working-directory: "waallet-contract"
         run: docker compose -f ./docker/testnet/docker-compose-node.yml up --build -d
 
       - name: Wait for testnet initialized
@@ -42,9 +42,9 @@ jobs:
         shell: bash
 
       - name: Set up testnet
-        working-directory: 'waallet-contract'
+        working-directory: "waallet-contract"
         run: docker compose -f ./docker/testnet/docker-compose-node-setup.yml up --build
 
       - name: Run tests
-        working-directory: 'waallet-extension'
+        working-directory: "waallet-extension"
         run: npm run test
