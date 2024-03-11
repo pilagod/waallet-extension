@@ -66,11 +66,25 @@ const UserOperationAuthorization = () => {
     userOp.setPaymasterAndData(
       await o.paymaster.requestPaymasterAndData(userOp)
     )
-    userOp.setGasLimit(
-      await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
-        userOp.data()
-      ])
+    const gasLimit = await provider.send(
+      WaalletRpcMethod.eth_estimateUserOperationGas,
+      [userOp.data()]
     )
+    userOp.setGasLimit({
+      // Opt for a higher estimated gasLimit here to minimize the risk of transaction failure caused by reaching the gas limit.
+      preVerificationGas:
+        gasLimit.preVerificationGas > userOp.preVerificationGas
+          ? gasLimit.preVerificationGas
+          : userOp.preVerificationGas,
+      verificationGasLimit:
+        gasLimit.verificationGasLimit > userOp.verificationGasLimit
+          ? gasLimit.verificationGasLimit
+          : userOp.verificationGasLimit,
+      callGasLimit:
+        gasLimit.callGasLimit > userOp.callGasLimit
+          ? gasLimit.callGasLimit
+          : userOp.callGasLimit
+    })
     setUserOpData(userOp.data())
   }
 
