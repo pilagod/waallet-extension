@@ -71,7 +71,6 @@ export class imAccountFactory implements AccountFactory {
       initializer: initializer,
       salt: this.salt
     }
-    // TODO: r, s, v not vrs
     const signature = await this.signCreateAccount(createAccountRequest)
     console.log("signature: ", signature)
 

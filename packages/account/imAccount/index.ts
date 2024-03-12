@@ -82,6 +82,10 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
     this.entryPointAddress = opts.entryPointAddress
   }
 
+  public changeValidator(newValidator: Validator) {
+    this.validator = newValidator
+  }
+
   public async sign(message: string | Uint8Array, metadata?: any) {
     return await this.validator.sign(message, metadata)
   }
