@@ -43,7 +43,9 @@ describe("ObservableStorage", () => {
     const s = new ObservableStorage({ a: 123 })
 
     let stateSubscribed: ReturnType<(typeof s)["get"]>
-    s.subscribe((state) => (stateSubscribed = state))
+    s.subscribe(async (state) => {
+      stateSubscribed = state
+    })
 
     s.set({ a: 456 })
 
@@ -54,7 +56,9 @@ describe("ObservableStorage", () => {
     const s = new ObservableStorage({ a: 123 })
 
     let isHandlerCalled = false
-    const handler = () => (isHandlerCalled = true)
+    const handler = async () => {
+      isHandlerCalled = true
+    }
 
     s.subscribe(handler)
     s.unsubscribe(handler)

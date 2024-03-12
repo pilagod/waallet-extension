@@ -1,5 +1,4 @@
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
-import { NullUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/null"
 import { PopUpUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/popup"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 

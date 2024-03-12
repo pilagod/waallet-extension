@@ -22,11 +22,11 @@ export class ObservableStorage<
     this.emit(ObservableStorageEvent.StateUpdated, this.get())
   }
 
-  public subscribe(handler: (state: T) => void) {
+  public subscribe(handler: (state: T) => Promise<void>) {
     this.addListener(ObservableStorageEvent.StateUpdated, handler)
   }
 
-  public unsubscribe(handler: (state: T) => void) {
+  public unsubscribe(handler: (state: T) => Promise<void>) {
     this.removeListener(ObservableStorageEvent.StateUpdated, handler)
   }
 
