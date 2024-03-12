@@ -102,7 +102,13 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
   }
 
   protected async getDummySignature(): Promise<HexString> {
-    return await this.validator.sign("DummyMessage")
+    return ethers.AbiCoder.defaultAbiCoder().encode(
+      ["address", "bytes"],
+      [
+        await this.validator.getAddress(),
+        "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
+      ]
+    )
   }
 
   protected async getNonce(): Promise<BigNumberish> {
