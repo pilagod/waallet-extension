@@ -12,9 +12,9 @@ export class ECDSAValidator implements Validator {
   public constructor(opts: {
     address: HexString
     ownerPrivateKey: string
-    node: ethers.JsonRpcProvider
+    nodeRpcUrl: string
   }) {
-    this.node = opts.node
+    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
     this.owner = new ethers.Wallet(opts.ownerPrivateKey)
     this.contract = new ethers.Contract(
       opts.address,
@@ -23,9 +23,9 @@ export class ECDSAValidator implements Validator {
     )
   }
 
-  public async sign(message: string | Uint8Array, metadata?: any) {
-    if (message.length < 66) {
-      message = ethers.encodeBytes32String(ethers.hexlify(message))
+  public async sign(message: string | Uint8Array): Promise<HexString> {
+    if (typeof message == "string" && !ethers.isHexString(message)) {
+      message = ethers.encodeBytes32String(message)
     }
     const digest = ethers.keccak256(
       ethers.AbiCoder.defaultAbiCoder().encode(
@@ -36,7 +36,11 @@ export class ECDSAValidator implements Validator {
     const signingMsg = ethers.keccak256(
       ethers.solidityPacked(
         ["string", "string", "bytes"],
-        ["\x19Ethereum Signed Message:\n32", digest.length, digest]
+        [
+          "\x19Ethereum Signed Message:\n",
+          ethers.dataLength(digest).toString(), // digest length must be 32
+          digest
+        ]
       )
     )
     const rawSignature = this.owner.signingKey.sign(signingMsg)
@@ -73,12 +77,10 @@ export class ECDSAValidator implements Validator {
     return await this.contract.getAddress()
   }
 
-  public async getOwnerValidatorInitData(
-    ownerInfo: string
-  ): Promise<HexString> {
+  public async getOwnerValidatorInitData(): Promise<HexString> {
     const { data } = await this.contract
       .getFunction("init")
-      .populateTransaction(ownerInfo)
+      .populateTransaction(this.owner.address)
     return data
   }
 }

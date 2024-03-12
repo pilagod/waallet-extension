@@ -1,5 +1,9 @@
 import config from "~config/test"
-import { ValidatorType } from "~packages/account/imAccount/validator"
+import {
+  createValidator,
+  ValidatorType
+} from "~packages/account/imAccount/validator"
+import number from "~packages/util/number"
 import { describeAccountSuite } from "~packages/util/testing/suite/account"
 
 import { imAccount } from "./index"
@@ -7,30 +11,39 @@ import { imAccount } from "./index"
 describeAccountSuite(
   "imAccount",
   () => {
+    const ecdsaValidator = createValidator(
+      ValidatorType.ECDSAValidator,
+      config.address.ECDSAValidator,
+      config.account.operator.privateKey,
+      config.rpc.node
+    )
+
     return imAccount.initWithFactory({
-      ownerInfo: config.account.operator.address,
-      ownerKeyInfo: config.account.operator.privateKey,
       factoryAddress: config.address.imAccountFactory,
       implementationAddress: config.address.imAccountImplementation,
       entryPointAddress: config.address.EntryPoint,
-      defaultValidatorType: ValidatorType.ECDSAValidator,
-      defaultValidatorAddress: config.address.ECDSAValidator,
+      validator: ecdsaValidator,
       fallbackHandlerAddress: config.address.FallbackHandler,
-      salt: 1,
+      salt: number.random(),
       nodeRpcUrl: config.rpc.node
     })
   },
   (ctx) => {
     describe("init", () => {
+      const ecdsaValidator = createValidator(
+        ValidatorType.ECDSAValidator,
+        config.address.ECDSAValidator,
+        config.account.operator.privateKey,
+        config.rpc.node
+      )
+
       // TODO: This test at this moment relies on tests in test bed to deploy the account.
       // It would be better to decouple it.
       it("should init with existing imAccount", async () => {
         const a = await imAccount.init({
           address: await ctx.account.getAddress(),
-          ownerKeyInfo: config.account.operator.privateKey,
           nodeRpcUrl: config.rpc.node,
-          defaultValidatorType: ValidatorType.ECDSAValidator,
-          defaultValidatorAddress: config.address.ECDSAValidator,
+          validator: ecdsaValidator,
           entryPointAddress: config.address.EntryPoint
         })
 

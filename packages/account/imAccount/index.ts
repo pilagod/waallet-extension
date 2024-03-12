@@ -3,8 +3,6 @@ import * as ethers from "ethers"
 import type { Call } from "~packages/account"
 import imAccountMetadata from "~packages/account/imAccount/abis/imAccount.json"
 import type { Validator } from "~packages/account/imAccount/validator"
-import { ValidatorType } from "~packages/account/imAccount/validator"
-import { ECDSAValidator } from "~packages/account/imAccount/validators/ecdsaValidator"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -16,18 +14,14 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
    */
   public static async init(opts: {
     address: string
-    ownerKeyInfo: string
     nodeRpcUrl: string
-    defaultValidatorType: ValidatorType
-    defaultValidatorAddress: string
+    validator: Validator
     entryPointAddress: string
   }) {
     return new imAccount({
       address: opts.address,
-      ownerKeyInfo: opts.ownerKeyInfo,
       nodeRpcUrl: opts.nodeRpcUrl,
-      validatorType: opts.defaultValidatorType,
-      validatorAddress: opts.defaultValidatorAddress,
+      validator: opts.validator,
       entryPointAddress: opts.entryPointAddress
     })
   }
@@ -37,36 +31,28 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
    */
 
   public static async initWithFactory(opts: {
-    ownerInfo: string
-    ownerKeyInfo: string
     factoryAddress: string
     implementationAddress: string
     entryPointAddress: string
-    defaultValidatorType: ValidatorType
-    defaultValidatorAddress: string
+    validator: Validator
     fallbackHandlerAddress: string
     salt: BigNumberish
     nodeRpcUrl: string
   }) {
     const factory = new imAccountFactory({
-      ownerInfo: opts.ownerInfo,
-      ownerKeyInfo: opts.ownerKeyInfo,
       factoryAddress: opts.factoryAddress,
       implementationAddress: opts.implementationAddress,
       entryPointAddress: opts.entryPointAddress,
-      validatorType: opts.defaultValidatorType,
-      validatorAddress: opts.defaultValidatorAddress,
+      validator: opts.validator,
       fallbackHandlerAddress: opts.fallbackHandlerAddress,
       salt: opts.salt,
       nodeRpcUrl: opts.nodeRpcUrl
     })
     return new imAccount({
       address: await factory.getAddress(),
-      ownerKeyInfo: opts.ownerKeyInfo,
       factory,
       nodeRpcUrl: opts.nodeRpcUrl,
-      validatorType: opts.defaultValidatorType,
-      validatorAddress: opts.defaultValidatorAddress,
+      validator: opts.validator,
       entryPointAddress: opts.entryPointAddress
     })
   }
@@ -77,11 +63,9 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
 
   private constructor(opts: {
     address: HexString
-    ownerKeyInfo: string
     factory?: imAccountFactory
     nodeRpcUrl: string
-    validatorType: ValidatorType
-    validatorAddress: string
+    validator: Validator
     entryPointAddress: string
   }) {
     super({
@@ -94,11 +78,7 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
       imAccountMetadata.abi,
       this.node
     )
-    this.setValidator(
-      opts.validatorType,
-      opts.validatorAddress,
-      opts.ownerKeyInfo
-    )
+    this.validator = opts.validator
     this.entryPointAddress = opts.entryPointAddress
   }
 
@@ -117,9 +97,7 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
     return this.account.interface.encodeFunctionData("execute", [calls])
   }
   protected async getDummySignature(): Promise<HexString> {
-    return await this.validator.sign(
-      "0xdd891769d0de4984ec26e2a3646e563772b423104875118a0cec54688ae0f150"
-    )
+    return await this.validator.sign("DummyMessage")
   }
 
   protected async getNonce(): Promise<BigNumberish> {
@@ -133,23 +111,5 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
       0
     )) as bigint
     return nonce
-  }
-
-  protected async setValidator(
-    validatorType: ValidatorType,
-    validatorAddress: string,
-    ownerKeyInfo: string
-  ) {
-    if (validatorType == ValidatorType.ECDSAValidator) {
-      this.validator = new ECDSAValidator({
-        address: validatorAddress,
-        ownerPrivateKey: ownerKeyInfo,
-        node: this.node
-      })
-    } else if (validatorType == ValidatorType.MultiSigValidator) {
-    } else if (validatorType == ValidatorType.WebAuthnValidator) {
-    } else {
-      throw Error()
-    }
   }
 }
