@@ -5,3 +5,8 @@ export type UrlB64String = string
 export type Nullable<T> = T | null
 export type OptionalPick<T, K extends keyof T> = Omit<T, K> &
   Partial<Pick<T, K>>
+export type RecursivePartial<T> = {
+  [P in keyof T]?: T[P] extends (infer U)[]
+    ? RecursivePartial<U>[]
+    : RecursivePartial<T[P]>
+}
