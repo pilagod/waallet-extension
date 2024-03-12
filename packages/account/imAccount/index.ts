@@ -1,10 +1,10 @@
 import * as ethers from "ethers"
 
 import type { Call } from "~packages/account"
-import imAccountMetadata from "~packages/account/imAccount/abis/imAccount.json"
+import imAccountMetadata from "~packages/account/imAccount/abi/imAccount.json"
 import type { Validator } from "~packages/account/imAccount/validator"
 import { AccountSkeleton } from "~packages/account/skeleton"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { imAccountFactory } from "./factory"
 
@@ -86,7 +86,7 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
     this.validator = newValidator
   }
 
-  public async sign(message: string | Uint8Array, metadata?: any) {
+  public async sign(message: BytesLike, metadata?: any) {
     return await this.validator.sign(message, metadata)
   }
 
@@ -100,6 +100,7 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
     ]
     return this.account.interface.encodeFunctionData("execute", [calls])
   }
+
   protected async getDummySignature(): Promise<HexString> {
     return await this.validator.sign("DummyMessage")
   }

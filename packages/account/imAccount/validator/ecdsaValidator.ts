@@ -1,8 +1,8 @@
 import * as ethers from "ethers"
 
-import ECDSAValidatorMetadata from "~packages/account/imAccount/abis/ECDSAValidator.json"
+import ECDSAValidatorMetadata from "~packages/account/imAccount/abi/ECDSAValidator.json"
 import type { Validator } from "~packages/account/imAccount/validator"
-import type { HexString } from "~typing"
+import type { BytesLike, HexString } from "~typing"
 
 export class ECDSAValidator implements Validator {
   private node: ethers.JsonRpcProvider
@@ -23,7 +23,7 @@ export class ECDSAValidator implements Validator {
     )
   }
 
-  public async sign(message: string | Uint8Array): Promise<HexString> {
+  public async sign(message: BytesLike): Promise<HexString> {
     if (typeof message == "string" && !ethers.isHexString(message)) {
       message = ethers.encodeBytes32String(message)
     }
@@ -57,20 +57,14 @@ export class ECDSAValidator implements Validator {
     return signature
   }
 
-  public async setOwner(newOwnerPrivateKey: string) {
-    this.owner = new ethers.Wallet(newOwnerPrivateKey)
-    await this.contract.setOwner(this.owner.address)
+  public getSetOwnerCallData(newOwnerAddress: string) {
+    return this.contract.interface.encodeFunctionData("setOwner", [
+      newOwnerAddress
+    ])
   }
 
-  public async getOwner(): Promise<HexString> {
-    return await this.contract.getOwner()
-  }
-
-  public async isValidSignature(
-    hash: string,
-    signature: string
-  ): Promise<boolean> {
-    return await this.contract.isValidAccountSignature(hash, signature)
+  public async getOwner(account: string): Promise<HexString> {
+    return await this.contract.getOwner(account)
   }
 
   public async getAddress(): Promise<HexString> {

@@ -2,12 +2,12 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import type { AccountFactory } from "~packages/account/factory"
-import imAccountMetadata from "~packages/account/imAccount/abis/imAccount.json"
-import imAccountFactoryMetadata from "~packages/account/imAccount/abis/imAccountFactory.json"
+import imAccountMetadata from "~packages/account/imAccount/abi/imAccount.json"
+import imAccountFactoryMetadata from "~packages/account/imAccount/abi/imAccountFactory.json"
 import type { Validator } from "~packages/account/imAccount/validator"
 import type { BigNumberish, HexString } from "~typing"
 
-type CreateAccount = {
+type CreateAccountRequest = {
   initializer: HexString
   salt: BigNumberish
 }
@@ -17,7 +17,7 @@ export class imAccountFactory implements AccountFactory {
 
   private factory: ethers.Contract
   private factoryOwner: ethers.Wallet
-  private imAccount: ethers.Contract
+  private imAccountImplementation: ethers.Contract
   private salt: BigNumberish
   private entryPointAddress: string
   private fallbackHandlerAddress: string
@@ -39,7 +39,7 @@ export class imAccountFactory implements AccountFactory {
       this.node
     )
     this.factoryOwner = new ethers.Wallet(config.account.operator.privateKey)
-    this.imAccount = new ethers.Contract(
+    this.imAccountImplementation = new ethers.Contract(
       opts.implementationAddress,
       imAccountMetadata.abi,
       this.node
@@ -84,7 +84,7 @@ export class imAccountFactory implements AccountFactory {
   private async getInitializer() {
     const ownerValidatorInitData =
       await this.validator.getOwnerValidatorInitData()
-    const { data } = await this.imAccount
+    const { data } = await this.imAccountImplementation
       .getFunction("initialize")
       .populateTransaction(
         this.entryPointAddress,
@@ -97,7 +97,7 @@ export class imAccountFactory implements AccountFactory {
 
   // Currently, the factory owner's key is imported from `~/config/test` to sign the request for creating an account.
   // However, in future developments, we will require a factory signing server.
-  private async signCreateAccount(createAccountRequest: CreateAccount) {
+  private async signCreateAccount(createAccountRequest: CreateAccountRequest) {
     const EIP712_DOMAIN_HASH = ethers.keccak256(
       ethers.toUtf8Bytes(
         "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
@@ -105,7 +105,7 @@ export class imAccountFactory implements AccountFactory {
     )
     const nameHash = ethers.keccak256(ethers.toUtf8Bytes("imAccountFactory"))
     const versionHash = ethers.keccak256(ethers.toUtf8Bytes("v0"))
-    const chainId = this.node._network.chainId
+    const { chainId } = await this.node.getNetwork()
     const verifyingContractAddress = await this.factory.getAddress()
     const CREATE_REQUEST_TYPE_HASH = ethers.keccak256(
       ethers.toUtf8Bytes("CreateAccount(bytes initializer,uint256 salt)")
