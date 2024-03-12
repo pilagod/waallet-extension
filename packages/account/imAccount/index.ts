@@ -57,8 +57,8 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
     })
   }
 
+  public validator: Validator
   private account: ethers.Contract
-  private validator: Validator
   private entryPointAddress: string
 
   private constructor(opts: {
