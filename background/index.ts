@@ -12,7 +12,7 @@ console.log(
 async function main() {
   const storage = await getStorage()
   const state = storage.get()
-  const network = Object.values(state.network).find((n) => n.selected)
+  const network = Object.values(state.network).find((n) => n.active)
   if (!network) {
     throw new Error("No available network")
   }

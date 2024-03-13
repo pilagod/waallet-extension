@@ -17,22 +17,19 @@ export async function getStorage() {
     // TODO: Only for development at this moment. Remove following when getting to production.
     // Disable all networks by default
     storage.set({
-      network: Object.entries(storage.get().network).reduce(
-        (result, [chainId, network]) => {
-          result[chainId] = { selected: false }
-          return result
-        },
-        {}
-      )
+      network: Object.keys(storage.get().network).reduce((result, chainId) => {
+        result[chainId] = { active: false }
+        return result
+      }, {})
     })
     // Enable only network specified in env
     storage.set({
       network: {
         [config.chainId]: {
+          active: true,
           chainId: config.chainId,
           nodeRpcUrl: config.nodeRpcUrl,
           bundlerRpcUrl: config.bundlerRpcUrl,
-          selected: true,
           account: {
             ...(config.simpleAccountAddress && {
               [config.simpleAccountAddress]: {
@@ -75,10 +72,10 @@ export type State = {
 /* Netowork */
 
 export type Network = {
+  active: boolean
   chainId: number
   nodeRpcUrl: string
   bundlerRpcUrl: string
-  selected: boolean
   account: {
     [address: string]: Account
   }
