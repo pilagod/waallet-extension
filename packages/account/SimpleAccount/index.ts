@@ -83,6 +83,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       call.data ?? "0x"
     ])
   }
+
   protected async getDummySignature(): Promise<HexString> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
   }

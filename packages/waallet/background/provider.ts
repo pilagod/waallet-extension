@@ -26,11 +26,11 @@ export type WaalletBackgroundProviderOption = {
 export class WaalletBackgroundProvider {
   public account: Account
 
-  private node: ethers.JsonRpcProvider
+  public node: ethers.JsonRpcProvider
 
   public constructor(
     private nodeRpcUrl: string,
-    private bundler: BundlerProvider,
+    public bundler: BundlerProvider,
     private userOperationAuthorizer: UserOperationAuthorizer,
     private paymaster: Paymaster = new NullPaymaster()
   ) {
@@ -90,7 +90,7 @@ export class WaalletBackgroundProvider {
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOp = await this.account.createUserOperation({
+    const userOp = await this.account.createUserOperation(this, {
       to: tx.to,
       value: tx.value,
       data: tx.data
@@ -137,7 +137,7 @@ export class WaalletBackgroundProvider {
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOp = await this.account.createUserOperation({
+    const userOp = await this.account.createUserOperation(this, {
       to: tx.to,
       value: tx.value,
       data: tx.data,

@@ -3,6 +3,7 @@ import * as ethers from "ethers"
 import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
 import { UserOperation } from "~packages/bundler"
+import type { NetworkContext } from "~packages/context/network"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export abstract class AccountSkeleton<T extends AccountFactory>
@@ -31,8 +32,11 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   /* public */
 
-  public async createUserOperation(call: Call): Promise<UserOperation> {
-    const isDeployed = await this.isDeployed()
+  public async createUserOperation(
+    ctx: NetworkContext,
+    call: Call
+  ): Promise<UserOperation> {
+    const isDeployed = await this.isDeployed(ctx)
 
     const sender = await this.getAddress()
     const nonce = call?.nonce ?? (isDeployed ? await this.getNonce() : 0)
@@ -55,7 +59,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.address
   }
 
-  public async isDeployed(): Promise<boolean> {
+  public async isDeployed(ctx: NetworkContext): Promise<boolean> {
     const code = await this.node.getCode(await this.getAddress())
     return code !== "0x"
   }

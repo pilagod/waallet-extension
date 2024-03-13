@@ -40,9 +40,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
   })
 
   it("should pay for account", async () => {
-    const { node } = config.provider
-
-    const accountBalanceBefore = await node.getBalance(
+    const accountBalanceBefore = await ctx.provider.node.getBalance(
       await ctx.account.getAddress()
     )
     const paymasterDepositBalanceBefore =
@@ -60,7 +58,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
       ]
     })
 
-    const accountBalanceAfter = await node.getBalance(
+    const accountBalanceAfter = await ctx.provider.node.getBalance(
       await ctx.account.getAddress()
     )
     expect(accountBalanceBefore).toBe(accountBalanceAfter)
