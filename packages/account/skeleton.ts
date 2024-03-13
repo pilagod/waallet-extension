@@ -9,16 +9,10 @@ import type { BigNumberish, BytesLike, HexString } from "~typing"
 export abstract class AccountSkeleton<T extends AccountFactory>
   implements Account
 {
-  protected node: ethers.JsonRpcProvider
   protected address: HexString
   protected factory?: T
 
-  protected constructor(opts: {
-    address: HexString
-    factory?: T
-    nodeRpcUrl: string
-  }) {
-    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
+  protected constructor(opts: { address: HexString; factory?: T }) {
     this.address = ethers.getAddress(opts.address)
     this.factory = opts.factory
   }
@@ -28,7 +22,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   public abstract sign(message: BytesLike): Promise<HexString>
   protected abstract getCallData(call: Call): Promise<HexString>
   protected abstract getDummySignature(): Promise<HexString>
-  protected abstract getNonce(): Promise<BigNumberish>
+  protected abstract getNonce(ctx: NetworkContext): Promise<BigNumberish>
 
   /* public */
 
@@ -39,7 +33,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     const isDeployed = await this.isDeployed(ctx)
 
     const sender = await this.getAddress()
-    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce() : 0)
+    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce(ctx) : 0)
     const initCode = isDeployed
       ? "0x"
       : await this.mustGetFactory().getInitCode()
@@ -60,7 +54,8 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   }
 
   public async isDeployed(ctx: NetworkContext): Promise<boolean> {
-    const code = await this.node.getCode(await this.getAddress())
+    // TODO: Cache it
+    const code = await ctx.node.getCode(await this.getAddress())
     return code !== "0x"
   }
 

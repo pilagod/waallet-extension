@@ -12,13 +12,15 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   /**
    * Use when account is already deployed
    */
-  public static async init(option: {
-    address: HexString
-    owner: PasskeyOwner
-    nodeRpcUrl: string
-  }) {
+  public static async init(
+    ctx: NetworkContext,
+    option: {
+      address: HexString
+      owner: PasskeyOwner
+    }
+  ) {
     const account = new PasskeyAccount({ ...option })
-    option.owner.use(await account.getCredentialId())
+    option.owner.use(await account.getCredentialId(ctx))
     return account
   }
 
@@ -33,7 +35,6 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       publicKey: PasskeyPublicKey
       salt: BigNumberish
       factoryAddress: string
-      nodeRpcUrl: string
     }
   ) {
     option.owner.use(option.credentialId)
@@ -41,14 +42,12 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       address: option.factoryAddress,
       credentialId: option.credentialId,
       publicKey: option.publicKey,
-      salt: option.salt,
-      nodeRpcUrl: option.nodeRpcUrl
+      salt: option.salt
     })
     return new PasskeyAccount({
       address: await factory.getAddress(ctx),
       owner: option.owner,
-      factory,
-      nodeRpcUrl: option.nodeRpcUrl
+      factory
     })
   }
 
@@ -59,27 +58,23 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     address: HexString
     owner: PasskeyOwner
     factory?: PasskeyAccountFactory
-    nodeRpcUrl: string
   }) {
     super({
       address: opts.address,
-      factory: opts.factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      factory: opts.factory
     })
-    this.account = new ethers.Contract(
-      opts.address,
-      [
-        "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)",
-        "function getNonce() view returns (uint256)",
-        "function execute(address dest, uint256 value, bytes calldata func)"
-      ],
-      this.node
-    )
+    this.account = new ethers.Contract(opts.address, [
+      "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)",
+      "function getNonce() view returns (uint256)",
+      "function execute(address dest, uint256 value, bytes calldata func)"
+    ])
     this.owner = opts.owner
   }
 
-  public async getCredentialId() {
-    const { credId } = await this.account.passkey()
+  public async getCredentialId(ctx: NetworkContext) {
+    const { credId } = await (
+      this.account.connect(ctx.node) as ethers.Contract
+    ).passkey()
     return credId as string
   }
 
@@ -99,8 +94,10 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     return "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000017000000000000000000000000000000000000000000000000000000000000000150e9e8c7d5a5cfa26f5edf2d5643190c9978c72737bd2cf40d5cd053ac00d57501a5dad3af5fe8af6fe0b5868fc95d31ad760f3b6f2be52fb66aee4a92405ae000000000000000000000000000000000000000000000000000000000000000254fb20856f24a6ae7dafc2781090ac8477ae6e2bd072660236cc614c6fb7c2ea0050000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000667b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a22222c226f726967696e223a2268747470733a2f2f776562617574686e2e70617373776f72646c6573732e6964222c2263726f73734f726967696e223a66616c73657d0000000000000000000000000000000000000000000000000000"
   }
 
-  protected async getNonce(): Promise<BigNumberish> {
-    const nonce = (await this.account.getNonce()) as bigint
+  protected async getNonce(ctx: NetworkContext): Promise<BigNumberish> {
+    const nonce = (await (
+      this.account.connect(ctx.node) as ethers.Contract
+    ).getNonce()) as bigint
     return nonce
   }
 }

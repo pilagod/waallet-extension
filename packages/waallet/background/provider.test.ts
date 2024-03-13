@@ -26,8 +26,7 @@ describe("WaalletBackgroundProvider", () => {
   beforeAll(async () => {
     account = await SimpleAccount.init({
       address: config.address.SimpleAccount,
-      ownerPrivateKey: config.account.operator.privateKey,
-      nodeRpcUrl: config.rpc.node
+      ownerPrivateKey: config.account.operator.privateKey
     })
     provider.connect(account)
   })

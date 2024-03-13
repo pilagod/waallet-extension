@@ -8,7 +8,6 @@ describeAccountSuite("SimpleAccount", (ctx) => {
   return SimpleAccount.initWithFactory(ctx, {
     ownerPrivateKey: config.account.operator.privateKey,
     factoryAddress: config.address.SimpleAccountFactory,
-    salt: number.random(),
-    nodeRpcUrl: config.rpc.node
+    salt: number.random()
   })
 })

@@ -24,8 +24,7 @@ export function describeWaalletSuite(
     beforeAll(async () => {
       ctx.account = await SimpleAccount.init({
         address: config.address.SimpleAccount,
-        ownerPrivateKey: config.account.operator.privateKey,
-        nodeRpcUrl: config.rpc.node
+        ownerPrivateKey: config.account.operator.privateKey
       })
       ctx.provider.connect(ctx.account)
     })

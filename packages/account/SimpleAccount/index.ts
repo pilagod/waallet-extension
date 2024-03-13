@@ -14,13 +14,11 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   public static async init(option: {
     address: string
     ownerPrivateKey: string
-    nodeRpcUrl: string
   }) {
     const owner = new ethers.Wallet(option.ownerPrivateKey)
     return new SimpleAccount({
       address: option.address,
-      owner,
-      nodeRpcUrl: option.nodeRpcUrl
+      owner
     })
   }
 
@@ -33,21 +31,18 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       ownerPrivateKey: string
       factoryAddress: string
       salt: BigNumberish
-      nodeRpcUrl: string
     }
   ) {
     const owner = new ethers.Wallet(option.ownerPrivateKey)
     const factory = new SimpleAccountFactory({
       address: option.factoryAddress,
       owner: owner.address,
-      salt: option.salt,
-      nodeRpcUrl: option.nodeRpcUrl
+      salt: option.salt
     })
     return new SimpleAccount({
       address: await factory.getAddress(ctx),
       owner,
-      factory,
-      nodeRpcUrl: option.nodeRpcUrl
+      factory
     })
   }
 
@@ -58,21 +53,15 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     address: HexString
     owner: ethers.Wallet
     factory?: SimpleAccountFactory
-    nodeRpcUrl: string
   }) {
     super({
       address: opts.address,
-      factory: opts.factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      factory: opts.factory
     })
-    this.account = new ethers.Contract(
-      opts.address,
-      [
-        "function getNonce() view returns (uint256)",
-        "function execute(address dest, uint256 value, bytes calldata func)"
-      ],
-      this.node
-    )
+    this.account = new ethers.Contract(opts.address, [
+      "function getNonce() view returns (uint256)",
+      "function execute(address dest, uint256 value, bytes calldata func)"
+    ])
     this.owner = opts.owner
   }
 
@@ -92,8 +81,10 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
   }
 
-  protected async getNonce(): Promise<BigNumberish> {
-    const nonce = (await this.account.getNonce()) as bigint
+  protected async getNonce(ctx: NetworkContext): Promise<BigNumberish> {
+    const nonce = (await (
+      this.account.connect(ctx.node) as ethers.Contract
+    ).getNonce()) as bigint
     return nonce
   }
 }

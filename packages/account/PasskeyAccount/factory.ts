@@ -10,8 +10,6 @@ export type PasskeyPublicKey = {
 }
 
 export class PasskeyAccountFactory implements AccountFactory {
-  private node: ethers.JsonRpcProvider
-
   private factory: ethers.Contract
   private credentialId: string
   private publicKey: PasskeyPublicKey
@@ -22,17 +20,11 @@ export class PasskeyAccountFactory implements AccountFactory {
     credentialId: string
     publicKey: PasskeyPublicKey
     salt: BigNumberish
-    nodeRpcUrl: string
   }) {
-    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
-    this.factory = new ethers.Contract(
-      opts.address,
-      [
-        "function getAddress(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt) view returns (address)",
-        "function createAccount(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt)"
-      ],
-      this.node
-    )
+    this.factory = new ethers.Contract(opts.address, [
+      "function getAddress(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt) view returns (address)",
+      "function createAccount(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt)"
+    ])
     this.credentialId = opts.credentialId
     this.publicKey = opts.publicKey
     this.salt = opts.salt
@@ -43,7 +35,7 @@ export class PasskeyAccountFactory implements AccountFactory {
       ethers.stripZerosLeft(
         // The name of `getAddress` conflicts with the function on ethers.Contract.
         // So we build call data from interface and directly send through node rpc provider.
-        await this.node.call(
+        await ctx.node.call(
           await this.factory
             .getFunction("getAddress")
             .populateTransaction(
