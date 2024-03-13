@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill"
 
-import { UserOperation } from "~packages/provider/bundler"
+import { UserOperation } from "~packages/bundler"
 import json from "~packages/util/json"
 
 import {

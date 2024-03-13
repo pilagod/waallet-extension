@@ -1,7 +1,7 @@
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 import { getWaalletBackgroundProvider } from "~background/provider"
-import { WaalletMessage } from "~packages/provider/waallet/message"
+import { WaalletMessage } from "~packages/waallet/message"
 
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   console.log(

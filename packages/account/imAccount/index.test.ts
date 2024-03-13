@@ -2,10 +2,10 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import { ECDSAValidator } from "~packages/account/imAccount/validator/ecdsaValidator"
-import { WaalletBackgroundProvider } from "~packages/provider/waallet/background/provider"
-import { WaalletRpcMethod } from "~packages/provider/waallet/rpc"
 import number from "~packages/util/number"
 import { describeAccountSuite } from "~packages/util/testing/suite/account"
+import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
 import { imAccount } from "./index"
