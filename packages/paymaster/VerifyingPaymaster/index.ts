@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 
 import { UserOperation, UserOperationStruct } from "~packages/bundler"
+import type { NetworkContext } from "~packages/context/network"
 import type { Paymaster } from "~packages/paymaster"
 import { ETH, Token } from "~packages/token"
 import type { HexString } from "~typing"
@@ -14,15 +15,10 @@ export class VerifyingPaymaster implements Paymaster {
     address: HexString
     ownerPrivateKey: HexString
     expirationSecs: number
-    provider: ethers.ContractRunner
   }) {
-    this.paymaster = new ethers.Contract(
-      option.address,
-      [
-        `function getHash(${UserOperationStruct} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
-      ],
-      option.provider
-    )
+    this.paymaster = new ethers.Contract(option.address, [
+      `function getHash(${UserOperationStruct} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
+    ])
     this.owner = new ethers.Wallet(option.ownerPrivateKey)
     this.intervalSecs = option.expirationSecs
   }
@@ -34,12 +30,19 @@ export class VerifyingPaymaster implements Paymaster {
     return 0n
   }
 
-  public async requestPaymasterAndData(userOp: UserOperation) {
+  public async requestPaymasterAndData(
+    ctx: NetworkContext,
+    userOp: UserOperation
+  ) {
     const validAfter = 0
     const validUntil =
       Math.floor(new Date().getTime() / 1000) + this.intervalSecs
-    const signature = await this.getSignature(userOp, validUntil, validAfter)
-
+    const signature = await this.getSignature(
+      ctx,
+      userOp,
+      validUntil,
+      validAfter
+    )
     return ethers.concat([
       await this.paymaster.getAddress(),
       ethers.AbiCoder.defaultAbiCoder().encode(
@@ -51,6 +54,7 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   private async getSignature(
+    ctx: NetworkContext,
     userOp: UserOperation,
     validUntil: number,
     validAfter: number
@@ -58,7 +62,9 @@ export class VerifyingPaymaster implements Paymaster {
     if (!userOp.isGasEstimated()) {
       return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
     }
-    const hash = await this.paymaster.getHash(userOp, validUntil, validAfter)
+    const hash = await (
+      this.paymaster.connect(ctx.node) as ethers.Contract
+    ).getHash(userOp, validUntil, validAfter)
     return this.owner.signMessage(ethers.getBytes(hash))
   }
 }

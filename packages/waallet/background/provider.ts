@@ -96,7 +96,7 @@ export class WaalletBackgroundProvider {
       data: tx.data
     })
     userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(userOp)
+      await this.paymaster.requestPaymasterAndData(this, userOp)
     )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
@@ -144,7 +144,7 @@ export class WaalletBackgroundProvider {
       nonce: tx.nonce
     })
     userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(userOp)
+      await this.paymaster.requestPaymasterAndData(this, userOp)
     )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
