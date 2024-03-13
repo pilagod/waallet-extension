@@ -18,15 +18,15 @@ describe("ObservableStorage", () => {
     const s = new ObservableStorage({
       a: 123,
       b: "abc",
-      c: { d: 789, e: "xyz" }
+      c: { d: null, e: "xyz" }
     })
 
-    s.set({ a: 111, c: { d: 999 } })
+    s.set({ a: 111, c: { d: { f: 999 } } })
 
     const state = s.get()
     expect(state.a).toBe(111)
     expect(state.b).toBe("abc")
-    expect(state.c.d).toBe(999)
+    expect(state.c.d.f).toBe(999)
     expect(state.c.e).toBe("xyz")
   })
 

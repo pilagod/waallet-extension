@@ -18,7 +18,7 @@ export class ObservableStorage<
   }
 
   public set(updates: RecursivePartial<T>) {
-    this.state = this.updatePartial(this.get(), updates)
+    this.updatePartial(this.state, updates)
     this.emit(ObservableStorageEvent.StateUpdated, this.get())
   }
 
@@ -35,15 +35,14 @@ export class ObservableStorage<
     updates: RecursivePartial<O>
   ) {
     for (const [key, value] of Object.entries(updates)) {
-      if (!(key in target)) {
-        continue
-      }
       if (value instanceof Object) {
+        if (!target[key]) {
+          target[key] = {}
+        }
         this.updatePartial(target[key], value)
       } else {
         target[key as keyof O] = value
       }
     }
-    return target
   }
 }
