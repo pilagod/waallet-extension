@@ -23,6 +23,16 @@ export class ECDSAValidator implements Validator {
     )
   }
 
+  public async getDummySignature(): Promise<HexString> {
+    return ethers.AbiCoder.defaultAbiCoder().encode(
+      ["address", "bytes"],
+      [
+        await this.contract.getAddress(),
+        "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
+      ]
+    )
+  }
+
   public async sign(message: BytesLike): Promise<HexString> {
     if (typeof message == "string" && !ethers.isHexString(message)) {
       message = ethers.encodeBytes32String(message)

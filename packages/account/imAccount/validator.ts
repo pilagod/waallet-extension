@@ -7,5 +7,6 @@ export enum ValidatorType {
 export interface Validator {
   getAddress(): Promise<HexString>
   getOwnerValidatorInitData(ownerInfo?: string): Promise<HexString>
+  getDummySignature(): Promise<HexString>
   sign(message: BytesLike, metadata?: any): Promise<HexString>
 }

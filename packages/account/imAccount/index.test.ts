@@ -62,10 +62,7 @@ describeAccountSuite(
     // Set new ECDSAValidator owner
     it("should change the owner of ECDSAValidator", async () => {
       const ecdsaValidator = ctx.account.validator as ECDSAValidator
-      const newOwner = new ethers.Wallet(
-        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff81",
-        new ethers.JsonRpcProvider(config.rpc.node)
-      )
+      const newOwner = ethers.Wallet.createRandom()
       await setNewECDSAOwner(ctx.provider, ecdsaValidator, newOwner.address)
       expect(
         await ecdsaValidator.getOwner(await ctx.account.getAddress())
