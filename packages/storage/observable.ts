@@ -37,7 +37,7 @@ export class ObservableStorage<
     for (const [key, value] of Object.entries(updates)) {
       if (value instanceof Object) {
         if (!target[key]) {
-          target[key] = {}
+          target[key as keyof O] = {} as typeof value
         }
         this.updatePartial(target[key], value)
       } else {
