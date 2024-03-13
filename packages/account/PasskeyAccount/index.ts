@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 
 import { AccountSkeleton } from "~packages/account/skeleton"
+import type { NetworkContext } from "~packages/context/network"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
@@ -11,40 +12,43 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   /**
    * Use when account is already deployed
    */
-  public static async init(opts: {
+  public static async init(option: {
     address: HexString
     owner: PasskeyOwner
     nodeRpcUrl: string
   }) {
-    const account = new PasskeyAccount({ ...opts })
-    opts.owner.use(await account.getCredentialId())
+    const account = new PasskeyAccount({ ...option })
+    option.owner.use(await account.getCredentialId())
     return account
   }
 
   /**
    * Use when account is not yet deployed
    */
-  public static async initWithFactory(opts: {
-    owner: PasskeyOwner
-    credentialId: string
-    publicKey: PasskeyPublicKey
-    salt: BigNumberish
-    factoryAddress: string
-    nodeRpcUrl: string
-  }) {
-    opts.owner.use(opts.credentialId)
+  public static async initWithFactory(
+    ctx: NetworkContext,
+    option: {
+      owner: PasskeyOwner
+      credentialId: string
+      publicKey: PasskeyPublicKey
+      salt: BigNumberish
+      factoryAddress: string
+      nodeRpcUrl: string
+    }
+  ) {
+    option.owner.use(option.credentialId)
     const factory = new PasskeyAccountFactory({
-      address: opts.factoryAddress,
-      credentialId: opts.credentialId,
-      publicKey: opts.publicKey,
-      salt: opts.salt,
-      nodeRpcUrl: opts.nodeRpcUrl
+      address: option.factoryAddress,
+      credentialId: option.credentialId,
+      publicKey: option.publicKey,
+      salt: option.salt,
+      nodeRpcUrl: option.nodeRpcUrl
     })
     return new PasskeyAccount({
-      address: await factory.getAddress(),
-      owner: opts.owner,
+      address: await factory.getAddress(ctx),
+      owner: option.owner,
       factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      nodeRpcUrl: option.nodeRpcUrl
     })
   }
 

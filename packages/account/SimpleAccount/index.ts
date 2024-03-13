@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import type { Call } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
+import type { NetworkContext } from "~packages/context/network"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
@@ -10,40 +11,43 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   /**
    * Use when account is already deployed
    */
-  public static async init(opts: {
+  public static async init(option: {
     address: string
     ownerPrivateKey: string
     nodeRpcUrl: string
   }) {
-    const owner = new ethers.Wallet(opts.ownerPrivateKey)
+    const owner = new ethers.Wallet(option.ownerPrivateKey)
     return new SimpleAccount({
-      address: opts.address,
+      address: option.address,
       owner,
-      nodeRpcUrl: opts.nodeRpcUrl
+      nodeRpcUrl: option.nodeRpcUrl
     })
   }
 
   /**
    * Use when account is not yet deployed
    */
-  public static async initWithFactory(opts: {
-    ownerPrivateKey: string
-    factoryAddress: string
-    salt: BigNumberish
-    nodeRpcUrl: string
-  }) {
-    const owner = new ethers.Wallet(opts.ownerPrivateKey)
+  public static async initWithFactory(
+    ctx: NetworkContext,
+    option: {
+      ownerPrivateKey: string
+      factoryAddress: string
+      salt: BigNumberish
+      nodeRpcUrl: string
+    }
+  ) {
+    const owner = new ethers.Wallet(option.ownerPrivateKey)
     const factory = new SimpleAccountFactory({
-      address: opts.factoryAddress,
+      address: option.factoryAddress,
       owner: owner.address,
-      salt: opts.salt,
-      nodeRpcUrl: opts.nodeRpcUrl
+      salt: option.salt,
+      nodeRpcUrl: option.nodeRpcUrl
     })
     return new SimpleAccount({
-      address: await factory.getAddress(),
+      address: await factory.getAddress(ctx),
       owner,
       factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      nodeRpcUrl: option.nodeRpcUrl
     })
   }
 

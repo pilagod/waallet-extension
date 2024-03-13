@@ -1,6 +1,7 @@
+import type { NetworkContext } from "~packages/context/network"
 import type { HexString } from "~typing"
 
 export interface AccountFactory {
-  getAddress(): Promise<HexString>
+  getAddress(ctx: NetworkContext): Promise<HexString>
   getInitCode(): Promise<HexString>
 }
