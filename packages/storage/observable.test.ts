@@ -31,12 +31,15 @@ describe("ObservableStorage", () => {
   })
 
   it("should not manipulate storage state through state returned from getter", () => {
-    const s = new ObservableStorage({ a: 123 })
-
-    s.get().a = 456
+    const s = new ObservableStorage({ a: 123, b: { c: 123 } })
 
     const state = s.get()
-    expect(state.a).toBe(123)
+    state.a = 111
+    state.b.c = 999
+
+    const stateInStorage = s.get()
+    expect(stateInStorage.a).toBe(123)
+    expect(stateInStorage.b.c).toBe(123)
   })
 
   it("should be able to subscribe to state update", () => {

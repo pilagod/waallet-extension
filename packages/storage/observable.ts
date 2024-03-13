@@ -1,4 +1,5 @@
 import { EventEmitter } from "events"
+import structuredClone from "@ungap/structured-clone"
 
 import type { RecursivePartial } from "~typing"
 
@@ -14,7 +15,7 @@ export class ObservableStorage<
   }
 
   public get(): T {
-    return { ...this.state }
+    return structuredClone(this.state)
   }
 
   public set(updates: RecursivePartial<T>) {
