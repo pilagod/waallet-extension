@@ -8,7 +8,9 @@ let storage: ObservableStorage<State>
 
 export async function getStorage() {
   if (!storage) {
-    storage = new ObservableStorage<State>(await getInitialState())
+    // TODO: Check browser.runtime.lastError
+    const state = await browser.storage.local.get(null)
+    storage = new ObservableStorage<State>(state)
     // TODO: Only for development at this moment.
     // Remove it when getting to production.
     storage.set({
@@ -52,31 +54,26 @@ export async function getStorage() {
   return storage
 }
 
-async function getInitialState(): Promise<State> {
-  // TODO: Check browser.runtime.lastError
-  const state = await browser.storage.local.get(null)
-  return {
-    network: {},
-    ...state
-  }
-}
-
 /* State */
 
 export type State = {
   network: {
-    [chainId: number]: {
-      chainId: number
-      nodeRpcUrl: string
-      bundlerRpcUrl: string
-      selected: boolean
-      account: {
-        [address: string]: Account
-      }
-      paymaster: {
-        [address: string]: Paymaster
-      }
-    }
+    [chainId: number]: Network
+  }
+}
+
+/* Netowork */
+
+export type Network = {
+  chainId: number
+  nodeRpcUrl: string
+  bundlerRpcUrl: string
+  selected: boolean
+  account: {
+    [address: string]: Account
+  }
+  paymaster: {
+    [address: string]: Paymaster
   }
 }
 
