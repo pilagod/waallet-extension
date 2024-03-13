@@ -11,6 +11,9 @@ export async function getStorage() {
     // TODO: Check browser.runtime.lastError
     const state = await browser.storage.local.get(null)
     storage = new ObservableStorage<State>(state)
+    storage.subscribe(async (state) => {
+      await browser.storage.local.set(state)
+    })
     // TODO: Only for development at this moment.
     // Remove it when getting to production.
     storage.set({
@@ -46,9 +49,6 @@ export async function getStorage() {
           }
         }
       }
-    })
-    storage.subscribe(async (state) => {
-      await browser.storage.local.set(state)
     })
   }
   return storage
