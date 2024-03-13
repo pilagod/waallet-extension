@@ -14,8 +14,18 @@ export async function getStorage() {
     storage.subscribe(async (state) => {
       await browser.storage.local.set(state)
     })
-    // TODO: Only for development at this moment.
-    // Remove it when getting to production.
+    // TODO: Only for development at this moment. Remove following when getting to production.
+    // Disable all networks by default
+    storage.set({
+      network: Object.entries(storage.get().network).reduce(
+        (result, [chainId, network]) => {
+          result[chainId] = { selected: false }
+          return result
+        },
+        {}
+      )
+    })
+    // Enable only network specified in env
     storage.set({
       network: {
         [config.chainId]: {
