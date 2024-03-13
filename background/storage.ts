@@ -15,48 +15,44 @@ export async function getStorage() {
       await browser.storage.local.set(state)
     })
     // TODO: Only for development at this moment. Remove following when getting to production.
-    // Disable all networks by default
-    storage.set({
-      network: Object.keys(storage.get().network).reduce((result, chainId) => {
-        result[chainId] = { active: false }
-        return result
-      }, {})
-    })
     // Enable only network specified in env
-    storage.set({
-      network: {
-        [config.chainId]: {
-          active: true,
-          chainId: config.chainId,
-          nodeRpcUrl: config.nodeRpcUrl,
-          bundlerRpcUrl: config.bundlerRpcUrl,
-          account: {
-            ...(config.simpleAccountAddress && {
-              [config.simpleAccountAddress]: {
-                type: AccountType.SimpleAccount,
-                address: config.simpleAccountAddress,
-                ownerPrivateKey: config.simpleAccountOwnerPrivateKey
-              }
-            }),
-            ...(config.passkeyAccountAddress && {
-              [config.passkeyAccountAddress]: {
-                type: AccountType.PasskeyAccount,
-                address: config.passkeyAccountAddress
-              }
-            })
-          },
-          paymaster: {
-            ...(config.verifyingPaymasterAddress && {
-              [config.verifyingPaymasterAddress]: {
-                type: PaymasterType.VerifyingPaymaster,
-                address: config.verifyingPaymasterAddress,
-                ownerPrivateKey: config.verifyingPaymasterOwnerPrivateKey
-              }
-            })
+    storage.set(
+      {
+        network: {
+          [config.chainId]: {
+            active: true,
+            chainId: config.chainId,
+            nodeRpcUrl: config.nodeRpcUrl,
+            bundlerRpcUrl: config.bundlerRpcUrl,
+            account: {
+              ...(config.simpleAccountAddress && {
+                [config.simpleAccountAddress]: {
+                  type: AccountType.SimpleAccount,
+                  address: config.simpleAccountAddress,
+                  ownerPrivateKey: config.simpleAccountOwnerPrivateKey
+                }
+              }),
+              ...(config.passkeyAccountAddress && {
+                [config.passkeyAccountAddress]: {
+                  type: AccountType.PasskeyAccount,
+                  address: config.passkeyAccountAddress
+                }
+              })
+            },
+            paymaster: {
+              ...(config.verifyingPaymasterAddress && {
+                [config.verifyingPaymasterAddress]: {
+                  type: PaymasterType.VerifyingPaymaster,
+                  address: config.verifyingPaymasterAddress,
+                  ownerPrivateKey: config.verifyingPaymasterOwnerPrivateKey
+                }
+              })
+            }
           }
         }
-      }
-    })
+      },
+      { override: true }
+    )
   }
   return storage
 }

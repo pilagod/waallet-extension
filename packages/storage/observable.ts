@@ -18,8 +18,15 @@ export class ObservableStorage<
     return structuredClone(this.state)
   }
 
-  public set(updates: RecursivePartial<T>) {
-    this.updatePartial(this.state, updates)
+  public set(
+    updates: RecursivePartial<T>,
+    option: { override?: boolean } = {}
+  ) {
+    if (option.override) {
+      this.state = { ...this.get(), ...updates }
+    } else {
+      this.updatePartial(this.state, updates)
+    }
     this.emit(ObservableStorageEvent.StateUpdated, this.get())
   }
 

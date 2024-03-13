@@ -30,6 +30,23 @@ describe("ObservableStorage", () => {
     expect(state.c.e).toBe("xyz")
   })
 
+  it("should override fields in state", () => {
+    const s = new ObservableStorage({
+      a: { b: 123 } as Record<string, any>
+    })
+
+    s.set(
+      {
+        a: { c: 999 }
+      },
+      { override: true }
+    )
+
+    const state = s.get()
+    expect(state.a.b).toBe(undefined)
+    expect(state.a.c).toBe(999)
+  })
+
   it("should not manipulate storage state through state returned from getter", () => {
     const s = new ObservableStorage({ a: 123, b: { c: 123 } })
 
