@@ -62,10 +62,7 @@ const UserOperationAuthorization = () => {
       option: o
     })
     userOp.setPaymasterAndData(
-      await o.paymaster.requestPaymasterAndData(
-        { node: provider } as any,
-        userOp
-      )
+      await o.paymaster.requestPaymasterAndData(provider, userOp)
     )
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
@@ -81,7 +78,7 @@ const UserOperationAuthorization = () => {
         ...userOp.data(),
         paymasterAndData:
           await payment.option.paymaster.requestPaymasterAndData(
-            { node: provider } as any,
+            provider,
             userOp
           )
       })
