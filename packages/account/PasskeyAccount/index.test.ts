@@ -7,9 +7,9 @@ import { PasskeyOwnerP256 } from "./passkeyOwnerP256"
 
 describeAccountSuite(
   "PasskeyAccount",
-  (ctx) => {
+  (runner) => {
     const owner = new PasskeyOwnerP256()
-    return PasskeyAccount.initWithFactory(ctx, {
+    return PasskeyAccount.initWithFactory(runner, {
       owner,
       credentialId: Buffer.from(owner.publicKey).toString("hex"),
       publicKey: {
