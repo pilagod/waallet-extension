@@ -3,6 +3,7 @@ import * as ethers from "ethers"
 import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
 import { BundlerProvider } from "~packages/bundler/provider"
+import { NodeProvider } from "~packages/node/provider"
 import { type Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
@@ -26,24 +27,19 @@ export type WaalletBackgroundProviderOption = {
 export class WaalletBackgroundProvider {
   public account: Account
 
-  public node: ethers.JsonRpcProvider
-
   public constructor(
-    private nodeRpcUrl: string,
+    public node: NodeProvider,
     public bundler: BundlerProvider,
     private userOperationAuthorizer: UserOperationAuthorizer,
     private paymaster: Paymaster = new NullPaymaster()
-  ) {
-    // TODO: Refactor node provider
-    this.node = new ethers.JsonRpcProvider(nodeRpcUrl)
-  }
+  ) {}
 
-  public clone(option?: WaalletBackgroundProviderOption) {
+  public clone(option: WaalletBackgroundProviderOption = {}) {
     const provider = new WaalletBackgroundProvider(
-      this.nodeRpcUrl,
+      this.node,
       this.bundler,
-      option?.userOperationAuthorizer ?? this.userOperationAuthorizer,
-      option?.paymaster ?? this.paymaster
+      option.userOperationAuthorizer ?? this.userOperationAuthorizer,
+      option.paymaster ?? this.paymaster
     )
     if (this.account) {
       provider.connect(this.account)
@@ -70,7 +66,7 @@ export class WaalletBackgroundProvider {
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
-        return new JsonRpcProvider(this.nodeRpcUrl).send(args)
+        return new JsonRpcProvider(this.node.url).send(args)
     }
   }
 

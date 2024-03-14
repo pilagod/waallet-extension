@@ -16,7 +16,7 @@ export function describeWaalletSuite(
     const ctx = new WaalletSuiteContext()
 
     ctx.provider = new WaalletBackgroundProvider(
-      config.rpc.node,
+      config.provider.node,
       config.provider.bundler,
       new NullUserOperationAuthorizer()
     )
