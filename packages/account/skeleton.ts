@@ -3,7 +3,7 @@ import * as ethers from "ethers"
 import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
 import { UserOperation } from "~packages/bundler"
-import type { NetworkContext } from "~packages/context/network"
+import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export abstract class AccountSkeleton<T extends AccountFactory>
@@ -22,18 +22,18 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   public abstract sign(message: BytesLike): Promise<HexString>
   protected abstract getCallData(call: Call): Promise<HexString>
   protected abstract getDummySignature(): Promise<HexString>
-  protected abstract getNonce(ctx: NetworkContext): Promise<BigNumberish>
+  protected abstract getNonce(runner: ContractRunner): Promise<BigNumberish>
 
   /* public */
 
   public async createUserOperation(
-    ctx: NetworkContext,
+    runner: ContractRunner,
     call: Call
   ): Promise<UserOperation> {
-    const isDeployed = await this.isDeployed(ctx)
+    const isDeployed = await this.isDeployed(runner)
 
     const sender = await this.getAddress()
-    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce(ctx) : 0)
+    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce(runner) : 0)
     const initCode = isDeployed
       ? "0x"
       : await this.mustGetFactory().getInitCode()
@@ -53,9 +53,9 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.address
   }
 
-  public async isDeployed(ctx: NetworkContext): Promise<boolean> {
+  public async isDeployed(runner: ContractRunner): Promise<boolean> {
     // TODO: Cache it
-    const code = await ctx.node.getCode(await this.getAddress())
+    const code = await runner.provider.getCode(await this.getAddress())
     return code !== "0x"
   }
 

@@ -21,7 +21,7 @@ if (process.env.PLASMO_PUBLIC_ACCOUNT) {
     provider.connect(account)
   })
 } else if (process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT) {
-  PasskeyAccount.init(provider, {
+  PasskeyAccount.init(provider.node, {
     address: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT,
     owner: new PasskeyOwnerWebAuthn()
   }).then((account) => {

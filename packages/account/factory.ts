@@ -1,7 +1,7 @@
-import type { NetworkContext } from "~packages/context/network"
+import type { ContractRunner } from "~packages/node"
 import type { HexString } from "~typing"
 
 export interface AccountFactory {
-  getAddress(ctx: NetworkContext): Promise<HexString>
+  getAddress(runner: ContractRunner): Promise<HexString>
   getInitCode(): Promise<HexString>
 }

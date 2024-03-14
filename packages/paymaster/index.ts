@@ -1,5 +1,5 @@
 import { UserOperation } from "~packages/bundler"
-import type { NetworkContext } from "~packages/context/network"
+import type { ContractRunner } from "~packages/node"
 import { Token } from "~packages/token"
 import type { HexString } from "~typing"
 
@@ -17,7 +17,7 @@ export interface Paymaster {
    * Request `paymasterAndData` for user operation.
    */
   requestPaymasterAndData(
-    ctx: NetworkContext,
+    runner: ContractRunner,
     userOp: UserOperation
   ): Promise<HexString>
 }

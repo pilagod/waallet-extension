@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import type { AccountFactory } from "~packages/account/factory"
-import type { NetworkContext } from "~packages/context/network"
+import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, HexString } from "~typing"
 
 export type PasskeyPublicKey = {
@@ -30,12 +30,12 @@ export class PasskeyAccountFactory implements AccountFactory {
     this.salt = opts.salt
   }
 
-  public async getAddress(ctx: NetworkContext) {
+  public async getAddress(runner: ContractRunner) {
     return ethers.zeroPadValue(
       ethers.stripZerosLeft(
         // The name of `getAddress` conflicts with the function on ethers.Contract.
         // So we build call data from interface and directly send through node rpc provider.
-        await ctx.node.call(
+        await runner.provider.call(
           await this.factory
             .getFunction("getAddress")
             .populateTransaction(

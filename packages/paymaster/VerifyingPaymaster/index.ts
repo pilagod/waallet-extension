@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import { UserOperation, UserOperationStruct } from "~packages/bundler"
-import type { NetworkContext } from "~packages/context/network"
+import { connect, type ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
 import { ETH, Token } from "~packages/token"
 import type { HexString } from "~typing"
@@ -31,14 +31,14 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   public async requestPaymasterAndData(
-    ctx: NetworkContext,
+    runner: ContractRunner,
     userOp: UserOperation
   ) {
     const validAfter = 0
     const validUntil =
       Math.floor(new Date().getTime() / 1000) + this.intervalSecs
     const signature = await this.getSignature(
-      ctx,
+      runner,
       userOp,
       validUntil,
       validAfter
@@ -54,7 +54,7 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   private async getSignature(
-    ctx: NetworkContext,
+    runner: ContractRunner,
     userOp: UserOperation,
     validUntil: number,
     validAfter: number
@@ -62,9 +62,11 @@ export class VerifyingPaymaster implements Paymaster {
     if (!userOp.isGasEstimated()) {
       return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
     }
-    const hash = await (
-      this.paymaster.connect(ctx.node) as ethers.Contract
-    ).getHash(userOp, validUntil, validAfter)
+    const hash = await connect(this.paymaster, runner).getHash(
+      userOp,
+      validUntil,
+      validAfter
+    )
     return this.owner.signMessage(ethers.getBytes(hash))
   }
 }

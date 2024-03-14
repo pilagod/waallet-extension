@@ -2,7 +2,7 @@ import * as ethers from "ethers"
 
 import type { Call } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
-import type { NetworkContext } from "~packages/context/network"
+import { connect, type ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
@@ -26,7 +26,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
    * Use when account is not yet deployed
    */
   public static async initWithFactory(
-    ctx: NetworkContext,
+    runner: ContractRunner,
     option: {
       ownerPrivateKey: string
       factoryAddress: string
@@ -40,7 +40,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       salt: option.salt
     })
     return new SimpleAccount({
-      address: await factory.getAddress(ctx),
+      address: await factory.getAddress(runner),
       owner,
       factory
     })
@@ -81,10 +81,8 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
   }
 
-  protected async getNonce(ctx: NetworkContext): Promise<BigNumberish> {
-    const nonce = (await (
-      this.account.connect(ctx.node) as ethers.Contract
-    ).getNonce()) as bigint
+  protected async getNonce(runner: ContractRunner): Promise<BigNumberish> {
+    const nonce = (await connect(this.account, runner).getNonce()) as bigint
     return nonce
   }
 }

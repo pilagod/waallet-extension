@@ -21,7 +21,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
     ) {
       userOp.setPaymasterAndData(
         await this.verifyingPaymaster.requestPaymasterAndData(
-          ctx.provider,
+          ctx.provider.node,
           userOp
         )
       )

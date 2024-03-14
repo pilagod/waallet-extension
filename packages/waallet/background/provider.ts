@@ -90,13 +90,13 @@ export class WaalletBackgroundProvider {
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOp = await this.account.createUserOperation(this, {
+    const userOp = await this.account.createUserOperation(this.node, {
       to: tx.to,
       value: tx.value,
       data: tx.data
     })
     userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(this, userOp)
+      await this.paymaster.requestPaymasterAndData(this.node, userOp)
     )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
@@ -137,14 +137,14 @@ export class WaalletBackgroundProvider {
     }
     // TODO: Use account's entry point
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOp = await this.account.createUserOperation(this, {
+    const userOp = await this.account.createUserOperation(this.node, {
       to: tx.to,
       value: tx.value,
       data: tx.data,
       nonce: tx.nonce
     })
     userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(this, userOp)
+      await this.paymaster.requestPaymasterAndData(this.node, userOp)
     )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
