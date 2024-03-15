@@ -3,32 +3,47 @@ import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOw
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 
 import { setupWaalletBackgroundProvider } from "./provider"
+import { AccountType, getStorage, type Account, type Network } from "./storage"
 
 console.log(
   "Live now; make now always the most precious time. Now will never come again."
 )
 
-const provider = setupWaalletBackgroundProvider({
-  nodeRpcUrl: process.env.PLASMO_PUBLIC_NODE_RPC_URL,
-  bundlerRpcUrl: process.env.PLASMO_PUBLIC_BUNDLER_RPC_URL
-})
-
-if (process.env.PLASMO_PUBLIC_ACCOUNT) {
-  SimpleAccount.init({
-    address: process.env.PLASMO_PUBLIC_ACCOUNT,
-    ownerPrivateKey: process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY,
-    nodeRpcUrl: process.env.PLASMO_PUBLIC_NODE_RPC_URL
-  }).then((account) => {
-    provider.connect(account)
+async function main() {
+  const storage = await getStorage()
+  const state = storage.get()
+  const network = Object.values(state.network).find((n) => n.active)
+  if (!network) {
+    throw new Error("No available network")
+  }
+  const provider = setupWaalletBackgroundProvider({
+    nodeRpcUrl: network.nodeRpcUrl,
+    bundlerRpcUrl: network.bundlerRpcUrl
   })
-} else if (process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT) {
-  PasskeyAccount.init({
-    address: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT,
-    owner: new PasskeyOwnerWebAuthn(),
-    nodeRpcUrl: process.env.PLASMO_PUBLIC_NODE_RPC_URL
-  }).then((account) => {
-    provider.connect(account)
-  })
+  const [account] = Object.values(network.account)
+  if (!account) {
+    throw new Error("No available account")
+  }
+  provider.connect(await initAccount(account, network))
 }
 
-export {}
+async function initAccount(account: Account, network: Network) {
+  switch (account.type) {
+    case AccountType.SimpleAccount:
+      return SimpleAccount.init({
+        address: account.address,
+        ownerPrivateKey: account.ownerPrivateKey,
+        nodeRpcUrl: network.nodeRpcUrl
+      })
+    case AccountType.PasskeyAccount:
+      return PasskeyAccount.init({
+        address: account.address,
+        owner: new PasskeyOwnerWebAuthn(),
+        nodeRpcUrl: network.nodeRpcUrl
+      })
+    default:
+      throw new Error("Unknown account type")
+  }
+}
+
+main()
