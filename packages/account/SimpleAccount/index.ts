@@ -86,9 +86,4 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   protected async getDummySignature(): Promise<HexString> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
   }
-
-  protected async getNonce(): Promise<BigNumberish> {
-    const nonce = (await this.account.getNonce()) as bigint
-    return nonce
-  }
 }
