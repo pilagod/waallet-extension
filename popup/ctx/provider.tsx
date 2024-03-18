@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type Dispatch,
   type FunctionComponent,
@@ -9,6 +10,7 @@ import {
   type SetStateAction
 } from "react"
 
+import { StorageMessenger } from "~background/messages/storage"
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import { WaalletContentProvider } from "~packages/waallet/content/provider"
 import type { Nullable } from "~typing"
@@ -36,6 +38,14 @@ export const ProviderCtxProvider: FunctionComponent<{
     )
   )
   const [index, setIndex] = useState<number>(0)
+
+  useEffect(() => {
+    async function getState() {
+      const state = await new StorageMessenger().get()
+      console.log("state in storage", state)
+    }
+    getState()
+  })
 
   const account: ProviderCtxInterface = {
     provider,
