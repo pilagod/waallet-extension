@@ -1,5 +1,6 @@
 import { Redirect, Route, Router, Switch } from "wouter"
 
+import { Navbar } from "~popup/component/navbar"
 import { ProviderCtxProvider } from "~popup/ctx/provider"
 import { Info } from "~popup/pages/info"
 import { Send } from "~popup/pages/send"
@@ -10,7 +11,8 @@ import "~style.css"
 
 function IndexPopup() {
   return (
-    <>
+    <div>
+      <Navbar />
       <Router hook={useHashLocation}>
         <Switch>
           <Route path={PopupPath.root}>
@@ -22,7 +24,7 @@ function IndexPopup() {
           </ProviderCtxProvider>
         </Switch>
       </Router>
-    </>
+    </div>
   )
 }
 
