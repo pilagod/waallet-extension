@@ -4,40 +4,25 @@ import {
   useContext,
   useEffect,
   useState,
-  type Dispatch,
-  type FunctionComponent,
-  type ReactNode,
-  type SetStateAction
+  type ReactNode
 } from "react"
 
 import { StorageMessenger } from "~background/messages/storage"
+import { type State } from "~background/storage"
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import { WaalletContentProvider } from "~packages/waallet/content/provider"
-import type { Nullable } from "~typing"
 
-type ProviderCtxInterface = {
+export const ProviderContext = createContext<{
   provider: ethers.BrowserProvider
-  setProvider: Dispatch<SetStateAction<ethers.BrowserProvider>>
-  index: number
-  setIndex: Dispatch<SetStateAction<number>>
-}
-
-export const ProviderCtx = createContext<ProviderCtxInterface>({
-  provider: null,
-  setProvider: () => {},
-  index: 0,
-  setIndex: () => {}
+}>({
+  provider: null
 })
 
-export const ProviderCtxProvider: FunctionComponent<{
-  children: ReactNode
-}> = ({ children }) => {
-  const [provider, setProvider] = useState<Nullable<ethers.BrowserProvider>>(
-    new ethers.BrowserProvider(
-      new WaalletContentProvider(new BackgroundDirectMessenger())
-    )
+export function ProviderCtxProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<State>(null)
+  const provider = new ethers.BrowserProvider(
+    new WaalletContentProvider(new BackgroundDirectMessenger())
   )
-  const [index, setIndex] = useState<number>(0)
 
   useEffect(() => {
     async function getState() {
@@ -47,16 +32,16 @@ export const ProviderCtxProvider: FunctionComponent<{
     getState()
   })
 
-  const account: ProviderCtxInterface = {
-    provider,
-    setProvider,
-    index,
-    setIndex
-  }
-
-  return <ProviderCtx.Provider value={account}>{children}</ProviderCtx.Provider>
+  return (
+    <ProviderContext.Provider
+      value={{
+        provider
+      }}>
+      {children}
+    </ProviderContext.Provider>
+  )
 }
 
 export const useProvider = () => {
-  return useContext(ProviderCtx)
+  return useContext(ProviderContext)
 }

@@ -8,12 +8,12 @@ import {
 } from "react"
 import { Link } from "wouter"
 
-import { ProviderCtx } from "~popup/ctx/provider"
+import { ProviderContext } from "~popup/ctx/provider"
 import { PopupPath } from "~popup/util/page"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
-  const providerCtx = useContext(ProviderCtx)
+  const { provider } = useContext(ProviderContext)
   const [txHash, setTxHash] = useState<HexString>("")
 
   // Input state
@@ -25,11 +25,8 @@ export function Send() {
 
   useEffect(() => {
     const asyncFn = async () => {
-      setTxToSuggestions(
-        (await providerCtx.provider.listAccounts()).map((account) => {
-          return account.address
-        })
-      )
+      const [account] = await provider.listAccounts()
+      setTxToSuggestions([account.address])
     }
     asyncFn()
   }, [])
@@ -59,22 +56,16 @@ export function Send() {
   }
 
   const handleSend = useCallback(async () => {
-    const accountAddress = (await providerCtx.provider.listAccounts()).map(
-      (account) => account.address
-    )[providerCtx.index]
-
-    const signer = providerCtx.provider.getSigner()
-    const txResult = await (
-      await signer
-    ).sendTransaction({
-      from: accountAddress,
+    const [account] = await provider.listAccounts()
+    const signer = await provider.getSigner()
+    const txResult = await signer.sendTransaction({
+      from: account.address,
       to: ethers.getAddress(txTo),
       value: ethers.parseUnits(txValue.toString(), "ether")
     })
-
     // TODO: Need to avoid Popup closure
     setTxHash(txResult.hash)
-  }, [providerCtx, txTo, txValue])
+  }, [txTo, txValue])
 
   return (
     <div className="text-base justify-center items-center h-auto">

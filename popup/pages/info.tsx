@@ -2,13 +2,12 @@ import * as ethers from "ethers"
 import { useContext, useEffect, useState, type MouseEvent } from "react"
 import { Link } from "wouter"
 
-import { ProviderCtx } from "~popup/ctx/provider"
+import { ProviderContext } from "~popup/ctx/provider"
 import { PopupPath } from "~popup/util/page"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Info() {
-  const providerCtx = useContext(ProviderCtx)
-
+  const { provider } = useContext(ProviderContext)
   const [address, setAddress] = useState<HexString>("")
   const [balance, setBalance] = useState<BigNumberish>(0n)
   const [transactionHashes, setTransactionHashes] = useState<HexString[]>([""])
@@ -18,43 +17,32 @@ export function Info() {
   const [explorerUrl, setExplorerUrl] = useState<string>("")
 
   useEffect(() => {
-    console.log(`providerCtx: ${providerCtx.provider}, ${providerCtx.index}`)
+    console.log(`providerCtx: ${provider}`)
 
     const asyncFn = async () => {
-      if (!providerCtx.provider) return
+      if (!provider) return
 
-      const explorer = getExplorerUrl(
-        (await providerCtx.provider.getNetwork()).name
-      )
+      const explorer = getExplorerUrl((await provider.getNetwork()).name)
       setExplorerUrl(explorer)
 
-      const addresses = (await providerCtx.provider.listAccounts()).map(
-        (account) => account.address
-      )
-      setAddress(addresses[providerCtx.index])
+      const [account] = await provider.listAccounts()
+      setAddress(account.address)
 
-      const balances = await Promise.all(
-        addresses.map(async (account) => {
-          return await providerCtx.provider.getBalance(account)
-        })
-      )
-      setBalance(balances[providerCtx.index])
+      const balance = await provider.getBalance(account.address)
+      setBalance(balance)
 
-      const txHashes = await accountTransactions(
-        explorer,
-        addresses[providerCtx.index]
-      )
+      const txHashes = await accountTransactions(explorer, account.address)
       setTransactionHashes(txHashes)
 
       const internalTxHashes = await accountInternalTransactions(
         explorer,
-        addresses[providerCtx.index]
+        account.address
       )
       setInternalTransactionHashes(internalTxHashes)
     }
 
     asyncFn()
-  }, [providerCtx.index, providerCtx.provider])
+  }, [])
 
   return (
     <>
