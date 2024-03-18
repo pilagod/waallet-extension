@@ -18,9 +18,9 @@ export async function getStorage() {
     // Enable only network specified in env
     storage.set(
       {
+        networkActive: config.chainId,
         network: {
           [config.chainId]: {
-            active: true,
             chainId: config.chainId,
             nodeRpcUrl: config.nodeRpcUrl,
             bundlerRpcUrl: config.bundlerRpcUrl,
@@ -60,6 +60,7 @@ export async function getStorage() {
 /* State */
 
 export type State = {
+  networkActive: number
   network: {
     [chainId: number]: Network
   }
@@ -68,7 +69,6 @@ export type State = {
 /* Netowork */
 
 export type Network = {
-  active: boolean
   chainId: number
   nodeRpcUrl: string
   bundlerRpcUrl: string
