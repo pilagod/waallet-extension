@@ -11,20 +11,18 @@ import "~style.css"
 
 function IndexPopup() {
   return (
-    <div>
+    <ProviderCtxProvider>
       <Navbar />
       <Router hook={useHashLocation}>
         <Switch>
           <Route path={PopupPath.root}>
             <Redirect to={PopupPath.info} />
           </Route>
-          <ProviderCtxProvider>
-            <Route path={PopupPath.info} component={Info}></Route>
-            <Route path={PopupPath.send} component={Send}></Route>
-          </ProviderCtxProvider>
+          <Route path={PopupPath.info} component={Info}></Route>
+          <Route path={PopupPath.send} component={Send}></Route>
         </Switch>
       </Router>
-    </div>
+    </ProviderCtxProvider>
   )
 }
 
