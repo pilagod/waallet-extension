@@ -24,6 +24,8 @@ export async function getStorage() {
             chainId: config.chainId,
             nodeRpcUrl: config.nodeRpcUrl,
             bundlerRpcUrl: config.bundlerRpcUrl,
+            accountActive:
+              config.simpleAccountAddress || config.passkeyAccountAddress,
             account: {
               ...(config.simpleAccountAddress && {
                 [config.simpleAccountAddress]: {
@@ -72,6 +74,7 @@ export type Network = {
   chainId: number
   nodeRpcUrl: string
   bundlerRpcUrl: string
+  accountActive: HexString
   account: {
     [address: string]: Account
   }
