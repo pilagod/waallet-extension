@@ -2,9 +2,9 @@ import * as ethers from "ethers"
 import { useCallback, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
-import { useProviderContext } from "~popup/context/provider"
-import { useAccount } from "~popup/storage"
-import { PopupPath } from "~popup/util/page"
+import { useProviderContext } from "~app/context/provider"
+import { useAccount } from "~app/storage"
+import { PopupPath } from "~app/util/page"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
