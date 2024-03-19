@@ -3,12 +3,13 @@ import { useEffect, useState, type MouseEvent } from "react"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~popup/context/provider"
+import { useAccount } from "~popup/storage"
 import { PopupPath } from "~popup/util/page"
 import type { HexString } from "~typing"
 
 export function Info() {
   const { provider } = useProviderContext()
-  const [address, setAddress] = useState<HexString>("")
+  const account = useAccount()
   const [balance, setBalance] = useState<bigint>(0n)
   const [transactionHashes, setTransactionHashes] = useState<HexString[]>([""])
   const [internalTransactionHashes, setInternalTransactionHashes] = useState<
@@ -21,8 +22,8 @@ export function Info() {
       const explorer = getExplorerUrl((await provider.getNetwork()).name)
       setExplorerUrl(explorer)
 
-      const [account] = await provider.listAccounts()
-      setAddress(account.address)
+      // const [account] = await provider.listAccounts()
+      // setAddress(account.address)
 
       const balance = await provider.getBalance(account.address)
       setBalance(balance)
@@ -42,8 +43,8 @@ export function Info() {
 
   return (
     <>
-      {address && (
-        <AccountAddress account={address} explorerUrl={explorerUrl} />
+      {account.address && (
+        <AccountAddress account={account.address} explorerUrl={explorerUrl} />
       )}
       {balance && <AccountBalance balance={balance} />}
       <SwitchToSendPage />

@@ -1,29 +1,20 @@
 import * as ethers from "ethers"
-import { useCallback, useEffect, useState, type ChangeEvent } from "react"
+import { useCallback, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~popup/context/provider"
+import { useAccount } from "~popup/storage"
 import { PopupPath } from "~popup/util/page"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
   const { provider } = useProviderContext()
+  const account = useAccount()
   const [txHash, setTxHash] = useState<HexString>("")
-
-  // Input state
   const [txTo, setTxTo] = useState<HexString>("")
-  const [txToSuggestions, setTxToSuggestions] = useState<HexString[]>([""])
   const [txValue, setTxValue] = useState<BigNumberish>("0")
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
-
-  useEffect(() => {
-    const asyncFn = async () => {
-      const [account] = await provider.listAccounts()
-      setTxToSuggestions([account.address])
-    }
-    asyncFn()
-  }, [])
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -50,10 +41,8 @@ export function Send() {
   }
 
   const handleSend = useCallback(async () => {
-    const [account] = await provider.listAccounts()
     const signer = await provider.getSigner()
     const txResult = await signer.sendTransaction({
-      from: account.address,
       to: ethers.getAddress(txTo),
       value: ethers.parseUnits(txValue.toString(), "ether")
     })
@@ -75,9 +64,7 @@ export function Send() {
             invalidTo ? "border-red-500" : "border-gray-300"
           }`}></input>
         <datalist id="suggestionTo">
-          {txToSuggestions.map((to, index) => {
-            return <option key={index} value={to} />
-          })}
+          <option value={account.address}></option>
         </datalist>
       </div>
       <div className="flex">
