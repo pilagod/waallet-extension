@@ -1,19 +1,13 @@
 import * as ethers from "ethers"
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ChangeEvent
-} from "react"
+import { useCallback, useEffect, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
-import { ProviderContext } from "~popup/ctx/provider"
+import { useProviderContext } from "~popup/context/provider"
 import { PopupPath } from "~popup/util/page"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
-  const { provider } = useContext(ProviderContext)
+  const { provider } = useProviderContext()
   const [txHash, setTxHash] = useState<HexString>("")
 
   // Input state

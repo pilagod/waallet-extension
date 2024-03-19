@@ -1,15 +1,15 @@
 import * as ethers from "ethers"
-import { useContext, useEffect, useState, type MouseEvent } from "react"
+import { useEffect, useState, type MouseEvent } from "react"
 import { Link } from "wouter"
 
-import { ProviderContext } from "~popup/ctx/provider"
+import { useProviderContext } from "~popup/context/provider"
 import { PopupPath } from "~popup/util/page"
-import type { BigNumberish, HexString } from "~typing"
+import type { HexString } from "~typing"
 
 export function Info() {
-  const { provider } = useContext(ProviderContext)
+  const { provider } = useProviderContext()
   const [address, setAddress] = useState<HexString>("")
-  const [balance, setBalance] = useState<BigNumberish>(0n)
+  const [balance, setBalance] = useState<bigint>(0n)
   const [transactionHashes, setTransactionHashes] = useState<HexString[]>([""])
   const [internalTransactionHashes, setInternalTransactionHashes] = useState<
     HexString[]
@@ -17,11 +17,7 @@ export function Info() {
   const [explorerUrl, setExplorerUrl] = useState<string>("")
 
   useEffect(() => {
-    console.log(`providerCtx: ${provider}`)
-
     const asyncFn = async () => {
-      if (!provider) return
-
       const explorer = getExplorerUrl((await provider.getNetwork()).name)
       setExplorerUrl(explorer)
 
@@ -82,7 +78,7 @@ const AccountAddress: React.FC<{
   )
 }
 
-const AccountBalance: React.FC<{ balance: BigNumberish }> = ({ balance }) => {
+const AccountBalance: React.FC<{ balance: bigint }> = ({ balance }) => {
   return (
     <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
       <span>${ethers.formatEther(balance)}</span>

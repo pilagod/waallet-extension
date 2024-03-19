@@ -1,17 +1,25 @@
 import { Redirect, Route, Router, Switch } from "wouter"
+import { useShallow } from "zustand/react/shallow"
 
 import { Navbar } from "~popup/component/navbar"
-import { ProviderCtxProvider } from "~popup/ctx/provider"
+import { ProviderContextProvider } from "~popup/context/provider"
 import { Info } from "~popup/pages/info"
 import { Send } from "~popup/pages/send"
+import { useStorage } from "~popup/storage"
 import { useHashLocation } from "~popup/util/location"
 import { PopupPath } from "~popup/util/page"
 
 import "~style.css"
 
 function IndexPopup() {
+  const isStateInitialized = useStorage(
+    useShallow((storage) => storage.state !== null)
+  )
+  if (!isStateInitialized) {
+    return <></>
+  }
   return (
-    <ProviderCtxProvider>
+    <ProviderContextProvider>
       <Navbar />
       <Router hook={useHashLocation}>
         <Switch>
@@ -22,7 +30,7 @@ function IndexPopup() {
           <Route path={PopupPath.send} component={Send}></Route>
         </Switch>
       </Router>
-    </ProviderCtxProvider>
+    </ProviderContextProvider>
   )
 }
 

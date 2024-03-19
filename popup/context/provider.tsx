@@ -1,10 +1,8 @@
 import * as ethers from "ethers"
 import { createContext, useContext, type ReactNode } from "react"
-import { useShallow } from "zustand/react/shallow"
 
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import { WaalletContentProvider } from "~packages/waallet/content/provider"
-import { useStorage } from "~popup/storage"
 
 export const ProviderContext = createContext<{
   provider: ethers.BrowserProvider
@@ -12,13 +10,7 @@ export const ProviderContext = createContext<{
   provider: null
 })
 
-export function ProviderCtxProvider({ children }: { children: ReactNode }) {
-  const network = useStorage(
-    useShallow((storage) => storage.state?.network[storage.state.networkActive])
-  )
-  if (!network) {
-    return <></>
-  }
+export function ProviderContextProvider({ children }: { children: ReactNode }) {
   const provider = new ethers.BrowserProvider(
     new WaalletContentProvider(new BackgroundDirectMessenger())
   )
@@ -32,6 +24,6 @@ export function ProviderCtxProvider({ children }: { children: ReactNode }) {
   )
 }
 
-export const useProvider = () => {
+export const useProviderContext = () => {
   return useContext(ProviderContext)
 }
