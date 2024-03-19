@@ -63,10 +63,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     })
     this.account = new ethers.Contract(
       opts.address,
-      [
-        "function getNonce() view returns (uint256)",
-        "function execute(address dest, uint256 value, bytes calldata func)"
-      ],
+      ["function execute(address dest, uint256 value, bytes calldata func)"],
       this.node
     )
     this.owner = opts.owner
