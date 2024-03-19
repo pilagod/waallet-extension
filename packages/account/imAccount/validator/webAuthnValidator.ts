@@ -4,7 +4,7 @@ import WebAuthnValidatorMetadata from "~packages/account/imAccount/abi/WebAuthnV
 import type { Validator } from "~packages/account/imAccount/validator"
 import type { BytesLike, HexString } from "~typing"
 
-import type { PasskeyOwner } from "../../PasskeyAccount/passkeyOwner"
+import { getValidatorSignMessage, WebAuthnValidatorOwner } from "../validator"
 
 export type WebAuthnInput = {
   authenticatorFlagsAndSignCount: BytesLike
@@ -18,19 +18,14 @@ export type WebAuthnInfo = {
 
 export class WebAuthnValidator implements Validator {
   private node: ethers.JsonRpcProvider
-  private owner: PasskeyOwner
+  private owner: WebAuthnValidatorOwner
   public x: bigint
   public y: bigint
   public contract: ethers.Contract
 
-  public DEFAULT_AUTHENTICATOR_RPID_HASH =
-    "0x49960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d9763"
-  public DEFAULT_AUTHENTICATOR_FLAGS = "0x05"
-  public DEFAULT_AUTHENTICATOR_SIGN_COUNT = "0x00000002"
-
   public constructor(opts: {
     address: HexString
-    owner: PasskeyOwner
+    owner: WebAuthnValidatorOwner
     x: bigint
     y: bigint
     credentialId: string
@@ -58,9 +53,13 @@ export class WebAuthnValidator implements Validator {
       message = ethers.encodeBytes32String(message)
     }
 
-    const [webAuthnHash, webAuthnInput] = await this.getWebAuthnInput(message)
+    const signingMsg = getValidatorSignMessage(
+      message,
+      await this.contract.getAddress()
+    )
 
-    const rawSignature = await this.owner.sign(webAuthnHash.replace(/^0x/, ""))
+    const { rawSignature, webAuthnInput } = await this.owner.sign(signingMsg)
+
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
       [
         "address",
@@ -83,16 +82,6 @@ export class WebAuthnValidator implements Validator {
     )
   }
 
-  public async getWebAuthnInfoHash(
-    webAuthnInfo: WebAuthnInfo
-  ): Promise<HexString> {
-    return await this.contract.getWebAuthnInfoHash(webAuthnInfo)
-  }
-
-  public async getAuthenticatorRPIDHash(account: string): Promise<HexString> {
-    return await this.contract.getAuthenticatorRPIDHash(account)
-  }
-
   public async getOwner(account: string): Promise<bigint[]> {
     return await this.contract.getOwner(account)
   }
@@ -108,43 +97,11 @@ export class WebAuthnValidator implements Validator {
   public async getOwnerValidatorInitData(): Promise<HexString> {
     const { data } = await this.contract
       .getFunction("init")
-      .populateTransaction(this.x, this.y, this.DEFAULT_AUTHENTICATOR_RPID_HASH)
+      .populateTransaction(
+        this.x,
+        this.y,
+        "0x49960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d9763" // DEFAULT_AUTHENTICATOR_RPID_HASH
+      )
     return data
-  }
-
-  public async getWebAuthnInput(
-    hash: BytesLike
-  ): Promise<[HexString, WebAuthnInput]> {
-    const challengeBaseUrl = await this.getBase64SignedChallenge(hash)
-    const PRE_CHALLENGE_DATA = `{"type":"webauthn.get",`
-    const postChallengeData = `,"origin":"http://localhost:5173","crossOrigin":false}`
-    const clientDataJson =
-      PRE_CHALLENGE_DATA +
-      `"challenge":"` +
-      challengeBaseUrl +
-      `"` +
-      postChallengeData
-    const authenticatorData = this.getAuthenticatorData()
-    const webAuthnInfo = {
-      authenticatorData: authenticatorData,
-      clientDataJSON: clientDataJson
-    }
-    const webAuthnHash = await this.getWebAuthnInfoHash(webAuthnInfo)
-    const webAuthnInput = {
-      authenticatorFlagsAndSignCount: ethers.concat([
-        this.DEFAULT_AUTHENTICATOR_FLAGS,
-        this.DEFAULT_AUTHENTICATOR_SIGN_COUNT
-      ]),
-      postChallengeData: postChallengeData
-    }
-    return [webAuthnHash, webAuthnInput]
-  }
-
-  public getAuthenticatorData() {
-    return ethers.concat([
-      this.DEFAULT_AUTHENTICATOR_RPID_HASH,
-      this.DEFAULT_AUTHENTICATOR_FLAGS,
-      this.DEFAULT_AUTHENTICATOR_SIGN_COUNT
-    ])
   }
 }
