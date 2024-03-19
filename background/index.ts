@@ -20,7 +20,6 @@ async function main() {
   const provider = setupWaalletBackgroundProvider({
     nodeRpcUrl: network.nodeRpcUrl,
     bundlerRpcUrl: network.bundlerRpcUrl
-    // >>>>>>> main
   })
   const [account] = Object.values(network.account)
   if (!account) {
