@@ -2,6 +2,7 @@ import { p256 } from "@noble/curves/p256"
 import * as ethers from "ethers"
 
 import type { BytesLike, HexString } from "~typing"
+
 import type { PasskeyOwner } from "../../PasskeyAccount/passkeyOwner"
 
 export class P256Owner implements PasskeyOwner {
