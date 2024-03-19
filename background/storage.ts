@@ -63,6 +63,8 @@ export async function getStorage() {
 
 export type State = {
   networkActive: number
+  // TODO: In order to support same chain with different config,
+  // we should not use chain id as key to identify network.
   network: {
     [chainId: number]: Network
   }
