@@ -1,4 +1,8 @@
-import { sendToBackground, type PlasmoMessaging } from "@plasmohq/messaging"
+import {
+  sendToBackground,
+  type MessageName,
+  type PlasmoMessaging
+} from "@plasmohq/messaging"
 
 import { getStorage, type State } from "~background/storage"
 
@@ -11,7 +15,7 @@ export class StorageMessenger {
 
   private send(body: any) {
     return sendToBackground({
-      name: "storage",
+      name: "storage" as MessageName,
       body
     })
   }
