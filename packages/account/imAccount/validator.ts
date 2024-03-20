@@ -39,34 +39,7 @@ export interface WebAuthnValidatorOwner {
     metadata?: any
   ): Promise<{
     rawSignature: HexString
-    clientData?: ClientData
-    authenticatorData?: AuthenticatorData
-    webAuthnInput?: WebAuthnInput
+    clientData: string
+    authenticatorData: string
   }>
-}
-
-export type ClientData = {
-  type: string
-  challenge: string
-  origin: string
-  crossOrigin: boolean
-}
-
-export type AuthenticatorData = {
-  rpIdHash: string
-  flags: {
-    userPresent: boolean
-    userVerified: boolean
-    backupEligibility: boolean
-    backupState: boolean
-    attestedData: boolean
-    extensionsIncluded: boolean
-  }
-  counter: number
-  synced: boolean
-}
-
-export type WebAuthnInput = {
-  authenticatorFlagsAndSignCount: string
-  postChallengeData: string
 }

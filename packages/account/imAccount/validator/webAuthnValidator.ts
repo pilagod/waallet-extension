@@ -4,7 +4,8 @@ import WebAuthnValidatorMetadata from "~packages/account/imAccount/abi/WebAuthnV
 import type { Validator } from "~packages/account/imAccount/validator"
 import type { BytesLike, HexString } from "~typing"
 
-import { getValidatorSignMessage, WebAuthnValidatorOwner } from "../validator"
+import { getValidatorSignMessage } from "../validator"
+import type { WebAuthnValidatorOwner } from "../validator"
 
 export type WebAuthnInput = {
   authenticatorFlagsAndSignCount: BytesLike
@@ -57,8 +58,21 @@ export class WebAuthnValidator implements Validator {
       message,
       await this.contract.getAddress()
     )
+    const { rawSignature, clientData, authenticatorData } =
+      await this.owner.sign(signingMsg)
 
-    const { rawSignature, webAuthnInput } = await this.owner.sign(signingMsg)
+    const clientDataJson = JSON.parse(clientData)
+    const authenticatorDataJson = JSON.parse(authenticatorData)
+    const webAuthnInput = {
+      authenticatorFlagsAndSignCount: ethers.concat([
+        ethers.zeroPadValue(
+          ethers.toBeHex(authenticatorDataJson.flags.flagsInt),
+          1
+        ),
+        ethers.zeroPadValue(ethers.toBeHex(authenticatorDataJson.counter), 4)
+      ]),
+      postChallengeData: `,"origin":"${clientDataJson.origin}","crossOrigin":${clientDataJson.crossOrigin}}`
+    }
 
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
       [

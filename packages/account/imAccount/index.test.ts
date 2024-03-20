@@ -161,7 +161,7 @@ describeAccountSuite(
         webAuthnValidator,
         p256Owner.x,
         p256Owner.y,
-        p256Owner.DEFAULT_AUTHENTICATOR_RPID_HASH
+        p256Owner.defaultRpidHash
       )
 
       expect(
