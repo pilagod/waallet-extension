@@ -1,16 +1,16 @@
 import * as ethers from "ethers"
-import { useContext, useEffect, useState, type MouseEvent } from "react"
+import { useEffect, useState, type MouseEvent } from "react"
 import { Link } from "wouter"
 
-import { ProviderCtx } from "~popup/ctx/provider"
+import { useProviderContext } from "~popup/context/provider"
+import { useAccount } from "~popup/storage"
 import { PopupPath } from "~popup/util/page"
-import type { BigNumberish, HexString } from "~typing"
+import type { HexString } from "~typing"
 
 export function Info() {
-  const providerCtx = useContext(ProviderCtx)
-
-  const [address, setAddress] = useState<HexString>("")
-  const [balance, setBalance] = useState<BigNumberish>(0n)
+  const { provider } = useProviderContext()
+  const account = useAccount()
+  const [balance, setBalance] = useState<bigint>(0n)
   const [transactionHashes, setTransactionHashes] = useState<HexString[]>([""])
   const [internalTransactionHashes, setInternalTransactionHashes] = useState<
     HexString[]
@@ -18,48 +18,33 @@ export function Info() {
   const [explorerUrl, setExplorerUrl] = useState<string>("")
 
   useEffect(() => {
-    console.log(`providerCtx: ${providerCtx.provider}, ${providerCtx.index}`)
-
     const asyncFn = async () => {
-      if (!providerCtx.provider) return
-
-      const explorer = getExplorerUrl(
-        (await providerCtx.provider.getNetwork()).name
-      )
+      const explorer = getExplorerUrl((await provider.getNetwork()).name)
       setExplorerUrl(explorer)
 
-      const addresses = (await providerCtx.provider.listAccounts()).map(
-        (account) => account.address
-      )
-      setAddress(addresses[providerCtx.index])
+      // const [account] = await provider.listAccounts()
+      // setAddress(account.address)
 
-      const balances = await Promise.all(
-        addresses.map(async (account) => {
-          return await providerCtx.provider.getBalance(account)
-        })
-      )
-      setBalance(balances[providerCtx.index])
+      const balance = await provider.getBalance(account.address)
+      setBalance(balance)
 
-      const txHashes = await accountTransactions(
-        explorer,
-        addresses[providerCtx.index]
-      )
+      const txHashes = await accountTransactions(explorer, account.address)
       setTransactionHashes(txHashes)
 
       const internalTxHashes = await accountInternalTransactions(
         explorer,
-        addresses[providerCtx.index]
+        account.address
       )
       setInternalTransactionHashes(internalTxHashes)
     }
 
     asyncFn()
-  }, [providerCtx.index, providerCtx.provider])
+  }, [])
 
   return (
     <>
-      {address && (
-        <AccountAddress account={address} explorerUrl={explorerUrl} />
+      {account.address && (
+        <AccountAddress account={account.address} explorerUrl={explorerUrl} />
       )}
       {balance && <AccountBalance balance={balance} />}
       <SwitchToSendPage />
@@ -94,7 +79,7 @@ const AccountAddress: React.FC<{
   )
 }
 
-const AccountBalance: React.FC<{ balance: BigNumberish }> = ({ balance }) => {
+const AccountBalance: React.FC<{ balance: bigint }> = ({ balance }) => {
   return (
     <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
       <span>${ethers.formatEther(balance)}</span>

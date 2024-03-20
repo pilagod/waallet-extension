@@ -18,12 +18,14 @@ export async function getStorage() {
     // Enable only network specified in env
     storage.set(
       {
+        networkActive: config.chainId,
         network: {
           [config.chainId]: {
-            active: true,
             chainId: config.chainId,
             nodeRpcUrl: config.nodeRpcUrl,
             bundlerRpcUrl: config.bundlerRpcUrl,
+            accountActive:
+              config.simpleAccountAddress || config.passkeyAccountAddress,
             account: {
               ...(config.simpleAccountAddress && {
                 [config.simpleAccountAddress]: {
@@ -60,6 +62,9 @@ export async function getStorage() {
 /* State */
 
 export type State = {
+  networkActive: number
+  // TODO: In order to support same chain with different config,
+  // we should not use chain id as key to identify network.
   network: {
     [chainId: number]: Network
   }
@@ -68,10 +73,10 @@ export type State = {
 /* Netowork */
 
 export type Network = {
-  active: boolean
   chainId: number
   nodeRpcUrl: string
   bundlerRpcUrl: string
+  accountActive: HexString
   account: {
     [address: string]: Account
   }
