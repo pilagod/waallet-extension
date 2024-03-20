@@ -20,8 +20,8 @@ export const createWebAuthn = async (webAuthnCreation?: WebAuthnCreation) => {
       : ""
   })
   const url = `${browser.runtime.getURL(
-    "tabs/createWebAuthn.html"
-  )}?${createWebAuthnParams.toString()}`
+    "tabs/index.html"
+  )}?${createWebAuthnParams.toString()}#webauthn/registration`
 
   return {
     result: listenToWebAuthnRegistration(),
@@ -37,8 +37,8 @@ export const requestWebAuthn = async (webAuthnRequest: WebAuthnRequest) => {
     challengeRequest: webAuthnRequest.challenge
   })
   const url = `${browser.runtime.getURL(
-    "tabs/requestWebauthn.html"
-  )}?${requestWebAuthnParams.toString()}`
+    "tabs/index.html"
+  )}?${requestWebAuthnParams.toString()}#webauthn/authentication`
 
   return {
     result: listenToWebAuthnAuthentication(),
@@ -62,8 +62,8 @@ export const testWebAuthn = async (
     challengeRequest: webAuthnRequest.challenge
   })
   const url = `${browser.runtime.getURL(
-    "tabs/webAuthn.html"
-  )}?${webAuthnParams.toString()}`
+    "tabs/index.html"
+  )}?${webAuthnParams.toString()}#webauthn/devtool`
 
   return {
     result: Promise.any([

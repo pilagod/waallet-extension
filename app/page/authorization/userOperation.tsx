@@ -25,7 +25,7 @@ type Payment = {
   tokenFee: bigint
 }
 
-const UserOperationAuthorization = () => {
+export function UserOperationAuthorization() {
   const provider = new ethers.BrowserProvider(
     new WaalletContentProvider(new BackgroundDirectMessenger())
   )
@@ -182,5 +182,3 @@ const UserOperationAuthorization = () => {
     </div>
   )
 }
-
-export default UserOperationAuthorization
