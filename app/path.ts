@@ -1,4 +1,4 @@
-export enum PopupPath {
+export enum Path {
   root = "/",
   info = "/info",
   send = "/send"
