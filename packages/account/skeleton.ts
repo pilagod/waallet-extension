@@ -3,7 +3,7 @@ import * as ethers from "ethers"
 import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
 import { UserOperation } from "~packages/bundler"
-import type { BigNumberish, BytesLike, HexString } from "~typing"
+import type { BytesLike, HexString } from "~typing"
 
 export abstract class AccountSkeleton<T extends AccountFactory>
   implements Account
@@ -27,7 +27,6 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   public abstract sign(message: BytesLike): Promise<HexString>
   protected abstract getCallData(call: Call): Promise<HexString>
   protected abstract getDummySignature(): Promise<HexString>
-  protected abstract getNonce(): Promise<BigNumberish>
 
   /* public */
 
@@ -67,5 +66,30 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       throw new Error("No factory")
     }
     return this.factory
+  }
+
+  protected async getNonce(): Promise<bigint> {
+    const account = new ethers.Contract(
+      this.address,
+      [
+        "function entryPoint() view returns (address)",
+        "function getEntryPoint() view returns (address)"
+      ],
+      this.node
+    )
+    const entryPoint = new ethers.Contract(
+      await (() => {
+        try {
+          return account.entryPoint()
+        } catch (e) {
+          return account.getEntryPoint()
+        }
+      })(),
+      [
+        "function getNonce(address sender, uint192 key) view returns (uint256 nonce)"
+      ],
+      this.node
+    )
+    return entryPoint.getNonce(this.address, 0)
   }
 }

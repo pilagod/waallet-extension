@@ -63,10 +63,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     })
     this.account = new ethers.Contract(
       opts.address,
-      [
-        "function getNonce() view returns (uint256)",
-        "function execute(address dest, uint256 value, bytes calldata func)"
-      ],
+      ["function execute(address dest, uint256 value, bytes calldata func)"],
       this.node
     )
     this.owner = opts.owner
@@ -85,10 +82,5 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   }
   protected async getDummySignature(): Promise<HexString> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
-  }
-
-  protected async getNonce(): Promise<BigNumberish> {
-    const nonce = (await this.account.getNonce()) as bigint
-    return nonce
   }
 }
