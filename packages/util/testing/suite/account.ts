@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import type { Account } from "~packages/account"
+import type { ContractRunner } from "~packages/node"
 import byte from "~packages/util/byte"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -16,7 +17,7 @@ export class AccountSuiteContext<T extends Account> {
 
 export function describeAccountSuite<T extends Account>(
   name: string,
-  setup: () => Promise<T>,
+  setup: (runner: ContractRunner) => Promise<T>,
   suite?: (ctx: AccountSuiteContext<T>) => void
 ) {
   describeWaalletSuite(name, ({ provider }) => {
@@ -27,7 +28,7 @@ export function describeAccountSuite<T extends Account>(
     ctx.provider = provider.clone()
 
     beforeAll(async () => {
-      ctx.account = await setup()
+      ctx.account = await setup(ctx.provider.node)
       ctx.provider.connect(ctx.account)
       await (
         await config.account.operator.sendTransaction({

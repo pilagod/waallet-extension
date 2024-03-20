@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 
 import { AccountSkeleton } from "~packages/account/skeleton"
+import { connect, type ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
@@ -11,70 +12,66 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   /**
    * Use when account is already deployed
    */
-  public static async init(opts: {
-    address: HexString
-    owner: PasskeyOwner
-    nodeRpcUrl: string
-  }) {
-    const account = new PasskeyAccount({ ...opts })
-    opts.owner.use(await account.getCredentialId())
+  public static async init(
+    runner: ContractRunner,
+    option: {
+      address: HexString
+      owner: PasskeyOwner
+    }
+  ) {
+    const account = new PasskeyAccount({ ...option })
+    option.owner.use(await account.getCredentialId(runner))
     return account
   }
 
   /**
    * Use when account is not yet deployed
    */
-  public static async initWithFactory(opts: {
-    owner: PasskeyOwner
-    credentialId: string
-    publicKey: PasskeyPublicKey
-    salt: BigNumberish
-    factoryAddress: string
-    nodeRpcUrl: string
-  }) {
-    opts.owner.use(opts.credentialId)
+  public static async initWithFactory(
+    runner: ContractRunner,
+    option: {
+      owner: PasskeyOwner
+      credentialId: string
+      publicKey: PasskeyPublicKey
+      salt: BigNumberish
+      factoryAddress: string
+    }
+  ) {
+    option.owner.use(option.credentialId)
     const factory = new PasskeyAccountFactory({
-      address: opts.factoryAddress,
-      credentialId: opts.credentialId,
-      publicKey: opts.publicKey,
-      salt: opts.salt,
-      nodeRpcUrl: opts.nodeRpcUrl
+      address: option.factoryAddress,
+      credentialId: option.credentialId,
+      publicKey: option.publicKey,
+      salt: option.salt
     })
     return new PasskeyAccount({
-      address: await factory.getAddress(),
-      owner: opts.owner,
-      factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      address: await factory.getAddress(runner),
+      owner: option.owner,
+      factory
     })
   }
 
   private account: ethers.Contract
   private owner: PasskeyOwner
 
-  private constructor(opts: {
+  private constructor(option: {
     address: HexString
     owner: PasskeyOwner
     factory?: PasskeyAccountFactory
-    nodeRpcUrl: string
   }) {
     super({
-      address: opts.address,
-      factory: opts.factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      address: option.address,
+      factory: option.factory
     })
-    this.account = new ethers.Contract(
-      opts.address,
-      [
-        "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)",
-        "function execute(address dest, uint256 value, bytes calldata func)"
-      ],
-      this.node
-    )
-    this.owner = opts.owner
+    this.account = new ethers.Contract(option.address, [
+      "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)",
+      "function execute(address dest, uint256 value, bytes calldata func)"
+    ])
+    this.owner = option.owner
   }
 
-  public async getCredentialId() {
-    const { credId } = await this.account.passkey()
+  public async getCredentialId(runner: ContractRunner) {
+    const { credId } = await connect(this.account, runner).passkey()
     return credId as string
   }
 

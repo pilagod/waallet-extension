@@ -3,21 +3,16 @@ import * as ethers from "ethers"
 import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
 import { UserOperation } from "~packages/bundler"
+import type { ContractRunner } from "~packages/node"
 import type { BytesLike, HexString } from "~typing"
 
 export abstract class AccountSkeleton<T extends AccountFactory>
   implements Account
 {
-  protected node: ethers.JsonRpcProvider
   protected address: HexString
   protected factory?: T
 
-  protected constructor(opts: {
-    address: HexString
-    factory?: T
-    nodeRpcUrl: string
-  }) {
-    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
+  protected constructor(opts: { address: HexString; factory?: T }) {
     this.address = ethers.getAddress(opts.address)
     this.factory = opts.factory
   }
@@ -30,11 +25,14 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   /* public */
 
-  public async createUserOperation(call: Call): Promise<UserOperation> {
-    const isDeployed = await this.isDeployed()
+  public async createUserOperation(
+    runner: ContractRunner,
+    call: Call
+  ): Promise<UserOperation> {
+    const isDeployed = await this.isDeployed(runner)
 
     const sender = await this.getAddress()
-    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce() : 0)
+    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce(runner) : 0)
     const initCode = isDeployed
       ? "0x"
       : await this.mustGetFactory().getInitCode()
@@ -54,8 +52,9 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.address
   }
 
-  public async isDeployed(): Promise<boolean> {
-    const code = await this.node.getCode(await this.getAddress())
+  public async isDeployed(runner: ContractRunner): Promise<boolean> {
+    // TODO: Cache it
+    const code = await runner.provider.getCode(await this.getAddress())
     return code !== "0x"
   }
 
@@ -68,14 +67,14 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.factory
   }
 
-  protected async getNonce(): Promise<bigint> {
+  protected async getNonce(runner: ContractRunner): Promise<bigint> {
     const account = new ethers.Contract(
       this.address,
       [
         "function entryPoint() view returns (address)",
         "function getEntryPoint() view returns (address)"
       ],
-      this.node
+      runner
     )
     const entryPoint = new ethers.Contract(
       await (() => {
@@ -88,7 +87,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       [
         "function getNonce(address sender, uint192 key) view returns (uint256 nonce)"
       ],
-      this.node
+      runner
     )
     return entryPoint.getNonce(this.address, 0)
   }

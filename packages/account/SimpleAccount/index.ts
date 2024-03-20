@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import type { Call } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
+import { connect, type ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
@@ -10,63 +11,57 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   /**
    * Use when account is already deployed
    */
-  public static async init(opts: {
+  public static async init(option: {
     address: string
     ownerPrivateKey: string
-    nodeRpcUrl: string
   }) {
-    const owner = new ethers.Wallet(opts.ownerPrivateKey)
+    const owner = new ethers.Wallet(option.ownerPrivateKey)
     return new SimpleAccount({
-      address: opts.address,
-      owner,
-      nodeRpcUrl: opts.nodeRpcUrl
+      address: option.address,
+      owner
     })
   }
 
   /**
    * Use when account is not yet deployed
    */
-  public static async initWithFactory(opts: {
-    ownerPrivateKey: string
-    factoryAddress: string
-    salt: BigNumberish
-    nodeRpcUrl: string
-  }) {
-    const owner = new ethers.Wallet(opts.ownerPrivateKey)
+  public static async initWithFactory(
+    runner: ContractRunner,
+    option: {
+      ownerPrivateKey: string
+      factoryAddress: string
+      salt: BigNumberish
+    }
+  ) {
+    const owner = new ethers.Wallet(option.ownerPrivateKey)
     const factory = new SimpleAccountFactory({
-      address: opts.factoryAddress,
+      address: option.factoryAddress,
       owner: owner.address,
-      salt: opts.salt,
-      nodeRpcUrl: opts.nodeRpcUrl
+      salt: option.salt
     })
     return new SimpleAccount({
-      address: await factory.getAddress(),
+      address: await factory.getAddress(runner),
       owner,
-      factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      factory
     })
   }
 
   private account: ethers.Contract
   private owner: ethers.Wallet
 
-  private constructor(opts: {
+  private constructor(option: {
     address: HexString
     owner: ethers.Wallet
     factory?: SimpleAccountFactory
-    nodeRpcUrl: string
   }) {
     super({
-      address: opts.address,
-      factory: opts.factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      address: option.address,
+      factory: option.factory
     })
-    this.account = new ethers.Contract(
-      opts.address,
-      ["function execute(address dest, uint256 value, bytes calldata func)"],
-      this.node
-    )
-    this.owner = opts.owner
+    this.account = new ethers.Contract(option.address, [
+      "function execute(address dest, uint256 value, bytes calldata func)"
+    ])
+    this.owner = option.owner
   }
 
   public async sign(message: BytesLike) {
@@ -80,6 +75,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       call.data ?? "0x"
     ])
   }
+
   protected async getDummySignature(): Promise<HexString> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
   }
