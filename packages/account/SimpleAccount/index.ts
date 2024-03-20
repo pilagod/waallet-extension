@@ -49,20 +49,19 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   private account: ethers.Contract
   private owner: ethers.Wallet
 
-  private constructor(opts: {
+  private constructor(option: {
     address: HexString
     owner: ethers.Wallet
     factory?: SimpleAccountFactory
   }) {
     super({
-      address: opts.address,
-      factory: opts.factory
+      address: option.address,
+      factory: option.factory
     })
-    this.account = new ethers.Contract(opts.address, [
-      "function getNonce() view returns (uint256)",
+    this.account = new ethers.Contract(option.address, [
       "function execute(address dest, uint256 value, bytes calldata func)"
     ])
-    this.owner = opts.owner
+    this.owner = option.owner
   }
 
   public async sign(message: BytesLike) {
@@ -79,10 +78,5 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
 
   protected async getDummySignature(): Promise<HexString> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
-  }
-
-  protected async getNonce(runner: ContractRunner): Promise<BigNumberish> {
-    const nonce = (await connect(this.account, runner).getNonce()) as bigint
-    return nonce
   }
 }
