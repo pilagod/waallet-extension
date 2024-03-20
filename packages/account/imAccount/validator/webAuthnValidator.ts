@@ -58,31 +58,28 @@ export class WebAuthnValidator implements Validator {
       message,
       await this.contract.getAddress()
     )
-    const { rawSignature, clientData, authenticatorData } =
+    const { signature, clientData, authenticatorData } =
       await this.owner.sign(signingMsg)
 
-    const clientDataJson = JSON.parse(clientData)
-    const authenticatorDataJson = JSON.parse(authenticatorData)
     const webAuthnInput = {
       authenticatorFlagsAndSignCount: ethers.concat([
         ethers.zeroPadValue(
-          ethers.toBeHex(authenticatorDataJson.flags.flagsInt),
+          ethers.toBeHex(authenticatorData.flags.flagsInt),
           1
         ),
-        ethers.zeroPadValue(ethers.toBeHex(authenticatorDataJson.counter), 4)
+        ethers.zeroPadValue(ethers.toBeHex(authenticatorData.counter), 4)
       ]),
-      postChallengeData: `,"origin":"${clientDataJson.origin}","crossOrigin":${clientDataJson.crossOrigin}}`
+      postChallengeData: `,"origin":"${clientData.origin}","crossOrigin":${clientData.crossOrigin}}`
     }
 
-    const signature = ethers.AbiCoder.defaultAbiCoder().encode(
+    return ethers.AbiCoder.defaultAbiCoder().encode(
       [
         "address",
         "bytes",
         "(bytes authenticatorFlagsAndSignCount,string postChallengeData)"
       ],
-      [await this.contract.getAddress(), rawSignature, webAuthnInput]
+      [await this.contract.getAddress(), signature, webAuthnInput]
     )
-    return signature
   }
 
   public getSetOwnerAndAuthenticatorRPIDHashCallData(
