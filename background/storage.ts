@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 
 import { config } from "~config"
@@ -14,44 +15,49 @@ export async function getStorage() {
     storage.subscribe(async (state) => {
       await browser.storage.local.set(state)
     })
+    const account = {
+      ...(config.simpleAccountAddress && {
+        [uuidv4()]: {
+          type: AccountType.SimpleAccount,
+          chainId: config.chainId,
+          address: config.simpleAccountAddress,
+          ownerPrivateKey: config.simpleAccountOwnerPrivateKey
+        }
+      }),
+      ...(config.passkeyAccountAddress && {
+        [uuidv4()]: {
+          type: AccountType.PasskeyAccount,
+          chainId: config.chainId,
+          address: config.passkeyAccountAddress
+        }
+      })
+    }
+    const paymaster = {
+      ...(config.verifyingPaymasterAddress && {
+        [uuidv4()]: {
+          type: PaymasterType.VerifyingPaymaster,
+          chainId: config.chainId,
+          address: config.verifyingPaymasterAddress,
+          ownerPrivateKey: config.verifyingPaymasterOwnerPrivateKey
+        }
+      })
+    }
+    const network = {
+      [uuidv4()]: {
+        chainId: config.chainId,
+        nodeRpcUrl: config.nodeRpcUrl,
+        bundlerRpcUrl: config.bundlerRpcUrl,
+        accountActive: Object.keys(account)[0]
+      }
+    }
     // TODO: Only for development at this moment. Remove following when getting to production.
     // Enable only network specified in env
     storage.set(
       {
-        networkActive: config.chainId,
-        network: {
-          [config.chainId]: {
-            chainId: config.chainId,
-            nodeRpcUrl: config.nodeRpcUrl,
-            bundlerRpcUrl: config.bundlerRpcUrl,
-            accountActive:
-              config.simpleAccountAddress || config.passkeyAccountAddress,
-            account: {
-              ...(config.simpleAccountAddress && {
-                [config.simpleAccountAddress]: {
-                  type: AccountType.SimpleAccount,
-                  address: config.simpleAccountAddress,
-                  ownerPrivateKey: config.simpleAccountOwnerPrivateKey
-                }
-              }),
-              ...(config.passkeyAccountAddress && {
-                [config.passkeyAccountAddress]: {
-                  type: AccountType.PasskeyAccount,
-                  address: config.passkeyAccountAddress
-                }
-              })
-            },
-            paymaster: {
-              ...(config.verifyingPaymasterAddress && {
-                [config.verifyingPaymasterAddress]: {
-                  type: PaymasterType.VerifyingPaymaster,
-                  address: config.verifyingPaymasterAddress,
-                  ownerPrivateKey: config.verifyingPaymasterOwnerPrivateKey
-                }
-              })
-            }
-          }
-        }
+        networkActive: Object.keys(network)[0],
+        network,
+        account,
+        paymaster
       },
       { override: true }
     )
@@ -62,11 +68,15 @@ export async function getStorage() {
 /* State */
 
 export type State = {
-  networkActive: number
-  // TODO: In order to support same chain with different config,
-  // we should not use chain id as key to identify network.
+  networkActive: string
   network: {
-    [chainId: number]: Network
+    [id: string]: Network
+  }
+  account: {
+    [id: string]: Account
+  }
+  paymaster: {
+    [id: string]: Paymaster
   }
 }
 
@@ -77,12 +87,6 @@ export type Network = {
   nodeRpcUrl: string
   bundlerRpcUrl: string
   accountActive: HexString
-  account: {
-    [address: string]: Account
-  }
-  paymaster: {
-    [address: string]: Paymaster
-  }
 }
 
 /* Account */
@@ -96,12 +100,14 @@ export type Account = SimpleAccount | PasskeyAccount
 
 export type SimpleAccount = {
   type: AccountType.SimpleAccount
+  chainId: number
   address: HexString
   ownerPrivateKey: HexString
 }
 
 export type PasskeyAccount = {
   type: AccountType.PasskeyAccount
+  chainId: number
   address: HexString
 }
 
@@ -115,6 +121,7 @@ export type Paymaster = VerifyingPaymaster
 
 export type VerifyingPaymaster = {
   type: PaymasterType
+  chainId: number
   address: HexString
   ownerPrivateKey: HexString
 }

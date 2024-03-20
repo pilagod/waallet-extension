@@ -25,7 +25,7 @@ export const useAccount = () => {
   return useStorage(
     useShallow((storage) => {
       const network = storage.state.network[storage.state.networkActive]
-      return network.account[network.accountActive]
+      return storage.state.account[network.accountActive]
     })
   )
 }
