@@ -1,7 +1,7 @@
 import App from "~app"
 
-function Popup() {
+function Index() {
   return <App />
 }
 
-export default Popup
+export default Index
