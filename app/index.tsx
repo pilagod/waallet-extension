@@ -2,7 +2,6 @@ import { Redirect, Route, Router, Switch } from "wouter"
 import { useHashLocation } from "wouter/use-hash-location"
 import { useShallow } from "zustand/react/shallow"
 
-import { Navbar } from "~app/component/navbar"
 import { ProviderContextProvider } from "~app/context/provider"
 import { UserOperationAuthorization } from "~app/page/authorization/userOperation"
 import { Info } from "~app/page/info"
@@ -24,7 +23,6 @@ export function App() {
   }
   return (
     <ProviderContextProvider>
-      <Navbar />
       <Router hook={useHashLocation}>
         <Switch>
           <Route path={Path.info} component={Info}></Route>
