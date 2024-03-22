@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import { UserOperation } from "~packages/bundler"
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
+import { NodeProvider } from "~packages/node/provider"
 import type { HexString, Nullable } from "~typing"
 
 class BundlerProviderWithCache extends BundlerProvider {
@@ -22,7 +23,7 @@ const rpc = {
 }
 
 const provider = {
-  node: new ethers.JsonRpcProvider(rpc.node),
+  node: new NodeProvider(rpc.node),
   bundler: new BundlerProviderWithCache(rpc.bundler, BundlerMode.Manual)
 }
 

@@ -4,11 +4,10 @@ import { describeAccountSuite } from "~packages/util/testing/suite/account"
 
 import { SimpleAccount } from "./index"
 
-describeAccountSuite("SimpleAccount", () => {
-  return SimpleAccount.initWithFactory({
+describeAccountSuite("SimpleAccount", (runner) => {
+  return SimpleAccount.initWithFactory(runner, {
     ownerPrivateKey: config.account.operator.privateKey,
     factoryAddress: config.address.SimpleAccountFactory,
-    salt: number.random(),
-    nodeRpcUrl: config.rpc.node
+    salt: number.random()
   })
 })

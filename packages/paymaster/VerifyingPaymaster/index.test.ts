@@ -9,28 +9,30 @@ import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
 import { VerifyingPaymaster } from "./index"
 
-class VerifyingPaymasterUserOperationAuthorizer
-  implements UserOperationAuthorizer
-{
-  public constructor(private verifyingPaymaster: VerifyingPaymaster) {}
-
-  public async authorize(
-    userOp: UserOperation,
-    { onApproved }: UserOperationAuthorizeCallback
-  ) {
-    userOp.setPaymasterAndData(
-      await this.verifyingPaymaster.requestPaymasterAndData(userOp)
-    )
-    return onApproved(userOp)
-  }
-}
-
 describeWaalletSuite("Verifying Paymaster", (ctx) => {
+  class VerifyingPaymasterUserOperationAuthorizer
+    implements UserOperationAuthorizer
+  {
+    public constructor(private verifyingPaymaster: VerifyingPaymaster) {}
+
+    public async authorize(
+      userOp: UserOperation,
+      { onApproved }: UserOperationAuthorizeCallback
+    ) {
+      userOp.setPaymasterAndData(
+        await this.verifyingPaymaster.requestPaymasterAndData(
+          ctx.provider.node,
+          userOp
+        )
+      )
+      return onApproved(userOp)
+    }
+  }
+
   const verifyingPaymaster = new VerifyingPaymaster({
     address: config.address.VerifyingPaymaster,
     ownerPrivateKey: config.account.operator.privateKey,
-    expirationSecs: 300,
-    provider: config.provider.node
+    expirationSecs: 300
   })
   ctx.provider = ctx.provider.clone({
     userOperationAuthorizer: new VerifyingPaymasterUserOperationAuthorizer(
@@ -40,9 +42,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
   })
 
   it("should pay for account", async () => {
-    const { node } = config.provider
-
-    const accountBalanceBefore = await node.getBalance(
+    const accountBalanceBefore = await ctx.provider.node.getBalance(
       await ctx.account.getAddress()
     )
     const paymasterDepositBalanceBefore =
@@ -60,7 +60,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
       ]
     })
 
-    const accountBalanceAfter = await node.getBalance(
+    const accountBalanceAfter = await ctx.provider.node.getBalance(
       await ctx.account.getAddress()
     )
     expect(accountBalanceBefore).toBe(accountBalanceAfter)

@@ -40,8 +40,7 @@ export function UserOperationAuthorization() {
         address: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
         ownerPrivateKey:
           process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER_OWNER_PRIVATE_KEY,
-        expirationSecs: 300,
-        provider
+        expirationSecs: 300
       })
     }
   ]
@@ -63,7 +62,7 @@ export function UserOperationAuthorization() {
       option: o
     })
     userOp.setPaymasterAndData(
-      await o.paymaster.requestPaymasterAndData(userOp)
+      await o.paymaster.requestPaymasterAndData(provider, userOp)
     )
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
@@ -78,7 +77,10 @@ export function UserOperationAuthorization() {
       userOpAuthorized: json.stringify({
         ...userOp.data(),
         paymasterAndData:
-          await payment.option.paymaster.requestPaymasterAndData(userOp)
+          await payment.option.paymaster.requestPaymasterAndData(
+            provider,
+            userOp
+          )
       })
     })
   }

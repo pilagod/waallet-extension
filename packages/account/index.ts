@@ -1,4 +1,5 @@
 import { UserOperation } from "~packages/bundler"
+import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export type UserOperationCall = {
@@ -17,8 +18,11 @@ export type Call = {
 }
 
 export interface Account {
-  createUserOperation(call: Call): Promise<UserOperation>
+  createUserOperation(
+    runner: ContractRunner,
+    call: Call
+  ): Promise<UserOperation>
   getAddress(): Promise<HexString>
-  isDeployed(): Promise<boolean>
+  isDeployed(runner: ContractRunner): Promise<boolean>
   sign(message: BytesLike, metadata?: any): Promise<HexString>
 }
