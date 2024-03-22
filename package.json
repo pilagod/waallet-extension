@@ -13,8 +13,8 @@
     "execute": "ts-node -r tsconfig-paths/register"
   },
   "dependencies": {
-    "@plasmohq/messaging": "^0.5.0",
-    "@plasmohq/storage": "^1.9.1",
+    "@plasmohq/messaging": "^0.6.2",
+    "@plasmohq/storage": "^1.9.3",
     "@simplewebauthn/browser": "^8.3.4",
     "@simplewebauthn/server": "^8.3.5",
     "@simplewebauthn/typescript-types": "^8.3.4",
