@@ -5,12 +5,12 @@ import { objectFromUrlParams } from "~packages/util/url"
 import { requestWebAuthn } from "~packages/webAuthn"
 import { PortName } from "~packages/webAuthn/tabs/port"
 import type {
-  WebAuthnAuthentication,
+  WebAuthnAuthentication as WebAuthnAuthenticationData,
   WebAuthnError,
   WebAuthnRequest
 } from "~packages/webAuthn/typing"
 
-export const RequestWebAuthn = () => {
+export function WebAuthnAuthentication() {
   useEffect(() => {
     // Extract parameters from the URL
     const urlParams = window.location.href.split("?")
@@ -39,7 +39,7 @@ export const RequestWebAuthn = () => {
             r: sig.signature.r.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
             s: sig.signature.s.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
           }
-        } as WebAuthnAuthentication)
+        } as WebAuthnAuthenticationData)
       })
       .catch((error) => {
         console.error(`[tab][requestWebAuthn] Error: ${error}`)
@@ -57,6 +57,6 @@ export const RequestWebAuthn = () => {
         }, 100) // After 0.1 seconds
       })
   }, [])
-}
 
-export default RequestWebAuthn
+  return null
+}

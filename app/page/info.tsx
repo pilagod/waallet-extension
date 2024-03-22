@@ -3,6 +3,7 @@ import { useEffect, useState, type MouseEvent } from "react"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
+import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import { useAccount } from "~app/storage"
 import type { HexString } from "~typing"
@@ -39,7 +40,7 @@ export function Info() {
   }, [])
 
   return (
-    <>
+    <NavbarLayout>
       {account.address && (
         <AccountAddress account={account.address} explorerUrl={explorerUrl} />
       )}
@@ -57,7 +58,7 @@ export function Info() {
           hashes={internalTransactionHashes}
         />
       )}
-    </>
+    </NavbarLayout>
   )
 }
 

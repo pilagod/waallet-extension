@@ -7,10 +7,10 @@ import { PortName } from "~packages/webAuthn/tabs/port"
 import type {
   WebAuthnCreation,
   WebAuthnError,
-  WebAuthnRegistration
+  WebAuthnRegistration as WebAuthnRegistrationData
 } from "~packages/webAuthn/typing"
 
-export const CreateWebAuthn = () => {
+export function WebAuthnRegistration() {
   useEffect(() => {
     // Extract parameters from the URL
     const urlParams = window.location.href.split("?")
@@ -39,7 +39,7 @@ export const CreateWebAuthn = () => {
             x: cred.publicKey.x.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
             y: cred.publicKey.y.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
           }
-        } as WebAuthnRegistration)
+        } as WebAuthnRegistrationData)
       })
       .catch((error) => {
         console.error(`[tab][createWebAuthn] Error: ${error}`)
@@ -57,6 +57,6 @@ export const CreateWebAuthn = () => {
         }, 100) // After 0.1 seconds
       })
   }, [])
-}
 
-export default CreateWebAuthn
+  return null
+}
