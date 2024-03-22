@@ -1,5 +1,5 @@
+import { useAccount, useNetwork } from "~app/storage"
 import address from "~packages/util/address"
-import { useAccount, useNetwork } from "~popup/storage"
 
 export function Navbar() {
   const network = useNetwork()

@@ -2,9 +2,9 @@ import * as ethers from "ethers"
 import { useCallback, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
-import { useProviderContext } from "~popup/context/provider"
-import { useAccount } from "~popup/storage"
-import { PopupPath } from "~popup/util/page"
+import { useProviderContext } from "~app/context/provider"
+import { Path } from "~app/path"
+import { useAccount } from "~app/storage"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
@@ -85,7 +85,7 @@ export function Send() {
           className="flex-1">
           Send
         </button>
-        <Link href={PopupPath.info} className="flex-1">
+        <Link href={Path.info} className="flex-1">
           Cancel
         </Link>
       </div>
