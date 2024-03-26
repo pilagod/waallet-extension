@@ -21,7 +21,7 @@ async function setNewECDSAOwner(
     method: WaalletRpcMethod.eth_sendTransaction,
     params: [
       {
-        to: await ecdsaValidator.getAddress(provider.node),
+        to: await ecdsaValidator.getAddress(),
         data: ecdsaValidator.getSetOwnerCallData(newOwnerAddress)
       }
     ]
@@ -39,7 +39,7 @@ async function setNewWebAuthnOwner(
     method: WaalletRpcMethod.eth_sendTransaction,
     params: [
       {
-        to: await webAuthnValidator.getAddress(provider.node),
+        to: await webAuthnValidator.getAddress(),
         data: webAuthnValidator.getSetOwnerAndAuthenticatorRPIDHashCallData(
           ownerX,
           ownerY,

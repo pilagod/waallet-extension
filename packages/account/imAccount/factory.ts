@@ -101,7 +101,6 @@ export class imAccountFactory implements AccountFactory {
         "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
       )
     )
-    console.log("SEEME: ", runner.provider)
     const nameHash = ethers.keccak256(ethers.toUtf8Bytes("imAccountFactory"))
     const versionHash = ethers.keccak256(ethers.toUtf8Bytes("v0"))
     const { chainId } = await runner.provider.getNetwork()

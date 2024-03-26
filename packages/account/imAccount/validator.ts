@@ -7,11 +7,7 @@ export interface Validator {
   getAddress(runner: ContractRunner): Promise<HexString>
   getOwnerValidatorInitData(ownerInfo?: string): Promise<HexString>
   getDummySignature(): Promise<HexString>
-  sign(
-    message: BytesLike,
-    metadata?: any,
-    runner?: ContractRunner
-  ): Promise<HexString>
+  sign(message: BytesLike, metadata?: any): Promise<HexString>
 }
 
 export function getValidatorSignMessage(

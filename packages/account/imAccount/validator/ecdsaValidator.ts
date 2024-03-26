@@ -65,8 +65,8 @@ export class ECDSAValidator implements Validator {
     return await connect(this.contract, runner).getOwner(account)
   }
 
-  public async getAddress(runner: ContractRunner): Promise<HexString> {
-    return await connect(this.contract, runner).getAddress()
+  public async getAddress(): Promise<HexString> {
+    return await this.contract.getAddress()
   }
 
   public async getOwnerValidatorInitData(): Promise<HexString> {
