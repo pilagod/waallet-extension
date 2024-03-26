@@ -11,7 +11,11 @@ export class MainWorldBackgroundMessenger implements BackgroundMessenger {
   ): Promise<ResBody> {
     return new Promise((resolve) => {
       const messageId = uuidv4()
-      const mainWorldMessageHandler = (e) => {
+      // NOTE: Use signal of AbortController to remove handler
+      // would accidently affect other handlers but don't know the reason.
+      const mainWorldMessageHandler = (
+        e: MessageEvent<{ messageId: string; name: string; body: any }>
+      ) => {
         const shouldRelayMessage = e.data.messageId === messageId
         if (!shouldRelayMessage) {
           return
