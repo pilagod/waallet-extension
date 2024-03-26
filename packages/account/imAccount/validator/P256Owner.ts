@@ -1,15 +1,10 @@
-import { p256 } from "@noble/curves/p256";
-import * as ethers from "ethers";
+import { p256 } from "@noble/curves/p256"
+import * as ethers from "ethers"
 
+import byte from "~packages/util/byte"
+import type { BytesLike, HexString } from "~typing"
 
-
-import byte from "~packages/util/byte";
-import type { BytesLike, HexString } from "~typing";
-
-
-
-import type { WebAuthnValidatorOwner } from "../validator";
-
+import type { WebAuthnValidatorOwner } from "../validator"
 
 export class P256Owner implements WebAuthnValidatorOwner {
   public credentialId: string
