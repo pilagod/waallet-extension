@@ -5,11 +5,23 @@ import {
 } from "@plasmohq/messaging"
 
 import { getStorage, type State } from "~background/storage"
+import type { RecursivePartial } from "~typing"
 
 export class StorageMessenger {
   public get(): Promise<State> {
     return this.send({
       action: StorageAction.Get
+    })
+  }
+
+  public set(
+    updates: RecursivePartial<State>,
+    option: { override?: boolean } = {}
+  ) {
+    return this.send({
+      action: StorageAction.Set,
+      updates,
+      option
     })
   }
 
@@ -22,28 +34,42 @@ export class StorageMessenger {
 }
 
 enum StorageAction {
-  Get = "Get"
+  Get = "Get",
+  Set = "Set"
 }
 
 type StorageRequest = {
-  action: StorageAction.Get
+  [StorageAction.Get]: {
+    action: StorageAction.Get
+  }
+  [StorageAction.Set]: {
+    action: StorageAction.Set
+    updates: RecursivePartial<State>
+    option: { override?: boolean }
+  }
 }
 
 type StorageResponse = {
   [StorageAction.Get]: State
+  [StorageAction.Set]: void
 }
 
-async function handler<T extends StorageRequest>(
-  req: PlasmoMessaging.Request<T>,
-  res: PlasmoMessaging.Response<StorageResponse[T["action"]]>
+async function handler<A extends StorageAction>(
+  req: PlasmoMessaging.Request<string, StorageRequest[A]>,
+  res: PlasmoMessaging.Response<StorageResponse[A]>
 ) {
+  const storage = await getStorage()
   switch (req.body.action) {
     case StorageAction.Get:
-      const state = (await getStorage()).get()
-      res.send(state)
+      ;(
+        res as PlasmoMessaging.Response<StorageResponse[StorageAction.Get]>
+      ).send(storage.get())
+      break
+    case StorageAction.Set:
+      storage.set(req.body.updates, req.body.option)
       break
     default:
-      throw new Error(`Unknown action ${req.body.action}`)
+      throw new Error(`Unknown action ${req.body}`)
   }
 }
 

@@ -30,6 +30,13 @@ export const useAccount = () => {
   )
 }
 
-new StorageMessenger().get().then((state) => {
+async function init() {
+  const storageMessenger = new StorageMessenger()
+  const state = await storageMessenger.get()
   useStorage.setState({ state })
-})
+  useStorage.subscribe(async (storage) => {
+    await storageMessenger.set(storage.state)
+  })
+}
+
+init()
