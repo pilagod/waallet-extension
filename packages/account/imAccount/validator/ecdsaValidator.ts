@@ -4,6 +4,8 @@ import ECDSAValidatorMetadata from "~packages/account/imAccount/abi/ECDSAValidat
 import type { Validator } from "~packages/account/imAccount/validator"
 import type { BytesLike, HexString } from "~typing"
 
+import { getValidatorSignMessage } from "../validator"
+
 export class ECDSAValidator implements Validator {
   private node: ethers.JsonRpcProvider
   private owner: ethers.Wallet
@@ -37,21 +39,10 @@ export class ECDSAValidator implements Validator {
     if (typeof message == "string" && !ethers.isHexString(message)) {
       message = ethers.encodeBytes32String(message)
     }
-    const digest = ethers.keccak256(
-      ethers.AbiCoder.defaultAbiCoder().encode(
-        ["bytes32", "address"],
-        [message, await this.contract.getAddress()]
-      )
-    )
-    const signingMsg = ethers.keccak256(
-      ethers.solidityPacked(
-        ["string", "string", "bytes"],
-        [
-          "\x19Ethereum Signed Message:\n",
-          ethers.dataLength(digest).toString(), // digest length must be 32
-          digest
-        ]
-      )
+
+    const signingMsg = getValidatorSignMessage(
+      message,
+      await this.contract.getAddress()
     )
     const rawSignature = this.owner.signingKey.sign(signingMsg)
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
