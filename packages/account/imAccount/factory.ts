@@ -5,6 +5,7 @@ import type { AccountFactory } from "~packages/account/factory"
 import imAccountMetadata from "~packages/account/imAccount/abi/imAccount.json"
 import imAccountFactoryMetadata from "~packages/account/imAccount/abi/imAccountFactory.json"
 import type { Validator } from "~packages/account/imAccount/validator"
+import { type ContractRunner } from "~packages/node"
 import type { BigNumberish, HexString } from "~typing"
 
 type CreateAccountRequest = {
@@ -13,8 +14,7 @@ type CreateAccountRequest = {
 }
 
 export class imAccountFactory implements AccountFactory {
-  private node: ethers.JsonRpcProvider
-
+  private runner: ContractRunner
   private factory: ethers.Contract
   private factoryOwner: ethers.Wallet
   private imAccountImplementation: ethers.Contract
@@ -23,26 +23,26 @@ export class imAccountFactory implements AccountFactory {
   private fallbackHandlerAddress: string
   private validator: Validator
 
-  public constructor(opts: {
-    factoryAddress: string
-    implementationAddress: string
-    entryPointAddress: string
-    validator: Validator
-    fallbackHandlerAddress: string
-    salt: BigNumberish
-    nodeRpcUrl: string
-  }) {
-    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
+  public constructor(
+    runner: ContractRunner,
+    opts: {
+      factoryAddress: string
+      implementationAddress: string
+      entryPointAddress: string
+      validator: Validator
+      fallbackHandlerAddress: string
+      salt: BigNumberish
+    }
+  ) {
+    this.runner = runner
     this.factory = new ethers.Contract(
       opts.factoryAddress,
-      imAccountFactoryMetadata.abi,
-      this.node
+      imAccountFactoryMetadata.abi
     )
     this.factoryOwner = new ethers.Wallet(config.account.operator.privateKey)
     this.imAccountImplementation = new ethers.Contract(
       opts.implementationAddress,
-      imAccountMetadata.abi,
-      this.node
+      imAccountMetadata.abi
     )
     this.entryPointAddress = opts.entryPointAddress
     this.validator = opts.validator
@@ -55,7 +55,7 @@ export class imAccountFactory implements AccountFactory {
       ethers.stripZerosLeft(
         // The name of `getAddress` conflicts with the function on ethers.Contract.
         // So we build call data from interface and directly send through node rpc provider.
-        await this.node.call(
+        await this.runner.provider.call(
           await this.factory
             .getFunction("getAddress")
             .populateTransaction(this.salt)
@@ -105,7 +105,7 @@ export class imAccountFactory implements AccountFactory {
     )
     const nameHash = ethers.keccak256(ethers.toUtf8Bytes("imAccountFactory"))
     const versionHash = ethers.keccak256(ethers.toUtf8Bytes("v0"))
-    const { chainId } = await this.node.getNetwork()
+    const { chainId } = await this.runner.provider.getNetwork()
     const verifyingContractAddress = await this.factory.getAddress()
     const CREATE_REQUEST_TYPE_HASH = ethers.keccak256(
       ethers.toUtf8Bytes("CreateAccount(bytes initializer,uint256 salt)")

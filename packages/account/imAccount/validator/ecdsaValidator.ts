@@ -2,26 +2,28 @@ import * as ethers from "ethers"
 
 import ECDSAValidatorMetadata from "~packages/account/imAccount/abi/ECDSAValidator.json"
 import type { Validator } from "~packages/account/imAccount/validator"
+import { connect, type ContractRunner } from "~packages/node"
 import type { BytesLike, HexString } from "~typing"
 
 import { getValidatorSignMessage } from "../validator"
 
 export class ECDSAValidator implements Validator {
-  private node: ethers.JsonRpcProvider
+  private runner: ContractRunner
   private owner: ethers.Wallet
   public contract: ethers.Contract
 
-  public constructor(opts: {
-    address: HexString
-    ownerPrivateKey: string
-    nodeRpcUrl: string
-  }) {
-    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
+  public constructor(
+    runner: ContractRunner,
+    opts: {
+      address: HexString
+      ownerPrivateKey: string
+    }
+  ) {
+    this.runner = runner
     this.owner = new ethers.Wallet(opts.ownerPrivateKey)
     this.contract = new ethers.Contract(
       opts.address,
-      ECDSAValidatorMetadata.abi,
-      this.node
+      ECDSAValidatorMetadata.abi
     )
   }
 
@@ -65,11 +67,11 @@ export class ECDSAValidator implements Validator {
   }
 
   public async getOwner(account: string): Promise<HexString> {
-    return await this.contract.getOwner(account)
+    return await connect(this.contract, this.runner).getOwner(account)
   }
 
   public async getAddress(): Promise<HexString> {
-    return await this.contract.getAddress()
+    return await connect(this.contract, this.runner).getAddress()
   }
 
   public async getOwnerValidatorInitData(): Promise<HexString> {

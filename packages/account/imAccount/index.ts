@@ -4,6 +4,7 @@ import type { Call } from "~packages/account"
 import imAccountMetadata from "~packages/account/imAccount/abi/imAccount.json"
 import type { Validator } from "~packages/account/imAccount/validator"
 import { AccountSkeleton } from "~packages/account/skeleton"
+import { type ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { imAccountFactory } from "./factory"
@@ -12,14 +13,9 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
   /**
    * Use when account is already deployed
    */
-  public static async init(opts: {
-    address: string
-    nodeRpcUrl: string
-    validator: Validator
-  }) {
+  public static async init(opts: { address: string; validator: Validator }) {
     return new imAccount({
       address: opts.address,
-      nodeRpcUrl: opts.nodeRpcUrl,
       validator: opts.validator
     })
   }
@@ -28,28 +24,28 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
    * Use when account is not yet deployed
    */
 
-  public static async initWithFactory(opts: {
-    factoryAddress: string
-    implementationAddress: string
-    entryPointAddress: string
-    validator: Validator
-    fallbackHandlerAddress: string
-    salt: BigNumberish
-    nodeRpcUrl: string
-  }) {
-    const factory = new imAccountFactory({
+  public static async initWithFactory(
+    runner: ContractRunner,
+    opts: {
+      factoryAddress: string
+      implementationAddress: string
+      entryPointAddress: string
+      validator: Validator
+      fallbackHandlerAddress: string
+      salt: BigNumberish
+    }
+  ) {
+    const factory = new imAccountFactory(runner, {
       factoryAddress: opts.factoryAddress,
       implementationAddress: opts.implementationAddress,
       entryPointAddress: opts.entryPointAddress,
       validator: opts.validator,
       fallbackHandlerAddress: opts.fallbackHandlerAddress,
-      salt: opts.salt,
-      nodeRpcUrl: opts.nodeRpcUrl
+      salt: opts.salt
     })
     return new imAccount({
       address: await factory.getAddress(),
       factory,
-      nodeRpcUrl: opts.nodeRpcUrl,
       validator: opts.validator
     })
   }
@@ -60,7 +56,6 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
   private constructor(opts: {
     address: HexString
     factory?: imAccountFactory
-    nodeRpcUrl: string
     validator: Validator
   }) {
     super({

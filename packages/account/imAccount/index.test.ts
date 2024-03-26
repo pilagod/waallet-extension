@@ -52,21 +52,19 @@ async function setNewWebAuthnOwner(
 
 describeAccountSuite(
   "imAccount with ECDSAValidator",
-  () => {
-    const ecdsaValidator = new ECDSAValidator({
+  (runner) => {
+    const ecdsaValidator = new ECDSAValidator(runner, {
       address: config.address.ECDSAValidator,
-      ownerPrivateKey: config.account.operator.privateKey,
-      nodeRpcUrl: config.rpc.node
+      ownerPrivateKey: config.account.operator.privateKey
     })
 
-    return imAccount.initWithFactory({
+    return imAccount.initWithFactory(runner, {
       factoryAddress: config.address.imAccountFactory,
       implementationAddress: config.address.imAccountImplementation,
       entryPointAddress: config.address.EntryPoint,
       validator: ecdsaValidator,
       fallbackHandlerAddress: config.address.FallbackHandler,
-      salt: number.random(),
-      nodeRpcUrl: config.rpc.node
+      salt: number.random()
     })
   },
   (ctx) => {
@@ -75,7 +73,6 @@ describeAccountSuite(
     it("should init with existing imAccount", async () => {
       const a = await imAccount.init({
         address: await ctx.account.getAddress(),
-        nodeRpcUrl: config.rpc.node,
         validator: ctx.account.validator
       })
 
@@ -91,10 +88,9 @@ describeAccountSuite(
         await ecdsaValidator.getOwner(await ctx.account.getAddress())
       ).toBe(newOwner.address)
 
-      const newECDSAValidator = new ECDSAValidator({
+      const newECDSAValidator = new ECDSAValidator(ctx.provider.node, {
         address: config.address.ECDSAValidator,
-        ownerPrivateKey: newOwner.privateKey,
-        nodeRpcUrl: config.rpc.node
+        ownerPrivateKey: newOwner.privateKey
       })
       ctx.account.changeValidator(newECDSAValidator)
 
@@ -109,25 +105,23 @@ describeAccountSuite(
 
 describeAccountSuite(
   "imAccount with WebAuthnValidator (P256Owner)",
-  () => {
+  (runner) => {
     const p256Owner = new P256Owner()
-    const webAuthnValidator = new WebAuthnValidator({
+    const webAuthnValidator = new WebAuthnValidator(runner, {
       address: config.address.WebAuthnValidator,
       owner: p256Owner,
       x: p256Owner.x,
       y: p256Owner.y,
-      credentialId: Buffer.from(p256Owner.publicKey).toString("hex"),
-      nodeRpcUrl: config.rpc.node
+      credentialId: Buffer.from(p256Owner.publicKey).toString("hex")
     })
 
-    return imAccount.initWithFactory({
+    return imAccount.initWithFactory(runner, {
       factoryAddress: config.address.imAccountFactory,
       implementationAddress: config.address.imAccountImplementation,
       entryPointAddress: config.address.EntryPoint,
       validator: webAuthnValidator,
       fallbackHandlerAddress: config.address.FallbackHandler,
-      salt: number.random(),
-      nodeRpcUrl: config.rpc.node
+      salt: number.random()
     })
   },
   (ctx) => {
@@ -136,7 +130,6 @@ describeAccountSuite(
     it("should init with existing imAccount", async () => {
       const a = await imAccount.init({
         address: await ctx.account.getAddress(),
-        nodeRpcUrl: config.rpc.node,
         validator: ctx.account.validator
       })
 
@@ -146,13 +139,12 @@ describeAccountSuite(
     // Set new WebAuthnValidator owner
     it("should change the P256Owner of WebAuthnValidator", async () => {
       const p256Owner = new P256Owner()
-      const webAuthnValidator = new WebAuthnValidator({
+      const webAuthnValidator = new WebAuthnValidator(ctx.provider.node, {
         address: config.address.WebAuthnValidator,
         owner: p256Owner,
         x: p256Owner.x,
         y: p256Owner.y,
-        credentialId: Buffer.from(p256Owner.publicKey).toString("hex"),
-        nodeRpcUrl: config.rpc.node
+        credentialId: Buffer.from(p256Owner.publicKey).toString("hex")
       })
       await setNewWebAuthnOwner(
         ctx.provider,
