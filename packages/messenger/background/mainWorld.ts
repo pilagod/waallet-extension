@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid"
 import type { BackgroundMessage, BackgroundMessenger } from "./index"
 
 export class MainWorldBackgroundMessenger implements BackgroundMessenger {
-  public channelMainWorld = new BroadcastChannel("MainWorld")
-  public channelContentScript = new BroadcastChannel("ContentScript")
+  public channelToMainWorld = new BroadcastChannel("MainWorld")
+  public channelToContentScript = new BroadcastChannel("ContentScript")
 
   public send<ReqBody, ResBody>(
     msg: BackgroundMessage<ReqBody>
@@ -21,14 +21,17 @@ export class MainWorldBackgroundMessenger implements BackgroundMessenger {
           return
         }
         resolve(e.data.body)
-        this.channelMainWorld.removeEventListener(
+        this.channelToMainWorld.removeEventListener(
           "message",
           mainWorldMessageHandler
         )
       }
-      this.channelMainWorld.addEventListener("message", mainWorldMessageHandler)
+      this.channelToMainWorld.addEventListener(
+        "message",
+        mainWorldMessageHandler
+      )
 
-      this.channelContentScript.postMessage({
+      this.channelToContentScript.postMessage({
         ...msg,
         messageId
       })

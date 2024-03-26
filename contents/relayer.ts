@@ -7,10 +7,10 @@ export const config: PlasmoCSConfig = {
   run_at: "document_start"
 }
 
-const channelMainWorld = new BroadcastChannel("MainWorld")
-const channelContentScript = new BroadcastChannel("ContentScript")
+const channelToMainWorld = new BroadcastChannel("MainWorld")
+const channelToContentScript = new BroadcastChannel("ContentScript")
 
-channelContentScript.addEventListener(
+channelToContentScript.addEventListener(
   "message",
   async (e: MessageEvent<{ messageId: string; name: string; body: any }>) => {
     const request = e.data
@@ -22,6 +22,6 @@ channelContentScript.addEventListener(
       body: data
     }
     console.log(`[content][relay][${request.name}][response]`, response)
-    channelMainWorld.postMessage(response)
+    channelToMainWorld.postMessage(response)
   }
 )
