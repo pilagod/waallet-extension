@@ -76,8 +76,7 @@ describeAccountSuite(
       const a = await imAccount.init({
         address: await ctx.account.getAddress(),
         nodeRpcUrl: config.rpc.node,
-        validator: ctx.account.validator,
-        entryPointAddress: config.address.EntryPoint
+        validator: ctx.account.validator
       })
 
       expect(await a.getAddress()).toBe(await ctx.account.getAddress())
@@ -138,8 +137,7 @@ describeAccountSuite(
       const a = await imAccount.init({
         address: await ctx.account.getAddress(),
         nodeRpcUrl: config.rpc.node,
-        validator: ctx.account.validator,
-        entryPointAddress: config.address.EntryPoint
+        validator: ctx.account.validator
       })
 
       expect(await a.getAddress()).toBe(await ctx.account.getAddress())

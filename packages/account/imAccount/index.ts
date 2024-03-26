@@ -16,13 +16,11 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
     address: string
     nodeRpcUrl: string
     validator: Validator
-    entryPointAddress: string
   }) {
     return new imAccount({
       address: opts.address,
       nodeRpcUrl: opts.nodeRpcUrl,
-      validator: opts.validator,
-      entryPointAddress: opts.entryPointAddress
+      validator: opts.validator
     })
   }
 
@@ -52,34 +50,25 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
       address: await factory.getAddress(),
       factory,
       nodeRpcUrl: opts.nodeRpcUrl,
-      validator: opts.validator,
-      entryPointAddress: opts.entryPointAddress
+      validator: opts.validator
     })
   }
 
   public validator: Validator
   private account: ethers.Contract
-  private entryPointAddress: string
 
   private constructor(opts: {
     address: HexString
     factory?: imAccountFactory
     nodeRpcUrl: string
     validator: Validator
-    entryPointAddress: string
   }) {
     super({
       address: opts.address,
-      factory: opts.factory,
-      nodeRpcUrl: opts.nodeRpcUrl
+      factory: opts.factory
     })
-    this.account = new ethers.Contract(
-      opts.address,
-      imAccountMetadata.abi,
-      this.node
-    )
+    this.account = new ethers.Contract(opts.address, imAccountMetadata.abi)
     this.validator = opts.validator
-    this.entryPointAddress = opts.entryPointAddress
   }
 
   public changeValidator(newValidator: Validator) {
@@ -103,18 +92,5 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
 
   protected async getDummySignature(): Promise<HexString> {
     return await this.validator.getDummySignature()
-  }
-
-  protected async getNonce(): Promise<BigNumberish> {
-    const entryPoint = new ethers.Contract(
-      this.entryPointAddress,
-      ["function getNonce(address,uint192)public view  returns (uint256 )"],
-      this.node
-    )
-    const nonce = (await entryPoint.getNonce(
-      await this.account.getAddress(),
-      0
-    )) as bigint
-    return nonce
   }
 }

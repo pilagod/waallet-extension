@@ -77,11 +77,11 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       runner
     )
     const entryPoint = new ethers.Contract(
-      await (() => {
+      await (async () => {
         try {
-          return account.entryPoint()
+          return await account.entryPoint()
         } catch (e) {
-          return account.getEntryPoint()
+          return await account.getEntryPoint()
         }
       })(),
       [
