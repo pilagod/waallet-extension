@@ -1,10 +1,15 @@
-import { p256 } from "@noble/curves/p256"
-import * as ethers from "ethers"
+import { p256 } from "@noble/curves/p256";
+import * as ethers from "ethers";
 
-import byte from "~packages/util/byte"
-import type { BytesLike, HexString } from "~typing"
 
-import type { WebAuthnValidatorOwner } from "../validator"
+
+import byte from "~packages/util/byte";
+import type { BytesLike, HexString } from "~typing";
+
+
+
+import type { WebAuthnValidatorOwner } from "../validator";
+
 
 export class P256Owner implements WebAuthnValidatorOwner {
   public credentialId: string
@@ -41,7 +46,12 @@ export class P256Owner implements WebAuthnValidatorOwner {
       origin: "http://localhost:5173",
       crossOrigin: false
     }
-    const clientData = JSON.stringify(clientDataJson)
+    const clientData = JSON.stringify(clientDataJson, [
+      "type",
+      "challenge",
+      "origin",
+      "crossOrigin"
+    ])
 
     const webAuthnHash = this.getWebAuthnHash(
       this.getAuthenticatorData(),
