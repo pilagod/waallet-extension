@@ -35,7 +35,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     const nonce = call?.nonce ?? (isDeployed ? await this.getNonce(runner) : 0)
     const initCode = isDeployed
       ? "0x"
-      : await this.mustGetFactory().getInitCode()
+      : await this.mustGetFactory().getInitCode(runner)
     const callData = call ? await this.getCallData(call) : "0x"
     const signature = await this.getDummySignature()
 

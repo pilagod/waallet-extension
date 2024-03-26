@@ -35,7 +35,7 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
       salt: BigNumberish
     }
   ) {
-    const factory = new imAccountFactory(runner, {
+    const factory = new imAccountFactory({
       factoryAddress: opts.factoryAddress,
       implementationAddress: opts.implementationAddress,
       entryPointAddress: opts.entryPointAddress,
@@ -44,7 +44,7 @@ export class imAccount extends AccountSkeleton<imAccountFactory> {
       salt: opts.salt
     })
     return new imAccount({
-      address: await factory.getAddress(),
+      address: await factory.getAddress(runner),
       factory,
       validator: opts.validator
     })

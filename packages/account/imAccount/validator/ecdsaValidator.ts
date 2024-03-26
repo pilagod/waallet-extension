@@ -8,18 +8,10 @@ import type { BytesLike, HexString } from "~typing"
 import { getValidatorSignMessage } from "../validator"
 
 export class ECDSAValidator implements Validator {
-  private runner: ContractRunner
   private owner: ethers.Wallet
   public contract: ethers.Contract
 
-  public constructor(
-    runner: ContractRunner,
-    opts: {
-      address: HexString
-      ownerPrivateKey: string
-    }
-  ) {
-    this.runner = runner
+  public constructor(opts: { address: HexString; ownerPrivateKey: string }) {
     this.owner = new ethers.Wallet(opts.ownerPrivateKey)
     this.contract = new ethers.Contract(
       opts.address,
@@ -66,12 +58,15 @@ export class ECDSAValidator implements Validator {
     ])
   }
 
-  public async getOwner(account: string): Promise<HexString> {
-    return await connect(this.contract, this.runner).getOwner(account)
+  public async getOwner(
+    runner: ContractRunner,
+    account: string
+  ): Promise<HexString> {
+    return await connect(this.contract, runner).getOwner(account)
   }
 
-  public async getAddress(): Promise<HexString> {
-    return await connect(this.contract, this.runner).getAddress()
+  public async getAddress(runner: ContractRunner): Promise<HexString> {
+    return await connect(this.contract, runner).getAddress()
   }
 
   public async getOwnerValidatorInitData(): Promise<HexString> {

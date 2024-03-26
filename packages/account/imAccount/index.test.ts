@@ -21,7 +21,7 @@ async function setNewECDSAOwner(
     method: WaalletRpcMethod.eth_sendTransaction,
     params: [
       {
-        to: await ecdsaValidator.getAddress(),
+        to: await ecdsaValidator.getAddress(provider.node),
         data: ecdsaValidator.getSetOwnerCallData(newOwnerAddress)
       }
     ]
@@ -39,7 +39,7 @@ async function setNewWebAuthnOwner(
     method: WaalletRpcMethod.eth_sendTransaction,
     params: [
       {
-        to: await webAuthnValidator.getAddress(),
+        to: await webAuthnValidator.getAddress(provider.node),
         data: webAuthnValidator.getSetOwnerAndAuthenticatorRPIDHashCallData(
           ownerX,
           ownerY,
@@ -53,7 +53,7 @@ async function setNewWebAuthnOwner(
 describeAccountSuite(
   "imAccount with ECDSAValidator",
   (runner) => {
-    const ecdsaValidator = new ECDSAValidator(runner, {
+    const ecdsaValidator = new ECDSAValidator({
       address: config.address.ECDSAValidator,
       ownerPrivateKey: config.account.operator.privateKey
     })
@@ -85,10 +85,13 @@ describeAccountSuite(
       const newOwner = ethers.Wallet.createRandom()
       await setNewECDSAOwner(ctx.provider, ecdsaValidator, newOwner.address)
       expect(
-        await ecdsaValidator.getOwner(await ctx.account.getAddress())
+        await ecdsaValidator.getOwner(
+          ctx.provider.node,
+          await ctx.account.getAddress()
+        )
       ).toBe(newOwner.address)
 
-      const newECDSAValidator = new ECDSAValidator(ctx.provider.node, {
+      const newECDSAValidator = new ECDSAValidator({
         address: config.address.ECDSAValidator,
         ownerPrivateKey: newOwner.privateKey
       })
@@ -97,7 +100,10 @@ describeAccountSuite(
       const originalOwnerAddress = config.account.operator.address
       await setNewECDSAOwner(ctx.provider, ecdsaValidator, originalOwnerAddress)
       expect(
-        await ecdsaValidator.getOwner(await ctx.account.getAddress())
+        await ecdsaValidator.getOwner(
+          ctx.provider.node,
+          await ctx.account.getAddress()
+        )
       ).toBe(originalOwnerAddress)
     })
   }
@@ -107,7 +113,7 @@ describeAccountSuite(
   "imAccount with WebAuthnValidator (P256Owner)",
   (runner) => {
     const p256Owner = new P256Owner()
-    const webAuthnValidator = new WebAuthnValidator(runner, {
+    const webAuthnValidator = new WebAuthnValidator({
       address: config.address.WebAuthnValidator,
       owner: p256Owner,
       x: p256Owner.x,
@@ -139,7 +145,7 @@ describeAccountSuite(
     // Set new WebAuthnValidator owner
     it("should change the P256Owner of WebAuthnValidator", async () => {
       const p256Owner = new P256Owner()
-      const webAuthnValidator = new WebAuthnValidator(ctx.provider.node, {
+      const webAuthnValidator = new WebAuthnValidator({
         address: config.address.WebAuthnValidator,
         owner: p256Owner,
         x: p256Owner.x,
@@ -155,7 +161,10 @@ describeAccountSuite(
       )
 
       expect(
-        await webAuthnValidator.getOwner(await ctx.account.getAddress())
+        await webAuthnValidator.getOwner(
+          ctx.provider.node,
+          await ctx.account.getAddress()
+        )
       ).toEqual([p256Owner.x, p256Owner.y])
     })
   }
