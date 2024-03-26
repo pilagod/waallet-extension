@@ -88,7 +88,7 @@ export class BundlerProvider {
           )
         }, 1000)
       })
-      if (res) {
+      if (res && res.transactionHash) {
         return res.transactionHash
       }
     }
