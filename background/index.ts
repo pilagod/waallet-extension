@@ -21,7 +21,7 @@ async function main() {
     nodeRpcUrl: network.nodeRpcUrl,
     bundlerRpcUrl: network.bundlerRpcUrl
   })
-  const [account] = Object.values(network.account)
+  const account = state.account[network.accountActive]
   if (!account) {
     throw new Error("No available account")
   }
