@@ -25,7 +25,7 @@ type Payment = {
   tokenFee: bigint
 }
 
-const UserOperationAuthorization = () => {
+export function UserOperationAuthorization() {
   const provider = new ethers.BrowserProvider(
     new WaalletContentProvider(new BackgroundDirectMessenger())
   )
@@ -40,8 +40,7 @@ const UserOperationAuthorization = () => {
         address: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
         ownerPrivateKey:
           process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER_OWNER_PRIVATE_KEY,
-        expirationSecs: 300,
-        provider
+        expirationSecs: 300
       })
     }
   ]
@@ -63,7 +62,7 @@ const UserOperationAuthorization = () => {
       option: o
     })
     userOp.setPaymasterAndData(
-      await o.paymaster.requestPaymasterAndData(userOp)
+      await o.paymaster.requestPaymasterAndData(provider, userOp)
     )
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
@@ -78,7 +77,10 @@ const UserOperationAuthorization = () => {
       userOpAuthorized: json.stringify({
         ...userOp.data(),
         paymasterAndData:
-          await payment.option.paymaster.requestPaymasterAndData(userOp)
+          await payment.option.paymaster.requestPaymasterAndData(
+            provider,
+            userOp
+          )
       })
     })
   }
@@ -182,5 +184,3 @@ const UserOperationAuthorization = () => {
     </div>
   )
 }
-
-export default UserOperationAuthorization

@@ -17,7 +17,9 @@ export class PopUpUserOperationAuthorizer implements UserOperationAuthorizer {
       let resolved = false
 
       const w = await browser.windows.create({
-        url: browser.runtime.getURL("tabs/userOperationAuthorization.html"),
+        url:
+          browser.runtime.getURL("tabs/index.html") +
+          "#authorization/userOperation",
         type: "popup",
         width: 480,
         height: 720,

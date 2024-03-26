@@ -7,9 +7,9 @@ import { PasskeyOwnerP256 } from "./passkeyOwnerP256"
 
 describeAccountSuite(
   "PasskeyAccount",
-  () => {
+  (runner) => {
     const owner = new PasskeyOwnerP256()
-    return PasskeyAccount.initWithFactory({
+    return PasskeyAccount.initWithFactory(runner, {
       owner,
       credentialId: Buffer.from(owner.publicKey).toString("hex"),
       publicKey: {
@@ -17,8 +17,7 @@ describeAccountSuite(
         y: owner.y
       },
       salt: number.random(),
-      factoryAddress: config.address.PasskeyAccountFactory,
-      nodeRpcUrl: config.rpc.node
+      factoryAddress: config.address.PasskeyAccountFactory
     })
   },
   (ctx) => {
@@ -26,14 +25,13 @@ describeAccountSuite(
       // TODO: This test at this moment relies on tests in test bed to deploy the account.
       // It would be better to decouple it.
       it("should init with existing passkey account", async () => {
-        const a = await PasskeyAccount.init({
+        const a = await PasskeyAccount.init(ctx.provider.node, {
           address: await ctx.account.getAddress(),
-          owner: new PasskeyOwnerP256(),
-          nodeRpcUrl: config.rpc.node
+          owner: new PasskeyOwnerP256()
         })
         expect(await a.getAddress()).toBe(await ctx.account.getAddress())
-        expect(await a.getCredentialId()).toBe(
-          await ctx.account.getCredentialId()
+        expect(await a.getCredentialId(ctx.provider.node)).toBe(
+          await ctx.account.getCredentialId(ctx.provider.node)
         )
       })
     })
