@@ -1,7 +1,7 @@
 import waalletIcon from "data-base64:~assets/waallet.svg"
 import type { PlasmoCSConfig } from "plasmo"
 
-import { BackgroundRelayMessenger } from "~packages/messenger/background/relay"
+import { MainWorldBackgroundMessenger } from "~packages/messenger/background/mainWorld"
 import { WaalletContentProvider } from "~packages/waallet/content/provider"
 
 export const config: PlasmoCSConfig = {
@@ -14,7 +14,7 @@ console.log(
   "You may find that having is not so pleasing a thing as wanting. This is not logical, but it is often true."
 )
 
-const provider = new WaalletContentProvider(new BackgroundRelayMessenger())
+const provider = new WaalletContentProvider(new MainWorldBackgroundMessenger())
 
 window["waallet"] = provider
 

@@ -1,41 +1,27 @@
 import type { PlasmoCSConfig } from "plasmo"
 
 import { sendToBackground } from "@plasmohq/messaging"
-import { relay } from "@plasmohq/messaging/relay"
-
-import { WaalletMessage } from "~packages/waallet/message"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
   run_at: "document_start"
 }
 
-relay(
-  {
-    name: "mCreateWindow"
-  },
-  async (req) => {
-    console.log(`[content][relay][mCreateWindow][request]`, req)
-    const res = await sendToBackground(req as any)
-    console.log(`[content][relay][mCreateWindow][response]`, res)
-    return res
-  }
-)
+const channelToMainWorld = new BroadcastChannel("MainWorld")
+const channelToContentScript = new BroadcastChannel("ContentScript")
 
-relay(
-  {
-    name: WaalletMessage.JsonRpcRequest
-  },
-  async (req) => {
-    console.log(
-      `[content][relay][${WaalletMessage.JsonRpcRequest}][request]`,
-      req
-    )
-    const res = await sendToBackground(req as any)
-    console.log(
-      `[content][relay][${WaalletMessage.JsonRpcRequest}][response]`,
-      res
-    )
-    return res
+channelToContentScript.addEventListener(
+  "message",
+  async (e: MessageEvent<{ messageId: string; name: string; body: any }>) => {
+    const request = e.data
+    console.log(`[content][relay][${request.name}][request]`, request)
+    const data = await sendToBackground(request as any)
+    const response = {
+      messageId: request.messageId,
+      name: request.name,
+      body: data
+    }
+    console.log(`[content][relay][${request.name}][response]`, response)
+    channelToMainWorld.postMessage(response)
   }
 )
