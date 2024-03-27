@@ -6,7 +6,7 @@ import { SimpleAccount } from "~packages/account/SimpleAccount"
 import type { ContractRunner } from "~packages/node"
 
 import { setupWaalletBackgroundProvider } from "./provider"
-import { AccountType, getStorage, StorageAction, type Account } from "./storage"
+import { AccountType, getStorage, type Account } from "./storage"
 
 console.log(
   "Live now; make now always the most precious time. Now will never come again."

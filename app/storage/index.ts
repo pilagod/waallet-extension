@@ -25,6 +25,7 @@ const background: typeof immer<Storage> = (initializer) => {
         typeof partial === "function"
           ? produce<Storage>(partial as any)(get())
           : partial
+      // NOTE: Skip replace flag to avoid accidently erasing whole storage.
       await storageMessenger.set(nextStorage.state)
     }
     browser.runtime.onMessage.addListener((message) => {
