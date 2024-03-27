@@ -12,23 +12,30 @@ import {
 
 const storageMessenger = new StorageMessenger()
 
+interface Storage {
+  state: State
+}
+
 // @dev: This middleware sends state into background instead of store.
 // To apply new state, listen to background message and call `setState` on store with background state.
 const background: typeof immer<Storage> = (initializer) => {
   return (set, get, store) => {
-    const sendToBackground: typeof set = async (partial, replace) => {
+    const sendToBackground: typeof set = async (partial) => {
       const nextStorage =
         typeof partial === "function"
           ? produce<Storage>(partial as any)(get())
           : partial
       await storageMessenger.set(nextStorage.state)
     }
+    browser.runtime.onMessage.addListener((message) => {
+      if (message.action !== StorageAction.Sync) {
+        return
+      }
+      console.log("[popup] Receive state update from background")
+      store.setState({ state: message.state })
+    })
     return initializer(sendToBackground, get, store)
   }
-}
-
-interface Storage {
-  state: State
 }
 
 export const useStorage = create<Storage>()(
@@ -39,14 +46,6 @@ export const useStorage = create<Storage>()(
 
 storageMessenger.get().then((state) => {
   useStorage.setState({ state })
-})
-
-browser.runtime.onMessage.addListener((message) => {
-  if (message.action !== StorageAction.Sync) {
-    return
-  }
-  console.log("[popup] Receive state update from background")
-  useStorage.setState({ state: message.state })
 })
 
 /* Custom Hooks */

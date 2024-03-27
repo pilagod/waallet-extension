@@ -14,13 +14,6 @@ console.log(
 
 async function main() {
   const storage = await getStorage()
-  storage.subscribe(async (state) => {
-    console.log("[background] Sync state to popup")
-    await browser.runtime.sendMessage(browser.runtime.id, {
-      action: StorageAction.Sync,
-      state
-    })
-  })
   const state = storage.get()
   const network = state.network[state.networkActive]
   if (!network) {

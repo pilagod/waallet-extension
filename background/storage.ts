@@ -64,6 +64,13 @@ export async function getStorage() {
       },
       { override: true }
     )
+    storage.subscribe(async (state) => {
+      console.log("[background] Sync state to popup")
+      await browser.runtime.sendMessage(browser.runtime.id, {
+        action: StorageAction.Sync,
+        state
+      })
+    })
   }
   return storage
 }
