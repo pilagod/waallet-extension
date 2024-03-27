@@ -1,9 +1,11 @@
 import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 
+import { sendToBackground, type MessageName } from "@plasmohq/messaging"
+
 import { config } from "~config"
 import { ObservableStorage } from "~packages/storage/observable"
-import type { HexString } from "~typing"
+import type { HexString, RecursivePartial } from "~typing"
 
 let storage: ObservableStorage<State>
 
@@ -13,6 +15,7 @@ export async function getStorage() {
     const state = await browser.storage.local.get(null)
     storage = new ObservableStorage<State>(state as State)
     storage.subscribe(async (state) => {
+      console.log("[background] Write state into storage")
       await browser.storage.local.set(state)
     })
     const account = {
@@ -61,8 +64,49 @@ export async function getStorage() {
       },
       { override: true }
     )
+    storage.subscribe(async (state) => {
+      console.log("[background] Sync state to popup")
+      await browser.runtime.sendMessage(browser.runtime.id, {
+        action: StorageAction.Sync,
+        state
+      })
+    })
   }
   return storage
+}
+
+/* Storage Action */
+
+export enum StorageAction {
+  Get = "GetStorage",
+  Set = "SetStorage",
+  Sync = "SyncStorage"
+}
+
+export class StorageMessenger {
+  public get(): Promise<State> {
+    return this.send({
+      action: StorageAction.Get
+    })
+  }
+
+  public set(
+    updates: RecursivePartial<State>,
+    option: { override?: boolean } = {}
+  ) {
+    return this.send({
+      action: StorageAction.Set,
+      updates,
+      option
+    })
+  }
+
+  private send(body: any) {
+    return sendToBackground({
+      name: "storage" as MessageName,
+      body
+    })
+  }
 }
 
 /* State */

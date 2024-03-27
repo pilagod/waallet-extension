@@ -75,16 +75,15 @@ describe("ObservableStorage", () => {
   it("should be able to unsubscribe to state update", () => {
     const s = new ObservableStorage({ a: 123 })
 
-    let isHandlerCalled = false
+    let handlerCalled = false
     const handler = async () => {
-      isHandlerCalled = true
+      handlerCalled = true
     }
-
     s.subscribe(handler)
     s.unsubscribe(handler)
 
     s.set({ a: 456 })
 
-    expect(isHandlerCalled).toBe(false)
+    expect(handlerCalled).toBe(false)
   })
 })

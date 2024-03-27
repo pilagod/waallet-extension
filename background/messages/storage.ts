@@ -1,49 +1,22 @@
-import {
-  sendToBackground,
-  type MessageName,
-  type PlasmoMessaging
-} from "@plasmohq/messaging"
+import { type PlasmoMessaging } from "@plasmohq/messaging"
 
-import { getStorage, type State } from "~background/storage"
+import { getStorage, StorageAction } from "~background/storage"
 
-export class StorageMessenger {
-  public get(): Promise<State> {
-    return this.send({
-      action: StorageAction.Get
-    })
-  }
-
-  private send(body: any) {
-    return sendToBackground({
-      name: "storage" as MessageName,
-      body
-    })
-  }
-}
-
-enum StorageAction {
-  Get = "Get"
-}
-
-type StorageRequest = {
-  action: StorageAction.Get
-}
-
-type StorageResponse = {
-  [StorageAction.Get]: State
-}
-
-async function handler<T extends StorageRequest>(
-  req: PlasmoMessaging.Request<T>,
-  res: PlasmoMessaging.Response<StorageResponse[T["action"]]>
+async function handler(
+  req: PlasmoMessaging.Request,
+  res: PlasmoMessaging.Response
 ) {
+  const storage = await getStorage()
   switch (req.body.action) {
     case StorageAction.Get:
-      const state = (await getStorage()).get()
-      res.send(state)
+      res.send(storage.get())
+      break
+    case StorageAction.Set:
+      console.log("[background] Storage update action", req)
+      storage.set(req.body.updates, req.body.option)
       break
     default:
-      throw new Error(`Unknown action ${req.body.action}`)
+      throw new Error(`Unknown action ${req.body}`)
   }
 }
 
