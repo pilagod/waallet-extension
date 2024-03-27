@@ -72,19 +72,6 @@ describe("ObservableStorage", () => {
     expect(stateSubscribed.a).toBe(456)
   })
 
-  it("should not notify subscribers when broadcast option is diabled", () => {
-    const s = new ObservableStorage({ a: 123 })
-
-    let handlerCalled = false
-    s.subscribe(async (state) => {
-      handlerCalled = true
-    })
-
-    s.set({ a: 456 }, { broadcast: false })
-
-    expect(handlerCalled).toBe(false)
-  })
-
   it("should be able to unsubscribe to state update", () => {
     const s = new ObservableStorage({ a: 123 })
 

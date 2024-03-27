@@ -1,10 +1,12 @@
+import browser from "webextension-polyfill"
+
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import type { ContractRunner } from "~packages/node"
 
 import { setupWaalletBackgroundProvider } from "./provider"
-import { AccountType, getStorage, type Account } from "./storage"
+import { AccountType, getStorage, StorageAction, type Account } from "./storage"
 
 console.log(
   "Live now; make now always the most precious time. Now will never come again."
@@ -12,6 +14,13 @@ console.log(
 
 async function main() {
   const storage = await getStorage()
+  storage.subscribe(async (state) => {
+    console.log("[background] Sync state to popup")
+    await browser.runtime.sendMessage(browser.runtime.id, {
+      action: StorageAction.Sync,
+      state
+    })
+  })
   const state = storage.get()
   const network = state.network[state.networkActive]
   if (!network) {

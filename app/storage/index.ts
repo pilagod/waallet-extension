@@ -1,42 +1,67 @@
+import { produce } from "immer"
+import browser from "webextension-polyfill"
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { useShallow } from "zustand/react/shallow"
 
-import { StorageMessenger } from "~background/messages/storage"
-import type { State } from "~background/storage"
+import {
+  StorageAction,
+  StorageMessenger,
+  type State
+} from "~background/storage"
+
+const storageMessenger = new StorageMessenger()
+
+// @dev: This middleware sends state into background instead of store.
+// To apply new state, listen to background message and call `setState` on store with background state.
+const background: typeof immer<Storage> = (initializer) => {
+  return (set, get, store) => {
+    const sendToBackground: typeof set = async (partial, replace) => {
+      const nextStorage =
+        typeof partial === "function"
+          ? produce<Storage>(partial as any)(get())
+          : partial
+      await storageMessenger.set(nextStorage.state)
+    }
+    return initializer(sendToBackground, get, store)
+  }
+}
 
 interface Storage {
   state: State
 }
 
 export const useStorage = create<Storage>()(
-  immer((_) => ({
+  background((_) => ({
     state: null
   }))
 )
 
+storageMessenger.get().then((state) => {
+  useStorage.setState({ state })
+})
+
+browser.runtime.onMessage.addListener((message) => {
+  if (message.action !== StorageAction.Sync) {
+    return
+  }
+  console.log("[popup] Receive state update from background")
+  useStorage.setState({ state: message.state })
+})
+
+/* Custom Hooks */
+
 export const useNetwork = () => {
   return useStorage(
-    useShallow((storage) => storage.state.network[storage.state.networkActive])
+    useShallow(({ state }) => state.network[state.networkActive])
   )
 }
 
 export const useAccount = () => {
   return useStorage(
-    useShallow((storage) => {
-      const network = storage.state.network[storage.state.networkActive]
-      return storage.state.account[network.accountActive]
+    useShallow(({ state }) => {
+      const network = state.network[state.networkActive]
+      return state.account[network.accountActive]
     })
   )
 }
-
-async function init() {
-  const storageMessenger = new StorageMessenger()
-  const state = await storageMessenger.get()
-  useStorage.setState({ state })
-  useStorage.subscribe(async (storage) => {
-    await storageMessenger.set(storage.state)
-  })
-}
-
-init()

@@ -20,16 +20,14 @@ export class ObservableStorage<
 
   public set(
     updates: RecursivePartial<T>,
-    option: { override?: boolean; broadcast?: boolean } = { broadcast: true }
+    option: { override?: boolean } = {}
   ) {
     if (option.override) {
       this.state = { ...this.get(), ...updates }
     } else {
       this.updatePartial(this.state, updates)
     }
-    if (option.broadcast) {
-      this.emit(ObservableStorageEvent.StateUpdated, this.get())
-    }
+    this.emit(ObservableStorageEvent.StateUpdated, this.get())
   }
 
   public subscribe(handler: (state: T) => Promise<void>) {
