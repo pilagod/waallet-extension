@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 
-import { sendToBackground } from "@plasmohq/messaging"
+import { sendToBackground, type MessageName } from "@plasmohq/messaging"
 
 import { config } from "~config"
 import { ObservableStorage } from "~packages/storage/observable"
@@ -96,7 +96,7 @@ export class StorageMessenger {
 
   private send(body: any) {
     return sendToBackground({
-      name: "storage" as any,
+      name: "storage" as MessageName,
       body
     })
   }
