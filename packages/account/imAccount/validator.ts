@@ -1,9 +1,10 @@
 import * as ethers from "ethers"
 
+import { type ContractRunner } from "~packages/node"
 import type { BytesLike, HexString } from "~typing"
 
 export interface Validator {
-  getAddress(): Promise<HexString>
+  getAddress(runner: ContractRunner): Promise<HexString>
   getOwnerValidatorInitData(ownerInfo?: string): Promise<HexString>
   getDummySignature(): Promise<HexString>
   sign(message: BytesLike, metadata?: any): Promise<HexString>

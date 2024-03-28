@@ -5,6 +5,7 @@ import type { AccountFactory } from "~packages/account/factory"
 import imAccountMetadata from "~packages/account/imAccount/abi/imAccount.json"
 import imAccountFactoryMetadata from "~packages/account/imAccount/abi/imAccountFactory.json"
 import type { Validator } from "~packages/account/imAccount/validator"
+import { type ContractRunner } from "~packages/node"
 import type { BigNumberish, HexString } from "~typing"
 
 type CreateAccountRequest = {
@@ -13,8 +14,6 @@ type CreateAccountRequest = {
 }
 
 export class imAccountFactory implements AccountFactory {
-  private node: ethers.JsonRpcProvider
-
   private factory: ethers.Contract
   private factoryOwner: ethers.Wallet
   private imAccountImplementation: ethers.Contract
@@ -30,19 +29,15 @@ export class imAccountFactory implements AccountFactory {
     validator: Validator
     fallbackHandlerAddress: string
     salt: BigNumberish
-    nodeRpcUrl: string
   }) {
-    this.node = new ethers.JsonRpcProvider(opts.nodeRpcUrl)
     this.factory = new ethers.Contract(
       opts.factoryAddress,
-      imAccountFactoryMetadata.abi,
-      this.node
+      imAccountFactoryMetadata.abi
     )
     this.factoryOwner = new ethers.Wallet(config.account.operator.privateKey)
     this.imAccountImplementation = new ethers.Contract(
       opts.implementationAddress,
-      imAccountMetadata.abi,
-      this.node
+      imAccountMetadata.abi
     )
     this.entryPointAddress = opts.entryPointAddress
     this.validator = opts.validator
@@ -50,12 +45,12 @@ export class imAccountFactory implements AccountFactory {
     this.salt = opts.salt
   }
 
-  public async getAddress() {
+  public async getAddress(runner: ContractRunner) {
     return ethers.zeroPadValue(
       ethers.stripZerosLeft(
         // The name of `getAddress` conflicts with the function on ethers.Contract.
         // So we build call data from interface and directly send through node rpc provider.
-        await this.node.call(
+        await runner.provider.call(
           await this.factory
             .getFunction("getAddress")
             .populateTransaction(this.salt)
@@ -65,13 +60,13 @@ export class imAccountFactory implements AccountFactory {
     )
   }
 
-  public async getInitCode() {
-    const initializer = await this.getInitializer()
+  public async getInitCode(runner: ContractRunner) {
+    const initializer = await this.getInitializer(runner)
     const createAccountRequest = {
       initializer: initializer,
       salt: this.salt
     }
-    const signature = await this.signCreateAccount(createAccountRequest)
+    const signature = await this.signCreateAccount(runner, createAccountRequest)
     console.log("signature: ", signature)
 
     const params = this.factory.interface.encodeFunctionData(
@@ -81,7 +76,7 @@ export class imAccountFactory implements AccountFactory {
     return ethers.concat([await this.factory.getAddress(), params])
   }
 
-  private async getInitializer() {
+  private async getInitializer(runner: ContractRunner) {
     const ownerValidatorInitData =
       await this.validator.getOwnerValidatorInitData()
     const { data } = await this.imAccountImplementation
@@ -89,7 +84,7 @@ export class imAccountFactory implements AccountFactory {
       .populateTransaction(
         this.entryPointAddress,
         this.fallbackHandlerAddress,
-        this.validator.getAddress(),
+        this.validator.getAddress(runner),
         ownerValidatorInitData
       )
     return data
@@ -97,7 +92,10 @@ export class imAccountFactory implements AccountFactory {
 
   // Currently, the factory owner's key is imported from `~/config/test` to sign the request for creating an account.
   // However, in future developments, we will require a factory signing server.
-  private async signCreateAccount(createAccountRequest: CreateAccountRequest) {
+  private async signCreateAccount(
+    runner: ContractRunner,
+    createAccountRequest: CreateAccountRequest
+  ) {
     const EIP712_DOMAIN_HASH = ethers.keccak256(
       ethers.toUtf8Bytes(
         "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
@@ -105,7 +103,7 @@ export class imAccountFactory implements AccountFactory {
     )
     const nameHash = ethers.keccak256(ethers.toUtf8Bytes("imAccountFactory"))
     const versionHash = ethers.keccak256(ethers.toUtf8Bytes("v0"))
-    const { chainId } = await this.node.getNetwork()
+    const { chainId } = await runner.provider.getNetwork()
     const verifyingContractAddress = await this.factory.getAddress()
     const CREATE_REQUEST_TYPE_HASH = ethers.keccak256(
       ethers.toUtf8Bytes("CreateAccount(bytes initializer,uint256 salt)")

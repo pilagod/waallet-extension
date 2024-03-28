@@ -3,5 +3,5 @@ import type { HexString } from "~typing"
 
 export interface AccountFactory {
   getAddress(runner: ContractRunner): Promise<HexString>
-  getInitCode(): Promise<HexString>
+  getInitCode(runner: ContractRunner): Promise<HexString>
 }

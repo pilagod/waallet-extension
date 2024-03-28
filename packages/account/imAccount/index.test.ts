@@ -52,21 +52,19 @@ async function setNewWebAuthnOwner(
 
 describeAccountSuite(
   "imAccount with ECDSAValidator",
-  () => {
+  (runner) => {
     const ecdsaValidator = new ECDSAValidator({
       address: config.address.ECDSAValidator,
-      ownerPrivateKey: config.account.operator.privateKey,
-      nodeRpcUrl: config.rpc.node
+      ownerPrivateKey: config.account.operator.privateKey
     })
 
-    return imAccount.initWithFactory({
+    return imAccount.initWithFactory(runner, {
       factoryAddress: config.address.imAccountFactory,
       implementationAddress: config.address.imAccountImplementation,
       entryPointAddress: config.address.EntryPoint,
       validator: ecdsaValidator,
       fallbackHandlerAddress: config.address.FallbackHandler,
-      salt: number.random(),
-      nodeRpcUrl: config.rpc.node
+      salt: number.random()
     })
   },
   (ctx) => {
@@ -75,9 +73,7 @@ describeAccountSuite(
     it("should init with existing imAccount", async () => {
       const a = await imAccount.init({
         address: await ctx.account.getAddress(),
-        nodeRpcUrl: config.rpc.node,
-        validator: ctx.account.validator,
-        entryPointAddress: config.address.EntryPoint
+        validator: ctx.account.validator
       })
 
       expect(await a.getAddress()).toBe(await ctx.account.getAddress())
@@ -89,20 +85,25 @@ describeAccountSuite(
       const newOwner = ethers.Wallet.createRandom()
       await setNewECDSAOwner(ctx.provider, ecdsaValidator, newOwner.address)
       expect(
-        await ecdsaValidator.getOwner(await ctx.account.getAddress())
+        await ecdsaValidator.getOwner(
+          ctx.provider.node,
+          await ctx.account.getAddress()
+        )
       ).toBe(newOwner.address)
 
       const newECDSAValidator = new ECDSAValidator({
         address: config.address.ECDSAValidator,
-        ownerPrivateKey: newOwner.privateKey,
-        nodeRpcUrl: config.rpc.node
+        ownerPrivateKey: newOwner.privateKey
       })
       ctx.account.changeValidator(newECDSAValidator)
 
       const originalOwnerAddress = config.account.operator.address
       await setNewECDSAOwner(ctx.provider, ecdsaValidator, originalOwnerAddress)
       expect(
-        await ecdsaValidator.getOwner(await ctx.account.getAddress())
+        await ecdsaValidator.getOwner(
+          ctx.provider.node,
+          await ctx.account.getAddress()
+        )
       ).toBe(originalOwnerAddress)
     })
   }
@@ -110,25 +111,23 @@ describeAccountSuite(
 
 describeAccountSuite(
   "imAccount with WebAuthnValidator (P256Owner)",
-  () => {
+  (runner) => {
     const p256Owner = new P256Owner()
     const webAuthnValidator = new WebAuthnValidator({
       address: config.address.WebAuthnValidator,
       owner: p256Owner,
       x: p256Owner.x,
       y: p256Owner.y,
-      credentialId: Buffer.from(p256Owner.publicKey).toString("hex"),
-      nodeRpcUrl: config.rpc.node
+      credentialId: Buffer.from(p256Owner.publicKey).toString("hex")
     })
 
-    return imAccount.initWithFactory({
+    return imAccount.initWithFactory(runner, {
       factoryAddress: config.address.imAccountFactory,
       implementationAddress: config.address.imAccountImplementation,
       entryPointAddress: config.address.EntryPoint,
       validator: webAuthnValidator,
       fallbackHandlerAddress: config.address.FallbackHandler,
-      salt: number.random(),
-      nodeRpcUrl: config.rpc.node
+      salt: number.random()
     })
   },
   (ctx) => {
@@ -137,9 +136,7 @@ describeAccountSuite(
     it("should init with existing imAccount", async () => {
       const a = await imAccount.init({
         address: await ctx.account.getAddress(),
-        nodeRpcUrl: config.rpc.node,
-        validator: ctx.account.validator,
-        entryPointAddress: config.address.EntryPoint
+        validator: ctx.account.validator
       })
 
       expect(await a.getAddress()).toBe(await ctx.account.getAddress())
@@ -153,8 +150,7 @@ describeAccountSuite(
         owner: p256Owner,
         x: p256Owner.x,
         y: p256Owner.y,
-        credentialId: Buffer.from(p256Owner.publicKey).toString("hex"),
-        nodeRpcUrl: config.rpc.node
+        credentialId: Buffer.from(p256Owner.publicKey).toString("hex")
       })
       await setNewWebAuthnOwner(
         ctx.provider,
@@ -165,7 +161,10 @@ describeAccountSuite(
       )
 
       expect(
-        await webAuthnValidator.getOwner(await ctx.account.getAddress())
+        await webAuthnValidator.getOwner(
+          ctx.provider.node,
+          await ctx.account.getAddress()
+        )
       ).toEqual([p256Owner.x, p256Owner.y])
     })
   }
