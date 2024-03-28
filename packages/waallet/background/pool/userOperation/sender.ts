@@ -2,31 +2,31 @@ import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
 import { BundlerProvider } from "~packages/bundler/provider"
 import { type UserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation"
-import type { HexString } from "~typing"
+import type { BigNumberish, HexString } from "~typing"
 
 import type { UserOperationPool } from "./index"
 
 export class UserOperationSender implements UserOperationPool {
-  private pool: { [userOpHash: HexString]: Promise<HexString> }
+  private pool: { [userOpHash: HexString]: Promise<HexString> } = {}
 
   public constructor(
-    private account: Account,
     private bundler: BundlerProvider,
     private userOperationAuthorizer: UserOperationAuthorizer
   ) {}
 
   public async send(data: {
     userOp: UserOperation
-    chainId: number
+    sender: Account
+    chainId: BigNumberish
     entryPointAddress: HexString
   }): Promise<HexString> {
-    const { userOp, chainId, entryPointAddress } = data
+    const { userOp, sender, chainId, entryPointAddress } = data
     const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,
       {
         onApproved: async (userOpAuthorized, metadata) => {
           userOpAuthorized.setSignature(
-            await this.account.sign(
+            await sender.sign(
               userOpAuthorized.hash(entryPointAddress, chainId),
               metadata
             )

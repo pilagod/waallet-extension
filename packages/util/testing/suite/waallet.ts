@@ -1,6 +1,8 @@
 import config from "~config/test"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { NullUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/null"
+import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 
 export class WaalletSuiteContext {
@@ -18,7 +20,12 @@ export function describeWaalletSuite(
     ctx.provider = new WaalletBackgroundProvider(
       config.provider.node,
       config.provider.bundler,
-      new NullUserOperationAuthorizer()
+      new NullUserOperationAuthorizer(),
+      new NullPaymaster(),
+      new UserOperationSender(
+        config.provider.bundler,
+        new NullUserOperationAuthorizer()
+      )
     )
 
     beforeAll(async () => {

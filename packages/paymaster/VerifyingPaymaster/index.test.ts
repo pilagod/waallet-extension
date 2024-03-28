@@ -5,6 +5,7 @@ import type {
   UserOperationAuthorizeCallback,
   UserOperationAuthorizer
 } from "~packages/waallet/background/authorizer/userOperation"
+import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
 import { VerifyingPaymaster } from "./index"
@@ -35,10 +36,11 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
     expirationSecs: 300
   })
   ctx.provider = ctx.provider.clone({
-    userOperationAuthorizer: new VerifyingPaymasterUserOperationAuthorizer(
-      verifyingPaymaster
-    ),
-    paymaster: verifyingPaymaster
+    paymaster: verifyingPaymaster,
+    userOperationPool: new UserOperationSender(
+      ctx.provider.bundler,
+      new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster)
+    )
   })
 
   it("should pay for account", async () => {

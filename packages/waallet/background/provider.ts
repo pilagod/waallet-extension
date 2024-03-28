@@ -18,10 +18,12 @@ import {
   type WaalletRequestArguments
 } from "../rpc"
 import { type UserOperationAuthorizer } from "./authorizer/userOperation"
+import { type UserOperationPool } from "./pool/userOperation"
 
 export type WaalletBackgroundProviderOption = {
   userOperationAuthorizer?: UserOperationAuthorizer
   paymaster?: Paymaster
+  userOperationPool?: UserOperationPool
 }
 
 export class WaalletBackgroundProvider {
@@ -30,8 +32,9 @@ export class WaalletBackgroundProvider {
   public constructor(
     public node: NodeProvider,
     public bundler: BundlerProvider,
-    private userOperationAuthorizer: UserOperationAuthorizer,
-    private paymaster: Paymaster = new NullPaymaster()
+    public userOperationAuthorizer: UserOperationAuthorizer,
+    public paymaster: Paymaster = new NullPaymaster(),
+    public userOperationPool: UserOperationPool = null
   ) {}
 
   public clone(option: WaalletBackgroundProviderOption = {}) {
@@ -39,7 +42,8 @@ export class WaalletBackgroundProvider {
       this.node,
       this.bundler,
       option.userOperationAuthorizer ?? this.userOperationAuthorizer,
-      option.paymaster ?? this.paymaster
+      option.paymaster ?? this.paymaster,
+      option.userOperationPool ?? this.userOperationPool
     )
     if (this.account) {
       provider.connect(this.account)
@@ -139,6 +143,7 @@ export class WaalletBackgroundProvider {
       data: tx.data,
       nonce: tx.nonce
     })
+    // TODO: Maybe we don't need to calculate gas and paymaster here
     userOp.setPaymasterAndData(
       await this.paymaster.requestPaymasterAndData(this.node, userOp)
     )
@@ -149,31 +154,13 @@ export class WaalletBackgroundProvider {
     userOp.setGasLimit(
       await this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
     )
-    const userOpAuthorized = await this.userOperationAuthorizer.authorize(
+    const userOpHash = await this.userOperationPool.send({
       userOp,
-      {
-        onApproved: async (userOpAuthorized, metadata) => {
-          userOpAuthorized.setSignature(
-            await this.account.sign(
-              userOpAuthorized.hash(
-                entryPointAddress,
-                await this.bundler.getChainId()
-              ),
-              metadata
-            )
-          )
-          return userOpAuthorized
-        }
-      }
-    )
-    const userOpAuthorizedHash = await this.bundler.sendUserOperation(
-      userOpAuthorized,
+      sender: this.account,
+      chainId: await this.bundler.getChainId(),
       entryPointAddress
-    )
-    if (!userOpAuthorizedHash) {
-      throw new Error("Send user operation fail")
-    }
-    const txHash = await this.bundler.wait(userOpAuthorizedHash)
+    })
+    const txHash = await this.userOperationPool.wait(userOpHash)
 
     return txHash
   }
