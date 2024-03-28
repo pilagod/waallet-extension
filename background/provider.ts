@@ -20,7 +20,6 @@ export function setupWaalletBackgroundProvider(option: {
   waalletBackgroundProvider = new WaalletBackgroundProvider(
     new NodeProvider(option.nodeRpcUrl),
     bundler,
-    new PopUpUserOperationAuthorizer(),
     new NullPaymaster(),
     new UserOperationSender(bundler, new PopUpUserOperationAuthorizer())
   )

@@ -5,7 +5,6 @@ import { UserOperation } from "~packages/bundler"
 import { BundlerProvider } from "~packages/bundler/provider"
 import { NodeProvider } from "~packages/node/provider"
 import { type Paymaster } from "~packages/paymaster"
-import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -17,11 +16,9 @@ import {
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
-import { type UserOperationAuthorizer } from "./authorizer/userOperation"
 import { type UserOperationPool } from "./pool/userOperation"
 
 export type WaalletBackgroundProviderOption = {
-  userOperationAuthorizer?: UserOperationAuthorizer
   paymaster?: Paymaster
   userOperationPool?: UserOperationPool
 }
@@ -32,16 +29,14 @@ export class WaalletBackgroundProvider {
   public constructor(
     public node: NodeProvider,
     public bundler: BundlerProvider,
-    public userOperationAuthorizer: UserOperationAuthorizer,
-    public paymaster: Paymaster = new NullPaymaster(),
-    public userOperationPool: UserOperationPool = null
+    public paymaster: Paymaster,
+    public userOperationPool: UserOperationPool
   ) {}
 
   public clone(option: WaalletBackgroundProviderOption = {}) {
     const provider = new WaalletBackgroundProvider(
       this.node,
       this.bundler,
-      option.userOperationAuthorizer ?? this.userOperationAuthorizer,
       option.paymaster ?? this.paymaster,
       option.userOperationPool ?? this.userOperationPool
     )

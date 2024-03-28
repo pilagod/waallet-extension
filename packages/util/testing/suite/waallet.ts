@@ -20,7 +20,6 @@ export function describeWaalletSuite(
     ctx.provider = new WaalletBackgroundProvider(
       config.provider.node,
       config.provider.bundler,
-      new NullUserOperationAuthorizer(),
       new NullPaymaster(),
       new UserOperationSender(
         config.provider.bundler,
