@@ -10,12 +10,15 @@ export enum BundlerMode {
 }
 
 export class BundlerProvider {
+  public readonly url: string
+
   private bundler: JsonRpcProvider
 
   public constructor(
     bundlerRpcUrl: string,
     private mode: BundlerMode = BundlerMode.Auto
   ) {
+    this.url = bundlerRpcUrl
     this.bundler = new JsonRpcProvider(bundlerRpcUrl)
   }
 
