@@ -5,7 +5,10 @@ import json, { replacer } from "~packages/util/json"
 export class JsonRpcProvider {
   public constructor(public readonly rpcUrl: string) {}
 
-  public async send(args: { method: string; params?: any[] }) {
+  public async send<T extends any>(args: {
+    method: string
+    params?: any[]
+  }): Promise<T> {
     const body = json.stringify(
       {
         jsonrpc: "2.0",
@@ -38,6 +41,6 @@ export class JsonRpcProvider {
       `[JsonRpcProvider][${args.method}][response] ${JSON.stringify(data)}`
     )
     // TODO: Transform error to error instance
-    return data.result
+    return data.result as T
   }
 }
