@@ -11,7 +11,7 @@ import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import { VerifyingPaymaster } from "./index"
 
 describeWaalletSuite("Verifying Paymaster", (ctx) => {
-  const { bundler, node } = config.network.getActive()
+  const { bundler, node } = config.networkManager.getActive()
 
   class VerifyingPaymasterUserOperationAuthorizer
     implements UserOperationAuthorizer
@@ -37,7 +37,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
   ctx.provider = ctx.provider.clone({
     paymaster: verifyingPaymaster,
     userOperationPool: new UserOperationSender(
-      config.network,
+      config.networkManager,
       new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster)
     )
   })

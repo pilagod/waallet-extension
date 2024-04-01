@@ -25,7 +25,7 @@ describeAccountSuite(
       // TODO: This test at this moment relies on tests in test bed to deploy the account.
       // It would be better to decouple it.
       it("should init with existing passkey account", async () => {
-        const { node } = config.network.getActive()
+        const { node } = config.networkManager.getActive()
         const a = await PasskeyAccount.init(node, {
           address: await ctx.account.getAddress(),
           owner: new PasskeyOwnerP256()

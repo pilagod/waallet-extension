@@ -12,7 +12,7 @@ import {
 } from "./authorizer/userOperation"
 
 describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
-  const { bundler, node } = config.network.getActive()
+  const { bundler, node } = config.networkManager.getActive()
   const { counter } = config.contract
 
   it("should get chain id", async () => {
@@ -103,7 +103,7 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
 
     const mutatingProvider = ctx.provider.clone({
       userOperationPool: new UserOperationSender(
-        config.network,
+        config.networkManager,
         mutatingAuthorizer
       )
     })

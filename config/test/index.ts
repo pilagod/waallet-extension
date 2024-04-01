@@ -68,5 +68,5 @@ export default {
   account,
   address,
   contract,
-  network: networkManager
+  networkManager
 }

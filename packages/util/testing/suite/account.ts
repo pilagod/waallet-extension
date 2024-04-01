@@ -21,7 +21,7 @@ export function describeAccountSuite<T extends Account>(
   suite?: (ctx: AccountSuiteContext<T>) => void
 ) {
   describeWaalletSuite(name, ({ provider }) => {
-    const { node } = config.network.getActive()
+    const { node } = config.networkManager.getActive()
     const { counter } = config.contract
 
     const ctx = new AccountSuiteContext<T>()
