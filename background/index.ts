@@ -3,6 +3,7 @@ import browser from "webextension-polyfill"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import { NetworkManager } from "~packages/network/manager"
 import type { ContractRunner } from "~packages/node"
 
 import { setupWaalletBackgroundProvider } from "./provider"
@@ -19,15 +20,14 @@ async function main() {
   if (!network) {
     throw new Error("No available network")
   }
-  const provider = setupWaalletBackgroundProvider({
-    nodeRpcUrl: network.nodeRpcUrl,
-    bundlerRpcUrl: network.bundlerRpcUrl
-  })
+  const networkManager = new NetworkManager(storage)
+  const provider = setupWaalletBackgroundProvider(networkManager)
   const account = state.account[network.accountActive]
   if (!account) {
     throw new Error("No available account")
   }
-  provider.connect(await initAccount(provider.node, account))
+  const { node } = networkManager.getActive()
+  provider.connect(await initAccount(node, account))
 }
 
 async function initAccount(runner: ContractRunner, account: Account) {

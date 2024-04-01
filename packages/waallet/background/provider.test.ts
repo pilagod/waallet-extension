@@ -12,6 +12,7 @@ import {
 } from "./authorizer/userOperation"
 
 describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
+  const { bundler, node } = config.network.getActive()
   const { counter } = config.contract
 
   it("should get chain id", async () => {
@@ -60,9 +61,7 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
   })
 
   it("should send transaction to contract", async () => {
-    const balanceBefore = await ctx.provider.node.getBalance(
-      counter.getAddress()
-    )
+    const balanceBefore = await node.getBalance(counter.getAddress())
     const counterBefore = (await counter.number()) as bigint
 
     const txHash = await ctx.provider.request<HexString>({
@@ -75,12 +74,10 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
         }
       ]
     })
-    const receipt = await ctx.provider.node.getTransactionReceipt(txHash)
+    const receipt = await node.getTransactionReceipt(txHash)
     expect(receipt.status).toBe(1)
 
-    const balanceAfter = await ctx.provider.node.getBalance(
-      counter.getAddress()
-    )
+    const balanceAfter = await node.getBalance(counter.getAddress())
     expect(balanceAfter - balanceBefore).toBe(1n)
 
     const counterAfter = (await counter.number()) as bigint
@@ -105,10 +102,7 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
     })()
 
     const mutatingProvider = ctx.provider.clone({
-      userOperationPool: new UserOperationSender(
-        ctx.provider.bundler,
-        mutatingAuthorizer
-      )
+      userOperationPool: new UserOperationSender(bundler, mutatingAuthorizer)
     })
     await mutatingProvider.request({
       method: WaalletRpcMethod.eth_sendTransaction,
@@ -121,11 +115,10 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
     })
 
     const userAuthorizedOpHash = mutatingAuthorizer.userOpAuthorized.hash(
-      (await ctx.provider.bundler.getSupportedEntryPoints())[0],
-      await ctx.provider.bundler.getChainId()
+      (await bundler.getSupportedEntryPoints())[0],
+      await bundler.getChainId()
     )
-    const data =
-      await ctx.provider.bundler.getUserOperationByHash(userAuthorizedOpHash)
+    const data = await bundler.getUserOperationByHash(userAuthorizedOpHash)
 
     expect(data).not.toBe(null)
   })

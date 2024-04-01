@@ -19,8 +19,7 @@ export function describeWaalletSuite(
     const network = config.network.getActive()
 
     ctx.provider = new WaalletBackgroundProvider(
-      network.node,
-      network.bundler,
+      config.network,
       new NullPaymaster(),
       new UserOperationSender(
         network.bundler,
