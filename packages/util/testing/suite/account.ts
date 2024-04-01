@@ -21,7 +21,6 @@ export function describeAccountSuite<T extends Account>(
   suite?: (ctx: AccountSuiteContext<T>) => void
 ) {
   describeWaalletSuite(name, ({ provider }) => {
-    const { node } = config.provider
     const { counter } = config.contract
 
     const ctx = new AccountSuiteContext<T>()
@@ -70,7 +69,9 @@ export function describeAccountSuite<T extends Account>(
     })
 
     it("should send transaction to contract", async () => {
-      const balanceBefore = await node.getBalance(counter.getAddress())
+      const balanceBefore = await ctx.provider.node.getBalance(
+        counter.getAddress()
+      )
       const counterBefore = (await counter.number()) as bigint
 
       await ctx.provider.request<HexString>({
@@ -84,7 +85,9 @@ export function describeAccountSuite<T extends Account>(
         ]
       })
 
-      const balanceAfter = await node.getBalance(counter.getAddress())
+      const balanceAfter = await ctx.provider.node.getBalance(
+        counter.getAddress()
+      )
       expect(balanceAfter - balanceBefore).toBe(1n)
 
       const counterAfter = (await counter.number()) as bigint

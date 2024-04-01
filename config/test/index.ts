@@ -1,36 +1,29 @@
 import * as ethers from "ethers"
+import { v4 as uuidv4 } from "uuid"
 
-import { UserOperation } from "~packages/bundler"
-import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
-import { NodeProvider } from "~packages/node/provider"
-import type { HexString, Nullable } from "~typing"
+import { NetworkManager } from "~packages/network/manager"
+import { ObservableStorage } from "~packages/storage/observable"
 
-class BundlerProviderWithCache extends BundlerProvider {
-  public lastSentUserOperation: Nullable<UserOperation> = null
+const networkManager = ((id: string) =>
+  new NetworkManager(
+    new ObservableStorage({
+      networkActive: id,
+      network: {
+        [id]: {
+          chainId: 1337,
+          nodeRpcUrl: "http://localhost:8545",
+          bundlerRpcUrl: "http://localhost:3000"
+        }
+      }
+    })
+  ))(uuidv4())
 
-  public async sendUserOperation(
-    userOp: UserOperation,
-    entryPointAddress: HexString
-  ): Promise<HexString> {
-    this.lastSentUserOperation = userOp
-    return super.sendUserOperation(userOp, entryPointAddress)
-  }
-}
-
-const rpc = {
-  node: "http://localhost:8545",
-  bundler: "http://localhost:3000"
-}
-
-const provider = {
-  node: new NodeProvider(rpc.node),
-  bundler: new BundlerProviderWithCache(rpc.bundler, BundlerMode.Manual)
-}
+const { node } = networkManager.getActive()
 
 const account = {
   operator: new ethers.Wallet(
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-    provider.node
+    node
   )
 }
 
@@ -48,26 +41,26 @@ const contract = {
   entryPoint: new ethers.Contract(
     address.EntryPoint,
     ["function balanceOf(address account) public view returns (uint256)"],
-    provider.node
+    node
   ),
   simpleAccountFactory: new ethers.Contract(
     address.SimpleAccountFactory,
     ["function getAddress(address owner, uint256 salt) view returns (address)"],
-    provider.node
+    node
   ),
-  simpleAccount: new ethers.Contract(address.SimpleAccount, [], provider.node),
+  simpleAccount: new ethers.Contract(address.SimpleAccount, [], node),
   counter: new ethers.Contract(
     address.Counter,
     [
       "function number() view returns (uint256)",
       "function increment() payable"
     ],
-    provider.node
+    node
   ),
   passkeyAccountFactory: new ethers.Contract(
     address.PasskeyAccountFactory,
     [],
-    provider.node
+    node
   )
 }
 
@@ -75,6 +68,5 @@ export default {
   account,
   address,
   contract,
-  provider,
-  rpc
+  network: networkManager
 }

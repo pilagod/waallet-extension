@@ -110,7 +110,6 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
         mutatingAuthorizer
       )
     })
-
     await mutatingProvider.request({
       method: WaalletRpcMethod.eth_sendTransaction,
       params: [
@@ -121,8 +120,13 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
       ]
     })
 
-    expect(config.provider.bundler.lastSentUserOperation).toEqual(
-      mutatingAuthorizer.userOpAuthorized
+    const userAuthorizedOpHash = mutatingAuthorizer.userOpAuthorized.hash(
+      (await ctx.provider.bundler.getSupportedEntryPoints())[0],
+      await ctx.provider.bundler.getChainId()
     )
+    const data =
+      await ctx.provider.bundler.getUserOperationByHash(userAuthorizedOpHash)
+
+    expect(data).not.toBe(null)
   })
 })

@@ -16,13 +16,14 @@ export function describeWaalletSuite(
 ) {
   describe(name, () => {
     const ctx = new WaalletSuiteContext()
+    const network = config.network.getActive()
 
     ctx.provider = new WaalletBackgroundProvider(
-      config.provider.node,
-      config.provider.bundler,
+      network.node,
+      network.bundler,
       new NullPaymaster(),
       new UserOperationSender(
-        config.provider.bundler,
+        network.bundler,
         new NullUserOperationAuthorizer()
       )
     )
