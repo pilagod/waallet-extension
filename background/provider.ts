@@ -13,12 +13,10 @@ export function getWaalletBackgroundProvider() {
 export function setupWaalletBackgroundProvider(
   networkManager: NetworkManager
 ): WaalletBackgroundProvider {
-  const { bundler } = networkManager.getActive()
-
   waalletBackgroundProvider = new WaalletBackgroundProvider(
     networkManager,
     new NullPaymaster(),
-    new UserOperationSender(bundler, new PopUpUserOperationAuthorizer())
+    new UserOperationSender(networkManager, new PopUpUserOperationAuthorizer())
   )
   return waalletBackgroundProvider
 }

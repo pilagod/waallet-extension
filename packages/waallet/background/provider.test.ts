@@ -102,7 +102,10 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
     })()
 
     const mutatingProvider = ctx.provider.clone({
-      userOperationPool: new UserOperationSender(bundler, mutatingAuthorizer)
+      userOperationPool: new UserOperationSender(
+        config.network,
+        mutatingAuthorizer
+      )
     })
     await mutatingProvider.request({
       method: WaalletRpcMethod.eth_sendTransaction,

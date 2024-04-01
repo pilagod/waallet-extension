@@ -2,9 +2,7 @@ import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
-import { BundlerProvider } from "~packages/bundler/provider"
 import { NetworkManager } from "~packages/network/manager"
-import { NodeProvider } from "~packages/node/provider"
 import { type Paymaster } from "~packages/paymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import number from "~packages/util/number"
@@ -111,8 +109,8 @@ export class WaalletBackgroundProvider {
     verificationGasLimit: HexString
     callGasLimit: HexString
   }> {
-    const { bundler, node } = this.networkManager.getActive()
     const userOp = new UserOperation(params[0])
+    const { bundler } = this.networkManager.getActive()
     const [entryPointAddress] = await bundler.getSupportedEntryPoints()
     const data = await bundler.estimateUserOperationGas(
       userOp,
@@ -140,7 +138,7 @@ export class WaalletBackgroundProvider {
     ) {
       throw new Error("Address `from` doesn't match connected account")
     }
-    const { bundler, node } = this.networkManager.getActive()
+    const { id: networkId, bundler, node } = this.networkManager.getActive()
     // TODO: Use account's entry point
     const [entryPointAddress] = await bundler.getSupportedEntryPoints()
     const userOp = await this.account.createUserOperation(node, {
@@ -163,7 +161,7 @@ export class WaalletBackgroundProvider {
     const userOpHash = await this.userOperationPool.send({
       userOp,
       sender: this.account,
-      chainId: await bundler.getChainId(),
+      networkId,
       entryPointAddress
     })
     const txHash = await this.userOperationPool.wait(userOpHash)

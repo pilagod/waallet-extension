@@ -1,6 +1,7 @@
 import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
 import { BundlerProvider } from "~packages/bundler/provider"
+import { NetworkManager } from "~packages/network/manager"
 import { type UserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -10,17 +11,18 @@ export class UserOperationSender implements UserOperationPool {
   private pool: { [userOpHash: HexString]: Promise<HexString> } = {}
 
   public constructor(
-    private bundler: BundlerProvider,
+    private networkManager: NetworkManager,
     private userOperationAuthorizer: UserOperationAuthorizer
   ) {}
 
   public async send(data: {
     userOp: UserOperation
     sender: Account
-    chainId: BigNumberish
+    networkId: string
     entryPointAddress: HexString
   }): Promise<HexString> {
-    const { userOp, sender, chainId, entryPointAddress } = data
+    const { userOp, sender, networkId, entryPointAddress } = data
+    const { bundler, chainId } = this.networkManager.get(networkId)
     const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,
       {
@@ -35,14 +37,14 @@ export class UserOperationSender implements UserOperationPool {
         }
       }
     )
-    const userOpAuthorizedHash = await this.bundler.sendUserOperation(
+    const userOpAuthorizedHash = await bundler.sendUserOperation(
       userOpAuthorized,
       entryPointAddress
     )
     if (!userOpAuthorizedHash) {
       throw new Error("Send user operation fail")
     }
-    this.pool[userOpAuthorizedHash] = this.bundler.wait(userOpAuthorizedHash)
+    this.pool[userOpAuthorizedHash] = bundler.wait(userOpAuthorizedHash)
 
     return userOpAuthorizedHash
   }

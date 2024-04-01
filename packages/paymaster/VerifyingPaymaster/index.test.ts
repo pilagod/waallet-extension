@@ -37,7 +37,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
   ctx.provider = ctx.provider.clone({
     paymaster: verifyingPaymaster,
     userOperationPool: new UserOperationSender(
-      bundler,
+      config.network,
       new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster)
     )
   })
