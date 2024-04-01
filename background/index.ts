@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill"
+
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
