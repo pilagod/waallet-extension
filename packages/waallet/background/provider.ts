@@ -57,7 +57,7 @@ export class WaalletBackgroundProvider {
       case WaalletRpcMethod.eth_requestAccounts:
         return [await this.account.getAddress()] as T
       case WaalletRpcMethod.eth_chainId:
-        return this.bundler.getChainId() as T
+        return number.toHex(await this.bundler.getChainId()) as T
       case WaalletRpcMethod.eth_estimateGas:
         return this.handleEstimateGas(args.params) as T
       case WaalletRpcMethod.eth_estimateUserOperationGas:
@@ -112,7 +112,15 @@ export class WaalletBackgroundProvider {
   }> {
     const userOp = new UserOperation(params[0])
     const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    return this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
+    const data = await this.bundler.estimateUserOperationGas(
+      userOp,
+      entryPointAddress
+    )
+    return {
+      preVerificationGas: number.toHex(data.preVerificationGas),
+      verificationGasLimit: number.toHex(data.verificationGasLimit),
+      callGasLimit: number.toHex(data.callGasLimit)
+    }
   }
 
   private async handleSendTransaction(
