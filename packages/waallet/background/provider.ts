@@ -2,7 +2,7 @@ import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
-import { NetworkManager } from "~packages/network/manager"
+import type { NetworkManager } from "~packages/network"
 import { type Paymaster } from "~packages/paymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import number from "~packages/util/number"

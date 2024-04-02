@@ -1,23 +1,14 @@
 import * as ethers from "ethers"
 import { v4 as uuidv4 } from "uuid"
 
-import { NetworkManager } from "~packages/network/manager"
-import { ObservableStorage } from "~packages/storage/observable"
+import { SingleNetworkManager } from "./manager"
 
-const networkManager = ((id: string) =>
-  new NetworkManager(
-    new ObservableStorage({
-      networkActive: id,
-      network: {
-        [id]: {
-          chainId: 1337,
-          nodeRpcUrl: "http://localhost:8545",
-          bundlerRpcUrl: "http://localhost:3000"
-        }
-      }
-    })
-  ))(uuidv4())
-
+const networkManager = new SingleNetworkManager({
+  id: uuidv4(),
+  chaindId: 1337,
+  nodeRpcUrl: "http://localhost:8545",
+  bundlerRpcUrl: "http://localhost:3000"
+})
 const { node } = networkManager.getActive()
 
 const account = {

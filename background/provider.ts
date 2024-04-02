@@ -1,4 +1,4 @@
-import { NetworkManager } from "~packages/network/manager"
+import type { NetworkManager } from "~packages/network"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { PopUpUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/popup"
 import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"

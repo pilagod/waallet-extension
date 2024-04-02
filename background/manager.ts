@@ -1,30 +1,14 @@
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
+import type { NetworkManager } from "~packages/network"
 import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
 
-export type Network = {
-  id: string
-  chainId: number
-  node: NodeProvider
-  bundler: BundlerProvider
-}
+import type { State } from "./storage"
 
-export class NetworkManager {
-  public constructor(
-    // TODO: Consider to use a more general interface
-    public storage: ObservableStorage<{
-      networkActive: string
-      network: {
-        [id: string]: {
-          chainId: number
-          nodeRpcUrl: string
-          bundlerRpcUrl: string
-        }
-      }
-    }>
-  ) {}
+export class NetworkStorageManager implements NetworkManager {
+  public constructor(private storage: ObservableStorage<State>) {}
 
-  public get(id: string): Network {
+  public get(id: string) {
     const { network } = this.storage.get()
     const target = network[id]
     if (!target) {
@@ -43,7 +27,7 @@ export class NetworkManager {
     }
   }
 
-  public getActive(): Network {
+  public getActive() {
     const { networkActive } = this.storage.get()
     return this.get(networkActive)
   }

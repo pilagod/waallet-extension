@@ -1,9 +1,8 @@
 import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
-import { BundlerProvider } from "~packages/bundler/provider"
-import { NetworkManager } from "~packages/network/manager"
+import type { NetworkManager } from "~packages/network"
 import { type UserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation"
-import type { BigNumberish, HexString } from "~typing"
+import type { HexString } from "~typing"
 
 import type { UserOperationPool } from "./index"
 
