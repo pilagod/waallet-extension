@@ -34,12 +34,16 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
     ownerPrivateKey: config.account.operator.privateKey,
     expirationSecs: 300
   })
-  ctx.provider = ctx.provider.clone({
-    paymaster: verifyingPaymaster,
-    userOperationPool: new UserOperationSender(
-      config.networkManager,
-      new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster)
-    )
+
+  beforeAll(() => {
+    ctx.provider = ctx.provider.clone({
+      paymaster: verifyingPaymaster,
+      userOperationPool: new UserOperationSender(
+        ctx.provider.accountManager,
+        ctx.provider.networkManager,
+        new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster)
+      )
+    })
   })
 
   it("should pay for account", async () => {

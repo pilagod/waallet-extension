@@ -1,4 +1,3 @@
-import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
 import type { HexString } from "~typing"
 
@@ -10,7 +9,7 @@ export interface UserOperationPool {
    */
   send(data: {
     userOp: UserOperation
-    sender: Account
+    senderId: string
     networkId: string
     entryPointAddress: HexString
   }): Promise<HexString>

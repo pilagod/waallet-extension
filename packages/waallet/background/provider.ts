@@ -48,7 +48,7 @@ export class WaalletBackgroundProvider {
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
       case WaalletRpcMethod.eth_requestAccounts:
-        const account = await this.accountManager.getActive()
+        const { account } = await this.accountManager.getActive()
         return [await account.getAddress()] as T
       case WaalletRpcMethod.eth_chainId:
         return number.toHex(await bundler.getChainId()) as T
@@ -71,7 +71,7 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should estimate gas for contract creation
       return
     }
-    const account = await this.accountManager.getActive()
+    const { account } = await this.accountManager.getActive()
     if (
       tx.from &&
       ethers.getAddress(tx.from) !== (await account.getAddress())
@@ -129,7 +129,7 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should create contract
       return
     }
-    const account = await this.accountManager.getActive()
+    const { id: accountId, account } = await this.accountManager.getActive()
     if (
       tx.from &&
       ethers.getAddress(tx.from) !== (await account.getAddress())
@@ -158,7 +158,7 @@ export class WaalletBackgroundProvider {
     )
     const userOpHash = await this.userOperationPool.send({
       userOp,
-      sender: account,
+      senderId: accountId,
       networkId,
       entryPointAddress
     })
