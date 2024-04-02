@@ -1,6 +1,6 @@
 import type { AccountManager } from "~packages/account/manager"
 import { SingleAccountManager } from "~packages/account/manager/single"
-import type { NetworkManager } from "~packages/network"
+import type { NetworkManager } from "~packages/network/manager"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { PopUpUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/popup"
 import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"

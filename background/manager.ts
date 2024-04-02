@@ -4,7 +4,7 @@ import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
-import type { NetworkManager } from "~packages/network"
+import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
 

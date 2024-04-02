@@ -1,5 +1,5 @@
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
-import type { NetworkManager } from "~packages/network"
+import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 
 export class SingleNetworkManager implements NetworkManager {
