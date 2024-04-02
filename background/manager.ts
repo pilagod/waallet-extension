@@ -1,3 +1,8 @@
+import { AccountType } from "~packages/account"
+import type { AccountManager } from "~packages/account/manager"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
 import type { NetworkManager } from "~packages/network"
 import { NodeProvider } from "~packages/node/provider"
@@ -5,22 +10,54 @@ import { ObservableStorage } from "~packages/storage/observable"
 
 import type { State } from "./storage"
 
+export class AccountStorageManager implements AccountManager {
+  public constructor(private storage: ObservableStorage<State>) {}
+
+  public async get(id: string) {
+    const state = this.storage.get()
+    const account = state.account[id]
+    if (!account) {
+      throw new Error(`Unknown account ${id}`)
+    }
+    switch (account.type) {
+      case AccountType.SimpleAccount:
+        return SimpleAccount.init({
+          address: account.address,
+          ownerPrivateKey: account.ownerPrivateKey
+        })
+      case AccountType.PasskeyAccount:
+        return PasskeyAccount.init({
+          address: account.address,
+          owner: new PasskeyOwnerWebAuthn(account.credentialId)
+        })
+      default:
+        throw new Error(`Unknown account ${account}`)
+    }
+  }
+
+  public async getActive() {
+    const state = this.storage.get()
+    const network = state.network[state.networkActive]
+    return this.get(network.accountActive)
+  }
+}
+
 export class NetworkStorageManager implements NetworkManager {
   public constructor(private storage: ObservableStorage<State>) {}
 
   public get(id: string) {
-    const { network } = this.storage.get()
-    const target = network[id]
-    if (!target) {
+    const state = this.storage.get()
+    const network = state.network[id]
+    if (!network) {
       throw new Error(`Unknown network ${id}`)
     }
     return {
       id,
-      chainId: target.chainId,
-      node: new NodeProvider(target.nodeRpcUrl),
+      chainId: network.chainId,
+      node: new NodeProvider(network.nodeRpcUrl),
       bundler: new BundlerProvider(
-        target.bundlerRpcUrl,
-        this.isLocalTestnet(target.chainId)
+        network.bundlerRpcUrl,
+        this.isLocalTestnet(network.chainId)
           ? BundlerMode.Manual
           : BundlerMode.Auto
       )
