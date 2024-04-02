@@ -29,7 +29,6 @@ async function main() {
 
 async function initAccount(networkManager: NetworkManager, account: Account) {
   const { node } = networkManager.getActive()
-
   switch (account.type) {
     case AccountType.SimpleAccount:
       return SimpleAccount.init({
@@ -37,9 +36,13 @@ async function initAccount(networkManager: NetworkManager, account: Account) {
         ownerPrivateKey: account.ownerPrivateKey
       })
     case AccountType.PasskeyAccount:
-      return PasskeyAccount.init(node, {
+      const credentialId = await PasskeyAccount.getCredentialId(
+        node,
+        account.address
+      )
+      return PasskeyAccount.init({
         address: account.address,
-        owner: new PasskeyOwnerWebAuthn()
+        owner: new PasskeyOwnerWebAuthn(credentialId)
       })
     default:
       throw new Error("Unknown account type")
