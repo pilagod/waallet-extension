@@ -9,6 +9,14 @@ export const config = {
 
   passkeyAccountAddress: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT,
 
+  imAccountAddress: process.env.PLASMO_PUBLIC_IMACCOUNT,
+  ecdsaValidaotorAddress: process.env.PLASMO_PUBLIC_ECDSA_VALIDATOR,
+  imAccountOwnerPrivateKey: process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY,
+  webAuthnValidaotorAddress: process.env.PLASMO_PUBLIC_WEBAUTHN_VALIDATOR,
+  imAccountCredentialId: process.env.PLASMO_PUBLIC_IMACCOUNT_CREDENTIAL_ID,
+  imAccountPasskeyX: process.env.PLASMO_PUBLIC_IMACCOUNT_PASSKEY_X,
+  imAccountPasskeyY: process.env.PLASMO_PUBLIC_IMACCOUNT_PASSKEY_Y,
+
   verifyingPaymasterAddress: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
   verifyingPaymasterOwnerPrivateKey:
     process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER_OWNER_PRIVATE_KEY

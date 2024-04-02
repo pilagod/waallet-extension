@@ -109,7 +109,8 @@ export const createWebAuthn = async (
     publicKey: {
       x: credPubKeyXUint256,
       y: credPubKeyYUint256
-    }
+    },
+    authData: authData
   } as WebAuthnRegistration
 }
 

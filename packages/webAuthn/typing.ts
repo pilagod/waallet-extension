@@ -1,3 +1,5 @@
+import { type ParsedAuthenticatorData } from "@simplewebauthn/server/helpers"
+
 import type { BigNumberish, HexString, UrlB64String } from "~typing"
 
 /* Input */
@@ -24,6 +26,7 @@ export type WebAuthnRegistration = {
   origin: string
   credentialId: UrlB64String
   publicKey: PublicKey
+  authData: ParsedAuthenticatorData
 }
 export type Signature = {
   r: BigNumberish
