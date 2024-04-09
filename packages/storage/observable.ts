@@ -1,7 +1,10 @@
 import { EventEmitter } from "events"
 import structuredClone from "@ungap/structured-clone"
+import { enablePatches, produceWithPatches, type Draft } from "immer"
 
 import type { RecursivePartial } from "~typing"
+
+enablePatches()
 
 export enum ObservableStorageEvent {
   StateUpdated = "StateUpdated"
@@ -10,7 +13,7 @@ export enum ObservableStorageEvent {
 export class ObservableStorage<
   T extends Record<string, any>
 > extends EventEmitter {
-  public constructor(private state: T = {} as T) {
+  public constructor(private state: T) {
     super()
   }
 
@@ -22,11 +25,14 @@ export class ObservableStorage<
     updates: RecursivePartial<T>,
     option: { override?: boolean } = {}
   ) {
-    if (option.override) {
-      this.state = { ...this.get(), ...updates }
-    } else {
-      this.updatePartial(this.state, updates)
-    }
+    const [state] = produceWithPatches(this.state, (draft) => {
+      if (option.override) {
+        return { ...draft, ...updates }
+      }
+      this.applyUpdates(draft, updates)
+    })
+    this.state = structuredClone(state)
+    // TODO: filter patches before emitting
     this.emit(ObservableStorageEvent.StateUpdated, this.get())
   }
 
@@ -38,19 +44,16 @@ export class ObservableStorage<
     this.removeListener(ObservableStorageEvent.StateUpdated, handler)
   }
 
-  private updatePartial<O extends Record<string, any>>(
-    target: O,
-    updates: RecursivePartial<O>
-  ) {
-    for (const [key, value] of Object.entries(updates)) {
-      if (value instanceof Object) {
-        if (!target[key]) {
-          target[key as keyof O] = {} as typeof value
+  private applyUpdates(draft: Draft<T>, updates: RecursivePartial<T>) {
+    Object.entries(updates).forEach(([k, v]) => {
+      if (v instanceof Object) {
+        if (!draft[k]) {
+          draft[k] = {}
         }
-        this.updatePartial(target[key], value)
+        this.applyUpdates(draft[k], v)
       } else {
-        target[key as keyof O] = value
+        draft[k] = v
       }
-    }
+    })
   }
 }
