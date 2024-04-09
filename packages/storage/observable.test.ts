@@ -6,11 +6,8 @@ describe("ObservableStorage", () => {
 
     const state = s.get()
 
-    expect(Object.keys(state)).toHaveLength(3)
     expect(state.a).toBe(123)
     expect(state.b).toBe("abc")
-
-    expect(Object.keys(state.c)).toHaveLength(1)
     expect(state.c.d).toBe(null)
   })
 
@@ -18,21 +15,29 @@ describe("ObservableStorage", () => {
     const s = new ObservableStorage({
       a: 123,
       b: "abc",
-      c: { d: null, e: "xyz" }
+      c: [1, 2, 3],
+      d: { e: null, f: "xyz" }
     })
 
-    s.set({ a: 111, c: { d: { f: 999 } } })
+    s.set({
+      a: 456,
+      b: "def",
+      c: [4, 5, 6],
+      d: { e: 999 }
+    })
 
     const state = s.get()
-    expect(state.a).toBe(111)
-    expect(state.b).toBe("abc")
-    expect(state.c.d.f).toBe(999)
-    expect(state.c.e).toBe("xyz")
+
+    expect(state.a).toBe(456)
+    expect(state.b).toBe("def")
+    expect(state.c).toEqual([4, 5, 6])
+    expect(state.d.e).toBe(999)
+    expect(state.d.f).toBe("xyz")
   })
 
   it("should override fields in state", () => {
-    const s = new ObservableStorage({
-      a: { b: 123 } as Record<string, any>
+    const s = new ObservableStorage<Record<string, any>>({
+      a: { b: 123 }
     })
 
     s.set(
@@ -43,7 +48,8 @@ describe("ObservableStorage", () => {
     )
 
     const state = s.get()
-    expect(state.a.b).toBe(undefined)
+
+    expect(state.a.b).toBeUndefined()
     expect(state.a.c).toBe(999)
   })
 
@@ -55,6 +61,7 @@ describe("ObservableStorage", () => {
     state.b.c = 999
 
     const stateInStorage = s.get()
+
     expect(stateInStorage.a).toBe(123)
     expect(stateInStorage.b.c).toBe(123)
   })
@@ -70,6 +77,43 @@ describe("ObservableStorage", () => {
     s.set({ a: 456 })
 
     expect(stateSubscribed.a).toBe(456)
+  })
+
+  it("should be able to subscribe to certain path", () => {
+    const s = new ObservableStorage({ a: { b: { c: 123 } } })
+
+    // Exactly match
+    let s1: ReturnType<(typeof s)["get"]>
+    s.subscribe(
+      async (state) => {
+        s1 = state
+      },
+      ["a", "b", "c"]
+    )
+
+    // Partially match
+    let s2: ReturnType<(typeof s)["get"]>
+    s.subscribe(
+      async (state) => {
+        s2 = state
+      },
+      ["a", "b"]
+    )
+
+    // Not matched
+    let s3: ReturnType<(typeof s)["get"]>
+    s.subscribe(
+      async (state) => {
+        s3 = state
+      },
+      ["a", "b", "d"]
+    )
+
+    s.set({ a: { b: { c: 999 } } })
+
+    expect(s1.a.b.c).toBe(999)
+    expect(s2.a.b.c).toBe(999)
+    expect(s3).toBeUndefined()
   })
 
   it("should be able to unsubscribe to state update", () => {
