@@ -1,22 +1,29 @@
 import { UserOperation } from "~packages/bundler"
 import type { HexString } from "~typing"
 
+export type UserOperationReceipt = {
+  userOpHash: HexString
+  transactionHash: HexString
+}
+
 export interface UserOperationPool {
   /**
    * Send user operation to pool, it would be processed by bundler in some future.
    *
-   * @return The hash of the user operation
+   * @return Uuid for this user operation
    */
   send(data: {
     userOp: UserOperation
     senderId: string
     networkId: string
     entryPointAddress: HexString
-  }): Promise<HexString>
+  }): Promise<string>
   /**
    * Wait for an user operation to be processed by bundler and finally included in a transaction on chain.
    *
-   * @return The transaction hash including this user operation
+   * @param userOpId: Uuid of the user operation
+   *
+   * @return The receipt of the user operation, including user operation hash and transaction hash.
    */
-  wait(userOpHash: HexString): Promise<HexString>
+  wait(userOpId: string): Promise<UserOperationReceipt>
 }
