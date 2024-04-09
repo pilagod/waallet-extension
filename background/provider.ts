@@ -1,5 +1,4 @@
-import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
-import { NodeProvider } from "~packages/node/provider"
+import type { NetworkManager } from "~packages/network"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { PopUpUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/popup"
 import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
@@ -11,18 +10,13 @@ export function getWaalletBackgroundProvider() {
   return waalletBackgroundProvider
 }
 
-export function setupWaalletBackgroundProvider(option: {
-  nodeRpcUrl: string
-  bundlerRpcUrl: string
-}): WaalletBackgroundProvider {
-  const bundler = new BundlerProvider(option.bundlerRpcUrl, BundlerMode.Manual)
-
+export function setupWaalletBackgroundProvider(
+  networkManager: NetworkManager
+): WaalletBackgroundProvider {
   waalletBackgroundProvider = new WaalletBackgroundProvider(
-    new NodeProvider(option.nodeRpcUrl),
-    bundler,
+    networkManager,
     new NullPaymaster(),
-    new UserOperationSender(bundler, new PopUpUserOperationAuthorizer())
+    new UserOperationSender(networkManager, new PopUpUserOperationAuthorizer())
   )
-
   return waalletBackgroundProvider
 }

@@ -11,6 +11,8 @@ import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import { VerifyingPaymaster } from "./index"
 
 describeWaalletSuite("Verifying Paymaster", (ctx) => {
+  const { bundler, node } = config.networkManager.getActive()
+
   class VerifyingPaymasterUserOperationAuthorizer
     implements UserOperationAuthorizer
   {
@@ -21,10 +23,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
       { onApproved }: UserOperationAuthorizeCallback
     ) {
       userOp.setPaymasterAndData(
-        await this.verifyingPaymaster.requestPaymasterAndData(
-          ctx.provider.node,
-          userOp
-        )
+        await this.verifyingPaymaster.requestPaymasterAndData(node, userOp)
       )
       return onApproved(userOp)
     }
@@ -38,13 +37,13 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
   ctx.provider = ctx.provider.clone({
     paymaster: verifyingPaymaster,
     userOperationPool: new UserOperationSender(
-      ctx.provider.bundler,
+      config.networkManager,
       new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster)
     )
   })
 
   it("should pay for account", async () => {
-    const accountBalanceBefore = await ctx.provider.node.getBalance(
+    const accountBalanceBefore = await node.getBalance(
       await ctx.account.getAddress()
     )
     const paymasterDepositBalanceBefore =
@@ -62,7 +61,7 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
       ]
     })
 
-    const accountBalanceAfter = await ctx.provider.node.getBalance(
+    const accountBalanceAfter = await node.getBalance(
       await ctx.account.getAddress()
     )
     expect(accountBalanceBefore).toBe(accountBalanceAfter)

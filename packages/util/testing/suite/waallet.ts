@@ -18,11 +18,10 @@ export function describeWaalletSuite(
     const ctx = new WaalletSuiteContext()
 
     ctx.provider = new WaalletBackgroundProvider(
-      config.provider.node,
-      config.provider.bundler,
+      config.networkManager,
       new NullPaymaster(),
       new UserOperationSender(
-        config.provider.bundler,
+        config.networkManager,
         new NullUserOperationAuthorizer()
       )
     )

@@ -2,8 +2,7 @@ import * as ethers from "ethers"
 
 import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
-import { BundlerProvider } from "~packages/bundler/provider"
-import { NodeProvider } from "~packages/node/provider"
+import type { NetworkManager } from "~packages/network"
 import { type Paymaster } from "~packages/paymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import number from "~packages/util/number"
@@ -27,16 +26,14 @@ export class WaalletBackgroundProvider {
   public account: Account
 
   public constructor(
-    public node: NodeProvider,
-    public bundler: BundlerProvider,
+    public networkManager: NetworkManager,
     public paymaster: Paymaster,
     public userOperationPool: UserOperationPool
   ) {}
 
   public clone(option: WaalletBackgroundProviderOption = {}) {
     const provider = new WaalletBackgroundProvider(
-      this.node,
-      this.bundler,
+      this.networkManager,
       option.paymaster ?? this.paymaster,
       option.userOperationPool ?? this.userOperationPool
     )
@@ -52,12 +49,13 @@ export class WaalletBackgroundProvider {
 
   public async request<T>(args: WaalletRequestArguments): Promise<T> {
     console.log(args)
+    const { bundler, node } = this.networkManager.getActive()
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
       case WaalletRpcMethod.eth_requestAccounts:
         return [await this.account.getAddress()] as T
       case WaalletRpcMethod.eth_chainId:
-        return this.bundler.getChainId() as T
+        return number.toHex(await bundler.getChainId()) as T
       case WaalletRpcMethod.eth_estimateGas:
         return this.handleEstimateGas(args.params) as T
       case WaalletRpcMethod.eth_estimateUserOperationGas:
@@ -65,7 +63,7 @@ export class WaalletBackgroundProvider {
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
-        return new JsonRpcProvider(this.node.url).send(args)
+        return new JsonRpcProvider(node.url).send(args)
     }
   }
 
@@ -83,20 +81,21 @@ export class WaalletBackgroundProvider {
     ) {
       throw new Error("Address `from` doesn't match connected account")
     }
+    const { bundler, node } = this.networkManager.getActive()
     // TODO: Use account's entry point
-    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOp = await this.account.createUserOperation(this.node, {
+    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    const userOp = await this.account.createUserOperation(node, {
       to: tx.to,
       value: tx.value,
       data: tx.data
     })
     userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(this.node, userOp)
+      await this.paymaster.requestPaymasterAndData(node, userOp)
     )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
     }
-    const { callGasLimit } = await this.bundler.estimateUserOperationGas(
+    const { callGasLimit } = await bundler.estimateUserOperationGas(
       userOp,
       entryPointAddress
     )
@@ -111,8 +110,17 @@ export class WaalletBackgroundProvider {
     callGasLimit: HexString
   }> {
     const userOp = new UserOperation(params[0])
-    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    return this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
+    const { bundler } = this.networkManager.getActive()
+    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    const data = await bundler.estimateUserOperationGas(
+      userOp,
+      entryPointAddress
+    )
+    return {
+      preVerificationGas: number.toHex(data.preVerificationGas),
+      verificationGasLimit: number.toHex(data.verificationGasLimit),
+      callGasLimit: number.toHex(data.callGasLimit)
+    }
   }
 
   private async handleSendTransaction(
@@ -130,9 +138,10 @@ export class WaalletBackgroundProvider {
     ) {
       throw new Error("Address `from` doesn't match connected account")
     }
+    const { id: networkId, bundler, node } = this.networkManager.getActive()
     // TODO: Use account's entry point
-    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOp = await this.account.createUserOperation(this.node, {
+    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    const userOp = await this.account.createUserOperation(node, {
       to: tx.to,
       value: tx.value,
       data: tx.data,
@@ -140,19 +149,19 @@ export class WaalletBackgroundProvider {
     })
     // TODO: Maybe we don't need to calculate gas and paymaster here
     userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(this.node, userOp)
+      await this.paymaster.requestPaymasterAndData(node, userOp)
     )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
     }
     userOp.setGasFee(await this.estimateGasFee(tx.gasPrice))
     userOp.setGasLimit(
-      await this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
+      await bundler.estimateUserOperationGas(userOp, entryPointAddress)
     )
     const userOpHash = await this.userOperationPool.send({
       userOp,
       sender: this.account,
-      chainId: await this.bundler.getChainId(),
+      networkId,
       entryPointAddress
     })
     const txHash = await this.userOperationPool.wait(userOpHash)
@@ -170,7 +179,8 @@ export class WaalletBackgroundProvider {
         maxPriorityFeePerGas: gasPrice
       }
     }
-    const fee = await this.node.getFeeData()
+    const { node } = this.networkManager.getActive()
+    const fee = await node.getFeeData()
     const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
     // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
     return {

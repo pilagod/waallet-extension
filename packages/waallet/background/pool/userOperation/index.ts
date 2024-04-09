@@ -1,6 +1,6 @@
 import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
-import type { BigNumberish, HexString } from "~typing"
+import type { HexString } from "~typing"
 
 export interface UserOperationPool {
   /**
@@ -11,7 +11,7 @@ export interface UserOperationPool {
   send(data: {
     userOp: UserOperation
     sender: Account
-    chainId: BigNumberish
+    networkId: string
     entryPointAddress: HexString
   }): Promise<HexString>
   /**
