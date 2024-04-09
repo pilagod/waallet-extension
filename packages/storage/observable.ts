@@ -1,4 +1,3 @@
-import { EventEmitter } from "events"
 import structuredClone from "@ungap/structured-clone"
 import { enablePatches, produceWithPatches, type Draft } from "immer"
 
@@ -10,12 +9,13 @@ export enum ObservableStorageEvent {
   StateUpdated = "StateUpdated"
 }
 
-export class ObservableStorage<
-  T extends Record<string, any>
-> extends EventEmitter {
-  public constructor(private state: T) {
-    super()
-  }
+export class ObservableStorage<T extends Record<string, any>> {
+  private subscribers: {
+    handler: (state: T) => Promise<void>
+    path?: (string | number)[]
+  }[] = []
+
+  public constructor(private state: T) {}
 
   public get(): T {
     return structuredClone(this.state)
@@ -33,15 +33,28 @@ export class ObservableStorage<
     })
     this.state = structuredClone(state)
     // TODO: filter patches before emitting
-    this.emit(ObservableStorageEvent.StateUpdated, this.get())
+    for (const s of this.subscribers) {
+      s.handler(this.get())
+    }
   }
 
-  public subscribe(handler: (state: T) => Promise<void>) {
-    this.addListener(ObservableStorageEvent.StateUpdated, handler)
+  public subscribe(
+    handler: (state: T) => Promise<void>,
+    path?: (string | number)[]
+  ) {
+    this.subscribers.push({
+      handler,
+      path
+    })
   }
 
   public unsubscribe(handler: (state: T) => Promise<void>) {
-    this.removeListener(ObservableStorageEvent.StateUpdated, handler)
+    for (let i = 0; i < this.subscribers.length; i++) {
+      if (handler === this.subscribers[i].handler) {
+        this.subscribers.splice(i, 1)
+        break
+      }
+    }
   }
 
   private applyUpdates(draft: Draft<T>, updates: RecursivePartial<T>) {
