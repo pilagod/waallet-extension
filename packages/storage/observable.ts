@@ -5,6 +5,8 @@ import type { RecursivePartial } from "~typing"
 
 enablePatches()
 
+type ObservableStorageUpdater<T> = (draft: Draft<T>) => Draft<T> | void
+
 export class ObservableStorage<T extends Record<string, any>> {
   private subscribers: {
     handler: (state: T) => Promise<void>
@@ -17,16 +19,26 @@ export class ObservableStorage<T extends Record<string, any>> {
     return structuredClone(this.state)
   }
 
+  public set(updater: ObservableStorageUpdater<T>): void
   public set(
     updates: RecursivePartial<T>,
+    option?: { override?: boolean }
+  ): void
+  public set(
+    updaterOrUpdates: ObservableStorageUpdater<T> | RecursivePartial<T>,
     option: { override?: boolean } = {}
   ) {
-    const [state, patches] = produceWithPatches(this.state, (draft) => {
-      if (option.override) {
-        return { ...draft, ...updates }
-      }
-      this.applyUpdates(draft, updates)
-    })
+    const updater =
+      typeof updaterOrUpdates === "function"
+        ? updaterOrUpdates
+        : (draft: Draft<T>) => {
+            if (option.override) {
+              return { ...draft, ...updaterOrUpdates }
+            }
+            this.applyUpdates(draft, updaterOrUpdates)
+          }
+    const [state, patches] = produceWithPatches(this.state, updater)
+
     this.state = structuredClone(state)
 
     const stateFreezed = Object.freeze(state)

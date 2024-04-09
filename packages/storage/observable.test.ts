@@ -11,7 +11,7 @@ describe("ObservableStorage", () => {
     expect(state.c.d).toBe(null)
   })
 
-  it("should set specific fields in state", () => {
+  it("should set partial fields in state", () => {
     const s = new ObservableStorage({
       a: 123,
       b: "abc",
@@ -35,7 +35,31 @@ describe("ObservableStorage", () => {
     expect(state.d.f).toBe("xyz")
   })
 
-  it("should override fields in state", () => {
+  it("should set partial fields in state by updater", () => {
+    const s = new ObservableStorage({
+      a: 123,
+      b: "abc",
+      c: [1, 2, 3],
+      d: { e: null, f: "xyz" }
+    })
+
+    s.set((draft) => {
+      draft.a = 456
+      draft.b = "def"
+      draft.c.splice(0, 3, 4, 5, 6)
+      draft.d.e = 999
+    })
+
+    const state = s.get()
+
+    expect(state.a).toBe(456)
+    expect(state.b).toBe("def")
+    expect(state.c).toEqual([4, 5, 6])
+    expect(state.d.e).toBe(999)
+    expect(state.d.f).toBe("xyz")
+  })
+
+  it("should set and override fields in state", () => {
     const s = new ObservableStorage<Record<string, any>>({
       a: { b: 123 }
     })
