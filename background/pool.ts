@@ -38,14 +38,22 @@ export class UserOperationStoragePool implements UserOperationPool {
     return new Promise<UserOperationReceipt>((resolve, reject) => {
       const subscriber = async ({ userOperationPool }: State) => {
         const userOp = userOperationPool[userOpId]
+
         if (userOp.status === UserOperationStatus.Pending) {
           return
         }
-        if (userOp.status === UserOperationStatus.Failed) {
-          reject(userOp.receipt.errorMessage)
+
+        if (userOp.status === UserOperationStatus.Succeeded) {
+          resolve(userOp.receipt)
+          this.storage.unsubscribe(subscriber)
           return
         }
-        resolve(userOp.receipt)
+
+        if (userOp.status === UserOperationStatus.Failed) {
+          reject(userOp.receipt.errorMessage)
+          this.storage.unsubscribe(subscriber)
+          return
+        }
       }
       this.storage.subscribe(subscriber, ["userOperationPool", userOpId])
     })
