@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+import browser from "webextension-polyfill"
 import { Redirect, Route, Router, Switch } from "wouter"
 import { useHashLocation } from "wouter/use-hash-location"
 import { useShallow } from "zustand/react/shallow"
@@ -15,6 +17,17 @@ import { useStorage } from "~app/storage"
 import "~style.css"
 
 export function App() {
+  useEffect(() => {
+    const port = browser.runtime.connect({
+      name: "app"
+    })
+    port.onMessage.addListener((message: { action: string }) => {
+      if (message.action === "ping") {
+        port.postMessage({ action: "pong" })
+      }
+    })
+  }, [])
+
   const isStateInitialized = useStorage(
     useShallow((storage) => storage.state !== null)
   )

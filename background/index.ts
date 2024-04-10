@@ -1,6 +1,10 @@
+import browser from "webextension-polyfill"
+
 import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { setupWaalletBackgroundProvider } from "./provider"
-import { getStorage, type Account } from "./storage"
+// TODO: Rename to local storage
+import { getStorage } from "./storage"
+import { getSessionStorage } from "./storage/session"
 
 console.log(
   "Live now; make now always the most precious time. Now will never come again."
@@ -22,6 +26,29 @@ async function main() {
   setupWaalletBackgroundProvider({
     accountManager,
     networkManager
+  })
+
+  const sessionStorage = await getSessionStorage()
+  // TODO: Handle multiple popup case
+  browser.runtime.onConnect.addListener((port) => {
+    if (port.name === "app") {
+      if (!sessionStorage.get().isPopupOpened) {
+        sessionStorage.set((draft) => {
+          draft.isPopupOpened = true
+        })
+      }
+      const intervalId = setInterval(() => {
+        port.postMessage({ action: "ping" })
+      }, 3000)
+      port.onDisconnect.addListener(() => {
+        if (sessionStorage.get().isPopupOpened) {
+          sessionStorage.set((draft) => {
+            draft.isPopupOpened = false
+          })
+        }
+        clearInterval(intervalId)
+      })
+    }
   })
 }
 
