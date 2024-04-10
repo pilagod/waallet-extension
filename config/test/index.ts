@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 import { v4 as uuidv4 } from "uuid"
 
-import { SingleNetworkManager } from "./manager"
+import { SingleNetworkManager } from "~packages/network/manager/single"
 
 const networkManager = new SingleNetworkManager({
   id: uuidv4(),

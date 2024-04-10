@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import { AccountSkeleton } from "~packages/account/skeleton"
-import { connect, type ContractRunner } from "~packages/node"
+import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
@@ -12,16 +12,11 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   /**
    * Use when account is already deployed
    */
-  public static async init(
-    runner: ContractRunner,
-    option: {
-      address: HexString
-      owner: PasskeyOwner
-    }
-  ) {
-    const account = new PasskeyAccount({ ...option })
-    option.owner.use(await account.getCredentialId(runner))
-    return account
+  public static async init(option: {
+    address: HexString
+    owner: PasskeyOwner
+  }) {
+    return new PasskeyAccount({ ...option })
   }
 
   /**
@@ -31,16 +26,14 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     runner: ContractRunner,
     option: {
       owner: PasskeyOwner
-      credentialId: string
       publicKey: PasskeyPublicKey
       salt: BigNumberish
       factoryAddress: string
     }
   ) {
-    option.owner.use(option.credentialId)
     const factory = new PasskeyAccountFactory({
       address: option.factoryAddress,
-      credentialId: option.credentialId,
+      credentialId: option.owner.getCredentialId(),
       publicKey: option.publicKey,
       salt: option.salt
     })
@@ -49,6 +42,24 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       owner: option.owner,
       factory
     })
+  }
+
+  /**
+   * Get credential id from PasskeyAccount contract.
+   */
+  public static async getCredentialId(
+    runner: ContractRunner,
+    accountAddress: HexString
+  ) {
+    const account = new ethers.Contract(
+      accountAddress,
+      [
+        "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)"
+      ],
+      runner
+    )
+    const { credId } = await account.passkey()
+    return credId as string
   }
 
   private account: ethers.Contract
@@ -64,15 +75,9 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       factory: option.factory
     })
     this.account = new ethers.Contract(option.address, [
-      "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)",
       "function execute(address dest, uint256 value, bytes calldata func)"
     ])
     this.owner = option.owner
-  }
-
-  public async getCredentialId(runner: ContractRunner) {
-    const { credId } = await connect(this.account, runner).passkey()
-    return credId as string
   }
 
   public async sign(message: BytesLike, metadata?: any) {

@@ -4,8 +4,9 @@ import browser from "webextension-polyfill"
 import { sendToBackground, type MessageName } from "@plasmohq/messaging"
 
 import { config } from "~config"
+import { AccountType } from "~packages/account"
 import { ObservableStorage } from "~packages/storage/observable"
-import type { HexString, RecursivePartial } from "~typing"
+import type { B64UrlString, HexString, RecursivePartial } from "~typing"
 
 let storage: ObservableStorage<State>
 
@@ -31,7 +32,8 @@ export async function getStorage() {
         [uuidv4()]: {
           type: AccountType.PasskeyAccount,
           chainId: config.chainId,
-          address: config.passkeyAccountAddress
+          address: config.passkeyAccountAddress,
+          credentialId: config.passkeyAccountCredentialId
         }
       })
     }
@@ -135,11 +137,6 @@ export type Network = {
 
 /* Account */
 
-export enum AccountType {
-  SimpleAccount = "SimpleAccount",
-  PasskeyAccount = "PasskeyAccount"
-}
-
 export type Account = SimpleAccount | PasskeyAccount
 
 export type SimpleAccount = {
@@ -153,6 +150,7 @@ export type PasskeyAccount = {
   type: AccountType.PasskeyAccount
   chainId: number
   address: HexString
+  credentialId: B64UrlString
 }
 
 /* Paymaster */

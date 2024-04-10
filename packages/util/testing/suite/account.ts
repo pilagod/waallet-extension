@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import config from "~config/test"
 import type { Account } from "~packages/account"
+import { SingleAccountManager } from "~packages/account/manager/single"
 import type { ContractRunner } from "~packages/node"
 import byte from "~packages/util/byte"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
@@ -29,7 +30,9 @@ export function describeAccountSuite<T extends Account>(
 
     beforeAll(async () => {
       ctx.account = await setup(node)
-      ctx.provider.connect(ctx.account)
+      ctx.provider = ctx.provider.clone({
+        accountManager: new SingleAccountManager(ctx.account)
+      })
       await (
         await config.account.operator.sendTransaction({
           to: await ctx.account.getAddress(),

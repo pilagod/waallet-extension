@@ -25,7 +25,7 @@ import type {
   WebAuthnRegistration,
   WebAuthnRequest
 } from "~packages/webAuthn/typing"
-import type { UrlB64String } from "~typing"
+import type { B64UrlString } from "~typing"
 
 export const createWebAuthn = async (
   params?: WebAuthnCreation
@@ -170,7 +170,7 @@ export const defaultWebAuthn = {
   requireResidentKey: true
 }
 
-const parseSignature = (signature: UrlB64String): [bigint, bigint] => {
+const parseSignature = (signature: B64UrlString): [bigint, bigint] => {
   if (!isoBase64URL.isBase64url(signature)) {
     console.log(`${signature} is not Base64Url`)
     return [BigInt(0), BigInt(0)]

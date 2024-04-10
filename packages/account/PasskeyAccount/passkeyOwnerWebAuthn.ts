@@ -5,13 +5,13 @@ import browser from "webextension-polyfill"
 import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
 import json from "~packages/util/json"
 import { requestWebAuthn } from "~packages/webAuthn/background/webAuthn"
-import type { BytesLike, UrlB64String } from "~typing"
+import type { B64UrlString, BytesLike } from "~typing"
 
 export class PasskeyOwnerWebAuthn implements PasskeyOwner {
-  public credentialId: UrlB64String
+  public constructor(private credentialId: B64UrlString) {}
 
-  public use(credentialId: UrlB64String) {
-    this.credentialId = credentialId
+  public getCredentialId() {
+    return this.credentialId
   }
 
   public async sign(
@@ -20,10 +20,6 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       sender?: browser.Runtime.MessageSender
     }
   ): Promise<string> {
-    if (!this.credentialId) {
-      throw new Error("Credential id is not set")
-    }
-
     const challengeUrlB64 = isoBase64URL.fromBuffer(
       typeof challenge === "string"
         ? challenge.startsWith("0x")

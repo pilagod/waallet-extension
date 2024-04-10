@@ -1,6 +1,6 @@
 import { type Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
-import type { NetworkManager } from "~packages/network"
+import type { NetworkManager } from "~packages/network/manager"
 import { type UserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation"
 import type { HexString } from "~typing"
 
