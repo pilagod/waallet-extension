@@ -58,6 +58,11 @@ export class WaalletBackgroundProvider {
         return this.handleEstimateUserOperationGas(args.params) as T
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
+      case WaalletRpcMethod.eth_sendUserOperation:
+        return bundler.sendUserOperation(
+          new UserOperation(args.params[0]),
+          args.params[1]
+        ) as T
       default:
         return new JsonRpcProvider(node.url).send(args)
     }

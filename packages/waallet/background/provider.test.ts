@@ -126,4 +126,49 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
 
     expect(data).not.toBe(null)
   })
+
+  it("should send user operation", async () => {
+    const { bundler, node } = ctx.provider.networkManager.getActive()
+
+    const counterBefore = (await counter.number()) as bigint
+    const counterBalanceBefore = await node.getBalance(
+      await counter.getAddress()
+    )
+
+    const userOp = await ctx.account.createUserOperation(node, {
+      to: await counter.getAddress(),
+      value: 1,
+      data: counter.interface.encodeFunctionData("increment", [])
+    })
+
+    const { gasPrice } = await node.getFeeData()
+    userOp.setGasFee({
+      maxFeePerGas: gasPrice * 2n,
+      maxPriorityFeePerGas: gasPrice * 2n
+    })
+
+    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    userOp.setGasLimit(
+      await bundler.estimateUserOperationGas(userOp, entryPointAddress)
+    )
+
+    const chainId = await bundler.getChainId()
+    userOp.setSignature(
+      await ctx.account.sign(userOp.hash(entryPointAddress, chainId))
+    )
+
+    const userOpHash = await ctx.provider.request<HexString>({
+      method: WaalletRpcMethod.eth_sendUserOperation,
+      params: [userOp.data(), entryPointAddress]
+    })
+    await bundler.wait(userOpHash)
+
+    const counterAfter = (await counter.number()) as bigint
+    expect(counterAfter - counterBefore).toBe(1n)
+
+    const counterBalanceAfter = await node.getBalance(
+      await counter.getAddress()
+    )
+    expect(counterBalanceAfter - counterBalanceBefore).toBe(1n)
+  })
 })
