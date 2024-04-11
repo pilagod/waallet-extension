@@ -136,10 +136,6 @@ export const requestWebAuthn = async (
   const clientDataJsonUtf8 = isoBase64URL.toString(clientDataJsonUrlB64)
   const sigUrlB64 = authResJson.response.signature
   const [sigRUint, sigSUint] = parseSignature(sigUrlB64)
-  //   console.log(`[Test][P256]`)
-
-  //   console.log(`[Test][P256] r: ${p256Sig.r}`)
-  //   console.log(`[Test][P256] s: ${p256Sig.s}`)
   return {
     authenticatorData: authDataHex,
     clientDataJson: clientDataJsonUtf8,
