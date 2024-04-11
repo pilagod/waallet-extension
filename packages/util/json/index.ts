@@ -12,3 +12,11 @@ export const replacer = {
     return v
   }
 }
+
+export function stringify2(
+  data: any,
+  replacer: (this: any, key: string, value: any) => any | null = null
+): string {
+  const json = JSONB({ useNativeBigInt: true })
+  return json.stringify(data, replacer, 2)
+}

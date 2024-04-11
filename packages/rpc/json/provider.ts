@@ -1,6 +1,6 @@
 import fetch from "isomorphic-fetch"
 
-import json, { replacer } from "~packages/util/json"
+import json, { replacer, stringify2 } from "~packages/util/json"
 
 export class JsonRpcProvider {
   public constructor(public readonly rpcUrl: string) {}
@@ -38,7 +38,7 @@ export class JsonRpcProvider {
     //     id: 0
     // }
     console.log(
-      `[JsonRpcProvider][${args.method}][response] ${JSON.stringify(data)}`
+      `[JsonRpcProvider][${args.method}][response] ${stringify2(data)}`
     )
     // TODO: Transform error to error instance
     return data.result as T

@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill"
 
-import json from "~packages/util/json"
+import { stringify2 } from "~packages/util/json"
 import { PortName } from "~packages/webAuthn/tabs/port"
 import {
   isWebAuthnError,
@@ -102,11 +102,7 @@ const listenToWebAuthnRegistration = () => {
             return reject(message.error)
           }
           console.log(
-            `[background][messaging][window] credential: ${json.stringify(
-              message,
-              null,
-              2
-            )}`
+            `[background][messaging][window] credential: ${stringify2(message)}`
           )
           return resolve(message)
         }
@@ -133,11 +129,7 @@ const listenToWebAuthnAuthentication = () => {
             return reject(message.error)
           }
           console.log(
-            `[background][messaging][window] signature: ${json.stringify(
-              message,
-              null,
-              2
-            )}`
+            `[background][messaging][window] signature: ${stringify2(message)}`
           )
           return resolve(message)
         }
