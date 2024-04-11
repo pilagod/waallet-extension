@@ -12,7 +12,7 @@ import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevTool } from "~app/page/webauthn/devtool"
 import { WebAuthnRegistration } from "~app/page/webauthn/registration"
 import { Path } from "~app/path"
-import { useStorage } from "~app/storage"
+import { usePendingUserOperationStatements, useStorage } from "~app/storage"
 
 import "~style.css"
 
@@ -36,29 +36,42 @@ export function App() {
   }
   return (
     <ProviderContextProvider>
-      <Router hook={useHashLocation}>
-        <Switch>
-          <Route path={Path.info} component={Info}></Route>
-          <Route path={Path.send} component={Send}></Route>
-          <Route path="/webauthn" nest>
-            <Route
-              path="/registration"
-              component={WebAuthnRegistration}></Route>
-            <Route
-              path="/authentication"
-              component={WebAuthnAuthentication}></Route>
-            <Route path="/devtool" component={WebAuthnDevTool}></Route>
-          </Route>
-          <Route path="/authorization" nest>
-            <Route
-              path="/userOperation"
-              component={UserOperationAuthorization}></Route>
-          </Route>
-          <Route path="*">
-            <Redirect to={Path.info} />
-          </Route>
-        </Switch>
-      </Router>
+      <PageRouter />
     </ProviderContextProvider>
+  )
+}
+
+function PageRouter() {
+  const [location, navigate] = useHashLocation()
+  const pendingUserOps = usePendingUserOperationStatements()
+  if (
+    pendingUserOps.length > 0 &&
+    !location.startsWith("/authorization/userOperation")
+  ) {
+    navigate("/authorization/userOperation")
+    return
+  }
+  return (
+    <Router hook={useHashLocation}>
+      <Switch>
+        <Route path={Path.info} component={Info}></Route>
+        <Route path={Path.send} component={Send}></Route>
+        <Route path="/webauthn" nest>
+          <Route path="/registration" component={WebAuthnRegistration}></Route>
+          <Route
+            path="/authentication"
+            component={WebAuthnAuthentication}></Route>
+          <Route path="/devtool" component={WebAuthnDevTool}></Route>
+        </Route>
+        <Route path="/authorization" nest>
+          <Route
+            path="/userOperation"
+            component={UserOperationAuthorization}></Route>
+        </Route>
+        <Route path="*">
+          <Redirect to={Path.info} />
+        </Route>
+      </Switch>
+    </Router>
   )
 }

@@ -22,7 +22,8 @@ export class UserOperationStoragePool implements UserOperationPool {
     const id = uuidv4()
 
     this.storage.set((draft) => {
-      draft.userOperationPool[id] = {
+      draft.userOpPool[id] = {
+        id,
         userOp: data.userOp.data(),
         senderId: data.senderId,
         networkId: data.networkId,
@@ -36,8 +37,8 @@ export class UserOperationStoragePool implements UserOperationPool {
 
   public wait(userOpId: string) {
     return new Promise<UserOperationReceipt>((resolve, reject) => {
-      const subscriber = async ({ userOperationPool }: State) => {
-        const userOp = userOperationPool[userOpId]
+      const subscriber = async ({ userOpPool }: State) => {
+        const userOp = userOpPool[userOpId]
 
         if (userOp.status === UserOperationStatus.Pending) {
           return

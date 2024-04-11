@@ -7,7 +7,9 @@ import { useShallow } from "zustand/react/shallow"
 import {
   StorageAction,
   StorageMessenger,
-  type State
+  UserOperationStatus,
+  type State,
+  type UserOperationStatement
 } from "~background/storage"
 
 const storageMessenger = new StorageMessenger()
@@ -64,4 +66,22 @@ export const useAccount = () => {
       return state.account[network.accountActive]
     })
   )
+}
+
+export const useUserOperationStatements = (
+  filter: (userOp: UserOperationStatement) => boolean = () => true
+) => {
+  return useStorage(
+    useShallow(({ state }) => {
+      return Object.values(state.userOpPool).filter(filter)
+    })
+  )
+}
+
+export const usePendingUserOperationStatements = (
+  filter: (userOp: UserOperationStatement) => boolean = () => true
+) => {
+  return useUserOperationStatements((userOp) => {
+    return userOp.status === UserOperationStatus.Pending && filter(userOp)
+  })
 }

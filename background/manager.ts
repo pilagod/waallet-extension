@@ -39,6 +39,7 @@ export class AccountStorageManager implements AccountManager {
           ownerPrivateKey: account.ownerPrivateKey
         })
       case AccountType.PasskeyAccount:
+        // TODO: Check if webauthn api is available
         return PasskeyAccount.init({
           address: account.address,
           owner: new PasskeyOwnerWebAuthn(account.credentialId)
