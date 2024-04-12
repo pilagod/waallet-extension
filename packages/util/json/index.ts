@@ -10,6 +10,13 @@ export const replacer = {
       return number.toHex(v)
     }
     return v
+  },
+  uint8ArrayToHexString: (_: string, v: any) => {
+    // Filtering out properties
+    if (v instanceof Uint8Array) {
+      return Buffer.from(v).toString("hex")
+    }
+    return v
   }
 }
 
