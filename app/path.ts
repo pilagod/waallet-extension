@@ -1,5 +1,11 @@
 export enum Path {
-  root = "/",
-  info = "/info",
-  send = "/send"
+  Index = "/",
+  Info = "/info",
+  Send = "/send",
+
+  WebAuthnAuthentication = "/webauthn/authentication",
+  WebAuthnRegistration = "/webauthn/registration",
+  WebAuthnDevtool = "/webauthn/devtool",
+
+  UserOperationAuthorization = "/authorization/user-operation"
 }

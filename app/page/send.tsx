@@ -87,7 +87,7 @@ export function Send() {
             className="flex-1">
             Send
           </button>
-          <Link href={Path.info} className="flex-1">
+          <Link href={Path.Info} className="flex-1">
             Cancel
           </Link>
         </div>

@@ -5,6 +5,7 @@ import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { useProviderContext } from "~app/context/provider"
+import { Path } from "~app/path"
 import {
   useAccount,
   useNetwork,
@@ -38,7 +39,7 @@ export function UserOperationAuthorization() {
   const [, navigate] = useHashLocation()
   const pendingUserOpStmts = usePendingUserOperationStatements()
   if (pendingUserOpStmts.length === 0) {
-    navigate("/")
+    navigate(Path.Index)
     return
   }
   return <UserOperationConfirmation userOpStmt={pendingUserOpStmts[0]} />
@@ -110,10 +111,10 @@ function UserOperationConfirmation(props: {
       )
     )
     try {
-      const userOpHash = await provider.send(
-        WaalletRpcMethod.eth_sendUserOperation,
-        [userOp.data(), userOpStmt.entryPointAddress]
-      )
+      await provider.send(WaalletRpcMethod.eth_sendUserOperation, [
+        userOp.data(),
+        userOpStmt.entryPointAddress
+      ])
       markUserOperationSent(userOpStmt.id, userOp.data())
     } catch (e) {
       // TOOD: Show error on page
@@ -196,7 +197,7 @@ function UserOperationConfirmation(props: {
           Send
         </button>
         {/* TODO: Change to reject */}
-        <button disabled={userOpSending} onClick={() => navigate("/")}>
+        <button disabled={userOpSending} onClick={() => navigate(Path.Index)}>
           Cancel
         </button>
       </div>

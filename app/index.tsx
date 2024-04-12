@@ -9,7 +9,7 @@ import { UserOperationAuthorization } from "~app/page/authorization/userOperatio
 import { Info } from "~app/page/info"
 import { Send } from "~app/page/send"
 import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
-import { WebAuthnDevTool } from "~app/page/webauthn/devtool"
+import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
 import { WebAuthnRegistration } from "~app/page/webauthn/registration"
 import { Path } from "~app/path"
 import { usePendingUserOperationStatements, useStorage } from "~app/storage"
@@ -46,30 +46,34 @@ function PageRouter() {
   const pendingUserOps = usePendingUserOperationStatements()
   if (
     pendingUserOps.length > 0 &&
-    !location.startsWith("/authorization/userOperation")
+    !location.startsWith(Path.UserOperationAuthorization)
   ) {
-    navigate("/authorization/userOperation")
+    navigate(Path.UserOperationAuthorization)
     return
   }
   return (
     <Router hook={useHashLocation}>
       <Switch>
-        <Route path={Path.info} component={Info}></Route>
-        <Route path={Path.send} component={Send}></Route>
-        <Route path="/webauthn" nest>
-          <Route path="/registration" component={WebAuthnRegistration}></Route>
-          <Route
-            path="/authentication"
-            component={WebAuthnAuthentication}></Route>
-          <Route path="/devtool" component={WebAuthnDevTool}></Route>
-        </Route>
-        <Route path="/authorization" nest>
-          <Route
-            path="/userOperation"
-            component={UserOperationAuthorization}></Route>
-        </Route>
+        <Route path={Path.Info} component={Info} />
+        <Route path={Path.Send} component={Send} />
+
+        <Route
+          path={Path.WebAuthnRegistration}
+          component={WebAuthnRegistration}
+        />
+        <Route
+          path={Path.WebAuthnAuthentication}
+          component={WebAuthnAuthentication}
+        />
+        <Route path={Path.WebAuthnDevtool} component={WebAuthnDevtool} />
+
+        <Route
+          path={Path.UserOperationAuthorization}
+          component={UserOperationAuthorization}
+        />
+
         <Route path="*">
-          <Redirect to={Path.info} />
+          <Redirect to={Path.Info} />
         </Route>
       </Switch>
     </Router>
