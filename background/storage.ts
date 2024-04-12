@@ -177,7 +177,7 @@ export type VerifyingPaymaster = {
 
 export enum UserOperationStatus {
   Pending = "Pending",
-  Submitted = "Submitted",
+  Sent = "Sent",
   Succeeded = "Succeeded",
   Failed = "Failed"
 }
@@ -190,7 +190,7 @@ export type UserOperationStatement = {
   entryPointAddress: string
 } & (
   | {
-      status: UserOperationStatus.Pending | UserOperationStatus.Submitted
+      status: UserOperationStatus.Pending | UserOperationStatus.Sent
     }
   | {
       status: UserOperationStatus.Succeeded

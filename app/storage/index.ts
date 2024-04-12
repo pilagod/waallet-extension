@@ -11,11 +11,14 @@ import {
   type State,
   type UserOperationStatement
 } from "~background/storage"
+import type { UserOperationData } from "~packages/bundler"
 
 const storageMessenger = new StorageMessenger()
 
+// TODO: Split as slices
 interface Storage {
   state: State
+  markUserOperationSent: (userOpId: string, userOp: UserOperationData) => void
 }
 
 // @dev: This middleware sends state into background instead of store.
@@ -42,8 +45,15 @@ const background: typeof immer<Storage> = (initializer) => {
 }
 
 export const useStorage = create<Storage>()(
-  background((_) => ({
-    state: null
+  background((set) => ({
+    state: null,
+    markUserOperationSent: (userOpId: string, userOp: UserOperationData) => {
+      set(({ state }) => {
+        const userOpStmt = state.userOpPool[userOpId]
+        userOpStmt.userOp = userOp
+        userOpStmt.status = UserOperationStatus.Sent
+      })
+    }
   }))
 )
 
@@ -53,17 +63,17 @@ storageMessenger.get().then((state) => {
 
 /* Custom Hooks */
 
-export const useNetwork = () => {
+export const useNetwork = (id?: string) => {
   return useStorage(
-    useShallow(({ state }) => state.network[state.networkActive])
+    useShallow(({ state }) => state.network[id ?? state.networkActive])
   )
 }
 
-export const useAccount = () => {
+export const useAccount = (id?: string) => {
   return useStorage(
     useShallow(({ state }) => {
       const network = state.network[state.networkActive]
-      return state.account[network.accountActive]
+      return state.account[id ?? network.accountActive]
     })
   )
 }

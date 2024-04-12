@@ -1,6 +1,7 @@
 import browser from "webextension-polyfill"
 
 import { AccountStorageManager, NetworkStorageManager } from "./manager"
+import { UserOperationStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 // TODO: Rename to local storage
 import { getStorage } from "./storage"
@@ -25,7 +26,8 @@ async function main() {
   const networkManager = new NetworkStorageManager(storage)
   setupWaalletBackgroundProvider({
     accountManager,
-    networkManager
+    networkManager,
+    userOpPool: new UserOperationStoragePool(storage)
   })
 
   const sessionStorage = await getSessionStorage()

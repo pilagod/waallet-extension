@@ -161,13 +161,13 @@ export class WaalletBackgroundProvider {
     userOp.setGasLimit(
       await bundler.estimateUserOperationGas(userOp, entryPointAddress)
     )
-    const userOpHash = await this.userOperationPool.send({
+    const userOpId = await this.userOperationPool.send({
       userOp,
       senderId: accountId,
       networkId,
       entryPointAddress
     })
-    const { transactionHash } = await this.userOperationPool.wait(userOpHash)
+    const { transactionHash } = await this.userOperationPool.wait(userOpId)
 
     return transactionHash
   }
