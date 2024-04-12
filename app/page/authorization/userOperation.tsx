@@ -105,12 +105,12 @@ function UserOperationConfirmation(props: {
     setUserOpSending(true)
 
     const account = await createAccount(sender)
-    userOp.setSignature(
-      await account.sign(
-        userOp.hash(userOpStmt.entryPointAddress, network.chainId)
-      )
-    )
     try {
+      userOp.setSignature(
+        await account.sign(
+          userOp.hash(userOpStmt.entryPointAddress, network.chainId)
+        )
+      )
       await provider.send(WaalletRpcMethod.eth_sendUserOperation, [
         userOp.data(),
         userOpStmt.entryPointAddress
