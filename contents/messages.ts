@@ -2,7 +2,7 @@ import type { PlasmoCSConfig } from "plasmo"
 
 import { listen } from "@plasmohq/messaging/message"
 
-import { stringify2 } from "~packages/util/json"
+import { format } from "~packages/util/json"
 import { ContentMethod } from "~packages/webAuthn/content/method"
 import {
   contentCreateWebAuthn,
@@ -27,7 +27,7 @@ let credentialId: B64UrlString = ""
 // Non-hook usage reference: https://github.com/PlasmoHQ/plasmo/blob/888b6015c3829872f78428ca0f07640989f6608c/api/messaging/src/hook.ts#L18
 const Messages = () => {
   listen<Record<string, any>, Record<string, any>>(async (req, res) => {
-    console.log(`[contents][messages] req: ${stringify2(req)}`)
+    console.log(`[contents][messages] req: ${format(req)}`)
 
     if (!req.name) {
       console.log(`[contents][messages] status: method not found`)

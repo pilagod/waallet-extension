@@ -3,7 +3,7 @@ import { runtime, type Runtime } from "webextension-polyfill"
 
 import { sendToContentScript } from "@plasmohq/messaging"
 
-import { stringify2 } from "~packages/util/json"
+import { format } from "~packages/util/json"
 import { objectFromUrlParams } from "~packages/util/url"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
 import {
@@ -56,7 +56,7 @@ export function WebAuthnDevTool() {
     }
     setPort(runtimePort)
     runtimePort.onMessage.addListener((message) => {
-      console.log(`[tab][createWebAuthn] runtimePort: ${stringify2(message)}`)
+      console.log(`[tab][createWebAuthn] runtimePort: ${format(message)}`)
     })
     return () => {
       // Disconnect the port
@@ -88,7 +88,7 @@ export function WebAuthnDevTool() {
       body: webAuthnRequest
     } as ContentRequestArguments
     console.log(
-      `[tab][createWebAuthnViaContents] contentReq: ${stringify2(contentReq)}`
+      `[tab][createWebAuthnViaContents] contentReq: ${format(contentReq)}`
     )
 
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
@@ -101,7 +101,7 @@ export function WebAuthnDevTool() {
       const cred = await createWebAuthn(webAuthnCreation)
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
-      console.log(`[tab][createWebAuthn] credential: ${stringify2(cred)}`)
+      console.log(`[tab][createWebAuthn] credential: ${format(cred)}`)
       setCredential(cred)
 
       // send to background that create this window
@@ -130,7 +130,7 @@ export function WebAuthnDevTool() {
       )
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
-      console.log(`[tab][requestWebAuthn] signature: ${stringify2(sig)}`)
+      console.log(`[tab][requestWebAuthn] signature: ${format(sig)}`)
       setSignature(sig)
 
       // send to background that create this window
@@ -177,14 +177,14 @@ export function WebAuthnDevTool() {
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn credential: {stringify2(credential)}</p>
+          <p>WebAuthn credential: {format(credential)}</p>
         </div>
       )}
       {signature === undefined ? (
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn signature: {stringify2(signature)}</p>
+          <p>WebAuthn signature: {format(signature)}</p>
         </div>
       )}
     </>

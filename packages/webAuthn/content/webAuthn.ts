@@ -1,6 +1,6 @@
 import { runtime, type Runtime } from "webextension-polyfill"
 
-import { stringify2 } from "~packages/util/json"
+import { format } from "~packages/util/json"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
 import { PortName } from "~packages/webAuthn/tabs/port"
 import type {
@@ -18,15 +18,11 @@ export const contentCreateWebAuthn = async (
     name: PortName.port_createWebAuthn
   })
   try {
-    console.log(
-      `[content][message][createWebAuthn] params: ${stringify2(params)}`
-    )
+    console.log(`[content][message][createWebAuthn] params: ${format(params)}`)
     const cred = await createWebAuthn(params)
-    console.log(`[content][message][createWebAuthn] cred: ${stringify2(cred)}`)
+    console.log(`[content][message][createWebAuthn] cred: ${format(cred)}`)
     port.onMessage.addListener((message) => {
-      console.log(
-        `[content][message][createWebAuthn] port: ${stringify2(message)}`
-      )
+      console.log(`[content][message][createWebAuthn] port: ${format(message)}`)
     })
     // send to background that create this window
     port.postMessage({
@@ -53,14 +49,12 @@ export const contentRequestWebAuthn = async (
     name: PortName.port_requestWebAuthn
   })
   try {
-    console.log(
-      `[content][message][requestWebAuthn] params: ${stringify2(params)}`
-    )
+    console.log(`[content][message][requestWebAuthn] params: ${format(params)}`)
     const sig = await requestWebAuthn(params)
-    console.log(`[content][message][requestWebAuthn] sig: ${stringify2(sig)}`)
+    console.log(`[content][message][requestWebAuthn] sig: ${format(sig)}`)
     port.onMessage.addListener((message) => {
       console.log(
-        `[content][message][requestWebAuthn] port: ${stringify2(message)}`
+        `[content][message][requestWebAuthn] port: ${format(message)}`
       )
     })
     // send to background that create this window

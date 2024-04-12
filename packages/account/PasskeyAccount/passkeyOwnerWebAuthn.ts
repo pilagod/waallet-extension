@@ -3,7 +3,7 @@ import * as ethers from "ethers"
 import browser from "webextension-polyfill"
 
 import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
-import { stringify2 } from "~packages/util/json"
+import { format } from "~packages/util/json"
 import { requestWebAuthn } from "~packages/webAuthn/background/webAuthn"
 import type { B64UrlString, BytesLike } from "~typing"
 
@@ -48,7 +48,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
     const webAuthnAuthentication = await webAuthnAuthenticationPromise
 
     console.log(
-      `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${stringify2(
+      `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${format(
         webAuthnAuthentication
       )}`
     )

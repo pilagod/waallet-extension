@@ -13,7 +13,7 @@ export const replacer = {
   }
 }
 
-export function stringify2(
+export function format(
   data: any,
   replacer: (this: any, key: string, value: any) => any | null = null
 ): string {

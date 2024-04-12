@@ -1,6 +1,6 @@
 import fetch from "isomorphic-fetch"
 
-import json, { replacer, stringify2 } from "~packages/util/json"
+import json, { format, replacer } from "~packages/util/json"
 
 export class JsonRpcProvider {
   public constructor(public readonly rpcUrl: string) {}
@@ -37,9 +37,7 @@ export class JsonRpcProvider {
     //     error: { code: -32521, message: "user operation's call reverted: 0x" },
     //     id: 0
     // }
-    console.log(
-      `[JsonRpcProvider][${args.method}][response] ${stringify2(data)}`
-    )
+    console.log(`[JsonRpcProvider][${args.method}][response] ${format(data)}`)
     // TODO: Transform error to error instance
     return data.result as T
   }
