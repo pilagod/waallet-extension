@@ -75,12 +75,9 @@ export class WebAuthnOwner implements WebAuthnValidatorOwner {
       counter: authData.counter
     }
 
-    const signature = ethers.AbiCoder.defaultAbiCoder().encode(
-      ["uint256", "uint256"],
-      [webAuthnAuthentication.signature.r, webAuthnAuthentication.signature.s]
-    )
     return {
-      signature: signature as HexString,
+      r: webAuthnAuthentication.signature.r,
+      s: webAuthnAuthentication.signature.s,
       clientData: JSON.parse(webAuthnAuthentication.clientDataJson),
       authenticatorData: authnticatorDataJson
     }
