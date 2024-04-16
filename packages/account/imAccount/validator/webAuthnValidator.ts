@@ -22,6 +22,7 @@ export class WebAuthnValidator implements Validator {
   private owner: WebAuthnValidatorOwner
   public x: bigint
   public y: bigint
+  public authenticatorRpidHash: string
   public contract: ethers.Contract
 
   public constructor(opts: {
@@ -29,12 +30,14 @@ export class WebAuthnValidator implements Validator {
     owner: WebAuthnValidatorOwner
     x: bigint
     y: bigint
+    authenticatorRpidHash: string
     credentialId: string
   }) {
     this.owner = opts.owner
     this.owner.use(opts.credentialId)
     this.x = opts.x
     this.y = opts.y
+    this.authenticatorRpidHash = opts.authenticatorRpidHash
     this.contract = new ethers.Contract(
       opts.address,
       WebAuthnValidatorMetadata.abi
@@ -55,6 +58,11 @@ export class WebAuthnValidator implements Validator {
     const { signature, clientData, authenticatorData } =
       await this.owner.sign(signingMsg)
 
+    const encodedSignature = ethers.AbiCoder.defaultAbiCoder().encode(
+      ["uint256", "uint256"],
+      [signature.r, signature.s]
+    )
+
     const webAuthnInput = {
       authenticatorFlagsAndSignCount: ethers.concat([
         ethers.zeroPadValue(
@@ -72,7 +80,7 @@ export class WebAuthnValidator implements Validator {
         "bytes",
         "(bytes authenticatorFlagsAndSignCount,string postChallengeData)"
       ],
-      [validatorAddress, signature, webAuthnInput]
+      [validatorAddress, encodedSignature, webAuthnInput]
     )
   }
 
@@ -108,11 +116,7 @@ export class WebAuthnValidator implements Validator {
   public async getOwnerValidatorInitData(): Promise<HexString> {
     const { data } = await this.contract
       .getFunction("init")
-      .populateTransaction(
-        this.x,
-        this.y,
-        "0x49960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d9763" // DEFAULT_AUTHENTICATOR_RPID_HASH
-      )
+      .populateTransaction(this.x, this.y, this.authenticatorRpidHash)
     return data
   }
 }

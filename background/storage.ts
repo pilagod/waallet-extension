@@ -30,6 +30,20 @@ export async function getStorage() {
           chainId: config.chainId,
           address: config.passkeyAccountAddress
         }
+      }),
+      ...(config.imAccountAddress && {
+        [uuidv4()]: {
+          type: AccountType.imAccount,
+          chainId: config.chainId,
+          address: config.imAccountAddress,
+          ecdsaValidator: config.ecdsaValidaotorAddress,
+          ownerPrivateKey: config.imAccountOwnerPrivateKey,
+          webAuthnValidator: config.webAuthnValidaotorAddress,
+          credentialId: config.imAccountCredentialId,
+          x: config.imAccountPasskeyX,
+          y: config.imAccountPasskeyY,
+          authenticatorRpidHash: config.authenticatorRpidHash
+        }
       })
     }
     const paymaster = {
@@ -93,10 +107,11 @@ export type Network = {
 
 export enum AccountType {
   SimpleAccount = "SimpleAccount",
-  PasskeyAccount = "PasskeyAccount"
+  PasskeyAccount = "PasskeyAccount",
+  imAccount = "imAccount"
 }
 
-export type Account = SimpleAccount | PasskeyAccount
+export type Account = SimpleAccount | PasskeyAccount | imAccount
 
 export type SimpleAccount = {
   type: AccountType.SimpleAccount
@@ -109,6 +124,19 @@ export type PasskeyAccount = {
   type: AccountType.PasskeyAccount
   chainId: number
   address: HexString
+}
+
+export type imAccount = {
+  type: AccountType.imAccount
+  chainId: number
+  address: HexString
+  ecdsaValidator: HexString
+  ownerPrivateKey: HexString
+  webAuthnValidator: HexString
+  credentialId: string
+  x: string
+  y: string
+  authenticatorRpidHash: string
 }
 
 /* Paymaster */

@@ -56,10 +56,6 @@ export class P256Owner implements WebAuthnValidatorOwner {
     if (s > p256.CURVE.n / 2n) {
       s = p256.CURVE.n - s
     }
-    const signature = ethers.AbiCoder.defaultAbiCoder().encode(
-      ["uint256", "uint256"],
-      [r, s]
-    )
 
     const flagsInt = Number(this.defaultFlagsInt)
     const authnticatorDataJson = {
@@ -76,7 +72,10 @@ export class P256Owner implements WebAuthnValidatorOwner {
       counter: Number(this.defaultSignCount)
     }
     return {
-      signature: signature as HexString,
+      signature: {
+        r: r,
+        s: s
+      },
       clientData: clientDataJson,
       authenticatorData: authnticatorDataJson
     }

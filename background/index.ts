@@ -1,3 +1,7 @@
+import { imAccount } from "~packages/account/imAccount"
+import { ECDSAValidator } from "~packages/account/imAccount/validator/ecdsaValidator"
+import { WebAuthnOwner } from "~packages/account/imAccount/validator/WebAuthnOwner"
+import { WebAuthnValidator } from "~packages/account/imAccount/validator/webAuthnValidator"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
@@ -39,6 +43,18 @@ async function initAccount(runner: ContractRunner, account: Account) {
       return PasskeyAccount.init(runner, {
         address: account.address,
         owner: new PasskeyOwnerWebAuthn()
+      })
+    case AccountType.imAccount:
+      return await imAccount.init({
+        address: account.address,
+        validator: new WebAuthnValidator({
+          address: account.webAuthnValidator,
+          owner: new WebAuthnOwner(),
+          x: BigInt(account.x),
+          y: BigInt(account.y),
+          authenticatorRpidHash: account.authenticatorRpidHash,
+          credentialId: account.credentialId
+        })
       })
     default:
       throw new Error("Unknown account type")

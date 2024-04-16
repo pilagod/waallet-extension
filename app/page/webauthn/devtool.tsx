@@ -187,7 +187,20 @@ export function WebAuthnDevTool() {
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn credential: {json.stringify(credential, null, 2)}</p>
+          <p>
+            WebAuthn credential:{" "}
+            {json.stringify(
+              credential,
+              (key, value) => {
+                // Filtering out properties
+                if (value instanceof Uint8Array) {
+                  return Buffer.from(value).toString("hex")
+                }
+                return value
+              },
+              2
+            )}
+          </p>
         </div>
       )}
       {signature === undefined ? (

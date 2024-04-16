@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import { type ContractRunner } from "~packages/node"
-import type { BytesLike, HexString } from "~typing"
+import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export interface Validator {
   getAddress(runner: ContractRunner): Promise<HexString>
@@ -39,7 +39,10 @@ export interface WebAuthnValidatorOwner {
     challenge: BytesLike,
     metadata?: any
   ): Promise<{
-    signature: HexString
+    signature: {
+      r: bigint | BigNumberish
+      s: bigint | BigNumberish
+    }
     clientData: ClientData
     authenticatorData: AuthenticatorData
   }>
