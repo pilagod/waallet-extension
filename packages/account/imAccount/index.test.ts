@@ -118,6 +118,8 @@ describeAccountSuite(
       owner: p256Owner,
       x: p256Owner.x,
       y: p256Owner.y,
+      authenticatorRpidHash:
+        "0x49960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d9763",
       credentialId: Buffer.from(p256Owner.publicKey).toString("hex")
     })
 
@@ -150,6 +152,8 @@ describeAccountSuite(
         owner: p256Owner,
         x: p256Owner.x,
         y: p256Owner.y,
+        authenticatorRpidHash:
+          "0x49960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d9763",
         credentialId: Buffer.from(p256Owner.publicKey).toString("hex")
       })
       await setNewWebAuthnOwner(

@@ -41,7 +41,8 @@ export async function getStorage() {
           webAuthnValidator: config.webAuthnValidaotorAddress,
           credentialId: config.imAccountCredentialId,
           x: config.imAccountPasskeyX,
-          y: config.imAccountPasskeyY
+          y: config.imAccountPasskeyY,
+          authenticatorRpidHash: config.authenticatorRpidHash
         }
       })
     }
@@ -135,6 +136,7 @@ export type imAccount = {
   credentialId: string
   x: string
   y: string
+  authenticatorRpidHash: string
 }
 
 /* Paymaster */

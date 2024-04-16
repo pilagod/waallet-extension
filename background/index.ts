@@ -52,6 +52,7 @@ async function initAccount(runner: ContractRunner, account: Account) {
           owner: new WebAuthnOwner(),
           x: BigInt(account.x),
           y: BigInt(account.y),
+          authenticatorRpidHash: account.authenticatorRpidHash,
           credentialId: account.credentialId
         })
       })

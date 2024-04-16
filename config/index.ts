@@ -16,6 +16,8 @@ export const config = {
   imAccountCredentialId: process.env.PLASMO_PUBLIC_IMACCOUNT_CREDENTIAL_ID,
   imAccountPasskeyX: process.env.PLASMO_PUBLIC_IMACCOUNT_PASSKEY_X,
   imAccountPasskeyY: process.env.PLASMO_PUBLIC_IMACCOUNT_PASSKEY_Y,
+  authenticatorRpidHash:
+    process.env.PLASMO_PUBLIC_IMACCOUNT_AUTHENTICATOR_RPID_HASH,
 
   verifyingPaymasterAddress: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
   verifyingPaymasterOwnerPrivateKey:
