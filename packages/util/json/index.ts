@@ -23,8 +23,15 @@ export const replacer = {
 
 export function format(
   data: any,
-  customReplacer: (this: any, key: string, value: any) => any | null = null
+  customReplacer?: (this: any, key: string, value: any) => any
 ): string {
-  const json = JSONB({ useNativeBigInt: true })
-  return json.stringify(data, customReplacer, 2)
+  return json.stringify(
+    data,
+    customReplacer
+      ? (key: string, value: any) => {
+          return replacer.uint8ArrayToHexString(key, customReplacer(key, value))
+        }
+      : replacer.uint8ArrayToHexString,
+    2
+  )
 }
