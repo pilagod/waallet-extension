@@ -39,8 +39,10 @@ export interface WebAuthnValidatorOwner {
     challenge: BytesLike,
     metadata?: any
   ): Promise<{
-    r: bigint | BigNumberish
-    s: bigint | BigNumberish
+    signature: {
+      r: bigint | BigNumberish
+      s: bigint | BigNumberish
+    }
     clientData: ClientData
     authenticatorData: AuthenticatorData
   }>

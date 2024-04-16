@@ -72,8 +72,10 @@ export class P256Owner implements WebAuthnValidatorOwner {
       counter: Number(this.defaultSignCount)
     }
     return {
-      r: r,
-      s: s,
+      signature: {
+        r: r,
+        s: s
+      },
       clientData: clientDataJson,
       authenticatorData: authnticatorDataJson
     }

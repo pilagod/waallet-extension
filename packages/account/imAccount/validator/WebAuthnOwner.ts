@@ -76,8 +76,10 @@ export class WebAuthnOwner implements WebAuthnValidatorOwner {
     }
 
     return {
-      r: webAuthnAuthentication.signature.r,
-      s: webAuthnAuthentication.signature.s,
+      signature: {
+        r: webAuthnAuthentication.signature.r,
+        s: webAuthnAuthentication.signature.s
+      },
       clientData: JSON.parse(webAuthnAuthentication.clientDataJson),
       authenticatorData: authnticatorDataJson
     }

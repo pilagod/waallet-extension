@@ -55,12 +55,12 @@ export class WebAuthnValidator implements Validator {
     }
 
     const signingMsg = getValidatorSignMessage(message, validatorAddress)
-    const { r, s, clientData, authenticatorData } =
+    const { signature, clientData, authenticatorData } =
       await this.owner.sign(signingMsg)
 
-    const signature = ethers.AbiCoder.defaultAbiCoder().encode(
+    const encodedSignature = ethers.AbiCoder.defaultAbiCoder().encode(
       ["uint256", "uint256"],
-      [r, s]
+      [signature.r, signature.s]
     )
 
     const webAuthnInput = {
@@ -80,7 +80,7 @@ export class WebAuthnValidator implements Validator {
         "bytes",
         "(bytes authenticatorFlagsAndSignCount,string postChallengeData)"
       ],
-      [validatorAddress, signature, webAuthnInput]
+      [validatorAddress, encodedSignature, webAuthnInput]
     )
   }
 
