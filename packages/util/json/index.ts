@@ -2,7 +2,9 @@ import JSONB from "json-bigint"
 
 import number from "~packages/util/number"
 
-export default JSONB({ useNativeBigInt: true })
+const json = JSONB({ useNativeBigInt: true })
+
+export default json
 
 export const replacer = {
   numberToHex: (_: string, v: any) => {
@@ -12,7 +14,6 @@ export const replacer = {
     return v
   },
   uint8ArrayToHexString: (_: string, v: any) => {
-    // Filtering out properties
     if (v instanceof Uint8Array) {
       return Buffer.from(v).toString("hex")
     }
@@ -22,8 +23,8 @@ export const replacer = {
 
 export function format(
   data: any,
-  replacer: (this: any, key: string, value: any) => any | null = null
+  customReplacer: (this: any, key: string, value: any) => any | null = null
 ): string {
   const json = JSONB({ useNativeBigInt: true })
-  return json.stringify(data, replacer, 2)
+  return json.stringify(data, customReplacer, 2)
 }
