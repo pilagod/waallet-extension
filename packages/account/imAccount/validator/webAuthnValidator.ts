@@ -99,7 +99,15 @@ export class WebAuthnValidator implements Validator {
     runner: ContractRunner,
     account: string
   ): Promise<bigint[]> {
-    return await connect(this.contract, runner).getOwner(account)
+    const contract = new ethers.Contract(
+      await this.getAddress(),
+      [
+        "function getOwner(address account) view returns (uint256 ownerX, uint256 ownerY)"
+      ],
+      runner
+    )
+    const { ownerX, ownerY } = await contract.getOwner(account)
+    return [ownerX, ownerY]
   }
 
   public async getAddress(): Promise<HexString> {

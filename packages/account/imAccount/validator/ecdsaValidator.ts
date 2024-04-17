@@ -62,7 +62,13 @@ export class ECDSAValidator implements Validator {
     runner: ContractRunner,
     account: string
   ): Promise<HexString> {
-    return await connect(this.contract, runner).getOwner(account)
+    const contract = new ethers.Contract(
+      await this.getAddress(),
+      ["function getOwner(address account) view returns (address owner)"],
+      runner
+    )
+    const owner = await contract.getOwner(account)
+    return owner
   }
 
   public async getAddress(): Promise<HexString> {

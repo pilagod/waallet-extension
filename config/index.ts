@@ -8,6 +8,8 @@ export const config = {
     process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY,
 
   passkeyAccountAddress: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT,
+  passkeyAccountCredentialId:
+    process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT_CREDENTIAL_ID,
 
   imAccountAddress: process.env.PLASMO_PUBLIC_IMACCOUNT,
   ecdsaValidaotorAddress: process.env.PLASMO_PUBLIC_ECDSA_VALIDATOR,

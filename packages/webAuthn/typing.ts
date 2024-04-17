@@ -1,15 +1,15 @@
 import { type ParsedAuthenticatorData } from "@simplewebauthn/server/helpers"
 
-import type { BigNumberish, HexString, UrlB64String } from "~typing"
+import type { B64UrlString, BigNumberish, HexString } from "~typing"
 
 /* Input */
 export type WebAuthnCreation = {
   user?: string
-  challenge?: UrlB64String
+  challenge?: B64UrlString
 }
 export type WebAuthnRequest = {
-  credentialId?: UrlB64String
-  challenge: UrlB64String
+  credentialId?: B64UrlString
+  challenge: B64UrlString
 }
 export type WebAuthnParams = {
   // Resolve error: A required parameter cannot follow an optional parameter.
@@ -24,7 +24,7 @@ export type PublicKey = {
 }
 export type WebAuthnRegistration = {
   origin: string
-  credentialId: UrlB64String
+  credentialId: B64UrlString
   publicKey: PublicKey
   authData: ParsedAuthenticatorData
 }

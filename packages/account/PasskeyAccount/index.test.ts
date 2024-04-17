@@ -5,13 +5,13 @@ import { describeAccountSuite } from "~packages/util/testing/suite/account"
 import { PasskeyAccount } from "./index"
 import { PasskeyOwnerP256 } from "./passkeyOwnerP256"
 
+const owner = new PasskeyOwnerP256()
+
 describeAccountSuite(
   "PasskeyAccount",
   (runner) => {
-    const owner = new PasskeyOwnerP256()
     return PasskeyAccount.initWithFactory(runner, {
       owner,
-      credentialId: Buffer.from(owner.publicKey).toString("hex"),
       publicKey: {
         x: owner.x,
         y: owner.y
@@ -25,14 +25,18 @@ describeAccountSuite(
       // TODO: This test at this moment relies on tests in test bed to deploy the account.
       // It would be better to decouple it.
       it("should init with existing passkey account", async () => {
-        const a = await PasskeyAccount.init(ctx.provider.node, {
+        const { node } = config.networkManager.getActive()
+        const a = await PasskeyAccount.init({
           address: await ctx.account.getAddress(),
-          owner: new PasskeyOwnerP256()
+          owner
         })
         expect(await a.getAddress()).toBe(await ctx.account.getAddress())
-        expect(await a.getCredentialId(ctx.provider.node)).toBe(
-          await ctx.account.getCredentialId(ctx.provider.node)
+
+        const credentialId = await PasskeyAccount.getCredentialId(
+          node,
+          await a.getAddress()
         )
+        expect(credentialId).toBe(owner.getCredentialId())
       })
     })
   }

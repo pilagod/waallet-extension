@@ -7,7 +7,6 @@ import type { BytesLike } from "~typing"
 import type { PasskeyOwner } from "./passkeyOwner"
 
 export class PasskeyOwnerP256 implements PasskeyOwner {
-  public credentialId: string
   public privateKey: Uint8Array
   public publicKey: Uint8Array
   public x: bigint
@@ -22,14 +21,11 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     this.y = point.y
   }
 
-  public use(credentialId: string) {
-    this.credentialId = credentialId
+  public getCredentialId() {
+    return Buffer.from("CREDENTIAL_ID_STUB").toString("base64url")
   }
 
   public async sign(challenge: BytesLike) {
-    if (!this.credentialId) {
-      throw new Error("Credential id is not set")
-    }
     const {
       message,
       authenticatorData,
@@ -42,18 +38,6 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     if (s > p256.CURVE.n / 2n) {
       s = p256.CURVE.n - s
     }
-    // (
-    //     bytes memory authenticatorData,
-    //     bool requireUserVerification,
-    //     string memory clientDataJSON,
-    //     uint256 challengeLocation,
-    //     uint256 responseTypeLocation,
-    //     uint256 r,
-    //     uint256 s
-    // ) = abi.decode(
-    //     userOp.signature,
-    //     (bytes, bool, string, uint256, uint256, uint256, uint256)
-    // );
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
       [
         "bool",

@@ -1,11 +1,9 @@
 import * as ethers from "ethers"
 
-import { type Account } from "~packages/account"
+import type { AccountManager } from "~packages/account/manager"
 import { UserOperation } from "~packages/bundler"
-import { BundlerProvider } from "~packages/bundler/provider"
-import { NodeProvider } from "~packages/node/provider"
+import type { NetworkManager } from "~packages/network/manager"
 import { type Paymaster } from "~packages/paymaster"
-import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -17,48 +15,43 @@ import {
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
-import { type UserOperationAuthorizer } from "./authorizer/userOperation"
+import { type UserOperationPool } from "./pool/userOperation"
 
 export type WaalletBackgroundProviderOption = {
-  userOperationAuthorizer?: UserOperationAuthorizer
+  accountManager?: AccountManager
+  networkManager?: NetworkManager
   paymaster?: Paymaster
+  userOperationPool?: UserOperationPool
 }
 
 export class WaalletBackgroundProvider {
-  public account: Account
-
   public constructor(
-    public node: NodeProvider,
-    public bundler: BundlerProvider,
-    private userOperationAuthorizer: UserOperationAuthorizer,
-    private paymaster: Paymaster = new NullPaymaster()
+    public accountManager: AccountManager,
+    public networkManager: NetworkManager,
+    public paymaster: Paymaster,
+    public userOperationPool: UserOperationPool
   ) {}
 
   public clone(option: WaalletBackgroundProviderOption = {}) {
     const provider = new WaalletBackgroundProvider(
-      this.node,
-      this.bundler,
-      option.userOperationAuthorizer ?? this.userOperationAuthorizer,
-      option.paymaster ?? this.paymaster
+      option.accountManager ?? this.accountManager,
+      option.networkManager ?? this.networkManager,
+      option.paymaster ?? this.paymaster,
+      option.userOperationPool ?? this.userOperationPool
     )
-    if (this.account) {
-      provider.connect(this.account)
-    }
     return provider
-  }
-
-  public connect(account: Account) {
-    this.account = account
   }
 
   public async request<T>(args: WaalletRequestArguments): Promise<T> {
     console.log(args)
+    const { bundler, node } = this.networkManager.getActive()
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
       case WaalletRpcMethod.eth_requestAccounts:
-        return [await this.account.getAddress()] as T
+        const account = await this.accountManager.getActive()
+        return [await account.getAddress()] as T
       case WaalletRpcMethod.eth_chainId:
-        return this.bundler.getChainId() as T
+        return number.toHex(await bundler.getChainId()) as T
       case WaalletRpcMethod.eth_estimateGas:
         return this.handleEstimateGas(args.params) as T
       case WaalletRpcMethod.eth_estimateUserOperationGas:
@@ -66,7 +59,7 @@ export class WaalletBackgroundProvider {
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       default:
-        return new JsonRpcProvider(this.node.url).send(args)
+        return new JsonRpcProvider(node.url).send(args)
     }
   }
 
@@ -78,26 +71,28 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should estimate gas for contract creation
       return
     }
+    const account = await this.accountManager.getActive()
     if (
       tx.from &&
-      ethers.getAddress(tx.from) !== (await this.account.getAddress())
+      ethers.getAddress(tx.from) !== (await account.getAddress())
     ) {
       throw new Error("Address `from` doesn't match connected account")
     }
+    const { bundler, node } = this.networkManager.getActive()
     // TODO: Use account's entry point
-    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOp = await this.account.createUserOperation(this.node, {
+    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    const userOp = await account.createUserOperation(node, {
       to: tx.to,
       value: tx.value,
       data: tx.data
     })
     userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(this.node, userOp)
+      await this.paymaster.requestPaymasterAndData(node, userOp)
     )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
     }
-    const { callGasLimit } = await this.bundler.estimateUserOperationGas(
+    const { callGasLimit } = await bundler.estimateUserOperationGas(
       userOp,
       entryPointAddress
     )
@@ -112,8 +107,17 @@ export class WaalletBackgroundProvider {
     callGasLimit: HexString
   }> {
     const userOp = new UserOperation(params[0])
-    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    return this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
+    const { bundler } = this.networkManager.getActive()
+    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    const data = await bundler.estimateUserOperationGas(
+      userOp,
+      entryPointAddress
+    )
+    return {
+      preVerificationGas: number.toHex(data.preVerificationGas),
+      verificationGasLimit: number.toHex(data.verificationGasLimit),
+      callGasLimit: number.toHex(data.callGasLimit)
+    }
   }
 
   private async handleSendTransaction(
@@ -125,55 +129,40 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should create contract
       return
     }
+    const account = await this.accountManager.getActive()
     if (
       tx.from &&
-      ethers.getAddress(tx.from) !== (await this.account.getAddress())
+      ethers.getAddress(tx.from) !== (await account.getAddress())
     ) {
       throw new Error("Address `from` doesn't match connected account")
     }
+    const { id: networkId, bundler, node } = this.networkManager.getActive()
     // TODO: Use account's entry point
-    const [entryPointAddress] = await this.bundler.getSupportedEntryPoints()
-    const userOp = await this.account.createUserOperation(this.node, {
+    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    const userOp = await account.createUserOperation(node, {
       to: tx.to,
       value: tx.value,
       data: tx.data,
       nonce: tx.nonce
     })
+    // TODO: Maybe we don't need to calculate gas and paymaster here
     userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(this.node, userOp)
+      await this.paymaster.requestPaymasterAndData(node, userOp)
     )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
     }
     userOp.setGasFee(await this.estimateGasFee(tx.gasPrice))
     userOp.setGasLimit(
-      await this.bundler.estimateUserOperationGas(userOp, entryPointAddress)
+      await bundler.estimateUserOperationGas(userOp, entryPointAddress)
     )
-    const userOpAuthorized = await this.userOperationAuthorizer.authorize(
+    const userOpHash = await this.userOperationPool.send({
       userOp,
-      {
-        onApproved: async (userOpAuthorized, metadata) => {
-          userOpAuthorized.setSignature(
-            await this.account.sign(
-              userOpAuthorized.hash(
-                entryPointAddress,
-                await this.bundler.getChainId()
-              ),
-              metadata
-            )
-          )
-          return userOpAuthorized
-        }
-      }
-    )
-    const userOpAuthorizedHash = await this.bundler.sendUserOperation(
-      userOpAuthorized,
+      sender: account,
+      networkId,
       entryPointAddress
-    )
-    if (!userOpAuthorizedHash) {
-      throw new Error("Send user operation fail")
-    }
-    const txHash = await this.bundler.wait(userOpAuthorizedHash)
+    })
+    const txHash = await this.userOperationPool.wait(userOpHash)
 
     return txHash
   }
@@ -188,7 +177,8 @@ export class WaalletBackgroundProvider {
         maxPriorityFeePerGas: gasPrice
       }
     }
-    const fee = await this.node.getFeeData()
+    const { node } = this.networkManager.getActive()
+    const fee = await node.getFeeData()
     const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
     // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
     return {

@@ -2,6 +2,7 @@ import type { PlasmoCSConfig } from "plasmo"
 
 import { listen } from "@plasmohq/messaging/message"
 
+import { format } from "~packages/util/json"
 import { ContentMethod } from "~packages/webAuthn/content/method"
 import {
   contentCreateWebAuthn,
@@ -11,7 +12,7 @@ import type {
   WebAuthnCreation,
   WebAuthnRequest
 } from "~packages/webAuthn/typing"
-import type { UrlB64String } from "~typing"
+import type { B64UrlString } from "~typing"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
@@ -22,11 +23,11 @@ export const config: PlasmoCSConfig = {
 }
 
 // Record the latest Credential ID for signing in future WebAuthn requests.
-let credentialId: UrlB64String = ""
+let credentialId: B64UrlString = ""
 // Non-hook usage reference: https://github.com/PlasmoHQ/plasmo/blob/888b6015c3829872f78428ca0f07640989f6608c/api/messaging/src/hook.ts#L18
 const Messages = () => {
   listen<Record<string, any>, Record<string, any>>(async (req, res) => {
-    console.log(`[contents][messages] req: ${JSON.stringify(req, null, 2)}`)
+    console.log(`[contents][messages] req: ${format(req)}`)
 
     if (!req.name) {
       console.log(`[contents][messages] status: method not found`)

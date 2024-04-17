@@ -2,6 +2,12 @@ import { UserOperation } from "~packages/bundler"
 import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
+export enum AccountType {
+  SimpleAccount = "SimpleAccount",
+  PasskeyAccount = "PasskeyAccount",
+  imAccount = "imAccount"
+}
+
 export type UserOperationCall = {
   sender: HexString
   nonce: BigNumberish

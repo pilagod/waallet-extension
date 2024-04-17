@@ -81,14 +81,12 @@ describeAccountSuite(
 
     // Set new ECDSAValidator owner
     it("should change the owner of ECDSAValidator", async () => {
+      const { node } = config.networkManager.getActive()
       const ecdsaValidator = ctx.account.validator as ECDSAValidator
       const newOwner = ethers.Wallet.createRandom()
       await setNewECDSAOwner(ctx.provider, ecdsaValidator, newOwner.address)
       expect(
-        await ecdsaValidator.getOwner(
-          ctx.provider.node,
-          await ctx.account.getAddress()
-        )
+        await ecdsaValidator.getOwner(node, await ctx.account.getAddress())
       ).toBe(newOwner.address)
 
       const newECDSAValidator = new ECDSAValidator({
@@ -100,10 +98,7 @@ describeAccountSuite(
       const originalOwnerAddress = config.account.operator.address
       await setNewECDSAOwner(ctx.provider, ecdsaValidator, originalOwnerAddress)
       expect(
-        await ecdsaValidator.getOwner(
-          ctx.provider.node,
-          await ctx.account.getAddress()
-        )
+        await ecdsaValidator.getOwner(node, await ctx.account.getAddress())
       ).toBe(originalOwnerAddress)
     })
   }
@@ -146,6 +141,7 @@ describeAccountSuite(
 
     // Set new WebAuthnValidator owner
     it("should change the P256Owner of WebAuthnValidator", async () => {
+      const { node } = config.networkManager.getActive()
       const p256Owner = new P256Owner()
       const webAuthnValidator = new WebAuthnValidator({
         address: config.address.WebAuthnValidator,
@@ -165,10 +161,7 @@ describeAccountSuite(
       )
 
       expect(
-        await webAuthnValidator.getOwner(
-          ctx.provider.node,
-          await ctx.account.getAddress()
-        )
+        await webAuthnValidator.getOwner(node, await ctx.account.getAddress())
       ).toEqual([p256Owner.x, p256Owner.y])
     })
   }

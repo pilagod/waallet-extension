@@ -1,6 +1,7 @@
 import { EventEmitter } from "events"
 
 import { type BackgroundMessenger } from "~packages/messenger/background"
+import { format } from "~packages/util/json"
 import type {
   WebAuthnCreation,
   WebAuthnRequest
@@ -48,9 +49,7 @@ export class WaalletContentProvider extends EventEmitter {
       }
     }
     const res = await this.backgroundMessenger.send(req)
-    console.log(
-      `[provider][createWindow] response: ${JSON.stringify(res, null, 2)}`
-    )
+    console.log(`[provider][createWindow] response: ${format(res)}`)
     return res
   }
 }

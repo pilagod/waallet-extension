@@ -2,7 +2,7 @@ import { p256 } from "@noble/curves/p256"
 import * as ethers from "ethers"
 
 import byte from "~packages/util/byte"
-import type { BytesLike, HexString } from "~typing"
+import type { BytesLike } from "~typing"
 
 import type { WebAuthnValidatorOwner } from "../validator"
 

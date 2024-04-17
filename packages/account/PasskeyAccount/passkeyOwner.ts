@@ -1,6 +1,6 @@
-import type { BytesLike, HexString } from "~typing"
+import type { B64UrlString, BytesLike, HexString } from "~typing"
 
 export interface PasskeyOwner {
-  use(credentialId: string): void
+  getCredentialId(): B64UrlString
   sign(challenge: BytesLike, metadata?: any): Promise<HexString>
 }

@@ -3,19 +3,18 @@ import {
   isoUint8Array,
   parseAuthenticatorData
 } from "@simplewebauthn/server/helpers"
-import * as ethers from "ethers"
 import browser from "webextension-polyfill"
 
 import json from "~packages/util/json"
 import { requestWebAuthn } from "~packages/webAuthn/background/webAuthn"
-import type { BytesLike, HexString, UrlB64String } from "~typing"
+import type { B64UrlString, BytesLike } from "~typing"
 
 import type { WebAuthnValidatorOwner } from "../validator"
 
 export class WebAuthnOwner implements WebAuthnValidatorOwner {
-  public credentialId: UrlB64String
+  public credentialId: B64UrlString
 
-  public use(credentialId: UrlB64String) {
+  public use(credentialId: B64UrlString) {
     this.credentialId = credentialId
   }
 
