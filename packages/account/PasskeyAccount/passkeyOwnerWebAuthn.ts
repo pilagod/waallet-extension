@@ -29,7 +29,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
           : isoUint8Array.fromHex(challenge)
         : challenge
     )
-    const webAuthnAuthentication = await (browserSupportsWebAuthn()
+    const webAuthnAuthentication = await (this.supportsWebAuthn()
       ? this.authenticateInPlace(challengeB64Url)
       : this.authenticateInBackground(challengeB64Url, metadata))
     console.log(
@@ -64,6 +64,28 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       ]
     )
     return signature
+  }
+
+  // Avoid exceptions in browserSupportsWebAuthn() to ensure successful webAuthn operations.
+  private supportsWebAuthn(): boolean {
+    let supportsWebAuthn: boolean = false
+    try {
+      supportsWebAuthn = browserSupportsWebAuthn()
+    } catch (e) {
+      if (
+        e instanceof ReferenceError &&
+        e.message.includes("window is not defined")
+      ) {
+        console.warn("An error occurred while checking WebAuthn support:", e)
+      } else {
+        console.error(
+          "An unexpected error occurred while checking WebAuthn support:",
+          e
+        )
+        supportsWebAuthn = false
+      }
+    }
+    return supportsWebAuthn
   }
 
   private authenticateInPlace(challenge: B64UrlString) {
