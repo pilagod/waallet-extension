@@ -171,4 +171,66 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
     )
     expect(counterBalanceAfter - counterBalanceBefore).toBe(1n)
   })
+
+  it("should get transaction status", async () => {
+    const { bundler, node } = ctx.provider.networkManager.getActive()
+
+    const counterBefore = (await counter.number()) as bigint
+
+    const userOp = await ctx.account.createUserOperation(node, {
+      to: await counter.getAddress(),
+      value: 1,
+      data: counter.interface.encodeFunctionData("increment", [])
+    })
+
+    const { gasPrice } = await node.getFeeData()
+    userOp.setGasFee({
+      maxFeePerGas: gasPrice * 2n,
+      maxPriorityFeePerGas: gasPrice * 2n
+    })
+
+    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    userOp.setGasLimit({
+      ...(await bundler.estimateUserOperationGas(userOp, entryPointAddress))
+    })
+
+    const chainId = await bundler.getChainId()
+    userOp.setSignature(
+      await ctx.account.sign(userOp.hash(entryPointAddress, chainId))
+    )
+
+    // Get the userOperation hash from the bundler via the waallet provider.
+    const userOpHash = await ctx.provider.request<HexString>({
+      method: WaalletRpcMethod.eth_sendUserOperation,
+      params: [userOp.data(), entryPointAddress]
+    })
+
+    // Get the transaction hash from the node RPC via the waallet provider.
+    // const transactionHash = await bundler.wait(userOpHash)
+    const transactionHash = await ctx.provider.request<HexString>({
+      method: WaalletRpcMethod.eth_getTransactionHashByUserOperationHash,
+      params: [userOpHash]
+    })
+
+    const counterAfter = (await counter.number()) as bigint
+    expect(counterAfter - counterBefore).toBe(1n)
+
+    // Get the transaction status from the bundler via the waallet provider.
+    const transactionStatus = await ctx.provider.request<HexString>({
+      method: WaalletRpcMethod.eth_getStatusByTransactionHash,
+      params: [transactionHash]
+    })
+    expect(transactionStatus).toBe(1)
+  })
+
+  it("should get null transaction receipt", async () => {
+    const fakeTransactionHash = "0x".concat("0".repeat(64))
+
+    // Get the transaction status from the bundler via the waallet provider.
+    const transactionStatus = await ctx.provider.request<HexString>({
+      method: WaalletRpcMethod.eth_getStatusByTransactionHash,
+      params: [fakeTransactionHash]
+    })
+    expect(transactionStatus).toBe(-1)
+  })
 })

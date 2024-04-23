@@ -63,6 +63,10 @@ export class WaalletBackgroundProvider {
           new UserOperation(args.params[0]),
           args.params[1]
         ) as T
+      case WaalletRpcMethod.eth_getStatusByTransactionHash:
+        return this.handleGetStatusByTransactionHash(args.params) as T
+      case WaalletRpcMethod.eth_getTransactionHashByUserOperationHash:
+        return bundler.wait(args.params[0]) as T
       default:
         return new JsonRpcProvider(node.url).send(args)
     }
@@ -190,5 +194,14 @@ export class WaalletBackgroundProvider {
       maxFeePerGas: gasPriceWithBuffer,
       maxPriorityFeePerGas: gasPriceWithBuffer
     }
+  }
+
+  private async handleGetStatusByTransactionHash(
+    params: EthGetStatusByTransactionHashArguments["params"]
+  ): Promise<number> {
+    const { node } = this.networkManager.getActive()
+    const txReceipt = await node.getTransactionReceipt(params[0])
+    // '1' indicates a success, '0' indicates a revert, '-1' indicates a null.
+    return txReceipt ? txReceipt.status : -1
   }
 }
