@@ -9,7 +9,9 @@ export enum WaalletRpcMethod {
   eth_estimateUserOperationGas = "eth_estimateUserOperationGas",
   eth_requestAccounts = "eth_requestAccounts",
   eth_sendTransaction = "eth_sendTransaction",
-  eth_sendUserOperation = "eth_sendUserOperation"
+  eth_sendUserOperation = "eth_sendUserOperation",
+  eth_getStatusByTransactionHash = "eth_getStatusByTransactionHash",
+  eth_getTransactionHashByUserOperationHash = "eth_getTransactionHashByUserOperationHash"
 }
 
 export type WaalletRequestArguments =
@@ -17,6 +19,8 @@ export type WaalletRequestArguments =
   | EthEstimateUserOperationGasArguments
   | EthSendTransactionArguments
   | EthSendUserOperationArguments
+  | EthGetStatusByTransactionHashArguments
+  | EthGetTransactionHashByUserOperationHashArguments
   | {
       method:
         | WaalletRpcMethod.eth_accounts
@@ -76,4 +80,14 @@ export type EthSendTransactionArguments = {
 export type EthSendUserOperationArguments = {
   method: WaalletRpcMethod.eth_sendUserOperation
   params: [UserOperationData, HexString]
+}
+
+export type EthGetStatusByTransactionHashArguments = {
+  method: WaalletRpcMethod.eth_getStatusByTransactionHash
+  params: [HexString]
+}
+
+export type EthGetTransactionHashByUserOperationHashArguments = {
+  method: WaalletRpcMethod.eth_getTransactionHashByUserOperationHash
+  params: [HexString]
 }

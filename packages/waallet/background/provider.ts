@@ -12,6 +12,7 @@ import {
   WaalletRpcMethod,
   type EthEstimateGasArguments,
   type EthEstimateUserOperationGasArguments,
+  type EthGetStatusByTransactionHashArguments,
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
