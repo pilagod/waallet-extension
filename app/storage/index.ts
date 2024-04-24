@@ -19,6 +19,11 @@ const storageMessenger = new StorageMessenger()
 interface Storage {
   state: State
   markUserOperationSent: (userOpId: string, userOp: UserOperationData) => void
+  markUserOperationSucceeded: (
+    userOpId: string,
+    userOp: UserOperationData
+  ) => void
+  markUserOperationFailed: (userOpId: string, userOp: UserOperationData) => void
 }
 
 // @dev: This middleware sends state into background instead of store.
@@ -52,6 +57,23 @@ export const useStorage = create<Storage>()(
         const userOpStmt = state.userOpPool[userOpId]
         userOpStmt.userOp = userOp
         userOpStmt.status = UserOperationStatus.Sent
+      })
+    },
+    markUserOperationSucceeded: (
+      userOpId: string,
+      userOp: UserOperationData
+    ) => {
+      set(({ state }) => {
+        const userOpStmt = state.userOpPool[userOpId]
+        userOpStmt.userOp = userOp
+        userOpStmt.status = UserOperationStatus.Succeeded
+      })
+    },
+    markUserOperationFailed: (userOpId: string, userOp: UserOperationData) => {
+      set(({ state }) => {
+        const userOpStmt = state.userOpPool[userOpId]
+        userOpStmt.userOp = userOp
+        userOpStmt.status = UserOperationStatus.Failed
       })
     }
   }))
@@ -93,5 +115,13 @@ export const usePendingUserOperationStatements = (
 ) => {
   return useUserOperationStatements((userOp) => {
     return userOp.status === UserOperationStatus.Pending && filter(userOp)
+  })
+}
+
+export const useSentUserOperationStatements = (
+  filter: (userOp: UserOperationStatement) => boolean = () => true
+) => {
+  return useUserOperationStatements((userOp) => {
+    return userOp.status === UserOperationStatus.Sent && filter(userOp)
   })
 }

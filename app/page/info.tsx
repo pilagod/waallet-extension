@@ -5,59 +5,131 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
-import { useAccount } from "~app/storage"
+import {
+  useAccount,
+  useSentUserOperationStatements,
+  useStorage,
+  useUserOperationStatements
+} from "~app/storage"
+import {
+  UserOperationStatus,
+  type UserOperationStatement
+} from "~background/storage"
+import { UserOperation } from "~packages/bundler"
+import address from "~packages/util/address"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
+type UserOperationData = {
+  status: UserOperationStatus
+  hash: HexString
+}
+
 export function Info() {
+  const explorerUrl = "https://jiffyscan.xyz/"
+
   const { provider } = useProviderContext()
+  const sentUserOpStmts = useSentUserOperationStatements()
+  const userOpStmts = useUserOperationStatements()
   const account = useAccount()
+
+  const [chainName, setChainName] = useState<string>("")
   const [balance, setBalance] = useState<bigint>(0n)
-  const [transactionHashes, setTransactionHashes] = useState<HexString[]>([""])
-  const [internalTransactionHashes, setInternalTransactionHashes] = useState<
-    HexString[]
-  >([""])
-  const [explorerUrl, setExplorerUrl] = useState<string>("")
+  const [balanceLoading, setBalanceLoading] = useState<boolean>(false)
+  const [userOpsData, setUserOpsData] = useState<UserOperationData[]>([])
+
+  const markUserOperationSucceeded = useStorage(
+    (storage) => storage.markUserOperationSucceeded
+  )
+  const markUserOperationFailed = useStorage(
+    (storage) => storage.markUserOperationFailed
+  )
 
   useEffect(() => {
+    // Retrieve chainName when the Info page is opened
     const asyncFn = async () => {
-      const explorer = getExplorerUrl((await provider.getNetwork()).name)
-      setExplorerUrl(explorer)
-
-      const balance = await provider.getBalance(account.address)
-      setBalance(balance)
-
-      const txHashes = await accountTransactions(explorer, account.address)
-      setTransactionHashes(txHashes)
-
-      const internalTxHashes = await accountInternalTransactions(
-        explorer,
-        account.address
-      )
-      setInternalTransactionHashes(internalTxHashes)
+      const chain = getChainName((await provider.getNetwork()).name)
+      setChainName(chain)
     }
 
     asyncFn()
   }, [])
 
+  useEffect(() => {
+    setBalanceLoading(true)
+    // Periodically check the balance of the account
+    const asyncIntervalFn = async () => {
+      const balance = await provider.getBalance(account.address)
+      setBalanceLoading(false)
+      setBalance(balance)
+    }
+    const id = setInterval(() => {
+      asyncIntervalFn().catch((e) => console.log(e))
+    }, 3333) // Every 3.333 seconds
+
+    return () => {
+      clearInterval(id)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Update userOpsData when userOpStmts change
+    const userOpsData = getUserOpsData(userOpStmts, account.chainId)
+    setUserOpsData(userOpsData)
+  }, [userOpStmts])
+
+  useEffect(() => {
+    // Check if the broadcasted userOp has been executed successfully or unsuccessfully when sentUserOpStmts changes
+    const asyncFn = async () => {
+      sentUserOpStmts.forEach(async (sentUserOpStmt) => {
+        const userOp = new UserOperation(sentUserOpStmt.userOp)
+        const userOpHash = userOp.hash(
+          sentUserOpStmt.entryPointAddress,
+          account.chainId
+        )
+        const transactionHash = await provider.send(
+          WaalletRpcMethod.eth_getTransactionHashByUserOperationHash,
+          [userOpHash]
+        )
+        const status = await provider.send(
+          WaalletRpcMethod.eth_getStatusByTransactionHash,
+          [transactionHash]
+        )
+        switch (status) {
+          // '1' indicates a success, '0' indicates a revert, '-1' indicates a null.
+          case 0:
+            markUserOperationFailed(sentUserOpStmt.id, userOp.data())
+            break
+          case 1:
+            markUserOperationSucceeded(sentUserOpStmt.id, userOp.data())
+            break
+          default:
+            break
+        }
+      })
+    }
+
+    asyncFn()
+  }, [sentUserOpStmts])
+
   return (
     <NavbarLayout>
       {account.address && (
-        <AccountAddress account={account.address} explorerUrl={explorerUrl} />
+        <AccountAddress
+          account={account.address}
+          explorerUrl={explorerUrl}
+          chainName={chainName}
+        />
       )}
-      {balance && <AccountBalance balance={balance} />}
+      {<AccountBalance balanceLoading={balanceLoading} balance={balance} />}
       <SwitchToSendPage />
-      {transactionHashes && (
-        <AccountTransactions
+      {
+        <UserOpsData
+          userOpsData={userOpsData}
           explorerUrl={explorerUrl}
-          hashes={transactionHashes}
+          chainName={chainName}
         />
-      )}
-      {internalTransactionHashes && (
-        <AccountInternalTransactions
-          explorerUrl={explorerUrl}
-          hashes={internalTransactionHashes}
-        />
-      )}
+      }
     </NavbarLayout>
   )
 }
@@ -65,60 +137,26 @@ export function Info() {
 const AccountAddress: React.FC<{
   account: HexString
   explorerUrl: string
-}> = ({ account, explorerUrl }) => {
+  chainName: string
+}> = ({ account, explorerUrl, chainName }) => {
   return (
     <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
       <button
         onClick={handleClick}
-        data-url={`${explorerUrl}address/${account}#code`}>
+        data-url={`${explorerUrl}account/${account}?network=${chainName}`}>
         {`${account}`}
       </button>
     </div>
   )
 }
 
-const AccountBalance: React.FC<{ balance: bigint }> = ({ balance }) => {
+const AccountBalance: React.FC<{
+  balanceLoading: boolean
+  balance: bigint
+}> = ({ balanceLoading, balance }) => {
   return (
     <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      <span>${ethers.formatEther(balance)}</span>
-    </div>
-  )
-}
-
-const AccountTransactions: React.FC<{
-  hashes: HexString[]
-  explorerUrl: string
-}> = ({ hashes, explorerUrl }) => {
-  return (
-    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      <div>Transactions</div>
-      {hashes.map((hash, i, _) => (
-        <button
-          key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning.
-          onClick={handleClick}
-          data-url={`${explorerUrl}tx/${hash}`}>
-          {`${hash}`}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-const AccountInternalTransactions: React.FC<{
-  hashes: HexString[]
-  explorerUrl: string
-}> = ({ hashes, explorerUrl }) => {
-  return (
-    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      <div>Internal Transactions</div>
-      {hashes.map((hash, i, _) => (
-        <button
-          key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning.
-          onClick={handleClick}
-          data-url={`${explorerUrl}tx/${hash}`}>
-          {`${hash}`}
-        </button>
-      ))}
+      Balance: {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
     </div>
   )
 }
@@ -139,139 +177,80 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   }
 }
 
-enum transactionType {
-  normal = "normal",
-  internal = "internal"
+const getUserOpsData = (
+  userOpStmts: UserOperationStatement[],
+  chainId: number
+): UserOperationData[] => {
+  return userOpStmts.map((userOpStmt) => {
+    const userOp = new UserOperation(userOpStmt.userOp)
+    return {
+      status: userOpStmt.status,
+      hash: userOp.hash(userOpStmt.entryPointAddress, chainId)
+    }
+  })
 }
 
-const accountTransactions = async (
-  explorerUrl: string,
-  address: HexString
-): Promise<string[]> => {
-  return transactionsCrawler(
-    transactionType.normal,
-    `${explorerUrl}address/${address}`
+const UserOpsData: React.FC<{
+  userOpsData: UserOperationData[]
+  explorerUrl: string
+  chainName: string
+}> = ({ userOpsData, explorerUrl, chainName }) => {
+  return (
+    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+      User Operation History:
+      {userOpsData.length === 0 ? (
+        <div>(No user operations)</div>
+      ) : (
+        userOpsData.map((userOp, i, _) => (
+          <div>
+            <span>{`${userOp.status}: `}</span>
+            <button
+              key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning.
+              onClick={handleClick}
+              data-url={`${explorerUrl}userOpHash/${userOp.hash}?network=${chainName}`}>
+              {`${address.ellipsize(userOp.hash)}`}
+            </button>
+          </div>
+        ))
+      )}
+    </div>
   )
 }
 
-const accountInternalTransactions = async (
-  explorerUrl: string,
-  address: HexString
-): Promise<string[]> => {
-  return transactionsCrawler(
-    transactionType.internal,
-    `${explorerUrl}address/${address}#internaltx`
-  )
-}
-
-const transactionsCrawler = async (type: transactionType, url: string) => {
-  try {
-    const response = await fetch(url)
-    const html = await response.text()
-    const doc = new DOMParser().parseFromString(html, "text/html")
-
-    let transactionXpath = ""
-    let blockXpath = ""
-    let dateXpath = ""
-
-    if (type === transactionType.internal) {
-      transactionXpath =
-        "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[1]/div/a"
-      blockXpath =
-        "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[2]/a"
-      dateXpath =
-        "/html/body/main/section[2]/div[4]/div[2]/div/div[2]/table/tbody/tr/td[4]/span"
-    }
-    if (type === transactionType.normal) {
-      transactionXpath =
-        "/html/body/main/section[2]/div[4]/div[1]/div/div[2]/table/tbody/tr/td[2]/div/a"
-      blockXpath =
-        "/html/body/main/section[2]/div[4]/div[1]/div/div[2]/table/tbody/tr/td[4]/a"
-      dateXpath =
-        "/html/body/main/section[2]/div[4]/div[1]/div/div[2]/table/tbody/tr/td[6]/span"
-    }
-
-    const transactionNodes = doc.evaluate(
-      transactionXpath,
-      doc,
-      null,
-      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      null
-    )
-    const blockNodes = doc.evaluate(
-      blockXpath,
-      doc,
-      null,
-      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      null
-    )
-    const dateNodes = doc.evaluate(
-      dateXpath,
-      doc,
-      null,
-      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      null
-    )
-
-    const hashes: HexString[] = []
-    const blocksSet: Set<number> = new Set()
-    const dates: Date[] = []
-
-    for (let i = 0; i < transactionNodes.snapshotLength; i++) {
-      const hash = transactionNodes.snapshotItem(i).textContent.trim()
-      const blockNumber = parseInt(
-        blockNodes.snapshotItem(i).textContent.trim(),
-        10
-      )
-      const dateString =
-        (dateNodes.snapshotItem(i) as Element)?.getAttribute("data-bs-title") ||
-        ""
-      if (!blocksSet.has(blockNumber)) {
-        hashes.push(hash)
-        blocksSet.add(isNaN(blockNumber) ? 0 : blockNumber)
-        dates.push(new Date(dateString))
-      }
-    }
-
-    const blocks: number[] = [...blocksSet]
-
-    console.log(
-      `hashes: ${JSON.stringify(hashes, null, 2)}\nblocks: ${JSON.stringify(
-        blocks,
-        null,
-        2
-      )}`
-    )
-
-    return Promise.resolve(hashes)
-  } catch (error) {
-    console.error("Error fetching transaction data:", error)
-    return Promise.reject("Error fetching transaction data")
-  }
-}
-
-const getExplorerUrl = (chain: string | number): string => {
+const getChainName = (chain: string | number): string => {
   const net = typeof chain === "string" ? chain.toLowerCase() : chain
-  let explorerUrl: string
+  let chainName: string
   switch (net) {
     case "mainnet":
     case 1:
-      explorerUrl = "https://etherscan.io/"
+      chainName = "mainnet"
       break
     case "goerli":
     case 5:
-      explorerUrl = "https://goerli.etherscan.io/"
+      chainName = "goerli"
+      break
+    case "optimism":
+    case 10:
+      chainName = "optimism"
+      break
+    case "bsc":
+    case 56:
+      chainName = "bsc"
+      break
+    case "matic":
+    case 137:
+      chainName = "matic"
+      break
+    case "arbitrum-one":
+    case 42161:
+      chainName = "arbitrum-one"
       break
     case "sepolia":
     case 11155111:
-      explorerUrl = "https://sepolia.etherscan.io/"
-      break
-    case "holesky":
-    case 17000:
-      explorerUrl = "https://holesky.etherscan.io/"
+      chainName = "sepolia"
       break
     default:
-      explorerUrl = null
+      chainName = null
   }
-  return explorerUrl
+  return chainName
 }
