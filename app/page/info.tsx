@@ -7,6 +7,7 @@ import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import {
   useAccount,
+  useNetwork,
   useSentUserOperationStatements,
   useStorage,
   useUserOperationStatements
@@ -16,8 +17,9 @@ import {
   type UserOperationStatement
 } from "~background/storage"
 import { UserOperation } from "~packages/bundler"
+import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
+import { NodeProvider } from "~packages/node/provider"
 import address from "~packages/util/address"
-import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
 type UserOperationData = {
@@ -32,6 +34,17 @@ export function Info() {
   const sentUserOpStmts = useSentUserOperationStatements()
   const userOpStmts = useUserOperationStatements()
   const account = useAccount()
+  const network = useNetwork()
+
+  const [node, setNode] = useState<NodeProvider>(
+    new NodeProvider(network.nodeRpcUrl)
+  )
+  const [bundler, setBundler] = useState<BundlerProvider>(
+    new BundlerProvider(
+      network.bundlerRpcUrl,
+      network.chainId === 1337 ? BundlerMode.Manual : BundlerMode.Auto // 1337 is local testnet
+    )
+  )
 
   const [chainName, setChainName] = useState<string>("")
   const [balance, setBalance] = useState<bigint>(0n)
@@ -79,6 +92,17 @@ export function Info() {
   }, [userOpStmts])
 
   useEffect(() => {
+    // Update node and bundler when network change
+    setNode(new NodeProvider(network.nodeRpcUrl))
+    setBundler(
+      new BundlerProvider(
+        network.bundlerRpcUrl,
+        network.chainId === 1337 ? BundlerMode.Manual : BundlerMode.Auto // 1337 is local testnet
+      )
+    )
+  }, [network])
+
+  useEffect(() => {
     // Check if the broadcasted userOp has been executed successfully or unsuccessfully when sentUserOpStmts changes
     const asyncFn = async () => {
       sentUserOpStmts.forEach(async (sentUserOpStmt) => {
@@ -87,14 +111,10 @@ export function Info() {
           sentUserOpStmt.entryPointAddress,
           account.chainId
         )
-        const transactionHash = await provider.send(
-          WaalletRpcMethod.eth_getTransactionHashByUserOperationHash,
-          [userOpHash]
-        )
-        const status = await provider.send(
-          WaalletRpcMethod.eth_getStatusByTransactionHash,
-          [transactionHash]
-        )
+        const transactionHash = await bundler.wait(userOpHash)
+        const receipt = await node.getTransactionReceipt(transactionHash)
+        const status = receipt ? receipt.status : -1
+
         switch (status) {
           // '1' indicates a success, '0' indicates a revert, '-1' indicates a null.
           case 0:
@@ -110,7 +130,7 @@ export function Info() {
     }
 
     asyncFn()
-  }, [sentUserOpStmts])
+  }, [sentUserOpStmts, node, bundler])
 
   return (
     <NavbarLayout>
