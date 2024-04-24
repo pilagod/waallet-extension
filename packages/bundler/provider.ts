@@ -70,8 +70,12 @@ export class BundlerProvider {
 
   public async getUserOperationReceipt(userOpHash: HexString): Promise<{
     success: boolean
+    reason: string
   }> {
-    const receipt = await this.bundler.send<{ success: boolean }>({
+    const receipt = await this.bundler.send<{
+      success: boolean
+      reason: string
+    }>({
       method: BundlerRpcMethod.eth_getUserOperationReceipt,
       params: [userOpHash]
     })

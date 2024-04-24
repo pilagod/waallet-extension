@@ -20,6 +20,7 @@ import { UserOperation } from "~packages/bundler"
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
 import { NodeProvider } from "~packages/node/provider"
 import address from "~packages/util/address"
+import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
 type UserOperationData = {
@@ -113,15 +114,39 @@ export function Info() {
         )
         const transactionHash = await bundler.wait(userOpHash)
         const receipt = await node.getTransactionReceipt(transactionHash)
-        const status = receipt ? receipt.status : -1
+
+        let status = -1
+        let blockHash = ""
+        let blockNumber = ""
+        let errorMessage = ""
+        if (receipt) {
+          //   const call = await node.call(receipt)
+          //   console.log(`[tttttt] call: ${call}`)
+          status = receipt.status
+          blockHash = receipt.blockHash
+          blockNumber = number.toHex(receipt.blockNumber)
+          errorMessage = (await bundler.getUserOperationReceipt(userOpHash))
+            .reason
+        }
 
         switch (status) {
           // '1' indicates a success, '0' indicates a revert, '-1' indicates a null.
           case 0:
-            markUserOperationFailed(sentUserOpStmt.id, userOp.data())
+            markUserOperationFailed(sentUserOpStmt.id, userOp.data(), {
+              userOpHash: userOpHash,
+              transactionHash: transactionHash,
+              blockHash: blockHash,
+              blockNumber: blockNumber,
+              errorMessage: errorMessage
+            })
             break
           case 1:
-            markUserOperationSucceeded(sentUserOpStmt.id, userOp.data())
+            markUserOperationSucceeded(sentUserOpStmt.id, userOp.data(), {
+              userOpHash: userOpHash,
+              transactionHash: transactionHash,
+              blockHash: blockHash,
+              blockNumber: blockNumber
+            })
             break
           default:
             break

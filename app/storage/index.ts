@@ -12,6 +12,7 @@ import {
   type UserOperationStatement
 } from "~background/storage"
 import type { UserOperationData } from "~packages/bundler"
+import type { HexString } from "~typing"
 
 const storageMessenger = new StorageMessenger()
 
@@ -21,9 +22,25 @@ interface Storage {
   markUserOperationSent: (userOpId: string, userOp: UserOperationData) => void
   markUserOperationSucceeded: (
     userOpId: string,
-    userOp: UserOperationData
+    userOp: UserOperationData,
+    receipt: {
+      userOpHash: HexString
+      transactionHash: HexString
+      blockHash: HexString
+      blockNumber: HexString
+    }
   ) => void
-  markUserOperationFailed: (userOpId: string, userOp: UserOperationData) => void
+  markUserOperationFailed: (
+    userOpId: string,
+    userOp: UserOperationData,
+    receipt: {
+      userOpHash: HexString
+      transactionHash: HexString
+      blockHash: HexString
+      blockNumber: HexString
+      errorMessage: string
+    }
+  ) => void
 }
 
 // @dev: This middleware sends state into background instead of store.
@@ -61,19 +78,41 @@ export const useStorage = create<Storage>()(
     },
     markUserOperationSucceeded: (
       userOpId: string,
-      userOp: UserOperationData
+      userOp: UserOperationData,
+      receipt: {
+        userOpHash: HexString
+        transactionHash: HexString
+        blockHash: HexString
+        blockNumber: HexString
+      }
     ) => {
       set(({ state }) => {
         const userOpStmt = state.userOpPool[userOpId]
         userOpStmt.userOp = userOp
         userOpStmt.status = UserOperationStatus.Succeeded
+        if (userOpStmt.status === UserOperationStatus.Succeeded) {
+          userOpStmt.receipt = receipt
+        }
       })
     },
-    markUserOperationFailed: (userOpId: string, userOp: UserOperationData) => {
+    markUserOperationFailed: (
+      userOpId: string,
+      userOp: UserOperationData,
+      receipt: {
+        userOpHash: HexString
+        transactionHash: HexString
+        blockHash: HexString
+        blockNumber: HexString
+        errorMessage: string
+      }
+    ) => {
       set(({ state }) => {
         const userOpStmt = state.userOpPool[userOpId]
         userOpStmt.userOp = userOp
         userOpStmt.status = UserOperationStatus.Failed
+        if (userOpStmt.status === UserOperationStatus.Failed) {
+          userOpStmt.receipt = receipt
+        }
       })
     }
   }))
