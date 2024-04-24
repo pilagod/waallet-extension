@@ -247,10 +247,10 @@ const UserOpsData: React.FC<{
         <div>(No user operations)</div>
       ) : (
         userOpsData.map((userOp, i, _) => (
-          <div>
+          // The key prevent the "Each child in a list should have a unique 'key' prop" warning.
+          <div key={i}>
             <span>{`${userOp.status}: `}</span>
             <button
-              key={i} // Prevent the "Each child in a list should have a unique 'key' prop" warning.
               onClick={handleClick}
               data-url={`${explorerUrl}userOpHash/${userOp.hash}?network=${chainName}`}>
               {`${address.ellipsize(userOp.hash)}`}
