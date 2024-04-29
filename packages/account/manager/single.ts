@@ -11,14 +11,17 @@ export class SingleAccountManager implements AccountManager {
     this.id = uuidv4()
   }
 
-  public async get(id: string): Promise<Account> {
+  public async get(id: string) {
     if (id !== this.id) {
       throw new Error(`Unknown account ${id}`)
     }
-    return this.account
+    return {
+      id,
+      account: this.account
+    }
   }
 
-  public getActive(): Promise<Account> {
+  public getActive() {
     return this.get(this.id)
   }
 }

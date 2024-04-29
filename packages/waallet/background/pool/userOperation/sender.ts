@@ -1,4 +1,4 @@
-import { type Account } from "~packages/account"
+import type { AccountManager } from "~packages/account/manager"
 import { UserOperation } from "~packages/bundler"
 import type { NetworkManager } from "~packages/network/manager"
 import { type UserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation"
@@ -10,24 +10,26 @@ export class UserOperationSender implements UserOperationPool {
   private pool: { [userOpHash: HexString]: Promise<HexString> } = {}
 
   public constructor(
+    private accountManager: AccountManager,
     private networkManager: NetworkManager,
     private userOperationAuthorizer: UserOperationAuthorizer
   ) {}
 
   public async send(data: {
     userOp: UserOperation
-    sender: Account
+    senderId: string
     networkId: string
     entryPointAddress: HexString
   }): Promise<HexString> {
-    const { userOp, sender, networkId, entryPointAddress } = data
+    const { userOp, senderId, networkId, entryPointAddress } = data
     const { bundler, chainId } = this.networkManager.get(networkId)
     const userOpAuthorized = await this.userOperationAuthorizer.authorize(
       userOp,
       {
         onApproved: async (userOpAuthorized, metadata) => {
+          const { account } = await this.accountManager.get(senderId)
           userOpAuthorized.setSignature(
-            await sender.sign(
+            await account.sign(
               userOpAuthorized.hash(entryPointAddress, chainId),
               metadata
             )

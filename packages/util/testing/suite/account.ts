@@ -5,6 +5,8 @@ import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import type { ContractRunner } from "~packages/node"
 import byte from "~packages/util/byte"
+import { NullUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/null"
+import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
@@ -21,17 +23,23 @@ export function describeAccountSuite<T extends Account>(
   setup: (runner: ContractRunner) => Promise<T>,
   suite?: (ctx: AccountSuiteContext<T>) => void
 ) {
-  describeWaalletSuite(name, ({ provider }) => {
+  describeWaalletSuite(name, (waalletSuiteCtx) => {
     const { node } = config.networkManager.getActive()
     const { counter } = config.contract
 
     const ctx = new AccountSuiteContext<T>()
-    ctx.provider = provider.clone()
 
     beforeAll(async () => {
       ctx.account = await setup(node)
-      ctx.provider = ctx.provider.clone({
-        accountManager: new SingleAccountManager(ctx.account)
+      // TODO: Fix inconsistency between waallet provider and user operation sender
+      const accountManager = new SingleAccountManager(ctx.account)
+      ctx.provider = waalletSuiteCtx.provider.clone({
+        accountManager,
+        userOperationPool: new UserOperationSender(
+          accountManager,
+          config.networkManager,
+          new NullUserOperationAuthorizer()
+        )
       })
       await (
         await config.account.operator.sendTransaction({

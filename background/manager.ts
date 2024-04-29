@@ -8,7 +8,7 @@ import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
 
-import type { State } from "./storage"
+import type { Account, State } from "./storage"
 
 export class AccountStorageManager implements AccountManager {
   public constructor(private storage: ObservableStorage<State>) {}
@@ -19,6 +19,19 @@ export class AccountStorageManager implements AccountManager {
     if (!account) {
       throw new Error(`Unknown account ${id}`)
     }
+    return {
+      id,
+      account: await this.init(account)
+    }
+  }
+
+  public async getActive() {
+    const state = this.storage.get()
+    const network = state.network[state.networkActive]
+    return this.get(network.accountActive)
+  }
+
+  private async init(account: Account) {
     switch (account.type) {
       case AccountType.SimpleAccount:
         return SimpleAccount.init({
@@ -33,12 +46,6 @@ export class AccountStorageManager implements AccountManager {
       default:
         throw new Error(`Unknown account ${account}`)
     }
-  }
-
-  public async getActive() {
-    const state = this.storage.get()
-    const network = state.network[state.networkActive]
-    return this.get(network.accountActive)
   }
 }
 

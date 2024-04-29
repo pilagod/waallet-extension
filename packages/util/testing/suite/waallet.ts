@@ -19,24 +19,22 @@ export function describeWaalletSuite(
   describe(name, () => {
     const ctx = new WaalletSuiteContext()
 
-    ctx.provider = new WaalletBackgroundProvider(
-      new SingleAccountManager(null),
-      config.networkManager,
-      new NullPaymaster(),
-      new UserOperationSender(
-        config.networkManager,
-        new NullUserOperationAuthorizer()
-      )
-    )
-
     beforeAll(async () => {
       ctx.account = await SimpleAccount.init({
         address: config.address.SimpleAccount,
         ownerPrivateKey: config.account.operator.privateKey
       })
-      ctx.provider = ctx.provider.clone({
-        accountManager: new SingleAccountManager(ctx.account)
-      })
+      const accountManager = new SingleAccountManager(ctx.account)
+      ctx.provider = new WaalletBackgroundProvider(
+        accountManager,
+        config.networkManager,
+        new NullPaymaster(),
+        new UserOperationSender(
+          accountManager,
+          config.networkManager,
+          new NullUserOperationAuthorizer()
+        )
+      )
     })
 
     if (suite) {

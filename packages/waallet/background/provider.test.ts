@@ -103,7 +103,8 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
 
     const mutatingProvider = ctx.provider.clone({
       userOperationPool: new UserOperationSender(
-        config.networkManager,
+        ctx.provider.accountManager,
+        ctx.provider.networkManager,
         mutatingAuthorizer
       )
     })
