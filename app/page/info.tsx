@@ -127,7 +127,7 @@ const AccountInternalTransactions: React.FC<{
 const SwitchToSendPage: React.FC = () => {
   return (
     <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      <Link href={Path.send}>Send ↗</Link>
+      <Link href={Path.Send}>Send ↗</Link>
     </div>
   )
 }

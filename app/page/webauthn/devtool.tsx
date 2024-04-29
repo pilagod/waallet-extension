@@ -19,7 +19,7 @@ import type {
   WebAuthnRequest
 } from "~packages/webAuthn/typing"
 
-export function WebAuthnDevTool() {
+export function WebAuthnDevtool() {
   const [webAuthnCreation, setWebAuthnCreation] = useState<WebAuthnCreation>()
   const [webAuthnRequest, setWebAuthnRequest] = useState<WebAuthnRequest>()
   const [tabId, setTabId] = useState<number | undefined>()

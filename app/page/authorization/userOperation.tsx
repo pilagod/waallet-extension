@@ -1,17 +1,27 @@
 import * as ethers from "ethers"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useClsState } from "use-cls-state"
 import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
-import browser from "webextension-polyfill"
+import { useHashLocation } from "wouter/use-hash-location"
 
+import { useProviderContext } from "~app/context/provider"
+import { Path } from "~app/path"
+import {
+  useAccount,
+  useNetwork,
+  usePendingUserOperationStatements,
+  useStorage
+} from "~app/storage"
+import type { Account, UserOperationStatement } from "~background/storage"
+import { AccountType } from "~packages/account"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { UserOperation } from "~packages/bundler"
-import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import { ETH, Token } from "~packages/token"
-import json from "~packages/util/json"
-import { WaalletContentProvider } from "~packages/waallet/content/provider"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
 type PaymentOption = {
@@ -26,9 +36,19 @@ type Payment = {
 }
 
 export function UserOperationAuthorization() {
-  const provider = new ethers.BrowserProvider(
-    new WaalletContentProvider(new BackgroundDirectMessenger())
-  )
+  const [, navigate] = useHashLocation()
+  const pendingUserOpStmts = usePendingUserOperationStatements()
+  if (pendingUserOpStmts.length === 0) {
+    navigate(Path.Index)
+    return
+  }
+  return <UserOperationConfirmation userOpStmt={pendingUserOpStmts[0]} />
+}
+
+function UserOperationConfirmation(props: {
+  userOpStmt: UserOperationStatement
+}) {
+  const { userOpStmt } = props
   const paymentOptions: PaymentOption[] = [
     {
       name: "No Paymaster",
@@ -44,13 +64,22 @@ export function UserOperationAuthorization() {
       })
     }
   ]
-  const [port, setPort] = useState<browser.Runtime.Port>(null)
-  const [userOp, setUserOp] = useClsState<UserOperation>(null)
+  const [, navigate] = useHashLocation()
+  const { provider } = useProviderContext()
+  const markUserOperationSent = useStorage(
+    (storage) => storage.markUserOperationSent
+  )
+  const network = useNetwork(userOpStmt.networkId)
+  const sender = useAccount(userOpStmt.senderId)
+  const [userOp, setUserOp] = useClsState<UserOperation>(
+    new UserOperation(userOpStmt.userOp)
+  )
   const [payment, setPayment] = useState<Payment>({
     option: paymentOptions[0],
     token: ETH,
     tokenFee: 0n
   })
+  const [userOpSending, setUserOpSending] = useState(false)
   const [paymentCalculating, setPaymentCalculating] = useState(false)
 
   const onPaymentOptionSelected = async (o: PaymentOption) => {
@@ -73,35 +102,26 @@ export function UserOperationAuthorization() {
   }
 
   const sendUserOperation = async () => {
-    port.postMessage({
-      userOpAuthorized: json.stringify({
-        ...userOp.data(),
-        paymasterAndData:
-          await payment.option.paymaster.requestPaymasterAndData(
-            provider,
-            userOp
-          )
-      })
-    })
-  }
+    setUserOpSending(true)
 
-  useEffect(() => {
-    async function initUserOp() {
-      const tab = await browser.tabs.getCurrent()
-      const port = browser.runtime.connect({
-        name: `PopUpUserOperationAuthorizer#${tab.id}`
-      })
-      port.onMessage.addListener(async (message) => {
-        console.log("message from background", message)
-        if (message.userOp) {
-          setUserOp(new UserOperation(json.parse(message.userOp)))
-        }
-      })
-      setPort(port)
-      port.postMessage({ init: true })
+    const account = await createAccount(sender)
+    try {
+      userOp.setSignature(
+        await account.sign(
+          userOp.hash(userOpStmt.entryPointAddress, network.chainId)
+        )
+      )
+      await provider.send(WaalletRpcMethod.eth_sendUserOperation, [
+        userOp.data(),
+        userOpStmt.entryPointAddress
+      ])
+      markUserOperationSent(userOpStmt.id, userOp.data())
+    } catch (e) {
+      // TOOD: Show error on page
+      console.error(e)
+      setUserOpSending(false)
     }
-    initUserOp()
-  }, [])
+  }
 
   useDeepCompareEffectNoCheck(() => {
     async function updatePayment() {
@@ -120,9 +140,6 @@ export function UserOperationAuthorization() {
     }
   }, [userOp])
 
-  if (!userOp) {
-    return <div>Loading...</div>
-  }
   return (
     <div>
       <div>
@@ -176,12 +193,33 @@ export function UserOperationAuthorization() {
       </div>
       <div style={{ marginTop: "1em" }}>
         <button
-          onClick={() => sendUserOperation()}
-          disabled={paymentCalculating}>
+          disabled={paymentCalculating || userOpSending}
+          onClick={() => sendUserOperation()}>
           Send
         </button>
-        <button onClick={() => window.close()}>Cancel</button>
+        {/* TODO: Change to reject */}
+        <button disabled={userOpSending} onClick={() => navigate(Path.Index)}>
+          Cancel
+        </button>
       </div>
     </div>
   )
+}
+
+// TODO: Redesign a place to accommodate it
+async function createAccount(account: Account) {
+  switch (account.type) {
+    case AccountType.SimpleAccount:
+      return SimpleAccount.init({
+        address: account.address,
+        ownerPrivateKey: account.ownerPrivateKey
+      })
+    case AccountType.PasskeyAccount:
+      return PasskeyAccount.init({
+        address: account.address,
+        owner: new PasskeyOwnerWebAuthn(account.credentialId)
+      })
+    default:
+      throw new Error(`Unknown account ${account}`)
+  }
 }

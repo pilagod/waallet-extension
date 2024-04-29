@@ -1,8 +1,7 @@
 import type { AccountManager } from "~packages/account/manager"
 import type { NetworkManager } from "~packages/network/manager"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
-import { PopUpUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/popup"
-import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
+import type { UserOperationPool } from "~packages/waallet/background/pool/userOperation"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 
 let waalletBackgroundProvider: WaalletBackgroundProvider
@@ -14,16 +13,13 @@ export function getWaalletBackgroundProvider() {
 export function setupWaalletBackgroundProvider(option: {
   accountManager: AccountManager
   networkManager: NetworkManager
+  userOpPool: UserOperationPool
 }): WaalletBackgroundProvider {
   waalletBackgroundProvider = new WaalletBackgroundProvider(
     option.accountManager,
     option.networkManager,
     new NullPaymaster(),
-    new UserOperationSender(
-      option.accountManager,
-      option.networkManager,
-      new PopUpUserOperationAuthorizer()
-    )
+    option.userOpPool
   )
   return waalletBackgroundProvider
 }

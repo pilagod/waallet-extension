@@ -63,7 +63,8 @@ export async function getStorage() {
         networkActive: Object.keys(network)[0],
         network,
         account,
-        paymaster
+        paymaster,
+        userOpPool: {}
       },
       { override: true }
     )
@@ -125,8 +126,8 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
-  userOperationPool: {
-    [userOpId: string]: UserOperation
+  userOpPool: {
+    [userOpId: string]: UserOperationStatement
   }
 }
 
@@ -176,32 +177,38 @@ export type VerifyingPaymaster = {
 
 export enum UserOperationStatus {
   Pending = "Pending",
+  Sent = "Sent",
   Succeeded = "Succeeded",
   Failed = "Failed"
 }
 
-export type UserOperationInfo = {
+export type UserOperationStatement = {
+  id: string
   userOp: UserOperationData
   senderId: string
   networkId: string
   entryPointAddress: string
-}
-
-export type UserOperationReceipt = {
-  userOpHash: HexString
-  transactionHash: HexString
-  blockHash: HexString
-  blockNumber: HexString
-  errorMessage?: string
-}
-
-export type UserOperation = UserOperationInfo &
-  (
-    | {
-        status: UserOperationStatus.Pending
+} & (
+  | {
+      status: UserOperationStatus.Pending | UserOperationStatus.Sent
+    }
+  | {
+      status: UserOperationStatus.Succeeded
+      receipt: {
+        userOpHash: HexString
+        transactionHash: HexString
+        blockHash: HexString
+        blockNumber: HexString
       }
-    | {
-        status: UserOperationStatus.Succeeded | UserOperationStatus.Failed
-        receipt: UserOperationReceipt
+    }
+  | {
+      status: UserOperationStatus.Failed
+      receipt: {
+        userOpHash: HexString
+        transactionHash: HexString
+        blockHash: HexString
+        blockNumber: HexString
+        errorMessage: string
       }
-  )
+    }
+)

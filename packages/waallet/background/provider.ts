@@ -58,6 +58,11 @@ export class WaalletBackgroundProvider {
         return this.handleEstimateUserOperationGas(args.params) as T
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
+      case WaalletRpcMethod.eth_sendUserOperation:
+        return bundler.sendUserOperation(
+          new UserOperation(args.params[0]),
+          args.params[1]
+        ) as T
       default:
         return new JsonRpcProvider(node.url).send(args)
     }
@@ -156,13 +161,13 @@ export class WaalletBackgroundProvider {
     userOp.setGasLimit(
       await bundler.estimateUserOperationGas(userOp, entryPointAddress)
     )
-    const userOpHash = await this.userOperationPool.send({
+    const userOpId = await this.userOperationPool.send({
       userOp,
       senderId: accountId,
       networkId,
       entryPointAddress
     })
-    const { transactionHash } = await this.userOperationPool.wait(userOpHash)
+    const { transactionHash } = await this.userOperationPool.wait(userOpId)
 
     return transactionHash
   }
