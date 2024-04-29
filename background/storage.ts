@@ -5,6 +5,7 @@ import { sendToBackground, type MessageName } from "@plasmohq/messaging"
 
 import { config } from "~config"
 import { AccountType } from "~packages/account"
+import type { UserOperationData } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
 import type { B64UrlString, HexString, RecursivePartial } from "~typing"
 
@@ -124,6 +125,9 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
+  userOperationPool: {
+    [userOpId: string]: UserOperation
+  }
 }
 
 /* Netowork */
@@ -167,3 +171,37 @@ export type VerifyingPaymaster = {
   address: HexString
   ownerPrivateKey: HexString
 }
+
+/* User Operation Pool */
+
+export enum UserOperationStatus {
+  Pending = "Pending",
+  Succeeded = "Succeeded",
+  Failed = "Failed"
+}
+
+export type UserOperationInfo = {
+  userOp: UserOperationData
+  senderId: string
+  networkId: string
+  entryPointAddress: string
+}
+
+export type UserOperationReceipt = {
+  userOpHash: HexString
+  transactionHash: HexString
+  blockHash: HexString
+  blockNumber: HexString
+  errorMessage?: string
+}
+
+export type UserOperation = UserOperationInfo &
+  (
+    | {
+        status: UserOperationStatus.Pending
+      }
+    | {
+        status: UserOperationStatus.Succeeded | UserOperationStatus.Failed
+        receipt: UserOperationReceipt
+      }
+  )

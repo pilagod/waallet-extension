@@ -162,9 +162,9 @@ export class WaalletBackgroundProvider {
       networkId,
       entryPointAddress
     })
-    const txHash = await this.userOperationPool.wait(userOpHash)
+    const { transactionHash } = await this.userOperationPool.wait(userOpHash)
 
-    return txHash
+    return transactionHash
   }
 
   private async estimateGasFee(gasPrice?: BigNumberish): Promise<{

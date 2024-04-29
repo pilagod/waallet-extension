@@ -1,56 +1,91 @@
-import { EventEmitter } from "events"
 import structuredClone from "@ungap/structured-clone"
+import { enablePatches, produceWithPatches, type Draft } from "immer"
 
 import type { RecursivePartial } from "~typing"
 
-export enum ObservableStorageEvent {
-  StateUpdated = "StateUpdated"
-}
+enablePatches()
 
-export class ObservableStorage<
-  T extends Record<string, any>
-> extends EventEmitter {
-  public constructor(private state: T = {} as T) {
-    super()
-  }
+type ObservableStorageUpdater<T> = (draft: Draft<T>) => Draft<T> | void
+
+export class ObservableStorage<T extends Record<string, any>> {
+  private subscribers: {
+    handler: (state: T) => Promise<void>
+    path?: (string | number)[]
+  }[] = []
+
+  public constructor(private state: T) {}
 
   public get(): T {
     return structuredClone(this.state)
   }
 
+  public set(updater: ObservableStorageUpdater<T>): void
   public set(
     updates: RecursivePartial<T>,
+    option?: { override?: boolean }
+  ): void
+  public set(
+    updaterOrUpdates: ObservableStorageUpdater<T> | RecursivePartial<T>,
     option: { override?: boolean } = {}
   ) {
-    if (option.override) {
-      this.state = { ...this.get(), ...updates }
-    } else {
-      this.updatePartial(this.state, updates)
+    const updater =
+      typeof updaterOrUpdates === "function"
+        ? updaterOrUpdates
+        : (draft: Draft<T>) => {
+            if (option.override) {
+              return { ...draft, ...updaterOrUpdates }
+            }
+            this.applyUpdates(draft, updaterOrUpdates)
+          }
+    const [state, patches] = produceWithPatches(this.state, updater)
+
+    this.state = structuredClone(state)
+
+    const stateFreezed = Object.freeze(state)
+
+    for (const s of this.subscribers) {
+      const path = s.path ?? []
+      const shouldNotify = patches.reduce(
+        (result, patch) =>
+          result ||
+          path.reduce(
+            (result, field, i) => result && patch.path[i] === field,
+            true
+          ),
+        false
+      )
+      if (shouldNotify) {
+        s.handler(stateFreezed)
+      }
     }
-    this.emit(ObservableStorageEvent.StateUpdated, this.get())
   }
 
-  public subscribe(handler: (state: T) => Promise<void>) {
-    this.addListener(ObservableStorageEvent.StateUpdated, handler)
+  public subscribe(
+    handler: (state: T) => Promise<void>,
+    path?: (string | number)[]
+  ) {
+    this.subscribers.push({ handler, path })
   }
 
   public unsubscribe(handler: (state: T) => Promise<void>) {
-    this.removeListener(ObservableStorageEvent.StateUpdated, handler)
-  }
-
-  private updatePartial<O extends Record<string, any>>(
-    target: O,
-    updates: RecursivePartial<O>
-  ) {
-    for (const [key, value] of Object.entries(updates)) {
-      if (value instanceof Object) {
-        if (!target[key]) {
-          target[key as keyof O] = {} as typeof value
-        }
-        this.updatePartial(target[key], value)
-      } else {
-        target[key as keyof O] = value
+    for (let i = 0; i < this.subscribers.length; i++) {
+      if (handler === this.subscribers[i].handler) {
+        this.subscribers.splice(i, 1)
+        break
       }
     }
+  }
+
+  private applyUpdates(draft: Draft<T>, updates: RecursivePartial<T>) {
+    Object.entries(updates).forEach(([k, v]) => {
+      if (v instanceof Object) {
+        if (!draft[k]) {
+          draft[k as keyof Draft<T>] = {} as typeof v
+        }
+        this.applyUpdates(draft[k], v)
+      } else {
+        draft[k as keyof Draft<T>] = v
+      }
+    })
   }
 }
