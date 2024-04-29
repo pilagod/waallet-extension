@@ -6,6 +6,7 @@ import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import { useAccount } from "~app/storage"
+import { format } from "~packages/util/json"
 import type { HexString } from "~typing"
 
 export function Info() {
@@ -235,13 +236,7 @@ const transactionsCrawler = async (type: transactionType, url: string) => {
 
     const blocks: number[] = [...blocksSet]
 
-    console.log(
-      `hashes: ${JSON.stringify(hashes, null, 2)}\nblocks: ${JSON.stringify(
-        blocks,
-        null,
-        2
-      )}`
-    )
+    console.log(`hashes: ${format(hashes)}\nblocks: ${format(blocks)}`)
 
     return Promise.resolve(hashes)
   } catch (error) {

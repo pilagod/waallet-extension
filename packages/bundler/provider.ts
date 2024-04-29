@@ -126,7 +126,7 @@ export class BundlerProvider {
           resolve(await this.getUserOperationByHash(userOpHash))
         }, 1000)
       })
-      if (res) {
+      if (res && res.transactionHash) {
         return res.transactionHash
       }
     }

@@ -158,14 +158,15 @@ function UserOperationConfirmation(props: {
         <h1>Paymaster Option</h1>
         {paymentOptions.map((o, i) => {
           const id = i.toString()
+          const isSelected = o.name === payment.option.name
           return (
             <div key={i}>
               <input
                 type="checkbox"
                 id={id}
                 name={o.name}
-                checked={o.name === payment.option.name}
-                disabled={paymentCalculating}
+                checked={isSelected}
+                disabled={paymentCalculating || isSelected}
                 onChange={() => onPaymentOptionSelected(o)}
               />
               <label htmlFor={id}>{o.name}</label>

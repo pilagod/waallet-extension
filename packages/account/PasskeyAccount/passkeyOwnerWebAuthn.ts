@@ -4,7 +4,7 @@ import * as ethers from "ethers"
 import browser from "webextension-polyfill"
 
 import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
-import json from "~packages/util/json"
+import { format } from "~packages/util/json"
 import { requestWebAuthn } from "~packages/webAuthn"
 import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
 import type { B64UrlString, BytesLike } from "~typing"
@@ -33,10 +33,8 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       ? this.authenticateInPlace(challengeB64Url)
       : this.authenticateInBackground(challengeB64Url, metadata))
     console.log(
-      `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${json.stringify(
-        webAuthnAuthentication,
-        null,
-        2
+      `[passkeyOwnerWebAuthn] webAuthnAuthentication: ${format(
+        webAuthnAuthentication
       )}`
     )
     const signature = ethers.AbiCoder.defaultAbiCoder().encode(
