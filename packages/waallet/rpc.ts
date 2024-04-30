@@ -1,5 +1,10 @@
 import { type UserOperationData } from "~packages/bundler"
-import type { BigNumberish, HexString, OptionalPick } from "~typing"
+import type {
+  BigNumberish,
+  HexString,
+  OptionalPick,
+  RecursivePartial
+} from "~typing"
 
 export enum WaalletRpcMethod {
   eth_accounts = "eth_accounts",
@@ -13,6 +18,7 @@ export enum WaalletRpcMethod {
 }
 
 export type WaalletRequestArguments =
+  | DefaultArguments
   | EthEstimateGasArguments
   | EthEstimateUserOperationGasArguments
   | EthSendTransactionArguments
@@ -24,6 +30,11 @@ export type WaalletRequestArguments =
         | WaalletRpcMethod.eth_chainId
         | WaalletRpcMethod.eth_requestAccounts
     }
+
+export type DefaultArguments = {
+  method: string
+  params?: [any]
+}
 
 export type EthEstimateGasArguments = {
   method: WaalletRpcMethod.eth_estimateGas

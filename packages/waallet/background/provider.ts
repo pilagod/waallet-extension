@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import type { AccountManager } from "~packages/account/manager"
 import { UserOperation } from "~packages/bundler"
+import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import type { NetworkManager } from "~packages/network/manager"
 import { type Paymaster } from "~packages/paymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
@@ -10,6 +11,7 @@ import type { BigNumberish, HexString } from "~typing"
 
 import {
   WaalletRpcMethod,
+  type DefaultArguments,
   type EthEstimateGasArguments,
   type EthEstimateUserOperationGasArguments,
   type EthSendTransactionArguments,
@@ -64,6 +66,9 @@ export class WaalletBackgroundProvider {
           args.params[1]
         ) as T
       default:
+        if (args.method in BundlerRpcMethod) {
+          return new JsonRpcProvider(bundler.url).send(args)
+        }
         return new JsonRpcProvider(node.url).send(args)
     }
   }
