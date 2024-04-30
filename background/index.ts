@@ -4,7 +4,7 @@ import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { UserOperationStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 // TODO: Rename to local storage
-import { getStorage } from "./storage"
+import { getStorage } from "./storage/local"
 import { getSessionStorage } from "./storage/session"
 
 console.log(

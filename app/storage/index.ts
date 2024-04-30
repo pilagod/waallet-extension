@@ -10,7 +10,7 @@ import {
   UserOperationStatus,
   type State,
   type UserOperationStatement
-} from "~background/storage"
+} from "~background/storage/local"
 import type { UserOperationData } from "~packages/bundler"
 
 const storageMessenger = new StorageMessenger()
