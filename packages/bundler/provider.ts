@@ -116,6 +116,10 @@ export class BundlerProvider {
     return userOpHash
   }
 
+  public async send<T>(args: { method: string; params?: any[] }): Promise<T> {
+    return this.bundler.send(args) as T
+  }
+
   public async wait(userOpHash: HexString): Promise<HexString> {
     if (this.mode === BundlerMode.Manual) {
       await this.debugSendBundleNow()
