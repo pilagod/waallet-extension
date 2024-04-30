@@ -31,21 +31,6 @@ export class UserOperationSender implements UserOperationPool {
     userOp.setSignature(
       await account.sign(userOp.hash(entryPointAddress, chainId))
     )
-    // const userOpAuthorized = await this.userOperationAuthorizer.authorize(
-    //   userOp,
-    //   {
-    //     onApproved: async (userOpAuthorized, metadata) => {
-    //       const { account } = await this.accountManager.get(senderId)
-    //       userOpAuthorized.setSignature(
-    //         await account.sign(
-    //           userOpAuthorized.hash(entryPointAddress, chainId),
-    //           metadata
-    //         )
-    //       )
-    //       return userOpAuthorized
-    //     }
-    //   }
-    // )
     const userOpHash = await bundler.sendUserOperation(
       userOp,
       entryPointAddress
