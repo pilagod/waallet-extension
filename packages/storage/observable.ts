@@ -66,13 +66,13 @@ export class ObservableStorage<T extends Record<string, any>> {
   }
 
   public subscribe(
-    handler: (state: T) => Promise<void>,
+    handler: (state: T, patches: Patch[]) => Promise<void>,
     path?: (string | number)[]
   ) {
     this.subscribers.push({ handler, path })
   }
 
-  public unsubscribe(handler: (state: T) => Promise<void>) {
+  public unsubscribe(handler: (state: T, pathces: Patch[]) => Promise<void>) {
     for (let i = 0; i < this.subscribers.length; i++) {
       if (handler === this.subscribers[i].handler) {
         this.subscribers.splice(i, 1)

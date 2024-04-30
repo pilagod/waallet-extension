@@ -1,5 +1,10 @@
 import browser from "webextension-polyfill"
 
+import {
+  UserOperationStatus,
+  type UserOperationStatement
+} from "~background/storage"
+
 import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { UserOperationStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
@@ -52,6 +57,32 @@ async function main() {
       })
     }
   })
+
+  // @dev: Trigger popup when new pending user op is added into the pool.
+  storage.subscribe(
+    async (state, patches) => {
+      const newPendingUserOpStmts = patches.filter(
+        (p) =>
+          p.op === "add" &&
+          (p.value as UserOperationStatement).status ===
+            UserOperationStatus.Pending
+      )
+      if (newPendingUserOpStmts.length === 0) {
+        return
+      }
+      if (sessionStorage.get().isPopupOpened) {
+        return
+      }
+      await browser.windows.create({
+        url: browser.runtime.getURL("popup.html"),
+        focused: true,
+        type: "popup",
+        width: 480,
+        height: 720
+      })
+    },
+    ["userOpPool"]
+  )
 }
 
 main()
