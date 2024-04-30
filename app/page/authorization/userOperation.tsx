@@ -111,11 +111,11 @@ function UserOperationConfirmation(props: {
           userOp.hash(userOpStmt.entryPointAddress, network.chainId)
         )
       )
-      await provider.send(WaalletRpcMethod.eth_sendUserOperation, [
-        userOp.data(),
-        userOpStmt.entryPointAddress
-      ])
-      markUserOperationSent(userOpStmt.id, userOp.data())
+      const userOpHash = await provider.send(
+        WaalletRpcMethod.eth_sendUserOperation,
+        [userOp.data(), userOpStmt.entryPointAddress]
+      )
+      markUserOperationSent(userOpStmt.id, userOpHash, userOp.data())
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)
@@ -158,14 +158,15 @@ function UserOperationConfirmation(props: {
         <h1>Paymaster Option</h1>
         {paymentOptions.map((o, i) => {
           const id = i.toString()
+          const isSelected = o.name === payment.option.name
           return (
             <div key={i}>
               <input
                 type="checkbox"
                 id={id}
                 name={o.name}
-                checked={o.name === payment.option.name}
-                disabled={paymentCalculating}
+                checked={isSelected}
+                disabled={paymentCalculating || isSelected}
                 onChange={() => onPaymentOptionSelected(o)}
               />
               <label htmlFor={id}>{o.name}</label>

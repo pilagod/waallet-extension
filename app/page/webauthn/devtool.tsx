@@ -3,7 +3,7 @@ import { runtime, type Runtime } from "webextension-polyfill"
 
 import { sendToContentScript } from "@plasmohq/messaging"
 
-import json from "~packages/util/json"
+import { format } from "~packages/util/json"
 import { objectFromUrlParams } from "~packages/util/url"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
 import {
@@ -56,9 +56,7 @@ export function WebAuthnDevtool() {
     }
     setPort(runtimePort)
     runtimePort.onMessage.addListener((message) => {
-      console.log(
-        `[tab][createWebAuthn] runtimePort: ${json.stringify(message, null, 2)}`
-      )
+      console.log(`[tab][createWebAuthn] runtimePort: ${format(message)}`)
     })
     return () => {
       // Disconnect the port
@@ -90,11 +88,7 @@ export function WebAuthnDevtool() {
       body: webAuthnRequest
     } as ContentRequestArguments
     console.log(
-      `[tab][createWebAuthnViaContents] contentReq: ${json.stringify(
-        contentReq,
-        null,
-        2
-      )}`
+      `[tab][createWebAuthnViaContents] contentReq: ${format(contentReq)}`
     )
 
     // When requesting the Content Script to create a WebAuthn, the response is consistently undefined.
@@ -107,9 +101,7 @@ export function WebAuthnDevtool() {
       const cred = await createWebAuthn(webAuthnCreation)
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
-      console.log(
-        `[tab][createWebAuthn] credential: ${json.stringify(cred, null, 2)}`
-      )
+      console.log(`[tab][createWebAuthn] credential: ${format(cred)}`)
       setCredential(cred)
 
       // send to background that create this window
@@ -138,9 +130,7 @@ export function WebAuthnDevtool() {
       )
       // Resolve TypeError: Do not know how to serialize a BigInt
       // Refer: https://github.com/GoogleChromeLabs/jsbi/issues/30
-      console.log(
-        `[tab][requestWebAuthn] signature: ${json.stringify(sig, null, 2)}`
-      )
+      console.log(`[tab][requestWebAuthn] signature: ${format(sig)}`)
       setSignature(sig)
 
       // send to background that create this window
@@ -187,14 +177,14 @@ export function WebAuthnDevtool() {
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn credential: {json.stringify(credential, null, 2)}</p>
+          <p>WebAuthn credential: {format(credential)}</p>
         </div>
       )}
       {signature === undefined ? (
         <div></div>
       ) : (
         <div>
-          <p>WebAuthn signature: {json.stringify(signature, null, 2)}</p>
+          <p>WebAuthn signature: {format(signature)}</p>
         </div>
       )}
     </>
