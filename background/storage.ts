@@ -127,7 +127,7 @@ export type State = {
     [id: string]: Paymaster
   }
   userOpPool: {
-    [userOpId: string]: UserOperationStatement
+    [userOpId: string]: UserOperationLog
   }
 }
 
@@ -182,7 +182,7 @@ export enum UserOperationStatus {
   Failed = "Failed"
 }
 
-export type UserOperationStatement = {
+export type UserOperationLog = {
   id: string
   userOp: UserOperationData
   senderId: string
