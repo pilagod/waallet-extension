@@ -11,7 +11,6 @@ import type { BigNumberish, HexString } from "~typing"
 
 import {
   WaalletRpcMethod,
-  type DefaultArguments,
   type EthEstimateGasArguments,
   type EthEstimateUserOperationGasArguments,
   type EthSendTransactionArguments,

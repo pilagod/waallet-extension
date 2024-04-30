@@ -25,27 +25,6 @@ interface Storage {
     userOpHash: HexString,
     userOp: UserOperationData
   ) => void
-  markUserOperationSucceeded: (
-    userOpId: string,
-    userOp: UserOperationData,
-    receipt: {
-      userOpHash: HexString
-      transactionHash: HexString
-      blockHash: HexString
-      blockNumber: HexString
-    }
-  ) => void
-  markUserOperationFailed: (
-    userOpId: string,
-    userOp: UserOperationData,
-    receipt: {
-      userOpHash: HexString
-      transactionHash: HexString
-      blockHash: HexString
-      blockNumber: HexString
-      errorMessage: string
-    }
-  ) => void
 }
 
 // @dev: This middleware sends state into background instead of store.
@@ -85,45 +64,6 @@ export const useStorage = create<Storage>()(
         userOpStmt.status = UserOperationStatus.Sent
         ;(userOpStmt as UserOperationSent).receipt = {
           userOpHash
-        }
-      })
-    },
-    markUserOperationSucceeded: (
-      userOpId: string,
-      userOp: UserOperationData,
-      receipt: {
-        userOpHash: HexString
-        transactionHash: HexString
-        blockHash: HexString
-        blockNumber: HexString
-      }
-    ) => {
-      set(({ state }) => {
-        const userOpStmt = state.userOpPool[userOpId]
-        userOpStmt.userOp = userOp
-        userOpStmt.status = UserOperationStatus.Succeeded
-        if (userOpStmt.status === UserOperationStatus.Succeeded) {
-          userOpStmt.receipt = receipt
-        }
-      })
-    },
-    markUserOperationFailed: (
-      userOpId: string,
-      userOp: UserOperationData,
-      receipt: {
-        userOpHash: HexString
-        transactionHash: HexString
-        blockHash: HexString
-        blockNumber: HexString
-        errorMessage: string
-      }
-    ) => {
-      set(({ state }) => {
-        const userOpStmt = state.userOpPool[userOpId]
-        userOpStmt.userOp = userOp
-        userOpStmt.status = UserOperationStatus.Failed
-        if (userOpStmt.status === UserOperationStatus.Failed) {
-          userOpStmt.receipt = receipt
         }
       })
     }
@@ -166,13 +106,5 @@ export const usePendingUserOperationStatements = (
 ) => {
   return useUserOperationStatements((userOp) => {
     return userOp.status === UserOperationStatus.Pending && filter(userOp)
-  })
-}
-
-export const useSentUserOperationStatements = (
-  filter: (userOp: UserOperationStatement) => boolean = () => true
-) => {
-  return useUserOperationStatements((userOp) => {
-    return userOp.status === UserOperationStatus.Sent && filter(userOp)
   })
 }

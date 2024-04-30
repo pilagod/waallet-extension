@@ -5,22 +5,13 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
-import {
-  useAccount,
-  useNetwork,
-  useSentUserOperationStatements,
-  useStorage,
-  useUserOperationStatements
-} from "~app/storage"
+import { useAccount, useUserOperationStatements } from "~app/storage"
 import {
   UserOperationStatus,
   type UserOperationStatement
 } from "~background/storage"
 import { UserOperation } from "~packages/bundler"
-import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
-import { NodeProvider } from "~packages/node/provider"
 import address from "~packages/util/address"
-import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
 type UserOperationData = {
@@ -32,32 +23,12 @@ export function Info() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()
-  const sentUserOpStmts = useSentUserOperationStatements()
   const userOpStmts = useUserOperationStatements()
   const account = useAccount()
-  const network = useNetwork()
-
-  const [node, setNode] = useState<NodeProvider>(
-    new NodeProvider(network.nodeRpcUrl)
-  )
-  const [bundler, setBundler] = useState<BundlerProvider>(
-    new BundlerProvider(
-      network.bundlerRpcUrl,
-      network.chainId === 1337 ? BundlerMode.Manual : BundlerMode.Auto // 1337 is local testnet
-    )
-  )
-
   const [chainName, setChainName] = useState<string>("")
   const [balance, setBalance] = useState<bigint>(0n)
   const [balanceLoading, setBalanceLoading] = useState<boolean>(false)
   const [userOpsData, setUserOpsData] = useState<UserOperationData[]>([])
-
-  const markUserOperationSucceeded = useStorage(
-    (storage) => storage.markUserOperationSucceeded
-  )
-  const markUserOperationFailed = useStorage(
-    (storage) => storage.markUserOperationFailed
-  )
 
   useEffect(() => {
     // Retrieve chainName when the Info page is opened
@@ -91,71 +62,6 @@ export function Info() {
     const userOpsData = getUserOpsData(userOpStmts, account.chainId)
     setUserOpsData(userOpsData)
   }, [userOpStmts])
-
-  useEffect(() => {
-    // Update node and bundler when network change
-    setNode(new NodeProvider(network.nodeRpcUrl))
-    setBundler(
-      new BundlerProvider(
-        network.bundlerRpcUrl,
-        network.chainId === 1337 ? BundlerMode.Manual : BundlerMode.Auto // 1337 is local testnet
-      )
-    )
-  }, [network])
-
-  useEffect(() => {
-    // Check if the broadcasted userOp has been executed successfully or unsuccessfully when sentUserOpStmts changes
-    const asyncFn = async () => {
-      sentUserOpStmts.forEach(async (sentUserOpStmt) => {
-        const userOp = new UserOperation(sentUserOpStmt.userOp)
-        const userOpHash = userOp.hash(
-          sentUserOpStmt.entryPointAddress,
-          account.chainId
-        )
-        const transactionHash = await bundler.wait(userOpHash)
-        const receipt = await node.getTransactionReceipt(transactionHash)
-
-        let status = -1
-        let blockHash = ""
-        let blockNumber = ""
-        let errorMessage = ""
-        if (receipt) {
-          //   const call = await node.call(receipt)
-          //   console.log(`[tttttt] call: ${call}`)
-          status = receipt.status
-          blockHash = receipt.blockHash
-          blockNumber = number.toHex(receipt.blockNumber)
-          errorMessage = (await bundler.getUserOperationReceipt(userOpHash))
-            .reason
-        }
-
-        switch (status) {
-          // '1' indicates a success, '0' indicates a revert, '-1' indicates a null.
-          case 0:
-            markUserOperationFailed(sentUserOpStmt.id, userOp.data(), {
-              userOpHash: userOpHash,
-              transactionHash: transactionHash,
-              blockHash: blockHash,
-              blockNumber: blockNumber,
-              errorMessage: errorMessage
-            })
-            break
-          case 1:
-            markUserOperationSucceeded(sentUserOpStmt.id, userOp.data(), {
-              userOpHash: userOpHash,
-              transactionHash: transactionHash,
-              blockHash: blockHash,
-              blockNumber: blockNumber
-            })
-            break
-          default:
-            break
-        }
-      })
-    }
-
-    asyncFn()
-  }, [sentUserOpStmts, node, bundler])
 
   return (
     <NavbarLayout>
