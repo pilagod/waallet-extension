@@ -18,6 +18,7 @@ const storageMessenger = new StorageMessenger()
 // TODO: Split as slices
 interface Storage {
   state: State
+  markUserOperationRejected: (userOpId: string) => void
   markUserOperationSent: (userOpId: string, userOp: UserOperationData) => void
 }
 
@@ -47,6 +48,12 @@ const background: typeof immer<Storage> = (initializer) => {
 export const useStorage = create<Storage>()(
   background((set) => ({
     state: null,
+    markUserOperationRejected: (userOpId: string) => {
+      set(({ state }) => {
+        const userOpStmt = state.userOpPool[userOpId]
+        userOpStmt.status = UserOperationStatus.Rejected
+      })
+    },
     markUserOperationSent: (userOpId: string, userOp: UserOperationData) => {
       set(({ state }) => {
         const userOpStmt = state.userOpPool[userOpId]
