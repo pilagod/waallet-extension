@@ -1,33 +1,12 @@
 import config from "~config/test"
-import { UserOperation } from "~packages/bundler"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
-import type {
-  UserOperationAuthorizeCallback,
-  UserOperationAuthorizer
-} from "~packages/waallet/background/authorizer/userOperation"
 import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
 import { VerifyingPaymaster } from "./index"
 
 describeWaalletSuite("Verifying Paymaster", (ctx) => {
-  const { bundler, node } = config.networkManager.getActive()
-
-  class VerifyingPaymasterUserOperationAuthorizer
-    implements UserOperationAuthorizer
-  {
-    public constructor(private verifyingPaymaster: VerifyingPaymaster) {}
-
-    public async authorize(
-      userOp: UserOperation,
-      { onApproved }: UserOperationAuthorizeCallback
-    ) {
-      userOp.setPaymasterAndData(
-        await this.verifyingPaymaster.requestPaymasterAndData(node, userOp)
-      )
-      return onApproved(userOp)
-    }
-  }
+  const { node } = config.networkManager.getActive()
 
   const verifyingPaymaster = new VerifyingPaymaster({
     address: config.address.VerifyingPaymaster,
@@ -41,7 +20,11 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
       userOperationPool: new UserOperationSender(
         ctx.provider.accountManager,
         ctx.provider.networkManager,
-        new VerifyingPaymasterUserOperationAuthorizer(verifyingPaymaster)
+        async (userOp) => {
+          userOp.setPaymasterAndData(
+            await verifyingPaymaster.requestPaymasterAndData(node, userOp)
+          )
+        }
       )
     })
   })

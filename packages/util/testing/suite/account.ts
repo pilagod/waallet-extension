@@ -5,7 +5,6 @@ import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import type { ContractRunner } from "~packages/node"
 import byte from "~packages/util/byte"
-import { NullUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/null"
 import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -37,8 +36,7 @@ export function describeAccountSuite<T extends Account>(
         accountManager,
         userOperationPool: new UserOperationSender(
           accountManager,
-          config.networkManager,
-          new NullUserOperationAuthorizer()
+          config.networkManager
         )
       })
       await (
