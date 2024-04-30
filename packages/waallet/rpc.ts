@@ -1,10 +1,5 @@
 import { type UserOperationData } from "~packages/bundler"
-import type {
-  BigNumberish,
-  HexString,
-  OptionalPick,
-  RecursivePartial
-} from "~typing"
+import type { BigNumberish, HexString, OptionalPick } from "~typing"
 
 export enum WaalletRpcMethod {
   eth_accounts = "eth_accounts",

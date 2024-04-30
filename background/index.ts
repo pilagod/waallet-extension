@@ -6,8 +6,6 @@ import {
 } from "~background/storage"
 import { UserOperation } from "~packages/bundler"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
-import { JsonRpcProvider } from "~packages/rpc/json/provider"
-import json from "~packages/util/json"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
