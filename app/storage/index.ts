@@ -9,16 +9,22 @@ import {
   StorageMessenger,
   UserOperationStatus,
   type State,
+  type UserOperationSent,
   type UserOperationStatement
 } from "~background/storage"
 import type { UserOperationData } from "~packages/bundler"
+import type { HexString } from "~typing"
 
 const storageMessenger = new StorageMessenger()
 
 // TODO: Split as slices
 interface Storage {
   state: State
-  markUserOperationSent: (userOpId: string, userOp: UserOperationData) => void
+  markUserOperationSent: (
+    userOpId: string,
+    userOpHash: HexString,
+    userOp: UserOperationData
+  ) => void
 }
 
 // @dev: This middleware sends state into background instead of store.
@@ -47,11 +53,18 @@ const background: typeof immer<Storage> = (initializer) => {
 export const useStorage = create<Storage>()(
   background((set) => ({
     state: null,
-    markUserOperationSent: (userOpId: string, userOp: UserOperationData) => {
+    markUserOperationSent: (
+      userOpId: string,
+      userOpHash: HexString,
+      userOp: UserOperationData
+    ) => {
       set(({ state }) => {
         const userOpStmt = state.userOpPool[userOpId]
         userOpStmt.userOp = userOp
         userOpStmt.status = UserOperationStatus.Sent
+        ;(userOpStmt as UserOperationSent).receipt = {
+          userOpHash
+        }
       })
     }
   }))
