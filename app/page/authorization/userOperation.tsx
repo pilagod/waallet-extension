@@ -111,11 +111,11 @@ function UserOperationConfirmation(props: {
           userOp.hash(userOpStmt.entryPointAddress, network.chainId)
         )
       )
-      await provider.send(WaalletRpcMethod.eth_sendUserOperation, [
-        userOp.data(),
-        userOpStmt.entryPointAddress
-      ])
-      markUserOperationSent(userOpStmt.id, userOp.data())
+      const userOpHash = await provider.send(
+        WaalletRpcMethod.eth_sendUserOperation,
+        [userOp.data(), userOpStmt.entryPointAddress]
+      )
+      markUserOperationSent(userOpStmt.id, userOpHash, userOp.data())
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)
