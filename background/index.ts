@@ -2,8 +2,8 @@ import browser from "webextension-polyfill"
 
 import {
   UserOperationStatus,
-  type UserOperationStatement
-} from "~background/storage"
+  type UserOperationLog
+} from "~background/storage/local"
 
 import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { UserOperationStoragePool } from "./pool"
@@ -61,13 +61,12 @@ async function main() {
   // @dev: Trigger popup when new pending user op is added into the pool.
   storage.subscribe(
     async (state, patches) => {
-      const newPendingUserOpStmts = patches.filter(
+      const newPendingUserOpLogs = patches.filter(
         (p) =>
           p.op === "add" &&
-          (p.value as UserOperationStatement).status ===
-            UserOperationStatus.Pending
+          (p.value as UserOperationLog).status === UserOperationStatus.Pending
       )
-      if (newPendingUserOpStmts.length === 0) {
+      if (newPendingUserOpLogs.length === 0) {
         return
       }
       if (sessionStorage.get().isPopupOpened) {
