@@ -60,7 +60,7 @@ async function main() {
 
   // @dev: Trigger popup when new pending user op is added into the pool.
   storage.subscribe(
-    async (state, patches) => {
+    async (_, patches) => {
       const newPendingUserOpLogs = patches.filter(
         (p) =>
           p.op === "add" &&
