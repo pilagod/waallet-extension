@@ -21,8 +21,8 @@ export class UserOperationStoragePool implements UserOperationPool {
   }) {
     const id = uuidv4()
 
-    this.storage.set((draft) => {
-      draft.userOpPool[id] = {
+    this.storage.set((state) => {
+      state.userOpPool[id] = {
         id,
         userOp: data.userOp.data(),
         senderId: data.senderId,
