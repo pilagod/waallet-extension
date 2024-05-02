@@ -1,7 +1,5 @@
-import { produce } from "immer"
 import browser from "webextension-polyfill"
-import { create } from "zustand"
-import { immer } from "zustand/middleware/immer"
+import { create, type StoreApi } from "zustand"
 import { useShallow } from "zustand/react/shallow"
 
 import {
@@ -11,67 +9,71 @@ import {
   type State,
   type UserOperationLog,
   type UserOperationSent
-} from "~background/storage"
+} from "~background/storage/local"
 import type { UserOperationData } from "~packages/bundler"
 import type { HexString } from "~typing"
+
+import { background } from "./middleware/background"
 
 const storageMessenger = new StorageMessenger()
 
 // TODO: Split as slices
 interface Storage {
   state: State
+  markUserOperationRejected: (userOpId: string) => void
   markUserOperationSent: (
     userOpId: string,
     userOpHash: HexString,
     userOp: UserOperationData
-  ) => void
+  ) => Promise<void>
 }
 
-// @dev: This middleware sends state into background instead of store.
-// To apply new state, listen to background message and call `setState` on store with background state.
-const background: typeof immer<Storage> = (initializer) => {
-  return (set, get, store) => {
-    const sendToBackground: typeof set = async (partial) => {
-      const nextStorage =
-        typeof partial === "function"
-          ? produce<Storage>(partial as any)(get())
-          : partial
-      // NOTE: Skip replace flag to avoid accidently erasing whole storage.
-      await storageMessenger.set(nextStorage.state)
-    }
-    browser.runtime.onMessage.addListener((message) => {
-      if (message.action !== StorageAction.Sync) {
-        return
-      }
-      console.log("[popup] Receive state update from background")
-      store.setState({ state: message.state })
-    })
-    return initializer(sendToBackground, get, store)
-  }
-}
-
+// @dev: This background middleware sends state first into background storage.
+// To apply new state, listen to background message in `sync` function and call `set` to update app state.
 export const useStorage = create<Storage>()(
-  background((set) => ({
-    state: null,
-    markUserOperationSent: (
-      userOpId: string,
-      userOpHash: HexString,
-      userOp: UserOperationData
-    ) => {
-      set(({ state }) => {
-        const userOpLog = state.userOpPool[userOpId]
-        userOpLog.userOp = userOp
-        userOpLog.status = UserOperationStatus.Sent
-        ;(userOpLog as UserOperationSent).receipt = {
-          userOpHash
-        }
-      })
+  background(
+    (set) => ({
+      state: null,
+      markUserOperationRejected: async (userOpId: string) => {
+        await set(({ state }) => {
+          const userOpLog = state.userOpPool[userOpId]
+          userOpLog.status = UserOperationStatus.Rejected
+        })
+      },
+      markUserOperationSent: async (
+        userOpId: string,
+        userOpHash: HexString,
+        userOp: UserOperationData
+      ) => {
+        await set(({ state }) => {
+          const userOpLog = state.userOpPool[userOpId]
+          userOpLog.userOp = userOp
+          userOpLog.status = UserOperationStatus.Sent
+          ;(userOpLog as UserOperationSent).receipt = {
+            userOpHash
+          }
+        })
+      }
+    }),
+    {
+      async set(storage: Storage) {
+        await storageMessenger.set(storage.state)
+      },
+      sync(set: StoreApi<Storage>["setState"]) {
+        browser.runtime.onMessage.addListener((message) => {
+          if (message.action !== StorageAction.Sync) {
+            return
+          }
+          console.log("[popup] Receive state update from background")
+          set({ state: message.state })
+        })
+      }
     }
-  }))
+  )
 )
 
 storageMessenger.get().then((state) => {
-  useStorage.setState({ state })
+  useStorage.setStateLocally({ state })
 })
 
 /* Custom Hooks */

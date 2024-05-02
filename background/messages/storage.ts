@@ -1,6 +1,6 @@
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
-import { getStorage, StorageAction } from "~background/storage"
+import { getStorage, StorageAction } from "~background/storage/local"
 
 async function handler(
   req: PlasmoMessaging.Request,

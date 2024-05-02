@@ -12,7 +12,7 @@ import {
   usePendingUserOperationLogs,
   useStorage
 } from "~app/storage"
-import type { Account, UserOperationLog } from "~background/storage"
+import type { Account, UserOperationLog } from "~background/storage/local"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
@@ -64,9 +64,6 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   ]
   const [, navigate] = useHashLocation()
   const { provider } = useProviderContext()
-  const markUserOperationSent = useStorage(
-    (storage) => storage.markUserOperationSent
-  )
   const network = useNetwork(userOpLog.networkId)
   const sender = useAccount(userOpLog.senderId)
   const [userOp, setUserOp] = useClsState<UserOperation>(
@@ -99,6 +96,9 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     setUserOp(userOp)
   }
 
+  const markUserOperationSent = useStorage(
+    (storage) => storage.markUserOperationSent
+  )
   const sendUserOperation = async () => {
     setUserOpSending(true)
 
@@ -113,12 +113,21 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
         WaalletRpcMethod.eth_sendUserOperation,
         [userOp.data(), userOpLog.entryPointAddress]
       )
-      markUserOperationSent(userOpLog.id, userOpHash, userOp.data())
+      await markUserOperationSent(userOpLog.id, userOpHash, userOp.data())
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)
       setUserOpSending(false)
     }
+  }
+
+  const markUserOperationRejected = useStorage(
+    (storage) => storage.markUserOperationRejected
+  )
+  const rejectUserOperation = async () => {
+    markUserOperationRejected(userOpLog.id)
+    navigate(Path.Index)
+    return
   }
 
   useDeepCompareEffectNoCheck(() => {
@@ -195,9 +204,8 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
           onClick={() => sendUserOperation()}>
           Send
         </button>
-        {/* TODO: Change to reject */}
-        <button disabled={userOpSending} onClick={() => navigate(Path.Index)}>
-          Cancel
+        <button disabled={userOpSending} onClick={() => rejectUserOperation()}>
+          Reject
         </button>
       </div>
     </div>
