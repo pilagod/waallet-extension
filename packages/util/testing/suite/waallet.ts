@@ -2,7 +2,6 @@ import config from "~config/test"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
-import { NullUserOperationAuthorizer } from "~packages/waallet/background/authorizer/userOperation/null"
 import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 
@@ -29,11 +28,7 @@ export function describeWaalletSuite(
         accountManager,
         config.networkManager,
         new NullPaymaster(),
-        new UserOperationSender(
-          accountManager,
-          config.networkManager,
-          new NullUserOperationAuthorizer()
-        )
+        new UserOperationSender(accountManager, config.networkManager)
       )
     })
 
