@@ -66,9 +66,6 @@ function UserOperationConfirmation(props: {
   ]
   const [, navigate] = useHashLocation()
   const { provider } = useProviderContext()
-  const markUserOperationSent = useStorage(
-    (storage) => storage.markUserOperationSent
-  )
   const network = useNetwork(userOpStmt.networkId)
   const sender = useAccount(userOpStmt.senderId)
   const [userOp, setUserOp] = useClsState<UserOperation>(
@@ -101,6 +98,9 @@ function UserOperationConfirmation(props: {
     setUserOp(userOp)
   }
 
+  const markUserOperationSent = useStorage(
+    (storage) => storage.markUserOperationSent
+  )
   const sendUserOperation = async () => {
     setUserOpSending(true)
 
@@ -121,6 +121,15 @@ function UserOperationConfirmation(props: {
       console.error(e)
       setUserOpSending(false)
     }
+  }
+
+  const markUserOperationRejected = useStorage(
+    (storage) => storage.markUserOperationRejected
+  )
+  const rejectUserOperation = async () => {
+    markUserOperationRejected(userOpStmt.id)
+    navigate(Path.Index)
+    return
   }
 
   useDeepCompareEffectNoCheck(() => {
@@ -197,9 +206,8 @@ function UserOperationConfirmation(props: {
           onClick={() => sendUserOperation()}>
           Send
         </button>
-        {/* TODO: Change to reject */}
-        <button disabled={userOpSending} onClick={() => navigate(Path.Index)}>
-          Cancel
+        <button disabled={userOpSending} onClick={() => rejectUserOperation()}>
+          Reject
         </button>
       </div>
     </div>

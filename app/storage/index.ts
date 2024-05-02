@@ -20,6 +20,7 @@ const storageMessenger = new StorageMessenger()
 // TODO: Split as slices
 interface Storage {
   state: State
+  markUserOperationRejected: (userOpId: string) => void
   markUserOperationSent: (
     userOpId: string,
     userOpHash: HexString,
@@ -33,6 +34,12 @@ export const useStorage = create<Storage>()(
   background(
     (set) => ({
       state: null,
+      markUserOperationRejected: async (userOpId: string) => {
+        await set(({ state }) => {
+          const userOpStmt = state.userOpPool[userOpId]
+          userOpStmt.status = UserOperationStatus.Rejected
+        })
+      },
       markUserOperationSent: async (
         userOpId: string,
         userOpHash: HexString,
