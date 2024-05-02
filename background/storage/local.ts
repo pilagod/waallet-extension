@@ -190,29 +190,45 @@ export type UserOperationStatement = {
   networkId: string
   entryPointAddress: string
 } & (
-  | {
-      status:
-        | UserOperationStatus.Pending
-        | UserOperationStatus.Rejected
-        | UserOperationStatus.Sent
-    }
-  | {
-      status: UserOperationStatus.Succeeded
-      receipt: {
-        userOpHash: HexString
-        transactionHash: HexString
-        blockHash: HexString
-        blockNumber: HexString
-      }
-    }
-  | {
-      status: UserOperationStatus.Failed
-      receipt: {
-        userOpHash: HexString
-        transactionHash: HexString
-        blockHash: HexString
-        blockNumber: HexString
-        errorMessage: string
-      }
-    }
+  | UserOperationPending
+  | UserOperationRejected
+  | UserOperationSent
+  | UserOperationSucceeded
+  | UserOperationFailed
 )
+
+export type UserOperationPending = {
+  status: UserOperationStatus.Pending
+}
+
+export type UserOperationRejected = {
+  status: UserOperationStatus.Rejected
+}
+
+export type UserOperationSent = {
+  status: UserOperationStatus.Sent
+  receipt: {
+    userOpHash: HexString
+  }
+}
+
+export type UserOperationSucceeded = {
+  status: UserOperationStatus.Succeeded
+  receipt: {
+    userOpHash: HexString
+    transactionHash: HexString
+    blockHash: HexString
+    blockNumber: HexString
+  }
+}
+
+export type UserOperationFailed = {
+  status: UserOperationStatus.Failed
+  receipt: {
+    userOpHash: HexString
+    transactionHash: HexString
+    blockHash: HexString
+    blockNumber: HexString
+    errorMessage: string
+  }
+}

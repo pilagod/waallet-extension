@@ -12,7 +12,7 @@ import {
   usePendingUserOperationStatements,
   useStorage
 } from "~app/storage"
-import type { Account, UserOperationStatement } from "~background/storage"
+import type { Account, UserOperationStatement } from "~background/storage/local"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
@@ -111,11 +111,11 @@ function UserOperationConfirmation(props: {
           userOp.hash(userOpStmt.entryPointAddress, network.chainId)
         )
       )
-      await provider.send(WaalletRpcMethod.eth_sendUserOperation, [
-        userOp.data(),
-        userOpStmt.entryPointAddress
-      ])
-      markUserOperationSent(userOpStmt.id, userOp.data())
+      const userOpHash = await provider.send(
+        WaalletRpcMethod.eth_sendUserOperation,
+        [userOp.data(), userOpStmt.entryPointAddress]
+      )
+      await markUserOperationSent(userOpStmt.id, userOpHash, userOp.data())
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)
