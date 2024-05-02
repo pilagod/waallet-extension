@@ -8,7 +8,7 @@ import type {
 } from "~packages/waallet/background/pool/userOperation"
 import type { HexString } from "~typing"
 
-import { UserOperationStatus, type State } from "./storage"
+import { UserOperationStatus, type State } from "./storage/local"
 
 export class UserOperationStoragePool implements UserOperationPool {
   public constructor(private storage: ObservableStorage<State>) {}

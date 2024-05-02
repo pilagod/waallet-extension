@@ -12,7 +12,7 @@ import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
 import { WebAuthnRegistration } from "~app/page/webauthn/registration"
 import { Path } from "~app/path"
-import { usePendingUserOperationStatements, useStorage } from "~app/storage"
+import { usePendingUserOperationLogs, useStorage } from "~app/storage"
 
 import "~style.css"
 
@@ -43,9 +43,9 @@ export function App() {
 
 function PageRouter() {
   const [location, navigate] = useHashLocation()
-  const pendingUserOps = usePendingUserOperationStatements()
+  const pendingUserOpLogs = usePendingUserOperationLogs()
   if (
-    pendingUserOps.length > 0 &&
+    pendingUserOpLogs.length > 0 &&
     !location.startsWith(Path.UserOperationAuthorization)
   ) {
     navigate(Path.UserOperationAuthorization)
