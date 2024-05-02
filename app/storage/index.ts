@@ -7,8 +7,8 @@ import {
   StorageMessenger,
   UserOperationStatus,
   type State,
-  type UserOperationSent,
-  type UserOperationStatement
+  type UserOperationLog,
+  type UserOperationSent
 } from "~background/storage/local"
 import type { UserOperationData } from "~packages/bundler"
 import type { HexString } from "~typing"
@@ -36,8 +36,8 @@ export const useStorage = create<Storage>()(
       state: null,
       markUserOperationRejected: async (userOpId: string) => {
         await set(({ state }) => {
-          const userOpStmt = state.userOpPool[userOpId]
-          userOpStmt.status = UserOperationStatus.Rejected
+          const userOpLog = state.userOpPool[userOpId]
+          userOpLog.status = UserOperationStatus.Rejected
         })
       },
       markUserOperationSent: async (
@@ -46,10 +46,10 @@ export const useStorage = create<Storage>()(
         userOp: UserOperationData
       ) => {
         await set(({ state }) => {
-          const userOpStmt = state.userOpPool[userOpId]
-          userOpStmt.userOp = userOp
-          userOpStmt.status = UserOperationStatus.Sent
-          ;(userOpStmt as UserOperationSent).receipt = {
+          const userOpLog = state.userOpPool[userOpId]
+          userOpLog.userOp = userOp
+          userOpLog.status = UserOperationStatus.Sent
+          ;(userOpLog as UserOperationSent).receipt = {
             userOpHash
           }
         })
@@ -93,8 +93,8 @@ export const useAccount = (id?: string) => {
   )
 }
 
-export const useUserOperationStatements = (
-  filter: (userOp: UserOperationStatement) => boolean = () => true
+export const useUserOperationLogs = (
+  filter: (userOp: UserOperationLog) => boolean = () => true
 ) => {
   return useStorage(
     useShallow(({ state }) => {
@@ -103,10 +103,10 @@ export const useUserOperationStatements = (
   )
 }
 
-export const usePendingUserOperationStatements = (
-  filter: (userOp: UserOperationStatement) => boolean = () => true
+export const usePendingUserOperationLogs = (
+  filter: (userOp: UserOperationLog) => boolean = () => true
 ) => {
-  return useUserOperationStatements((userOp) => {
+  return useUserOperationLogs((userOp) => {
     return userOp.status === UserOperationStatus.Pending && filter(userOp)
   })
 }
