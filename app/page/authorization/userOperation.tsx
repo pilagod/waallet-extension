@@ -12,7 +12,7 @@ import {
   usePendingUserOperationStatements,
   useStorage
 } from "~app/storage"
-import type { Account, UserOperationStatement } from "~background/storage"
+import type { Account, UserOperationStatement } from "~background/storage/local"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"

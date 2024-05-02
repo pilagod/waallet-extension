@@ -11,7 +11,7 @@ import {
   type State,
   type UserOperationSent,
   type UserOperationStatement
-} from "~background/storage"
+} from "~background/storage/local"
 import type { UserOperationData } from "~packages/bundler"
 import type { HexString } from "~typing"
 
