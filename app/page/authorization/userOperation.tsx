@@ -115,7 +115,7 @@ function UserOperationConfirmation(props: {
         WaalletRpcMethod.eth_sendUserOperation,
         [userOp.data(), userOpStmt.entryPointAddress]
       )
-      markUserOperationSent(userOpStmt.id, userOpHash, userOp.data())
+      await markUserOperationSent(userOpStmt.id, userOpHash, userOp.data())
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)
