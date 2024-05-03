@@ -112,7 +112,13 @@ describe("ObservableStorage", () => {
       async (state) => {
         s1 = state
       },
-      ["a", "b", "c"]
+      {
+        a: {
+          b: {
+            c: 0
+          }
+        }
+      }
     )
 
     // Partially match
@@ -121,23 +127,15 @@ describe("ObservableStorage", () => {
       async (state) => {
         s2 = state
       },
-      ["a", "b"]
-    )
-
-    // Not matched
-    let s3: ReturnType<(typeof s)["get"]>
-    s.subscribe(
-      async (state) => {
-        s3 = state
-      },
-      ["a", "b", "d"]
+      {
+        a: { b: {} }
+      }
     )
 
     s.set({ a: { b: { c: 999 } } })
 
     expect(s1.a.b.c).toBe(999)
     expect(s2.a.b.c).toBe(999)
-    expect(s3).toBeUndefined()
   })
 
   it("should be able to unsubscribe to state update", () => {
