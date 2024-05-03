@@ -7,10 +7,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Use Node.js v16
+      - name: Use Node.js v18
         uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
 
       - name: Clone `waallet-extension`
         uses: actions/checkout@v4
