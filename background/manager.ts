@@ -8,7 +8,7 @@ import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
 
-import type { Account, State } from "./storage"
+import type { Account, State } from "./storage/local"
 
 export class AccountStorageManager implements AccountManager {
   public constructor(private storage: ObservableStorage<State>) {}

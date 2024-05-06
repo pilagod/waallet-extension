@@ -1,5 +1,10 @@
 import structuredClone from "@ungap/structured-clone"
-import { enablePatches, produceWithPatches, type Draft } from "immer"
+import {
+  enablePatches,
+  produceWithPatches,
+  type Draft,
+  type Patch
+} from "immer"
 
 import type { RecursivePartial } from "~typing"
 
@@ -9,7 +14,7 @@ type ObservableStorageUpdater<T> = (draft: Draft<T>) => Draft<T> | void
 
 export class ObservableStorage<T extends Record<string, any>> {
   private subscribers: {
-    handler: (state: T) => Promise<void>
+    handler: (state: T, patches: Patch[]) => Promise<void>
     path?: (string | number)[]
   }[] = []
 
@@ -55,19 +60,19 @@ export class ObservableStorage<T extends Record<string, any>> {
         false
       )
       if (shouldNotify) {
-        s.handler(stateFreezed)
+        s.handler(stateFreezed, patches)
       }
     }
   }
 
   public subscribe(
-    handler: (state: T) => Promise<void>,
+    handler: (state: T, patches: Patch[]) => Promise<void>,
     path?: (string | number)[]
   ) {
     this.subscribers.push({ handler, path })
   }
 
-  public unsubscribe(handler: (state: T) => Promise<void>) {
+  public unsubscribe(handler: (state: T, pathces: Patch[]) => Promise<void>) {
     for (let i = 0; i < this.subscribers.length; i++) {
       if (handler === this.subscribers[i].handler) {
         this.subscribers.splice(i, 1)

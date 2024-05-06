@@ -2,8 +2,8 @@ import browser from "webextension-polyfill"
 
 import {
   UserOperationStatus,
-  type UserOperationStatement
-} from "~background/storage"
+  type UserOperationLog
+} from "~background/storage/local"
 import { UserOperation } from "~packages/bundler"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import number from "~packages/util/number"
@@ -13,7 +13,7 @@ import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { UserOperationStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 // TODO: Rename to local storage
-import { getStorage } from "./storage"
+import { getStorage } from "./storage/local"
 import { getSessionStorage } from "./storage/session"
 
 console.log(
@@ -62,6 +62,31 @@ async function main() {
     }
   })
 
+  // @dev: Trigger popup when new pending user op is added into the pool.
+  storage.subscribe(
+    async (_, patches) => {
+      const newPendingUserOpLogs = patches.filter(
+        (p) =>
+          p.op === "add" &&
+          (p.value as UserOperationLog).status === UserOperationStatus.Pending
+      )
+      if (newPendingUserOpLogs.length === 0) {
+        return
+      }
+      if (sessionStorage.get().isPopupOpened) {
+        return
+      }
+      await browser.windows.create({
+        url: browser.runtime.getURL("popup.html"),
+        focused: true,
+        type: "popup",
+        width: 480,
+        height: 720
+      })
+    },
+    ["userOpPool"]
+  )
+
   const fetchData = async () => {
     const fetchUserOpsSent = async () => {
       const timeout = 1500
@@ -96,7 +121,7 @@ async function main() {
         })
 
         if (userOpReceipt && userOpReceipt.success) {
-          const succeededUserOp: UserOperationStatement = {
+          const succeededUserOp: UserOperationLog = {
             ...sentUserOp,
             status: UserOperationStatus.Succeeded,
             receipt: {
@@ -111,7 +136,7 @@ async function main() {
         }
 
         if (userOpReceipt && !userOpReceipt.success) {
-          const succeededUserOp: UserOperationStatement = {
+          const succeededUserOp: UserOperationLog = {
             ...sentUserOp,
             status: UserOperationStatus.Failed,
             receipt: {

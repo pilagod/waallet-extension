@@ -9,10 +9,10 @@ import { Path } from "~app/path"
 import {
   useAccount,
   useNetwork,
-  usePendingUserOperationStatements,
+  usePendingUserOperationLogs,
   useStorage
 } from "~app/storage"
-import type { Account, UserOperationStatement } from "~background/storage"
+import type { Account, UserOperationLog } from "~background/storage/local"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
@@ -37,18 +37,16 @@ type Payment = {
 
 export function UserOperationAuthorization() {
   const [, navigate] = useHashLocation()
-  const pendingUserOpStmts = usePendingUserOperationStatements()
-  if (pendingUserOpStmts.length === 0) {
+  const pendingUserOpLogs = usePendingUserOperationLogs()
+  if (pendingUserOpLogs.length === 0) {
     navigate(Path.Index)
     return
   }
-  return <UserOperationConfirmation userOpStmt={pendingUserOpStmts[0]} />
+  return <UserOperationConfirmation userOpLog={pendingUserOpLogs[0]} />
 }
 
-function UserOperationConfirmation(props: {
-  userOpStmt: UserOperationStatement
-}) {
-  const { userOpStmt } = props
+function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
+  const { userOpLog } = props
   const paymentOptions: PaymentOption[] = [
     {
       name: "No Paymaster",
@@ -66,13 +64,10 @@ function UserOperationConfirmation(props: {
   ]
   const [, navigate] = useHashLocation()
   const { provider } = useProviderContext()
-  const markUserOperationSent = useStorage(
-    (storage) => storage.markUserOperationSent
-  )
-  const network = useNetwork(userOpStmt.networkId)
-  const sender = useAccount(userOpStmt.senderId)
+  const network = useNetwork(userOpLog.networkId)
+  const sender = useAccount(userOpLog.senderId)
   const [userOp, setUserOp] = useClsState<UserOperation>(
-    new UserOperation(userOpStmt.userOp)
+    new UserOperation(userOpLog.userOp)
   )
   const [payment, setPayment] = useState<Payment>({
     option: paymentOptions[0],
@@ -101,6 +96,9 @@ function UserOperationConfirmation(props: {
     setUserOp(userOp)
   }
 
+  const markUserOperationSent = useStorage(
+    (storage) => storage.markUserOperationSent
+  )
   const sendUserOperation = async () => {
     setUserOpSending(true)
 
@@ -108,19 +106,28 @@ function UserOperationConfirmation(props: {
     try {
       userOp.setSignature(
         await account.sign(
-          userOp.hash(userOpStmt.entryPointAddress, network.chainId)
+          userOp.hash(userOpLog.entryPointAddress, network.chainId)
         )
       )
       const userOpHash = await provider.send(
         WaalletRpcMethod.eth_sendUserOperation,
-        [userOp.data(), userOpStmt.entryPointAddress]
+        [userOp.data(), userOpLog.entryPointAddress]
       )
-      markUserOperationSent(userOpStmt.id, userOpHash, userOp.data())
+      await markUserOperationSent(userOpLog.id, userOpHash, userOp.data())
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)
       setUserOpSending(false)
     }
+  }
+
+  const markUserOperationRejected = useStorage(
+    (storage) => storage.markUserOperationRejected
+  )
+  const rejectUserOperation = async () => {
+    markUserOperationRejected(userOpLog.id)
+    navigate(Path.Index)
+    return
   }
 
   useDeepCompareEffectNoCheck(() => {
@@ -197,9 +204,8 @@ function UserOperationConfirmation(props: {
           onClick={() => sendUserOperation()}>
           Send
         </button>
-        {/* TODO: Change to reject */}
-        <button disabled={userOpSending} onClick={() => navigate(Path.Index)}>
-          Cancel
+        <button disabled={userOpSending} onClick={() => rejectUserOperation()}>
+          Reject
         </button>
       </div>
     </div>

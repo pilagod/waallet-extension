@@ -5,11 +5,11 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
-import { useAccount, useUserOperationStatements } from "~app/storage"
+import { useAccount, useUserOperationLogs } from "~app/storage"
 import {
   UserOperationStatus,
-  type UserOperationStatement
-} from "~background/storage"
+  type UserOperationLog
+} from "~background/storage/local"
 import { UserOperation } from "~packages/bundler"
 import address from "~packages/util/address"
 import type { HexString } from "~typing"
@@ -23,7 +23,7 @@ export function Info() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()
-  const userOpStmts = useUserOperationStatements()
+  const userOpStmts = useUserOperationLogs()
   const account = useAccount()
   const [chainName, setChainName] = useState<string>("")
   const [balance, setBalance] = useState<bigint>(0n)
@@ -129,7 +129,7 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
 }
 
 const getUserOpsData = (
-  userOpStmts: UserOperationStatement[],
+  userOpStmts: UserOperationLog[],
   chainId: number
 ): UserOperationData[] => {
   return userOpStmts.map((userOpStmt) => {

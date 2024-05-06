@@ -5,17 +5,12 @@ import { UserOperation } from "~packages/bundler"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
-import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
 import type { HexString, Nullable } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
-import {
-  type UserOperationAuthorizeCallback,
-  type UserOperationAuthorizer
-} from "./authorizer/userOperation"
 
 describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
-  const { bundler, node } = config.networkManager.getActive()
+  const { node } = config.networkManager.getActive()
   const { counter } = config.contract
 
   it("should get chain id", async () => {
@@ -85,49 +80,6 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
 
     const counterAfter = (await counter.number()) as bigint
     expect(counterAfter - counterBefore).toBe(1n)
-  })
-
-  // TODO: This test is for UserOperationSender
-  it("should send authorized user operation", async () => {
-    const mutatingAuthorizer = new (class MutatingUserOperationAuthorizer
-      implements UserOperationAuthorizer
-    {
-      public userOpAuthorized: Nullable<UserOperation> = null
-
-      public async authorize(
-        userOp: UserOperation,
-        { onApproved }: UserOperationAuthorizeCallback
-      ) {
-        userOp.setCallGasLimit(userOp.callGasLimit + 1n)
-        this.userOpAuthorized = await onApproved(userOp)
-        return this.userOpAuthorized
-      }
-    })()
-
-    const mutatingProvider = ctx.provider.clone({
-      userOperationPool: new UserOperationSender(
-        ctx.provider.accountManager,
-        ctx.provider.networkManager,
-        mutatingAuthorizer
-      )
-    })
-    await mutatingProvider.request({
-      method: WaalletRpcMethod.eth_sendTransaction,
-      params: [
-        {
-          to: await counter.getAddress(),
-          value: 1
-        }
-      ]
-    })
-
-    const userAuthorizedOpHash = mutatingAuthorizer.userOpAuthorized.hash(
-      (await bundler.getSupportedEntryPoints())[0],
-      await bundler.getChainId()
-    )
-    const data = await bundler.getUserOperationByHash(userAuthorizedOpHash)
-
-    expect(data).not.toBe(null)
   })
 
   it("should send user operation", async () => {

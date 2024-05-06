@@ -145,7 +145,7 @@ export type State = {
     [id: string]: Paymaster
   }
   userOpPool: {
-    [userOpId: string]: UserOperationStatement
+    [userOpId: string]: UserOperationLog
   }
 }
 
@@ -195,12 +195,13 @@ export type VerifyingPaymaster = {
 
 export enum UserOperationStatus {
   Pending = "Pending",
+  Rejected = "Rejected",
   Sent = "Sent",
   Succeeded = "Succeeded",
   Failed = "Failed"
 }
 
-export type UserOperationStatement = {
+export type UserOperationLog = {
   id: string
   userOp: UserOperationData
   senderId: string
@@ -208,6 +209,7 @@ export type UserOperationStatement = {
   entryPointAddress: string
 } & (
   | UserOperationPending
+  | UserOperationRejected
   | UserOperationSent
   | UserOperationSucceeded
   | UserOperationFailed
@@ -215,6 +217,10 @@ export type UserOperationStatement = {
 
 export type UserOperationPending = {
   status: UserOperationStatus.Pending
+}
+
+export type UserOperationRejected = {
+  status: UserOperationStatus.Rejected
 }
 
 export type UserOperationSent = {

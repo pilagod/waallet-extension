@@ -8,7 +8,7 @@ import type {
 } from "~packages/waallet/background/pool/userOperation"
 import type { HexString } from "~typing"
 
-import { UserOperationStatus, type State } from "./storage"
+import { UserOperationStatus, type State } from "./storage/local"
 
 export class UserOperationStoragePool implements UserOperationPool {
   public constructor(private storage: ObservableStorage<State>) {}
@@ -21,8 +21,8 @@ export class UserOperationStoragePool implements UserOperationPool {
   }) {
     const id = uuidv4()
 
-    this.storage.set((draft) => {
-      draft.userOpPool[id] = {
+    this.storage.set((state) => {
+      state.userOpPool[id] = {
         id,
         userOp: data.userOp.data(),
         senderId: data.senderId,
