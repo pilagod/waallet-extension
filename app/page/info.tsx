@@ -59,9 +59,13 @@ export function Info() {
 
   useEffect(() => {
     // Update userOpsData when userOpStmts change
-    const userOpsData = getUserOpsData(userOpStmts, account.chainId)
+    const userOpsData = getUserOpsData(
+      userOpStmts,
+      account.chainId,
+      account.address
+    )
     setUserOpsData(userOpsData)
-  }, [userOpStmts])
+  }, [userOpStmts, account])
 
   return (
     <NavbarLayout>
@@ -128,17 +132,26 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   }
 }
 
+// getUserOpsData() filters UserOperationLog objects based on a specific
+// sender address and transforms them into UserOperationData objects
+// containing status and hash properties.
 const getUserOpsData = (
   userOpStmts: UserOperationLog[],
-  chainId: number
+  chainId: number,
+  accountAddress: string
 ): UserOperationData[] => {
-  return userOpStmts.map((userOpStmt) => {
-    const userOp = new UserOperation(userOpStmt.userOp)
-    return {
-      status: userOpStmt.status,
-      hash: userOp.hash(userOpStmt.entryPointAddress, chainId)
-    }
-  })
+  return userOpStmts
+    .filter((userOpLog) => {
+      const userOp = new UserOperation(userOpLog.userOp)
+      return userOp.sender.toLowerCase() === accountAddress.toLowerCase()
+    })
+    .map((userOpLog) => {
+      const userOp = new UserOperation(userOpLog.userOp)
+      return {
+        status: userOpLog.status,
+        hash: userOp.hash(userOpLog.entryPointAddress, chainId)
+      }
+    })
 }
 
 const UserOpsData: React.FC<{
