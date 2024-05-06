@@ -14,7 +14,7 @@ import { UserOperation } from "~packages/bundler"
 import address from "~packages/util/address"
 import type { HexString } from "~typing"
 
-type UserOperationData = {
+type UserOperationUi = {
   status: UserOperationStatus
   hash: HexString
 }
@@ -23,12 +23,12 @@ export function Info() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()
-  const userOpStmts = useUserOperationLogs()
+  const userOpLogs = useUserOperationLogs()
   const account = useAccount()
   const [chainName, setChainName] = useState<string>("")
   const [balance, setBalance] = useState<bigint>(0n)
   const [balanceLoading, setBalanceLoading] = useState<boolean>(false)
-  const [userOpsData, setUserOpsData] = useState<UserOperationData[]>([])
+  const [userOpsUi, setUserOpsUi] = useState<UserOperationUi[]>([])
 
   useEffect(() => {
     // Retrieve chainName when the Info page is opened
@@ -58,14 +58,14 @@ export function Info() {
   }, [])
 
   useEffect(() => {
-    // Update userOpsData when userOpStmts change
-    const userOpsData = getUserOpsData(
-      userOpStmts,
+    // Update userOpsUiData when userOpLogs change
+    const userOpsUiData = getUserOpsUiData(
+      userOpLogs,
       account.chainId,
       account.address
     )
-    setUserOpsData(userOpsData)
-  }, [userOpStmts, account])
+    setUserOpsUi(userOpsUiData)
+  }, [userOpLogs, account])
 
   return (
     <NavbarLayout>
@@ -80,7 +80,7 @@ export function Info() {
       <SwitchToSendPage />
       {
         <UserOpsData
-          userOpsData={userOpsData}
+          userOpsUi={userOpsUi}
           explorerUrl={explorerUrl}
           chainName={chainName}
         />
@@ -132,15 +132,15 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   }
 }
 
-// getUserOpsData() filters UserOperationLog objects based on a specific
-// sender address and transforms them into UserOperationData objects
+// getUserOpsUiData() filters UserOperationLog objects based on a specific
+// sender address and transforms them into UserOperationUi objects
 // containing status and hash properties.
-const getUserOpsData = (
-  userOpStmts: UserOperationLog[],
+const getUserOpsUiData = (
+  userOpLogs: UserOperationLog[],
   chainId: number,
   accountAddress: string
-): UserOperationData[] => {
-  return userOpStmts
+): UserOperationUi[] => {
+  return userOpLogs
     .filter((userOpLog) => {
       const userOp = new UserOperation(userOpLog.userOp)
       return userOp.sender.toLowerCase() === accountAddress.toLowerCase()
@@ -155,10 +155,10 @@ const getUserOpsData = (
 }
 
 const UserOpsData: React.FC<{
-  userOpsData: UserOperationData[]
+  userOpsUi: UserOperationUi[]
   explorerUrl: string
   chainName: string
-}> = ({ userOpsData, explorerUrl, chainName }) => {
+}> = ({ userOpsUi: userOpsData, explorerUrl, chainName }) => {
   return (
     <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
       User Operation History:
