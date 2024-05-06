@@ -3,6 +3,9 @@
   "displayName": "Waallet Extension",
   "version": "0.0.0",
   "description": "Browser extension for account abstraction",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "plasmo dev --env .env.development",
     "build": "plasmo build",
@@ -23,7 +26,7 @@
     "immer": "^10.0.4",
     "isomorphic-fetch": "^3.0.0",
     "json-bigint": "^1.0.0",
-    "plasmo": "^0.85.2",
+    "plasmo": "^0.86.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "use-cls-state": "^0.0.3",
