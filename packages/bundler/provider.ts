@@ -58,13 +58,15 @@ export class BundlerProvider {
       method: BundlerRpcMethod.eth_getUserOperationByHash,
       params: [userOpHash]
     })
-    if (!data) {
+    // Even if the data is not null, blockNumber, blockHash, and transactionHash
+    // remain null until the transaction is fully broadcasted.
+    if (!data || !data.blockNumber) {
       return null
     }
     return {
       ...data,
       userOperation: new UserOperation(data.userOperation),
-      blockNumber: number.toBigInt(data.blockHash)
+      blockNumber: number.toBigInt(data.blockNumber)
     }
   }
 
