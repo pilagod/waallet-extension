@@ -1,5 +1,7 @@
 import browser from "webextension-polyfill"
 
+import { sendToBackground, type MessageName } from "@plasmohq/messaging"
+
 import { ObservableStorage } from "~packages/storage/observable"
 
 let sessionStorage: ObservableStorage<SessionState>
@@ -18,6 +20,29 @@ export async function getSessionStorage() {
   }
   return sessionStorage
 }
+
+/* Session Storage Action */
+
+export enum SessionStorageAction {
+  Get = "GetStorage"
+}
+
+export class SessionStorageMessenger {
+  public get(): Promise<SessionState> {
+    return this.send({
+      action: SessionStorageAction.Get
+    })
+  }
+
+  private send(body: any) {
+    return sendToBackground({
+      name: "sessionStorage" as MessageName,
+      body
+    })
+  }
+}
+
+/* Session State */
 
 export type SessionState = {
   isPopupOpened: boolean

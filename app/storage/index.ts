@@ -10,6 +10,10 @@ import {
   type UserOperationLog,
   type UserOperationSent
 } from "~background/storage/local"
+import {
+  SessionStorageMessenger,
+  type SessionState
+} from "~background/storage/session"
 import type { UserOperationData } from "~packages/bundler"
 import type { HexString } from "~typing"
 
@@ -109,4 +113,36 @@ export const usePendingUserOperationLogs = (
   return useUserOperationLogs((userOp) => {
     return userOp.status === UserOperationStatus.Pending && filter(userOp)
   })
+}
+
+/* Session Storage */
+
+const sessionStorageMessenger = new SessionStorageMessenger()
+
+interface SessionStorage {
+  sessionState: SessionState
+}
+
+export const useSessionStorage = create<SessionStorage>()(
+  background(
+    (_) => ({
+      sessionState: null
+    }),
+    {
+      async set(_) {},
+      sync(_) {}
+    }
+  )
+)
+
+sessionStorageMessenger.get().then((sessionState) => {
+  useSessionStorage.setStateLocally({ sessionState })
+})
+
+export const usePopupOpened = () => {
+  return useSessionStorage(
+    useShallow(({ sessionState }) => {
+      return sessionState.isPopupOpened
+    })
+  )
 }

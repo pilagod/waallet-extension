@@ -1,5 +1,5 @@
 import * as ethers from "ethers"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { useClsState } from "use-cls-state"
 import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
 import { useHashLocation } from "wouter/use-hash-location"
@@ -10,6 +10,7 @@ import {
   useAccount,
   useNetwork,
   usePendingUserOperationLogs,
+  usePopupOpened,
   useStorage
 } from "~app/storage"
 import type { Account, UserOperationLog } from "~background/storage/local"
@@ -76,6 +77,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   })
   const [userOpSending, setUserOpSending] = useState(false)
   const [paymentCalculating, setPaymentCalculating] = useState(false)
+  const popupOpened = usePopupOpened()
 
   const onPaymentOptionSelected = async (o: PaymentOption) => {
     // TODO: Be able to select token
@@ -124,11 +126,18 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   const markUserOperationRejected = useStorage(
     (storage) => storage.markUserOperationRejected
   )
-  const rejectUserOperation = async () => {
+  const rejectUserOperation = useCallback(async () => {
     markUserOperationRejected(userOpLog.id)
     navigate(Path.Index)
+    if (!popupOpened) {
+      // Close this window asynchronously
+      window.onbeforeunload = null
+      setTimeout(() => {
+        window.close()
+      }, 100) // After 0.1 seconds
+    }
     return
-  }
+  }, [popupOpened])
 
   useDeepCompareEffectNoCheck(() => {
     async function updatePayment() {
