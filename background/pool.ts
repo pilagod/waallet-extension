@@ -56,7 +56,7 @@ export class UserOperationStoragePool implements UserOperationPool {
           return
         }
       }
-      this.storage.subscribe(subscriber, ["userOperationPool", userOpId])
+      this.storage.subscribe(subscriber, { userOpPool: { [userOpId]: {} } })
     })
   }
 }

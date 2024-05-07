@@ -80,7 +80,7 @@ async function main() {
         height: 720
       })
     },
-    ["userOpPool"]
+    { userOpPool: {} }
   )
 }
 

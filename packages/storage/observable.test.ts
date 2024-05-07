@@ -104,7 +104,7 @@ describe("ObservableStorage", () => {
   })
 
   it("should be able to subscribe to certain path", () => {
-    const s = new ObservableStorage({ a: { b: { c: 123 } } })
+    const s = new ObservableStorage({ a: { b: { c: 123, d: 456 } } })
 
     // Exactly match
     let s1: ReturnType<(typeof s)["get"]>
@@ -112,7 +112,9 @@ describe("ObservableStorage", () => {
       async (state) => {
         s1 = state
       },
-      ["a", "b", "c"]
+      {
+        a: { b: { c: 0 } }
+      }
     )
 
     // Partially match
@@ -121,16 +123,20 @@ describe("ObservableStorage", () => {
       async (state) => {
         s2 = state
       },
-      ["a", "b"]
+      {
+        a: { b: {} }
+      }
     )
 
-    // Not matched
+    // No match
     let s3: ReturnType<(typeof s)["get"]>
     s.subscribe(
       async (state) => {
         s3 = state
       },
-      ["a", "b", "d"]
+      {
+        a: { b: { d: 0 } }
+      }
     )
 
     s.set({ a: { b: { c: 999 } } })

@@ -65,11 +65,14 @@ export class ObservableStorage<T extends Record<string, any>> {
     }
   }
 
+  /**
+   * @param pathStruct Depth-first search the struct for only the first path found. Please avoid multiple fields in one layer, it may not work expectedly.
+   */
   public subscribe(
     handler: (state: T, patches: Patch[]) => Promise<void>,
-    path?: (string | number)[]
+    pathStruct?: RecursivePartial<T>
   ) {
-    this.subscribers.push({ handler, path })
+    this.subscribers.push({ handler, path: this.derivePath(pathStruct) })
   }
 
   public unsubscribe(handler: (state: T, pathces: Patch[]) => Promise<void>) {
@@ -92,5 +95,16 @@ export class ObservableStorage<T extends Record<string, any>> {
         draft[k as keyof Draft<T>] = v
       }
     })
+  }
+
+  private derivePath(pathStruct?: RecursivePartial<T>) {
+    const result: (string | number)[] = []
+    let struct: object = pathStruct ?? []
+    while (Object.keys(struct).length > 0) {
+      const keys = Object.keys(struct)
+      result.push(keys[0])
+      struct = struct[keys[0]]
+    }
+    return result
   }
 }
