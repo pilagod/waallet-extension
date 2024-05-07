@@ -87,78 +87,73 @@ async function main() {
     ["userOpPool"]
   )
 
-  const fetchData = async () => {
-    const fetchUserOpsSent = async () => {
-      const timeout = 1500
-      console.log(`[background] fetch userOp sent every ${timeout} ms`)
+  const fetchUserOpsSent = async () => {
+    const timeout = 1500
+    console.log(`[background] fetch userOp sent every ${timeout} ms`)
 
-      const s = storage.get()
-      const nm = new NetworkStorageManager(storage)
+    const s = storage.get()
+    const nm = new NetworkStorageManager(storage)
 
-      const chainId = nm.getActive().chainId
-      const bundler = nm.getActive().bundler
+    const chainId = nm.getActive().chainId
+    const bundler = nm.getActive().bundler
 
-      const userOps = Object.values(s.userOpPool)
-      const sentUserOps = userOps.filter((userOp) => userOp.status === "Sent")
+    const userOps = Object.values(s.userOpPool)
+    const sentUserOps = userOps.filter(
+      (userOp) => userOp.status === UserOperationStatus.Sent
+    )
 
-      sentUserOps.forEach(async (sentUserOp) => {
-        const id = sentUserOp.id
-        const userOp = new UserOperation(sentUserOp.userOp)
-        const userOpHash = userOp.hash(sentUserOp.entryPointAddress, chainId)
-        await bundler.wait(userOpHash)
+    sentUserOps.forEach(async (sentUserOp) => {
+      const id = sentUserOp.id
+      const userOp = new UserOperation(sentUserOp.userOp)
+      const userOpHash = userOp.hash(sentUserOp.entryPointAddress, chainId)
+      await bundler.wait(userOpHash)
 
-        const userOpReceipt = await bundler.send<{
-          success: boolean
-          reason: string
+      const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
+
+      if (!userOpReceipt) {
+        return
+      }
+
+      if (userOpReceipt.success) {
+        const succeededUserOp: UserOperationLog = {
+          ...sentUserOp,
+          status: UserOperationStatus.Succeeded,
           receipt: {
-            transactionHash: HexString
-            blockHash: HexString
-            blockNumber: BigNumberish
+            userOpHash: userOpHash,
+            transactionHash: userOpReceipt.receipt.transactionHash,
+            blockHash: userOpReceipt.receipt.blockHash,
+            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
           }
-        }>({
-          method: BundlerRpcMethod.eth_getUserOperationReceipt,
-          params: [userOpHash]
+        }
+        storage.set((state) => {
+          state.userOpPool[id] = succeededUserOp
         })
+        return
+      }
 
-        if (userOpReceipt && userOpReceipt.success) {
-          const succeededUserOp: UserOperationLog = {
-            ...sentUserOp,
-            status: UserOperationStatus.Succeeded,
-            receipt: {
-              userOpHash: userOpHash,
-              transactionHash: userOpReceipt.receipt.transactionHash,
-              blockHash: userOpReceipt.receipt.blockHash,
-              blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
-            }
+      if (!userOpReceipt.success) {
+        const failedUserOp: UserOperationLog = {
+          ...sentUserOp,
+          status: UserOperationStatus.Failed,
+          receipt: {
+            userOpHash: userOpHash,
+            transactionHash: userOpReceipt.receipt.transactionHash,
+            blockHash: userOpReceipt.receipt.blockHash,
+            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
+            errorMessage: userOpReceipt.reason
           }
-          const state = { userOpPool: { [id]: succeededUserOp } }
-          storage.set(state, { override: false })
         }
+        storage.set((state) => {
+          state.userOpPool[id] = failedUserOp
+        })
+        return
+      }
+    })
 
-        if (userOpReceipt && !userOpReceipt.success) {
-          const succeededUserOp: UserOperationLog = {
-            ...sentUserOp,
-            status: UserOperationStatus.Failed,
-            receipt: {
-              userOpHash: userOpHash,
-              transactionHash: userOpReceipt.receipt.transactionHash,
-              blockHash: userOpReceipt.receipt.blockHash,
-              blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
-              errorMessage: userOpReceipt.reason
-            }
-          }
-          const state = { userOpPool: { [id]: succeededUserOp } }
-          storage.set(state, { override: false })
-        }
-      })
-
-      setTimeout(fetchUserOpsSent, timeout)
-    }
-    // First call
-    await fetchUserOpsSent()
+    setTimeout(fetchUserOpsSent, timeout)
   }
 
-  await fetchData()
+  await fetchUserOpsSent()
 }
 
 main()
