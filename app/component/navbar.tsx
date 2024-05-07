@@ -48,6 +48,11 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
             active={props.selected.address === a.address}
           />
         ))}
+        <div className="mt-4">
+          <button className="w-full border-2 border-black rounded-full">
+            Create new passkey account
+          </button>
+        </div>
       </div>
     </div>
   )
