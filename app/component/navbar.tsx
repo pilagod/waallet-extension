@@ -1,8 +1,11 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useState } from "react"
+import { formatEther } from "ethers"
+import { useEffect, useState } from "react"
 
-import { useAccount, useNetwork } from "~app/storage"
+import { useProviderContext } from "~app/context/provider"
+import { useAccount, useAccounts, useNetwork } from "~app/storage"
+import { type Account } from "~background/storage/local"
 import address from "~packages/util/address"
 
 export function Navbar() {
@@ -26,6 +29,7 @@ export function Navbar() {
 }
 
 function AccountModal(props: { onModalClosed: () => void }) {
+  const accounts = useAccounts()
   return (
     <div className="absolute top-0 left-0 w-screen h-screen p-4">
       <div
@@ -38,15 +42,37 @@ function AccountModal(props: { onModalClosed: () => void }) {
             <FontAwesomeIcon icon={faXmark} className="text-lg" />
           </button>
         </div>
-        <div>
-          <span>This is account modal</span>
-        </div>
-        <div>
-          <span>This is account modal</span>
-        </div>
-        <div>
-          <span>This is account modal</span>
-        </div>
+        {accounts.map((a) => (
+          <AccountPreview account={a} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AccountPreview(props: { account: Account }) {
+  const { provider } = useProviderContext()
+  const [balance, setBalance] = useState(0n)
+  useEffect(() => {
+    async function getBalance() {
+      const balance = await provider.getBalance(props.account.address)
+      setBalance(balance)
+    }
+    getBalance()
+  }, [])
+  return (
+    <div>
+      <div>
+        <span>{props.account.address}</span>
+      </div>
+      <div>
+        {balance ? (
+          <span>{formatEther(balance)}</span>
+        ) : (
+          // TODO: Extract shared component
+          <span className="w-4 h-4 inline-block border border-solid border-white border-b-black rounded-full animate-spin"></span>
+        )}
+        <span> ETH</span>
       </div>
     </div>
   )
