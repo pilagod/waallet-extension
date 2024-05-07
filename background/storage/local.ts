@@ -69,9 +69,6 @@ export async function getStorage() {
       { override: true }
     )
     storage.subscribe(async (state) => {
-      console.log(
-        "[background] Sync state to app/storage/index.ts (in tabs/index.html)"
-      )
       // Avoid "Receiving end does not exist" error due to missing app-side addListener.
       try {
         await browser.runtime.sendMessage(browser.runtime.id, {
@@ -79,18 +76,7 @@ export async function getStorage() {
           state
         })
       } catch (e) {
-        if (
-          e instanceof Error &&
-          e.message.includes(
-            `Could not establish connection. Receiving end does not exist.`
-          )
-        ) {
-          console.warn(`An error occurred while receiving end: ${e}`)
-        } else {
-          console.error(
-            `An unexpected error occurred while receiving end: ${e}`
-          )
-        }
+        console.warn(`An error occurred while receiving end: ${e}`)
       }
     })
   }
