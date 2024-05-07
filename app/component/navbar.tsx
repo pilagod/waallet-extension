@@ -22,13 +22,13 @@ export function Navbar() {
         <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
       </div>
       {isAccountModalOpened && (
-        <AccountModal onModalClosed={toggleAccountModal} />
+        <AccountModal selected={account} onModalClosed={toggleAccountModal} />
       )}
     </nav>
   )
 }
 
-function AccountModal(props: { onModalClosed: () => void }) {
+function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
   const accounts = useAccounts()
   return (
     <div className="absolute top-0 left-0 w-screen h-screen p-4">
@@ -43,14 +43,17 @@ function AccountModal(props: { onModalClosed: () => void }) {
           </button>
         </div>
         {accounts.map((a) => (
-          <AccountPreview account={a} />
+          <AccountPreview
+            account={a}
+            active={props.selected.address === a.address}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-function AccountPreview(props: { account: Account }) {
+function AccountPreview(props: { account: Account; active: boolean }) {
   const { provider } = useProviderContext()
   const [balance, setBalance] = useState(0n)
   useEffect(() => {
@@ -61,7 +64,11 @@ function AccountPreview(props: { account: Account }) {
     getBalance()
   }, [])
   return (
-    <div>
+    <div
+      className={
+        "pl-2 cursor-pointer hover:bg-black/20" +
+        (props.active ? " bg-black/10 border-l-2 border-l-black" : "")
+      }>
       <div>
         <span>{props.account.address}</span>
       </div>
