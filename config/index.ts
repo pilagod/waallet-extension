@@ -10,6 +10,7 @@ export const config = {
   passkeyAccountAddress: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT,
   passkeyAccountCredentialId:
     process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT_CREDENTIAL_ID,
+  passkeyAccountFactory: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT_FACTORY,
 
   verifyingPaymasterAddress: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
   verifyingPaymasterOwnerPrivateKey:
