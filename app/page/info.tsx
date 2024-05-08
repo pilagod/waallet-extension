@@ -53,20 +53,15 @@ export function Info() {
           </button>
         </div>
       )}
-      {
-        <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-          Balance:{" "}
-          {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
-        </div>
-      }
+      <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+        Balance: {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
+      </div>
       <SwitchToSendPage />
-      {
-        <UserOpsData
-          userOpsLogs={userOpLogs}
-          account={account}
-          explorerUrl={explorerUrl}
-        />
-      }
+      <UserOpHistory
+        userOpLogs={userOpLogs}
+        account={account}
+        explorerUrl={explorerUrl}
+      />
     </NavbarLayout>
   )
 }
@@ -87,17 +82,17 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   }
 }
 
-const UserOpsData: React.FC<{
-  userOpsLogs: UserOperationLog[]
+const UserOpHistory: React.FC<{
+  userOpLogs: UserOperationLog[]
   account: Account
   explorerUrl: string
-}> = ({ userOpsLogs, account, explorerUrl }) => {
+}> = ({ userOpLogs, account, explorerUrl }) => {
   // Filter UserOperationLog objects based on a specific sender address
   // and transforms them into status and hash objects.
-  const userOpsUi = userOpsLogs
+  const userOpHistoryItems = userOpLogs
     .filter((userOpLog) => {
       const userOp = new UserOperation(userOpLog.userOp)
-      return userOp.sender.toLowerCase() === account.address.toLowerCase()
+      return userOp.isSender(account.address)
     })
     .map((userOpLog) => {
       // TODO: Empty hash need to be replaced with timestamp
@@ -110,10 +105,10 @@ const UserOpsData: React.FC<{
   return (
     <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
       User Operation History:
-      {userOpsUi.length === 0 ? (
+      {userOpHistoryItems.length === 0 ? (
         <div>(No user operations)</div>
       ) : (
-        userOpsUi.map((userOp, i, _) => (
+        userOpHistoryItems.map((userOp, i, _) => (
           <div key={i}>
             <span>{`${userOp.status}: `}</span>
             <button
