@@ -6,7 +6,11 @@ import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import { useAccount, useUserOperationLogs } from "~app/storage"
-import { type Account, type UserOperationLog } from "~background/storage/local"
+import {
+  UserOperationStatus,
+  type Account,
+  type UserOperationLog
+} from "~background/storage/local"
 import { UserOperation } from "~packages/bundler"
 import address from "~packages/util/address"
 
@@ -96,10 +100,10 @@ const UserOpsData: React.FC<{
       return userOp.sender.toLowerCase() === account.address.toLowerCase()
     })
     .map((userOpLog) => {
-      const userOp = new UserOperation(userOpLog.userOp)
+      // TODO: Empty hash need to be replaced with timestamp
       return {
         status: userOpLog.status,
-        hash: userOp.hash(userOpLog.entryPointAddress, account.chainId)
+        hash: "receipt" in userOpLog ? userOpLog.receipt.userOpHash : ""
       }
     })
   const chainName = getChainName(account.chainId)
@@ -115,7 +119,7 @@ const UserOpsData: React.FC<{
             <button
               onClick={handleClick}
               data-url={`${explorerUrl}userOpHash/${userOp.hash}?network=${chainName}`}>
-              {`${address.ellipsize(userOp.hash)}`}
+              {`${userOp.hash && address.ellipsize(userOp.hash)}`}
             </button>
           </div>
         ))
