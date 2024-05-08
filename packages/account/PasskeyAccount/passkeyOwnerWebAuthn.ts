@@ -8,11 +8,16 @@ import type {
   PasskeyPublicKey
 } from "~packages/account/PasskeyAccount/passkeyOwner"
 import { format } from "~packages/util/json"
-import { requestWebAuthn } from "~packages/webAuthn"
+import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
 import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
 import type { B64UrlString, BytesLike } from "~typing"
 
 export class PasskeyOwnerWebAuthn implements PasskeyOwner {
+  public static async register() {
+    const { credentialId, publicKey } = await createWebAuthn()
+    return new PasskeyOwnerWebAuthn(credentialId, publicKey)
+  }
+
   public constructor(
     private credentialId: B64UrlString,
     private publicKey?: PasskeyPublicKey

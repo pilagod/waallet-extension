@@ -39,7 +39,7 @@ export function WebAuthnRegistration() {
             x: cred.publicKey.x.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
             y: cred.publicKey.y.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
           }
-        } as WebAuthnRegistrationData)
+        })
       })
       .catch((error) => {
         console.error(`[tab][createWebAuthn] Error: ${error}`)

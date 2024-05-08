@@ -1,14 +1,17 @@
 import type { B64UrlString, BigNumberish, HexString } from "~typing"
 
 /* Input */
+
 export type WebAuthnCreation = {
   user?: string
   challenge?: B64UrlString
 }
+
 export type WebAuthnRequest = {
   credentialId?: B64UrlString
   challenge: B64UrlString
 }
+
 export type WebAuthnParams = {
   // Resolve error: A required parameter cannot follow an optional parameter.
   webAuthnCreation?: WebAuthnCreation
@@ -16,10 +19,12 @@ export type WebAuthnParams = {
 }
 
 /* Output */
+
 export type PublicKey = {
-  x: BigNumberish
-  y: BigNumberish
+  x: bigint
+  y: bigint
 }
+
 export type WebAuthnRegistration = {
   origin: string
   credentialId: B64UrlString
@@ -36,9 +41,11 @@ export type WebAuthnAuthentication = {
 }
 
 /* Error handling */
+
 export type WebAuthnError = {
   error: string
 }
+
 export const isWebAuthnError = (message: any): message is WebAuthnError => {
   return "error" in message
 }

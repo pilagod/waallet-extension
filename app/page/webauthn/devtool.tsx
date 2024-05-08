@@ -112,7 +112,7 @@ export function WebAuthnDevtool() {
           x: cred.publicKey.x.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
           y: cred.publicKey.y.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
         }
-      } as WebAuthnRegistration)
+      })
     } catch (error) {
       console.error(`[tab][createWebAuthn] Error: ${error}`)
       port.postMessage({
