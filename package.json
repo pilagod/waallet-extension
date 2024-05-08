@@ -57,8 +57,7 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.2.2",
-    "web3-types": "^1.6.0"
+    "typescript": "5.2.2"
   },
   "@parcel/resolver-default": {
     "packageExports": true

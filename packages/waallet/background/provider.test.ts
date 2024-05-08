@@ -1,5 +1,3 @@
-import { type TransactionReceipt } from "web3-types"
-
 import config from "~config/test"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
