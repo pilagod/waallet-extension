@@ -8,8 +8,7 @@ import {
 import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { UserOperationStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
-// TODO: Rename to local storage
-import { getStorage } from "./storage/local"
+import { getLocalStorage } from "./storage/local"
 import { getSessionStorage } from "./storage/session"
 
 console.log(
@@ -17,7 +16,7 @@ console.log(
 )
 
 async function main() {
-  const storage = await getStorage()
+  const storage = await getLocalStorage()
   const state = storage.get()
   const network = state.network[state.networkActive]
   if (!network) {

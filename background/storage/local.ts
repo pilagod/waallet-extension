@@ -11,7 +11,7 @@ import type { B64UrlString, HexString, RecursivePartial } from "~typing"
 
 let storage: ObservableStorage<State>
 
-export async function getStorage() {
+export async function getLocalStorage() {
   if (!storage) {
     // TODO: Check browser.runtime.lastError
     const state = await browser.storage.local.get(null)

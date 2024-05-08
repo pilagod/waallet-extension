@@ -1,12 +1,12 @@
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
-import { getStorage, StorageAction } from "~background/storage/local"
+import { getLocalStorage, StorageAction } from "~background/storage/local"
 
 async function handler(
   req: PlasmoMessaging.Request,
   res: PlasmoMessaging.Response
 ) {
-  const storage = await getStorage()
+  const storage = await getLocalStorage()
   switch (req.body.action) {
     case StorageAction.Get:
       res.send(storage.get())
