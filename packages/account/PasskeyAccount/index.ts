@@ -82,7 +82,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
 
   public dump() {
     return {
-      type: AccountType.PasskeyAccount,
+      type: AccountType.PasskeyAccount as AccountType.PasskeyAccount,
       address: this.address,
       credentialId: this.owner.getCredentialId(),
       publicKey: this.owner.getPublicKey(),

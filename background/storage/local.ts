@@ -7,12 +7,7 @@ import { config } from "~config"
 import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
-import type {
-  B64UrlString,
-  BigNumberish,
-  HexString,
-  RecursivePartial
-} from "~typing"
+import type { B64UrlString, HexString, RecursivePartial } from "~typing"
 
 let storage: ObservableStorage<State>
 
