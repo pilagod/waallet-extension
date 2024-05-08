@@ -92,8 +92,6 @@ async function main() {
     console.log(`[background] fetch userOp sent every ${timeout} ms`)
 
     const s = storage.get()
-
-    const chainId = networkManager.getActive().chainId
     const bundler = networkManager.getActive().bundler
 
     const userOps = Object.values(s.userOpPool)
@@ -103,8 +101,10 @@ async function main() {
 
     sentUserOps.forEach(async (sentUserOp) => {
       const id = sentUserOp.id
-      const userOp = new UserOperation(sentUserOp.userOp)
-      const userOpHash = userOp.hash(sentUserOp.entryPointAddress, chainId)
+      if (!("receipt" in sentUserOp)) {
+        return
+      }
+      const userOpHash = sentUserOp.receipt.userOpHash
       await bundler.wait(userOpHash)
 
       const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
