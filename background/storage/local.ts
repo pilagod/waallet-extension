@@ -69,11 +69,15 @@ export async function getLocalStorage() {
       { override: true }
     )
     storage.subscribe(async (state) => {
-      console.log("[background] Sync state to popup")
-      await browser.runtime.sendMessage(browser.runtime.id, {
-        action: StorageAction.Sync,
-        state
-      })
+      // Avoid "Receiving end does not exist" error due to missing app-side addListener.
+      try {
+        await browser.runtime.sendMessage(browser.runtime.id, {
+          action: StorageAction.Sync,
+          state
+        })
+      } catch (e) {
+        console.warn(`An error occurred while receiving end: ${e}`)
+      }
     })
   }
   return storage

@@ -4,6 +4,10 @@ import {
   UserOperationStatus,
   type UserOperationLog
 } from "~background/storage/local"
+import { UserOperation } from "~packages/bundler"
+import { BundlerRpcMethod } from "~packages/bundler/rpc"
+import number from "~packages/util/number"
+import type { BigNumberish, HexString } from "~typing"
 
 import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { UserOperationStoragePool } from "./pool"
@@ -81,6 +85,73 @@ async function main() {
     },
     { userOpPool: {} }
   )
+
+  const fetchUserOpsSent = async () => {
+    const timeout = 1500
+    console.log(`[background] fetch userOp sent every ${timeout} ms`)
+
+    const s = storage.get()
+    const bundler = networkManager.getActive().bundler
+
+    const userOps = Object.values(s.userOpPool)
+    const sentUserOps = userOps.filter(
+      (userOp) => userOp.status === UserOperationStatus.Sent
+    )
+
+    sentUserOps.forEach(async (sentUserOp) => {
+      const id = sentUserOp.id
+      if (!("receipt" in sentUserOp)) {
+        return
+      }
+      const userOpHash = sentUserOp.receipt.userOpHash
+      await bundler.wait(userOpHash)
+
+      const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
+
+      if (!userOpReceipt) {
+        return
+      }
+
+      if (userOpReceipt.success) {
+        const succeededUserOp: UserOperationLog = {
+          ...sentUserOp,
+          status: UserOperationStatus.Succeeded,
+          receipt: {
+            userOpHash: userOpHash,
+            transactionHash: userOpReceipt.receipt.transactionHash,
+            blockHash: userOpReceipt.receipt.blockHash,
+            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
+          }
+        }
+        storage.set((state) => {
+          state.userOpPool[id] = succeededUserOp
+        })
+        return
+      }
+
+      if (!userOpReceipt.success) {
+        const failedUserOp: UserOperationLog = {
+          ...sentUserOp,
+          status: UserOperationStatus.Failed,
+          receipt: {
+            userOpHash: userOpHash,
+            transactionHash: userOpReceipt.receipt.transactionHash,
+            blockHash: userOpReceipt.receipt.blockHash,
+            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
+            errorMessage: userOpReceipt.reason
+          }
+        }
+        storage.set((state) => {
+          state.userOpPool[id] = failedUserOp
+        })
+        return
+      }
+    })
+
+    setTimeout(fetchUserOpsSent, timeout)
+  }
+
+  await fetchUserOpsSent()
 }
 
 main()
