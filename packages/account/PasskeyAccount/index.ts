@@ -5,7 +5,7 @@ import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
-import { PasskeyAccountFactory, type PasskeyPublicKey } from "./factory"
+import { PasskeyAccountFactory } from "./factory"
 import type { PasskeyOwner } from "./passkeyOwner"
 
 export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
@@ -26,7 +26,6 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     runner: ContractRunner,
     option: {
       owner: PasskeyOwner
-      publicKey: PasskeyPublicKey
       salt: BigNumberish
       factoryAddress: string
     }
@@ -34,7 +33,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     const factory = new PasskeyAccountFactory({
       address: option.factoryAddress,
       credentialId: option.owner.getCredentialId(),
-      publicKey: option.publicKey,
+      publicKey: option.owner.getPublicKey(),
       salt: option.salt
     })
     return new PasskeyAccount({

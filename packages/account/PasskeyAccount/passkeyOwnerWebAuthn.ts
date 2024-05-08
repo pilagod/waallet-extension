@@ -3,17 +3,27 @@ import { isoBase64URL, isoUint8Array } from "@simplewebauthn/server/helpers"
 import * as ethers from "ethers"
 import browser from "webextension-polyfill"
 
-import type { PasskeyOwner } from "~packages/account/PasskeyAccount/passkeyOwner"
+import type {
+  PasskeyOwner,
+  PasskeyPublicKey
+} from "~packages/account/PasskeyAccount/passkeyOwner"
 import { format } from "~packages/util/json"
 import { requestWebAuthn } from "~packages/webAuthn"
 import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
 import type { B64UrlString, BytesLike } from "~typing"
 
 export class PasskeyOwnerWebAuthn implements PasskeyOwner {
-  public constructor(private credentialId: B64UrlString) {}
+  public constructor(
+    private credentialId: B64UrlString,
+    private publicKey?: PasskeyPublicKey
+  ) {}
 
   public getCredentialId() {
     return this.credentialId
+  }
+
+  public getPublicKey() {
+    return this.publicKey ?? null
   }
 
   public async sign(

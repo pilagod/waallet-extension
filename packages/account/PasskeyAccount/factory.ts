@@ -4,10 +4,7 @@ import type { AccountFactory } from "~packages/account/factory"
 import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, HexString } from "~typing"
 
-export type PasskeyPublicKey = {
-  x: BigNumberish
-  y: BigNumberish
-}
+import type { PasskeyPublicKey } from "./passkeyOwner"
 
 export class PasskeyAccountFactory implements AccountFactory {
   private factory: ethers.Contract
