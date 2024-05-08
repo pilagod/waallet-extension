@@ -92,10 +92,9 @@ async function main() {
     console.log(`[background] fetch userOp sent every ${timeout} ms`)
 
     const s = storage.get()
-    const nm = new NetworkStorageManager(storage)
 
-    const chainId = nm.getActive().chainId
-    const bundler = nm.getActive().bundler
+    const chainId = networkManager.getActive().chainId
+    const bundler = networkManager.getActive().bundler
 
     const userOps = Object.values(s.userOpPool)
     const sentUserOps = userOps.filter(
