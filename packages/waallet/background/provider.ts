@@ -64,6 +64,7 @@ export class WaalletBackgroundProvider {
           new UserOperation(args.params[0]),
           args.params[1]
         ) as T
+      // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
       default:
         if (args.method in BundlerRpcMethod) {
           return new JsonRpcProvider(bundler.url).send(args)

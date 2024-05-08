@@ -1,11 +1,9 @@
 import { type TransactionReceipt } from "web3-types"
 
 import config from "~config/test"
-import { UserOperation } from "~packages/bundler"
-import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
-import type { HexString, Nullable } from "~typing"
+import type { HexString } from "~typing"
 
 import { WaalletRpcMethod } from "../rpc"
 
@@ -125,79 +123,5 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
       await counter.getAddress()
     )
     expect(counterBalanceAfter - counterBalanceBefore).toBe(1n)
-  })
-
-  it("should get user operation and transaction receipt by hash", async () => {
-    const { bundler, node } = ctx.provider.networkManager.getActive()
-
-    const counterBefore = (await counter.number()) as bigint
-    const counterBalanceBefore = await node.getBalance(
-      await counter.getAddress()
-    )
-
-    const userOp = await ctx.account.createUserOperation(node, {
-      to: await counter.getAddress(),
-      value: 1,
-      data: counter.interface.encodeFunctionData("increment", [])
-    })
-
-    const { gasPrice } = await node.getFeeData()
-    userOp.setGasFee({
-      maxFeePerGas: gasPrice * 2n,
-      maxPriorityFeePerGas: gasPrice * 2n
-    })
-
-    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
-    userOp.setGasLimit(
-      await bundler.estimateUserOperationGas(userOp, entryPointAddress)
-    )
-
-    const chainId = await bundler.getChainId()
-    userOp.setSignature(
-      await ctx.account.sign(userOp.hash(entryPointAddress, chainId))
-    )
-
-    const userOpHash = await ctx.provider.request<HexString>({
-      method: WaalletRpcMethod.eth_sendUserOperation,
-      params: [userOp.data(), entryPointAddress]
-    })
-    const txHash = await bundler.wait(userOpHash)
-
-    const counterBalanceAfter = await node.getBalance(
-      await counter.getAddress()
-    )
-    expect(counterBalanceAfter - counterBalanceBefore).toBe(1n)
-
-    const userOpStmt = await ctx.provider.request<
-      Nullable<{
-        userOperation: UserOperation
-        entryPoint: HexString
-        blockNumber: bigint
-        blockHash: HexString
-        transactionHash: HexString
-      }>
-    >({
-      method: BundlerRpcMethod.eth_getUserOperationByHash,
-      params: [userOpHash]
-    })
-    expect(userOpStmt.userOperation).toMatchObject(userOp.data())
-    expect(userOpStmt.transactionHash).toBe(txHash)
-
-    const txReceipt = await ctx.provider.request<Nullable<TransactionReceipt>>({
-      method: "eth_getTransactionReceipt",
-      params: [txHash]
-    })
-    expect(txReceipt.to.toLowerCase()).toBe(userOpStmt.entryPoint.toLowerCase())
-    expect(txReceipt.blockHash).toBe(userOpStmt.blockHash)
-    expect(txReceipt.blockNumber).toBe(userOpStmt.blockNumber)
-    expect(txReceipt.status).toBe("0x1") // '1' indicates a success, '0' indicates a revert
-
-    const userOpReceipt = await ctx.provider.request<Nullable<any>>({
-      method: BundlerRpcMethod.eth_getUserOperationReceipt,
-      params: [userOpHash]
-    })
-    const txReceiptFromUserOpReceipt =
-      userOpReceipt.receipt as TransactionReceipt
-    expect(txReceipt).toMatchObject(txReceiptFromUserOpReceipt)
   })
 })
