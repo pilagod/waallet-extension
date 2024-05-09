@@ -6,11 +6,7 @@ import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import { useAccount, useUserOperationLogs } from "~app/storage"
-import {
-  UserOperationStatus,
-  type Account,
-  type UserOperationLog
-} from "~background/storage/local"
+import { type Account, type UserOperationLog } from "~background/storage/local"
 import { UserOperation } from "~packages/bundler"
 import address from "~packages/util/address"
 
@@ -97,10 +93,20 @@ const UserOpHistory: React.FC<{
       return userOp.isSender(account.address)
     })
     .map((userOpLog) => {
-      // TODO: Empty hash need to be replaced with timestamp
       return {
         status: userOpLog.status,
-        hash: "receipt" in userOpLog ? userOpLog.receipt.userOpHash : ""
+        hash: "receipt" in userOpLog ? userOpLog.receipt.userOpHash : "",
+        creationDate: new Date(
+          parseInt(userOpLog.creationTimestamp, 16) * 1000
+        ).toLocaleDateString(),
+        blockDate:
+          "receipt" in userOpLog
+            ? "blockTimestamp" in userOpLog.receipt
+              ? new Date(
+                  parseInt(userOpLog.receipt.blockTimestamp, 16) * 1000
+                ).toLocaleDateString()
+              : ""
+            : ""
       }
     })
   const chainName = getChainName(account.chainId)
@@ -112,7 +118,8 @@ const UserOpHistory: React.FC<{
       ) : (
         userOpHistoryItems.map((userOp, i, _) => (
           <div key={i}>
-            <span>{`${userOp.status}: `}</span>
+            <span>{`${userOp.creationDate}: `}</span>
+            <span>{`${userOp.status} `}</span>
             <button
               onClick={handleClick}
               data-url={`${explorerUrl}userOpHash/${userOp.hash}?network=${chainName}`}>
