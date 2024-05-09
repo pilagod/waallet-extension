@@ -42,8 +42,9 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
             <FontAwesomeIcon icon={faXmark} className="text-lg" />
           </button>
         </div>
-        {accounts.map((a) => (
+        {accounts.map((a, i) => (
           <AccountPreview
+            key={i}
             account={a}
             active={props.selected.address === a.address}
           />
