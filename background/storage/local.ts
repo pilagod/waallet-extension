@@ -234,6 +234,6 @@ export type UserOperationFailed = {
     transactionHash: HexString
     blockHash: HexString
     blockNumber: HexString
-    errorMessage: HexString
+    errorMessage: string
   }
 }
