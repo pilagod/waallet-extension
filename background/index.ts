@@ -88,8 +88,7 @@ async function main() {
     console.log(`[background] fetch userOp sent every ${timeout} ms`)
 
     const s = storage.get()
-    const bundler = networkManager.getActive().bundler
-    const node = networkManager.getActive().node
+    const { bundler } = networkManager.getActive()
 
     const userOps = Object.values(s.userOpPool)
     const sentUserOps = userOps.filter(
@@ -110,12 +109,6 @@ async function main() {
         return
       }
 
-      const block = await node.getBlock(userOpReceipt.receipt.blockNumber)
-
-      if (!block) {
-        return
-      }
-
       if (userOpReceipt.success) {
         const succeededUserOp: UserOperationLog = {
           ...sentUserOp,
@@ -124,8 +117,7 @@ async function main() {
             userOpHash: userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
             blockHash: userOpReceipt.receipt.blockHash,
-            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
-            blockTimestamp: number.toHex(block.timestamp)
+            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
           }
         }
         storage.set((state) => {
@@ -143,7 +135,6 @@ async function main() {
             transactionHash: userOpReceipt.receipt.transactionHash,
             blockHash: userOpReceipt.receipt.blockHash,
             blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
-            blockTimestamp: number.toHex(block.timestamp),
             errorMessage: userOpReceipt.reason
           }
         }

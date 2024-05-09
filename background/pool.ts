@@ -25,7 +25,7 @@ export class UserOperationStoragePool implements UserOperationPool {
     this.storage.set((state) => {
       state.userOpPool[id] = {
         id,
-        creationTimestamp: number.toHex(Math.floor(Date.now() / 1000)), // Get current timestamp in seconds
+        createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
         userOp: data.userOp.data(),
         senderId: data.senderId,
         networkId: data.networkId,

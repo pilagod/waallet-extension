@@ -96,17 +96,7 @@ const UserOpHistory: React.FC<{
       return {
         status: userOpLog.status,
         hash: "receipt" in userOpLog ? userOpLog.receipt.userOpHash : "",
-        creationDate: new Date(
-          parseInt(userOpLog.creationTimestamp, 16) * 1000
-        ).toLocaleDateString(),
-        blockDate:
-          "receipt" in userOpLog
-            ? "blockTimestamp" in userOpLog.receipt
-              ? new Date(
-                  parseInt(userOpLog.receipt.blockTimestamp, 16) * 1000
-                ).toLocaleDateString()
-              : ""
-            : ""
+        creationDate: new Date(userOpLog.createdAt * 1000).toLocaleDateString()
       }
     })
   const chainName = getChainName(account.chainId)

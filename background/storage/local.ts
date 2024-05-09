@@ -189,7 +189,7 @@ export enum UserOperationStatus {
 
 export type UserOperationLog = {
   id: string
-  creationTimestamp: HexString
+  createdAt: number
   userOp: UserOperationData
   senderId: string
   networkId: string
@@ -224,7 +224,6 @@ export type UserOperationSucceeded = {
     transactionHash: HexString
     blockHash: HexString
     blockNumber: HexString
-    blockTimestamp: HexString
   }
 }
 
@@ -235,7 +234,6 @@ export type UserOperationFailed = {
     transactionHash: HexString
     blockHash: HexString
     blockNumber: HexString
-    blockTimestamp: HexString
     errorMessage: HexString
   }
 }
