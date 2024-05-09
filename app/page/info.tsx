@@ -12,7 +12,7 @@ import type { HexString } from "~typing"
 export function Info() {
   const { provider } = useProviderContext()
   const account = useAccount()
-  const [balance, setBalance] = useState<bigint>(0n)
+  const [balance, setBalance] = useState<bigint>(null)
   const [transactionHashes, setTransactionHashes] = useState<HexString[]>([""])
   const [internalTransactionHashes, setInternalTransactionHashes] = useState<
     HexString[]
@@ -20,7 +20,7 @@ export function Info() {
   const [explorerUrl, setExplorerUrl] = useState<string>("")
 
   useEffect(() => {
-    const asyncFn = async () => {
+    const getAccountInfo = async () => {
       const explorer = getExplorerUrl((await provider.getNetwork()).name)
       setExplorerUrl(explorer)
 
@@ -36,16 +36,15 @@ export function Info() {
       )
       setInternalTransactionHashes(internalTxHashes)
     }
-
-    asyncFn()
-  }, [])
+    getAccountInfo()
+  }, [account.id])
 
   return (
     <NavbarLayout>
       {account.address && (
         <AccountAddress account={account.address} explorerUrl={explorerUrl} />
       )}
-      {balance && <AccountBalance balance={balance} />}
+      {balance !== null && <AccountBalance balance={balance} />}
       <SwitchToSendPage />
       {transactionHashes && (
         <AccountTransactions

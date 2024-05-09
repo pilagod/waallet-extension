@@ -39,10 +39,11 @@ export const useStorage = create<Storage>()(
     (set) => ({
       state: null,
       createAccount: async (account: PasskeyAccount, networkId: string) => {
+        const id = uuidV4()
         const data = account.dump()
         await set(({ state }) => {
           const network = state.network[networkId]
-          state.account[uuidV4()] = {
+          state.account[id] = {
             ...data,
             chainId: network.chainId,
             // TODO: Design a value object
@@ -53,7 +54,7 @@ export const useStorage = create<Storage>()(
             salt: number.toHex(data.salt)
           }
           // Set the new account as active
-          network.accountActive = data.address
+          network.accountActive = id
         })
       },
       markUserOperationRejected: async (userOpId: string) => {
@@ -116,7 +117,11 @@ export const useAccount = (id?: string) => {
   return useStorage(
     useShallow(({ state }) => {
       const network = state.network[state.networkActive]
-      return state.account[id ?? network.accountActive]
+      const accountId = id ?? network.accountActive
+      return {
+        id: accountId,
+        ...state.account[id ?? network.accountActive]
+      }
     })
   )
 }

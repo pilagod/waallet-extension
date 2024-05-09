@@ -34,8 +34,8 @@ export function Navbar() {
 
 function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
   const { provider } = useProviderContext()
-  const accounts = useAccounts()
   const network = useNetwork()
+  const accounts = useAccounts()
   const { createAccount } = useAction()
 
   const createPasskeyAccount = async () => {
@@ -48,6 +48,7 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
       factoryAddress: config.passkeyAccountFactory
     })
     await createAccount(account, network.id)
+    props.onModalClosed()
   }
 
   return (
@@ -62,8 +63,9 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
             <FontAwesomeIcon icon={faXmark} className="text-lg" />
           </button>
         </div>
-        {accounts.map((a) => (
+        {accounts.map((a, i) => (
           <AccountPreview
+            key={i}
             account={a}
             active={props.selected.address === a.address}
           />
@@ -82,7 +84,7 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
 
 function AccountPreview(props: { account: Account; active: boolean }) {
   const { provider } = useProviderContext()
-  const [balance, setBalance] = useState(0n)
+  const [balance, setBalance] = useState<bigint>(null)
   useEffect(() => {
     async function getBalance() {
       const balance = await provider.getBalance(props.account.address)
@@ -100,7 +102,7 @@ function AccountPreview(props: { account: Account; active: boolean }) {
         <span>{props.account.address}</span>
       </div>
       <div>
-        {balance ? (
+        {balance !== null ? (
           <span>{formatEther(balance)}</span>
         ) : (
           // TODO: Extract shared component
