@@ -4,10 +4,7 @@ import {
   UserOperationStatus,
   type UserOperationLog
 } from "~background/storage/local"
-import { UserOperation } from "~packages/bundler"
-import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import number from "~packages/util/number"
-import type { BigNumberish, HexString } from "~typing"
 
 import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { UserOperationStoragePool } from "./pool"
@@ -92,6 +89,7 @@ async function main() {
 
     const s = storage.get()
     const bundler = networkManager.getActive().bundler
+    const node = networkManager.getActive().node
 
     const userOps = Object.values(s.userOpPool)
     const sentUserOps = userOps.filter(
@@ -112,6 +110,12 @@ async function main() {
         return
       }
 
+      const block = await node.getBlock(userOpReceipt.receipt.blockNumber)
+
+      if (!block) {
+        return
+      }
+
       if (userOpReceipt.success) {
         const succeededUserOp: UserOperationLog = {
           ...sentUserOp,
@@ -120,7 +124,8 @@ async function main() {
             userOpHash: userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
             blockHash: userOpReceipt.receipt.blockHash,
-            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
+            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
+            blockTimestamp: number.toHex(block.timestamp)
           }
         }
         storage.set((state) => {
@@ -138,6 +143,7 @@ async function main() {
             transactionHash: userOpReceipt.receipt.transactionHash,
             blockHash: userOpReceipt.receipt.blockHash,
             blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
+            blockTimestamp: number.toHex(block.timestamp),
             errorMessage: userOpReceipt.reason
           }
         }
