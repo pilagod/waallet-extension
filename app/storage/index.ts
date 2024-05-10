@@ -140,9 +140,11 @@ export const useAccounts = () => {
   return useStorage(
     useShallow(({ state }) => {
       const network = state.network[state.networkActive]
-      return Object.values(state.account).filter(
-        (a) => a.chainId === network.chainId
-      )
+      return Object.entries(state.account)
+        .filter(([_, a]) => a.chainId === network.chainId)
+        .map(([id, a]) => {
+          return { id, ...a }
+        })
     })
   )
 }
