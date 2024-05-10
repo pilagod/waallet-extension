@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 
 import { UserOperation } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
+import number from "~packages/util/number"
 import type {
   UserOperationPool,
   UserOperationReceipt
@@ -24,6 +25,7 @@ export class UserOperationStoragePool implements UserOperationPool {
     this.storage.set((state) => {
       state.userOpPool[id] = {
         id,
+        createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
         userOp: data.userOp.data(),
         senderId: data.senderId,
         networkId: data.networkId,

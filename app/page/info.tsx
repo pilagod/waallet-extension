@@ -84,41 +84,65 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   }
 }
 
+const UserOpHistoryItem: React.FC<{
+  userOpLog: UserOperationLog
+  chainName: string
+  explorerUrl: string
+}> = ({ userOpLog, chainName, explorerUrl }) => {
+  const { createdAt, status } = userOpLog
+  const creationDate = new Date(createdAt * 1000).toLocaleDateString()
+
+  if (
+    userOpLog.status === UserOperationStatus.Succeeded ||
+    userOpLog.status === UserOperationStatus.Failed
+  ) {
+    const userOpHash = userOpLog.receipt.userOpHash
+    return (
+      <div>
+        <span>{`${creationDate}: `}</span>
+        <span>{`${status} `}</span>
+        <button
+          onClick={handleClick}
+          data-url={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}>
+          {`${address.ellipsize(userOpHash)}`}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <span>{`${creationDate}: `}</span>
+      <span>{`${status}`}</span>
+    </div>
+  )
+}
+
 const UserOpHistory: React.FC<{
   userOpLogs: UserOperationLog[]
   account: Account
   explorerUrl: string
 }> = ({ userOpLogs, account, explorerUrl }) => {
-  // Filter UserOperationLog objects based on a specific sender address
-  // and transforms them into status and hash objects.
-  const userOpHistoryItems = userOpLogs
-    .filter((userOpLog) => {
-      const userOp = new UserOperation(userOpLog.userOp)
-      return userOp.isSender(account.address)
-    })
-    .map((userOpLog) => {
-      // TODO: Empty hash need to be replaced with timestamp
-      return {
-        status: userOpLog.status,
-        hash: "receipt" in userOpLog ? userOpLog.receipt.userOpHash : ""
-      }
-    })
+  // Filter UserOperationLog objects based on a specific sender address.
+  const userOpHistoryItems = userOpLogs.filter((userOpLog) => {
+    const userOp = new UserOperation(userOpLog.userOp)
+    return userOp.isSender(account.address)
+  })
   const chainName = getChainName(account.chainId)
+
   return (
     <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
       User Operation History:
       {userOpHistoryItems.length === 0 ? (
         <div>(No user operations)</div>
       ) : (
-        userOpHistoryItems.map((userOp, i, _) => (
-          <div key={i}>
-            <span>{`${userOp.status}: `}</span>
-            <button
-              onClick={handleClick}
-              data-url={`${explorerUrl}userOpHash/${userOp.hash}?network=${chainName}`}>
-              {`${userOp.hash && address.ellipsize(userOp.hash)}`}
-            </button>
-          </div>
+        userOpHistoryItems.map((userOpLog, i, _) => (
+          <UserOpHistoryItem
+            key={i}
+            userOpLog={userOpLog}
+            chainName={chainName}
+            explorerUrl={explorerUrl}
+          />
         ))
       )}
     </div>

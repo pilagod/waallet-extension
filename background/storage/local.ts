@@ -189,6 +189,7 @@ export enum UserOperationStatus {
 
 export type UserOperationLog = {
   id: string
+  createdAt: number
   userOp: UserOperationData
   senderId: string
   networkId: string

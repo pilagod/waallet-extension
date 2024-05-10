@@ -4,10 +4,7 @@ import {
   UserOperationStatus,
   type UserOperationLog
 } from "~background/storage/local"
-import { UserOperation } from "~packages/bundler"
-import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import number from "~packages/util/number"
-import type { BigNumberish, HexString } from "~typing"
 
 import { AccountStorageManager, NetworkStorageManager } from "./manager"
 import { UserOperationStoragePool } from "./pool"
@@ -91,7 +88,7 @@ async function main() {
     console.log(`[background] fetch userOp sent every ${timeout} ms`)
 
     const s = storage.get()
-    const bundler = networkManager.getActive().bundler
+    const { bundler } = networkManager.getActive()
 
     const userOps = Object.values(s.userOpPool)
     const sentUserOps = userOps.filter(
