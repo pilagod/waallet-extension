@@ -93,6 +93,17 @@ export const useAccount = (id?: string) => {
   )
 }
 
+export const useAccounts = () => {
+  return useStorage(
+    useShallow(({ state }) => {
+      const network = state.network[state.networkActive]
+      return Object.values(state.account).filter(
+        (a) => a.chainId === network.chainId
+      )
+    })
+  )
+}
+
 export const useUserOperationLogs = (
   filter: (userOp: UserOperationLog) => boolean = () => true
 ) => {
