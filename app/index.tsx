@@ -36,7 +36,7 @@ export function App() {
   }
   return (
     <ProviderContextProvider>
-      <div className="w-[480px] h-[720px] break-all">
+      <div className="w-[480px] h-[600px] break-all">
         <PageRouter />
       </div>
     </ProviderContextProvider>
@@ -45,6 +45,10 @@ export function App() {
 
 function PageRouter() {
   const [location, navigate] = useHashLocation()
+  // https://github.com/molefrog/wouter/issues/132#issuecomment-704372204
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location])
   const pendingUserOpLogs = usePendingUserOperationLogs()
   if (
     pendingUserOpLogs.length > 0 &&
