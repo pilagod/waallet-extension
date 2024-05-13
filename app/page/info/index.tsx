@@ -1,5 +1,6 @@
 import * as ethers from "ethers"
 import { useEffect, useState, type MouseEvent } from "react"
+import browser from "webextension-polyfill"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
@@ -80,7 +81,7 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   const url = event.currentTarget.getAttribute("data-url")
 
   if (url) {
-    chrome.tabs.create({ url })
+    browser.tabs.create({ url })
   }
 }
 
