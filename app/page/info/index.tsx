@@ -5,24 +5,25 @@ import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
+import { Activity } from "~app/page/info/activity"
 import { Path } from "~app/path"
-import { useAccount, useUserOperationLogs } from "~app/storage"
-import {
-  UserOperationStatus,
-  type Account,
-  type UserOperationLog
-} from "~background/storage/local"
-import { UserOperation } from "~packages/bundler"
-import address from "~packages/util/address"
+import { useAccount } from "~app/storage"
+
+export enum InfoNavigation {
+  Activity = "Activity",
+  Null = "Null"
+}
 
 export function Info() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()
-  const userOpLogs = useUserOperationLogs()
   const account = useAccount()
   const [balance, setBalance] = useState<bigint>(0n)
   const [balanceLoading, setBalanceLoading] = useState<boolean>(false)
+  const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
+    InfoNavigation.Activity
+  )
 
   useEffect(() => {
     setBalanceLoading(true)
@@ -43,6 +44,33 @@ export function Info() {
     }
   }, [])
 
+  const handleInfoNaviChange = (page: InfoNavigation) => {
+    setInfoNavigation(page)
+  }
+
+  const InfoNavBar = () => {
+    return (
+      <div>
+        <nav className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
+          <button
+            className="col-span-1 cursor-pointer"
+            onClick={() => handleInfoNaviChange(InfoNavigation.Activity)}>
+            {InfoNavigation.Activity}
+          </button>
+          <button
+            className="col-span-3 cursor-pointer"
+            onClick={() => handleInfoNaviChange(InfoNavigation.Null)}>
+            {InfoNavigation.Null}
+          </button>
+        </nav>
+        <div>
+          {infoNavigation === InfoNavigation.Activity && <Activity />}
+          {infoNavigation === InfoNavigation.Null && <div>Null page</div>}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <NavbarLayout>
       {account.address && (
@@ -60,11 +88,7 @@ export function Info() {
         Balance: {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
       </div>
       <SwitchToSendPage />
-      <UserOpHistory
-        userOpLogs={userOpLogs}
-        account={account}
-        explorerUrl={explorerUrl}
-      />
+      <InfoNavBar />
     </NavbarLayout>
   )
 }
@@ -83,71 +107,6 @@ const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
   if (url) {
     browser.tabs.create({ url })
   }
-}
-
-const UserOpHistoryItem: React.FC<{
-  userOpLog: UserOperationLog
-  chainName: string
-  explorerUrl: string
-}> = ({ userOpLog, chainName, explorerUrl }) => {
-  const { createdAt, status } = userOpLog
-  const creationDate = new Date(createdAt * 1000).toLocaleDateString()
-
-  if (
-    userOpLog.status === UserOperationStatus.Succeeded ||
-    userOpLog.status === UserOperationStatus.Failed
-  ) {
-    const userOpHash = userOpLog.receipt.userOpHash
-    return (
-      <div>
-        <span>{`${creationDate}: `}</span>
-        <span>{`${status} `}</span>
-        <button
-          onClick={handleClick}
-          data-url={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}>
-          {`${address.ellipsize(userOpHash)}`}
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <div>
-      <span>{`${creationDate}: `}</span>
-      <span>{`${status}`}</span>
-    </div>
-  )
-}
-
-const UserOpHistory: React.FC<{
-  userOpLogs: UserOperationLog[]
-  account: Account
-  explorerUrl: string
-}> = ({ userOpLogs, account, explorerUrl }) => {
-  // Filter UserOperationLog objects based on a specific sender address.
-  const userOpHistoryItems = userOpLogs.filter((userOpLog) => {
-    const userOp = new UserOperation(userOpLog.userOp)
-    return userOp.isSender(account.address)
-  })
-  const chainName = getChainName(account.chainId)
-
-  return (
-    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      User Operation History:
-      {userOpHistoryItems.length === 0 ? (
-        <div>(No user operations)</div>
-      ) : (
-        userOpHistoryItems.map((userOpLog, i, _) => (
-          <UserOpHistoryItem
-            key={i}
-            userOpLog={userOpLog}
-            chainName={chainName}
-            explorerUrl={explorerUrl}
-          />
-        ))
-      )}
-    </div>
-  )
 }
 
 const getChainName = (chain: string | number): string => {
