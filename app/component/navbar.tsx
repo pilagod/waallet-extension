@@ -19,7 +19,7 @@ export function Navbar() {
   const toggleAccountModal = () =>
     setIsAccountModalOpened(!isAccountModalOpened)
   return (
-    <nav className="w-full grid grid-cols-5 justify-items-center my-4">
+    <nav className="w-full grid grid-cols-5 justify-items-center py-4">
       <div>{network.chainId}</div>
       <div className="col-span-3 cursor-pointer" onClick={toggleAccountModal}>
         <span>{address.ellipsize(account.address)}</span>

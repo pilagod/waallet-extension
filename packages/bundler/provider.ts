@@ -1,5 +1,5 @@
 import number from "~packages/util/number"
-import type { HexString, Nullable } from "~typing"
+import type { BigNumberish, HexString, Nullable } from "~typing"
 
 import { JsonRpcProvider } from "../rpc/json/provider"
 import { UserOperation } from "./index"
@@ -58,20 +58,38 @@ export class BundlerProvider {
       method: BundlerRpcMethod.eth_getUserOperationByHash,
       params: [userOpHash]
     })
+    // Even if the data is not null, blockNumber, blockHash, and transactionHash
+    // remain null until the transaction is fully broadcasted.
     if (!data) {
       return null
     }
     return {
       ...data,
       userOperation: new UserOperation(data.userOperation),
-      blockNumber: number.toBigInt(data.blockHash)
+      ...(data.blockNumber && {
+        blockNumber: number.toBigInt(data.blockNumber)
+      })
     }
   }
 
   public async getUserOperationReceipt(userOpHash: HexString): Promise<{
     success: boolean
+    reason: string
+    receipt: {
+      transactionHash: HexString
+      blockHash: HexString
+      blockNumber: BigNumberish
+    }
   }> {
-    const receipt = await this.bundler.send<{ success: boolean }>({
+    const receipt = await this.bundler.send<{
+      success: boolean
+      reason: string
+      receipt: {
+        transactionHash: HexString
+        blockHash: HexString
+        blockNumber: BigNumberish
+      }
+    }>({
       method: BundlerRpcMethod.eth_getUserOperationReceipt,
       params: [userOpHash]
     })
@@ -110,6 +128,10 @@ export class BundlerProvider {
       params: [userOp.data(), entryPointAddress]
     })
     return userOpHash
+  }
+
+  public async send<T>(args: { method: string; params?: any[] }): Promise<T> {
+    return this.bundler.send(args) as T
   }
 
   public async wait(userOpHash: HexString): Promise<HexString> {

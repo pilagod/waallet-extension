@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import type { AccountManager } from "~packages/account/manager"
 import { UserOperation } from "~packages/bundler"
+import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import type { NetworkManager } from "~packages/network/manager"
 import { type Paymaster } from "~packages/paymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
@@ -63,7 +64,11 @@ export class WaalletBackgroundProvider {
           new UserOperation(args.params[0]),
           args.params[1]
         ) as T
+      // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
       default:
+        if (args.method in BundlerRpcMethod) {
+          return new JsonRpcProvider(bundler.url).send(args)
+        }
         return new JsonRpcProvider(node.url).send(args)
     }
   }

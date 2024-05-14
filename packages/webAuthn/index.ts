@@ -17,7 +17,7 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   PublicKeyCredentialType,
   UserVerificationRequirement
-} from "@simplewebauthn/typescript-types"
+} from "@simplewebauthn/types"
 
 import type {
   WebAuthnAuthentication,

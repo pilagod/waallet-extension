@@ -159,4 +159,8 @@ export class UserOperation {
       this.preVerificationGas
     )
   }
+
+  public isSender(address: HexString) {
+    return ethers.getAddress(address) === ethers.getAddress(this.sender)
+  }
 }

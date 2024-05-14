@@ -11,7 +11,7 @@ import type { B64UrlString, HexString, RecursivePartial } from "~typing"
 
 let storage: ObservableStorage<State>
 
-export async function getStorage() {
+export async function getLocalStorage() {
   if (!storage) {
     // TODO: Check browser.runtime.lastError
     const state = await browser.storage.local.get(null)
@@ -69,11 +69,15 @@ export async function getStorage() {
       { override: true }
     )
     storage.subscribe(async (state) => {
-      console.log("[background] Sync state to popup")
-      await browser.runtime.sendMessage(browser.runtime.id, {
-        action: StorageAction.Sync,
-        state
-      })
+      // Avoid "Receiving end does not exist" error due to missing app-side addListener.
+      try {
+        await browser.runtime.sendMessage(browser.runtime.id, {
+          action: StorageAction.Sync,
+          state
+        })
+      } catch (e) {
+        console.warn(`An error occurred while receiving end: ${e}`)
+      }
     })
   }
   return storage
@@ -191,6 +195,7 @@ export enum UserOperationStatus {
 
 export type UserOperationLog = {
   id: string
+  createdAt: number
   userOp: UserOperationData
   senderId: string
   networkId: string
