@@ -112,7 +112,7 @@ function AccountSelectorModal(props: {
           <button
             className="w-full border-2 border-black rounded-full"
             onClick={onPasskeyAccountCreated}>
-            Create new passkey account
+            Create new AA account
           </button>
         </div>
       </div>

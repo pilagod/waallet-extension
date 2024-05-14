@@ -5,7 +5,11 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
-import { useAccount, useUserOperationLogs } from "~app/storage"
+import {
+  useAccount,
+  useShouldOnboard,
+  useUserOperationLogs
+} from "~app/storage"
 import {
   UserOperationStatus,
   type Account,
@@ -15,6 +19,25 @@ import { UserOperation } from "~packages/bundler"
 import address from "~packages/util/address"
 
 export function Info() {
+  const shouldOnboard = useShouldOnboard()
+  return (
+    <NavbarLayout>
+      {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
+    </NavbarLayout>
+  )
+}
+
+function AccountCreation() {
+  return (
+    <div className="text-center">
+      <button className="border-2 border-black rounded-full px-2">
+        Create your first AA account
+      </button>
+    </div>
+  )
+}
+
+function AccountInfo() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()
@@ -45,7 +68,7 @@ export function Info() {
   }, [account.id])
 
   return (
-    <NavbarLayout>
+    <div>
       {account.address && (
         <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
           <button
@@ -66,7 +89,7 @@ export function Info() {
         account={account}
         explorerUrl={explorerUrl}
       />
-    </NavbarLayout>
+    </div>
   )
 }
 

@@ -128,7 +128,7 @@ export const useShouldOnboard = () => {
     useShallow(({ state }) => {
       const network = state.network[state.networkActive]
       return (
-        Object.values(state.account).filter(
+        Object.values(state.account ?? {}).filter(
           (a) => a.chainId === network.chainId
         ).length === 0
       )

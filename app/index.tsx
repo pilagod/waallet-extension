@@ -49,6 +49,7 @@ function PageRouter() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [location])
+
   const pendingUserOpLogs = usePendingUserOperationLogs()
   if (
     pendingUserOpLogs.length > 0 &&
@@ -57,6 +58,7 @@ function PageRouter() {
     navigate(Path.UserOperationAuthorization)
     return
   }
+
   return (
     <Router hook={useHashLocation}>
       <Switch>

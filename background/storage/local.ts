@@ -7,7 +7,12 @@ import { config } from "~config"
 import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
-import type { B64UrlString, HexString, RecursivePartial } from "~typing"
+import type {
+  B64UrlString,
+  HexString,
+  Nullable,
+  RecursivePartial
+} from "~typing"
 
 let storage: ObservableStorage<State>
 
@@ -21,6 +26,7 @@ export async function getLocalStorage() {
       await browser.storage.local.set(state)
     })
     const account = {
+      ...(storage.get().account ?? {}),
       ...(config.simpleAccountAddress && {
         [uuidv4()]: {
           type: AccountType.SimpleAccount,
@@ -53,7 +59,7 @@ export async function getLocalStorage() {
         chainId: config.chainId,
         nodeRpcUrl: config.nodeRpcUrl,
         bundlerRpcUrl: config.bundlerRpcUrl,
-        accountActive: Object.keys(account)[0]
+        accountActive: Object.keys(account)[0] ?? null
       }
     }
     // TODO: Only for development at this moment. Remove following when getting to production.
@@ -141,7 +147,7 @@ export type Network = {
   chainId: number
   nodeRpcUrl: string
   bundlerRpcUrl: string
-  accountActive: HexString
+  accountActive: Nullable<HexString>
 }
 
 /* Account */
