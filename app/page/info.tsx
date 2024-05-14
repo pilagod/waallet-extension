@@ -24,13 +24,16 @@ export function Info() {
   const [balanceLoading, setBalanceLoading] = useState<boolean>(false)
 
   useEffect(() => {
-    // Periodically check the balance of the account
     const getBalanceAsync = async () => {
       setBalanceLoading(true)
       const balance = await provider.getBalance(account.address)
       setBalanceLoading(false)
       setBalance(balance)
     }
+    // Fetch initial balance
+    getBalanceAsync()
+
+    // Periodically check the balance of the account
     const id = setInterval(() => {
       getBalanceAsync().catch((e) =>
         console.warn(`An error occurred while receiving balance: ${e}`)
