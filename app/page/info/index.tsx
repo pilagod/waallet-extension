@@ -1,6 +1,5 @@
 import * as ethers from "ethers"
-import { useEffect, useState, type MouseEvent } from "react"
-import browser from "webextension-polyfill"
+import { useEffect, useState } from "react"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
@@ -77,13 +76,13 @@ export function Info() {
     <NavbarLayout>
       {account.address && (
         <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-          <button
-            onClick={handleClick}
-            data-url={`${explorerUrl}account/${
+          <a
+            href={`${explorerUrl}account/${
               account.address
-            }?network=${getChainName(account.chainId)}`}>
+            }?network=${getChainName(account.chainId)}`}
+            target="_blank">
             {`${account.address}`}
-          </button>
+          </a>
         </div>
       )}
       <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
@@ -101,14 +100,6 @@ const SwitchToSendPage: React.FC = () => {
       <Link href={Path.Send}>Send ↗</Link>
     </div>
   )
-}
-
-const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-  const url = event.currentTarget.getAttribute("data-url")
-
-  if (url) {
-    browser.tabs.create({ url })
-  }
 }
 
 const getChainName = (chain: string | number): string => {

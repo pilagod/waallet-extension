@@ -1,6 +1,3 @@
-import { type MouseEvent } from "react"
-import browser from "webextension-polyfill"
-
 import { useAccount, useUserOperationLogs } from "~app/storage"
 import {
   UserOperationStatus,
@@ -74,11 +71,11 @@ const UserOpHistoryItem: React.FC<{
       <div>
         <span>{`${creationDate}: `}</span>
         <span>{`${status} `}</span>
-        <button
-          onClick={handleClick}
-          data-url={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}>
+        <a
+          href={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}
+          target="_blank">
           {`${address.ellipsize(userOpHash)}`}
-        </button>
+        </a>
       </div>
     )
   }
@@ -89,14 +86,6 @@ const UserOpHistoryItem: React.FC<{
       <span>{`${status}`}</span>
     </div>
   )
-}
-
-const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-  const url = event.currentTarget.getAttribute("data-url")
-
-  if (url) {
-    browser.tabs.create({ url })
-  }
 }
 
 const getChainName = (chain: string | number): string => {
