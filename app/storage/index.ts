@@ -123,6 +123,19 @@ export const useNetwork = (id?: string) => {
   )
 }
 
+export const useShouldOnboard = () => {
+  return useStorage(
+    useShallow(({ state }) => {
+      const network = state.network[state.networkActive]
+      return (
+        Object.values(state.account).filter(
+          (a) => a.chainId === network.chainId
+        ).length === 0
+      )
+    })
+  )
+}
+
 export const useAccount = (id?: string) => {
   return useStorage(
     useShallow(({ state }) => {
@@ -130,7 +143,7 @@ export const useAccount = (id?: string) => {
       const accountId = id ?? network.accountActive
       return {
         id: accountId,
-        ...state.account[id ?? network.accountActive]
+        ...state.account[accountId]
       }
     })
   )

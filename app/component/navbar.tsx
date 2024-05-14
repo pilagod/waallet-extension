@@ -4,7 +4,13 @@ import { formatEther } from "ethers"
 import { useEffect, useState } from "react"
 
 import { useProviderContext } from "~app/context/provider"
-import { useAccount, useAccounts, useAction, useNetwork } from "~app/storage"
+import {
+  useAccount,
+  useAccounts,
+  useAction,
+  useNetwork,
+  useShouldOnboard
+} from "~app/storage"
 import { type Account } from "~background/storage/local"
 import { config } from "~config"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
@@ -14,35 +20,44 @@ import number from "~packages/util/number"
 
 export function Navbar() {
   const network = useNetwork()
-  const account = useAccount()
+  const shouldOnboard = useShouldOnboard()
   return (
     <nav className="w-full grid grid-cols-5 justify-items-center py-4">
       <div>{network.chainId}</div>
-      {account ? <AccountSelector account={account} /> : "No account available"}
+      {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
     </nav>
   )
 }
 
-function AccountSelector(props: { account: Account }) {
+function NullAccountSelector() {
+  return (
+    <div className="col-span-3">
+      <span>No account available</span>
+    </div>
+  )
+}
+
+function AccountSelector() {
+  const account = useAccount()
   const [isAccountSelectorModalOpened, setIsAccountSelectorModalOpened] =
     useState(false)
   const toggleAccountSelectorModal = () =>
     setIsAccountSelectorModalOpened(!isAccountSelectorModalOpened)
   return (
-    <div>
+    <>
       <div
         className="col-span-3 cursor-pointer"
         onClick={toggleAccountSelectorModal}>
-        <span>{address.ellipsize(props.account.address)}</span>
+        <span>{address.ellipsize(account.address)}</span>
         <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
       </div>
       {isAccountSelectorModalOpened && (
         <AccountSelectorModal
-          selected={props.account}
+          selected={account}
           onModalClosed={toggleAccountSelectorModal}
         />
       )}
-    </div>
+    </>
   )
 }
 
