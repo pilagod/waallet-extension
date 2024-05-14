@@ -7,6 +7,8 @@ import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import {
   useAccount,
+  useAction,
+  useNetwork,
   useShouldOnboard,
   useUserOperationLogs
 } from "~app/storage"
@@ -15,8 +17,12 @@ import {
   type Account,
   type UserOperationLog
 } from "~background/storage/local"
+import { config } from "~config"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import { UserOperation } from "~packages/bundler"
 import address from "~packages/util/address"
+import number from "~packages/util/number"
 
 export function Info() {
   const shouldOnboard = useShouldOnboard()
@@ -28,9 +34,27 @@ export function Info() {
 }
 
 function AccountCreation() {
+  const { provider } = useProviderContext()
+  const { createAccount } = useAction()
+  const network = useNetwork()
+
+  const onPasskeyAccountCreated = async () => {
+    if (!config.passkeyAccountFactory) {
+      throw new Error("Passkey account factory is not set")
+    }
+    const account = await PasskeyAccount.initWithFactory(provider, {
+      owner: await PasskeyOwnerWebAuthn.register(),
+      salt: number.random(),
+      factoryAddress: config.passkeyAccountFactory
+    })
+    await createAccount(account, network.id)
+  }
+
   return (
     <div className="text-center">
-      <button className="border-2 border-black rounded-full px-2">
+      <button
+        className="border-2 border-black rounded-full px-2"
+        onClick={onPasskeyAccountCreated}>
         Create your first AA account
       </button>
     </div>
