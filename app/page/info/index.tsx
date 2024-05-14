@@ -5,12 +5,13 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Activity } from "~app/page/info/activity"
+import { Tokens } from "~app/page/info/tokens"
 import { Path } from "~app/path"
 import { useAccount } from "~app/storage"
 
 export enum InfoNavigation {
   Activity = "Activity",
-  Null = "Null"
+  Tokens = "Tokens"
 }
 
 export function Info() {
@@ -87,13 +88,13 @@ export function Info() {
           </button>
           <button
             className="col-span-3 cursor-pointer"
-            onClick={() => handleInfoNaviChange(InfoNavigation.Null)}>
-            {InfoNavigation.Null}
+            onClick={() => handleInfoNaviChange(InfoNavigation.Tokens)}>
+            {InfoNavigation.Tokens}
           </button>
         </nav>
         <div>
           {infoNavigation === InfoNavigation.Activity && <Activity />}
-          {infoNavigation === InfoNavigation.Null && <div>Null page</div>}
+          {infoNavigation === InfoNavigation.Tokens && <Tokens />}
         </div>
       </div>
     </NavbarLayout>
