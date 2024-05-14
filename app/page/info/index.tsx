@@ -25,6 +25,9 @@ export function Info() {
   )
 
   useEffect(() => {
+    // TODO: In the future, adding an Indexer to the Background Script to
+    // monitor Account-related transactions. Updates like balance will trigger
+    // as needed, avoiding fixed interval polling with setInterval().
     const getBalanceAsync = async () => {
       const balance = await provider.getBalance(account.address)
       setBalanceLoading(false)
@@ -49,8 +52,32 @@ export function Info() {
     setInfoNavigation(page)
   }
 
-  const InfoNavBar = () => {
-    return (
+  return (
+    <NavbarLayout>
+      {/* Display the Account address */}
+      {account.address && (
+        <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+          <a
+            href={`${explorerUrl}account/${
+              account.address
+            }?network=${getChainName(account.chainId)}`}
+            target="_blank">
+            {`${account.address}`}
+          </a>
+        </div>
+      )}
+
+      {/* Display the Account balance */}
+      <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+        Balance: {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
+      </div>
+
+      {/* Show the send button for switching to the Send page */}
+      <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+        <Link href={Path.Send}>Send ↗</Link>
+      </div>
+
+      {/* Display the navigation bar of the Info page */}
       <div>
         <nav className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
           <button
@@ -69,36 +96,7 @@ export function Info() {
           {infoNavigation === InfoNavigation.Null && <div>Null page</div>}
         </div>
       </div>
-    )
-  }
-
-  return (
-    <NavbarLayout>
-      {account.address && (
-        <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-          <a
-            href={`${explorerUrl}account/${
-              account.address
-            }?network=${getChainName(account.chainId)}`}
-            target="_blank">
-            {`${account.address}`}
-          </a>
-        </div>
-      )}
-      <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        Balance: {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
-      </div>
-      <SwitchToSendPage />
-      <InfoNavBar />
     </NavbarLayout>
-  )
-}
-
-const SwitchToSendPage: React.FC = () => {
-  return (
-    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      <Link href={Path.Send}>Send ↗</Link>
-    </div>
   )
 }
 
