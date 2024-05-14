@@ -7,11 +7,15 @@ import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
 import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
+import number from "~packages/util/number"
 
 import type { Account, State } from "./storage/local"
 
 export class AccountStorageManager implements AccountManager {
-  public constructor(private storage: ObservableStorage<State>) {}
+  public constructor(
+    private storage: ObservableStorage<State>,
+    private networkManager: NetworkManager
+  ) {}
 
   public async get(id: string) {
     const state = this.storage.get()
@@ -39,9 +43,23 @@ export class AccountStorageManager implements AccountManager {
           ownerPrivateKey: account.ownerPrivateKey
         })
       case AccountType.PasskeyAccount:
-        return PasskeyAccount.init({
-          address: account.address,
-          owner: new PasskeyOwnerWebAuthn(account.credentialId)
+        if (!account.factoryAddress) {
+          return PasskeyAccount.init({
+            address: account.address,
+            owner: new PasskeyOwnerWebAuthn(account.credentialId)
+          })
+        }
+        const { node } = this.networkManager.getActive()
+        return PasskeyAccount.initWithFactory(node, {
+          owner: new PasskeyOwnerWebAuthn(
+            account.credentialId,
+            account.publicKey && {
+              x: number.toBigInt(account.publicKey.x),
+              y: number.toBigInt(account.publicKey.y)
+            }
+          ),
+          salt: number.toBigInt(account.salt),
+          factoryAddress: account.factoryAddress
         })
       default:
         throw new Error(`Unknown account ${account}`)

@@ -25,6 +25,13 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     return Buffer.from("CREDENTIAL_ID_STUB").toString("base64url")
   }
 
+  public getPublicKey() {
+    return {
+      x: this.x,
+      y: this.y
+    }
+  }
+
   public async sign(challenge: BytesLike) {
     const {
       message,

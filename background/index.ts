@@ -27,8 +27,8 @@ async function main() {
   if (!account) {
     throw new Error("No available account")
   }
-  const accountManager = new AccountStorageManager(storage)
   const networkManager = new NetworkStorageManager(storage)
+  const accountManager = new AccountStorageManager(storage, networkManager)
   setupWaalletBackgroundProvider({
     accountManager,
     networkManager,

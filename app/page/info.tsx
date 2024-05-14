@@ -21,16 +21,18 @@ export function Info() {
   const userOpLogs = useUserOperationLogs()
   const account = useAccount()
   const [balance, setBalance] = useState<bigint>(0n)
-  const [balanceLoading, setBalanceLoading] = useState<boolean>(false)
+  const [balanceLoading, setBalanceLoading] = useState<boolean>(true)
 
   useEffect(() => {
-    setBalanceLoading(true)
-    // Periodically check the balance of the account
     const getBalanceAsync = async () => {
       const balance = await provider.getBalance(account.address)
       setBalanceLoading(false)
       setBalance(balance)
     }
+    // Fetch initial balance
+    getBalanceAsync()
+
+    // Periodically check the balance of the account
     const id = setInterval(() => {
       getBalanceAsync().catch((e) =>
         console.warn(`An error occurred while receiving balance: ${e}`)
@@ -40,7 +42,7 @@ export function Info() {
     return () => {
       clearInterval(id)
     }
-  }, [])
+  }, [account.id])
 
   return (
     <NavbarLayout>
