@@ -52,6 +52,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       name: "No Paymaster",
       paymaster: new NullPaymaster()
     },
+    // TODO: Put paymaster into config
     {
       name: "Verifying Paymaster",
       paymaster: new VerifyingPaymaster({

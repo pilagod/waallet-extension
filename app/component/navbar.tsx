@@ -12,7 +12,7 @@ import {
   useShouldOnboard
 } from "~app/storage"
 import { type Account } from "~background/storage/local"
-import { config } from "~config"
+import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import address from "~packages/util/address"
@@ -71,13 +71,13 @@ function AccountSelectorModal(props: {
   const { createAccount, switchAccount } = useAction()
 
   const onPasskeyAccountCreated = async () => {
-    if (!config.passkeyAccountFactory) {
+    if (!network.accountFactory[AccountType.PasskeyAccount]) {
       throw new Error("Passkey account factory is not set")
     }
     const account = await PasskeyAccount.initWithFactory(provider, {
       owner: await PasskeyOwnerWebAuthn.register(),
       salt: number.random(),
-      factoryAddress: config.passkeyAccountFactory
+      factoryAddress: network.accountFactory[AccountType.PasskeyAccount].address
     })
     await createAccount(account, network.id)
     props.onModalClosed()
