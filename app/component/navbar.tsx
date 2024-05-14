@@ -15,24 +15,41 @@ import number from "~packages/util/number"
 export function Navbar() {
   const network = useNetwork()
   const account = useAccount()
-  const [isAccountModalOpened, setIsAccountModalOpened] = useState(false)
-  const toggleAccountModal = () =>
-    setIsAccountModalOpened(!isAccountModalOpened)
   return (
     <nav className="w-full grid grid-cols-5 justify-items-center py-4">
       <div>{network.chainId}</div>
-      <div className="col-span-3 cursor-pointer" onClick={toggleAccountModal}>
-        <span>{address.ellipsize(account.address)}</span>
-        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-      </div>
-      {isAccountModalOpened && (
-        <AccountModal selected={account} onModalClosed={toggleAccountModal} />
-      )}
+      {account ? <AccountSelector account={account} /> : "No account available"}
     </nav>
   )
 }
 
-function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
+function AccountSelector(props: { account: Account }) {
+  const [isAccountSelectorModalOpened, setIsAccountSelectorModalOpened] =
+    useState(false)
+  const toggleAccountSelectorModal = () =>
+    setIsAccountSelectorModalOpened(!isAccountSelectorModalOpened)
+  return (
+    <div>
+      <div
+        className="col-span-3 cursor-pointer"
+        onClick={toggleAccountSelectorModal}>
+        <span>{address.ellipsize(props.account.address)}</span>
+        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+      </div>
+      {isAccountSelectorModalOpened && (
+        <AccountSelectorModal
+          selected={props.account}
+          onModalClosed={toggleAccountSelectorModal}
+        />
+      )}
+    </div>
+  )
+}
+
+function AccountSelectorModal(props: {
+  selected: Account
+  onModalClosed: () => void
+}) {
   const { provider } = useProviderContext()
   const network = useNetwork()
   const accounts = useAccounts()
