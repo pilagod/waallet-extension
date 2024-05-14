@@ -36,9 +36,9 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
   const { provider } = useProviderContext()
   const network = useNetwork()
   const accounts = useAccounts()
-  const { createAccount } = useAction()
+  const { createAccount, switchAccount } = useAction()
 
-  const createPasskeyAccount = async () => {
+  const onPasskeyAccountCreated = async () => {
     if (!config.passkeyAccountFactory) {
       throw new Error("Passkey account factory is not set")
     }
@@ -48,6 +48,11 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
       factoryAddress: config.passkeyAccountFactory
     })
     await createAccount(account, network.id)
+    props.onModalClosed()
+  }
+
+  const onAccountSelected = async (accountId: string) => {
+    await switchAccount(accountId)
     props.onModalClosed()
   }
 
@@ -68,12 +73,13 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
             key={i}
             account={a}
             active={props.selected.address === a.address}
+            onAccountSelected={() => onAccountSelected(a.id)}
           />
         ))}
         <div className="mt-4">
           <button
             className="w-full border-2 border-black rounded-full"
-            onClick={createPasskeyAccount}>
+            onClick={onPasskeyAccountCreated}>
             Create new passkey account
           </button>
         </div>
@@ -82,7 +88,11 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
   )
 }
 
-function AccountPreview(props: { account: Account; active: boolean }) {
+function AccountPreview(props: {
+  account: Account
+  active: boolean
+  onAccountSelected: () => void
+}) {
   const { provider } = useProviderContext()
   const [balance, setBalance] = useState<bigint>(null)
   useEffect(() => {
@@ -97,7 +107,8 @@ function AccountPreview(props: { account: Account; active: boolean }) {
       className={
         "pl-2 cursor-pointer hover:bg-black/20" +
         (props.active ? " bg-black/10 border-l-2 border-l-black" : "")
-      }>
+      }
+      onClick={props.onAccountSelected}>
       <div>
         <span>{props.account.address}</span>
       </div>
