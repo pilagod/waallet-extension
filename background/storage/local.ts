@@ -160,6 +160,12 @@ export type PasskeyAccount = {
   chainId: number
   address: HexString
   credentialId: B64UrlString
+  publicKey?: {
+    x: HexString
+    y: HexString
+  }
+  factoryAddress?: HexString
+  salt?: HexString
 }
 
 /* Paymaster */

@@ -4,16 +4,15 @@ import type { AccountFactory } from "~packages/account/factory"
 import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, HexString } from "~typing"
 
-export type PasskeyPublicKey = {
-  x: BigNumberish
-  y: BigNumberish
-}
+import type { PasskeyPublicKey } from "./passkeyOwner"
 
 export class PasskeyAccountFactory implements AccountFactory {
+  public address: HexString
+  public salt: BigNumberish
+
   private factory: ethers.Contract
   private credentialId: string
   private publicKey: PasskeyPublicKey
-  private salt: BigNumberish
 
   public constructor(opts: {
     address: HexString
@@ -21,13 +20,14 @@ export class PasskeyAccountFactory implements AccountFactory {
     publicKey: PasskeyPublicKey
     salt: BigNumberish
   }) {
+    this.address = opts.address
+    this.salt = opts.salt
     this.factory = new ethers.Contract(opts.address, [
       "function getAddress(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt) view returns (address)",
       "function createAccount(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt)"
     ])
     this.credentialId = opts.credentialId
     this.publicKey = opts.publicKey
-    this.salt = opts.salt
   }
 
   public async getAddress(runner: ContractRunner) {

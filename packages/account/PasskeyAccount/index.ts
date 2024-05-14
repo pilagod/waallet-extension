@@ -1,11 +1,12 @@
 import * as ethers from "ethers"
 
+import { AccountType } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
-import { PasskeyAccountFactory, type PasskeyPublicKey } from "./factory"
+import { PasskeyAccountFactory } from "./factory"
 import type { PasskeyOwner } from "./passkeyOwner"
 
 export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
@@ -26,7 +27,6 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     runner: ContractRunner,
     option: {
       owner: PasskeyOwner
-      publicKey: PasskeyPublicKey
       salt: BigNumberish
       factoryAddress: string
     }
@@ -34,7 +34,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     const factory = new PasskeyAccountFactory({
       address: option.factoryAddress,
       credentialId: option.owner.getCredentialId(),
-      publicKey: option.publicKey,
+      publicKey: option.owner.getPublicKey(),
       salt: option.salt
     })
     return new PasskeyAccount({
@@ -78,6 +78,19 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       "function execute(address dest, uint256 value, bytes calldata func)"
     ])
     this.owner = option.owner
+  }
+
+  public dump() {
+    return {
+      type: AccountType.PasskeyAccount as AccountType.PasskeyAccount,
+      address: this.address,
+      credentialId: this.owner.getCredentialId(),
+      publicKey: this.owner.getPublicKey(),
+      ...(this.factory && {
+        factoryAddress: this.factory.address,
+        salt: this.factory.salt
+      })
+    }
   }
 
   public async sign(message: BytesLike, metadata?: any) {

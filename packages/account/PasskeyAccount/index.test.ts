@@ -12,10 +12,6 @@ describeAccountSuite(
   (runner) => {
     return PasskeyAccount.initWithFactory(runner, {
       owner,
-      publicKey: {
-        x: owner.x,
-        y: owner.y
-      },
       salt: number.random(),
       factoryAddress: config.address.PasskeyAccountFactory
     })

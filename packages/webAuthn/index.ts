@@ -110,7 +110,7 @@ export const createWebAuthn = async (
       x: credPubKeyXUint256,
       y: credPubKeyYUint256
     }
-  } as WebAuthnRegistration
+  }
 }
 
 export const requestWebAuthn = async (
@@ -143,7 +143,7 @@ export const requestWebAuthn = async (
       r: sigRUint,
       s: sigSUint
     }
-  } as WebAuthnAuthentication
+  }
 }
 
 export const defaultWebAuthn = {

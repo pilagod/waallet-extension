@@ -14,6 +14,7 @@ async function handler(
     case StorageAction.Set:
       console.log("[background] Storage update action", req)
       storage.set(req.body.updates, req.body.option)
+      res.send(true)
       break
     default:
       throw new Error(`Unknown action ${req.body}`)

@@ -32,7 +32,7 @@ export const contentCreateWebAuthn = async (
         x: cred.publicKey.x.toString(), // Resolve Uncaught (in promise) Error: Could not serialize message.
         y: cred.publicKey.y.toString() // Resolve Uncaught (in promise) Error: Could not serialize message.
       }
-    } as WebAuthnRegistration)
+    })
     return cred
   } catch (error) {
     console.error(`[content][createWebAuthn] Error: ${error}`)

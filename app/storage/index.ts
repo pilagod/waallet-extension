@@ -1,3 +1,4 @@
+import { v4 as uuidV4 } from "uuid"
 import browser from "webextension-polyfill"
 import { create, type StoreApi } from "zustand"
 import { useShallow } from "zustand/react/shallow"
@@ -10,7 +11,9 @@ import {
   type UserOperationLog,
   type UserOperationSent
 } from "~background/storage/local"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { UserOperationData } from "~packages/bundler"
+import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
 import { background } from "./middleware/background"
@@ -20,7 +23,9 @@ const storageMessenger = new StorageMessenger()
 // TODO: Split as slices
 interface Storage {
   state: State
-  markUserOperationRejected: (userOpId: string) => void
+  createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
+  switchAccount: (accountId: string) => Promise<void>
+  markUserOperationRejected: (userOpId: string) => Promise<void>
   markUserOperationSent: (
     userOpId: string,
     userOpHash: HexString,
@@ -34,6 +39,34 @@ export const useStorage = create<Storage>()(
   background(
     (set) => ({
       state: null,
+      createAccount: async (account: PasskeyAccount, networkId: string) => {
+        const id = uuidV4()
+        const data = account.dump()
+        await set(({ state }) => {
+          const network = state.network[networkId]
+          state.account[id] = {
+            ...data,
+            chainId: network.chainId,
+            // TODO: Design a value object
+            publicKey: {
+              x: number.toHex(data.publicKey.x),
+              y: number.toHex(data.publicKey.y)
+            },
+            salt: number.toHex(data.salt)
+          }
+          // Set the new account as active
+          network.accountActive = id
+        })
+      },
+      switchAccount: async (accountId: string) => {
+        await set(({ state }) => {
+          const { account, network, networkActive } = state
+          if (account[accountId].chainId !== network[networkActive].chainId) {
+            throw new Error("Cannot switch to account in other network")
+          }
+          state.network[state.networkActive].accountActive = accountId
+        })
+      },
       markUserOperationRejected: async (userOpId: string) => {
         await set(({ state }) => {
           const userOpLog = state.userOpPool[userOpId]
@@ -80,7 +113,13 @@ storageMessenger.get().then((state) => {
 
 export const useNetwork = (id?: string) => {
   return useStorage(
-    useShallow(({ state }) => state.network[id ?? state.networkActive])
+    useShallow(({ state }) => {
+      const networkId = id ?? state.networkActive
+      return {
+        id: networkId,
+        ...state.network[networkId]
+      }
+    })
   )
 }
 
@@ -88,7 +127,11 @@ export const useAccount = (id?: string) => {
   return useStorage(
     useShallow(({ state }) => {
       const network = state.network[state.networkActive]
-      return state.account[id ?? network.accountActive]
+      const accountId = id ?? network.accountActive
+      return {
+        id: accountId,
+        ...state.account[id ?? network.accountActive]
+      }
     })
   )
 }
@@ -97,9 +140,19 @@ export const useAccounts = () => {
   return useStorage(
     useShallow(({ state }) => {
       const network = state.network[state.networkActive]
-      return Object.values(state.account).filter(
-        (a) => a.chainId === network.chainId
-      )
+      return Object.entries(state.account)
+        .filter(([_, a]) => a.chainId === network.chainId)
+        .map(([id, a]) => {
+          return { id, ...a }
+        })
+    })
+  )
+}
+
+export const useAction = () => {
+  return useStorage(
+    useShallow(({ state, ...action }) => {
+      return action
     })
   )
 }
