@@ -21,11 +21,10 @@ export function Info() {
   const userOpLogs = useUserOperationLogs()
   const account = useAccount()
   const [balance, setBalance] = useState<bigint>(0n)
-  const [balanceLoading, setBalanceLoading] = useState<boolean>(false)
+  const [balanceLoading, setBalanceLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const getBalanceAsync = async () => {
-      setBalanceLoading(true)
       const balance = await provider.getBalance(account.address)
       setBalanceLoading(false)
       setBalance(balance)
