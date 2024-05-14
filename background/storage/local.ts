@@ -25,17 +25,28 @@ export async function getLocalStorage() {
       console.log("[background] Write state into storage")
       await browser.storage.local.set(state)
     })
-    const account = {
-      ...(storage.get().account ?? {}),
-      ...(config.simpleAccountAddress && {
+    const account = storage.get().account ?? {}
+    const accountAddresses = Object.values(account).map((a) => a.address)
+    // Setup development simple account
+    if (
+      config.simpleAccountAddress &&
+      !accountAddresses.includes(config.simpleAccountAddress)
+    ) {
+      Object.assign(account, {
         [uuidv4()]: {
           type: AccountType.SimpleAccount,
           chainId: config.chainId,
           address: config.simpleAccountAddress,
           ownerPrivateKey: config.simpleAccountOwnerPrivateKey
         }
-      }),
-      ...(config.passkeyAccountAddress && {
+      })
+    }
+    // Setup development passkey account
+    if (
+      config.passkeyAccountAddress &&
+      !accountAddresses.includes(config.passkeyAccountAddress)
+    ) {
+      Object.assign(account, {
         [uuidv4()]: {
           type: AccountType.PasskeyAccount,
           chainId: config.chainId,
