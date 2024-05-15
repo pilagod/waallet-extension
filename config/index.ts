@@ -1,3 +1,4 @@
+// TODO: Get config based on environment
 export const config = {
   chainId: parseInt(process.env.PLASMO_PUBLIC_CHAIN_ID),
   nodeRpcUrl: process.env.PLASMO_PUBLIC_NODE_RPC_URL,

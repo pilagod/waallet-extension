@@ -6,7 +6,17 @@ import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Activity } from "~app/page/info/activity"
 import { Path } from "~app/path"
-import { useAccount } from "~app/storage"
+import {
+  useAccount,
+  useAction,
+  useNetwork,
+  useShouldOnboard,
+  useUserOperationLogs
+} from "~app/storage"
+import { config } from "~config"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
+import number from "~packages/util/number"
 
 export enum InfoNavigation {
   Activity = "Activity",
@@ -14,6 +24,43 @@ export enum InfoNavigation {
 }
 
 export function Info() {
+  const shouldOnboard = useShouldOnboard()
+  return (
+    <NavbarLayout>
+      {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
+    </NavbarLayout>
+  )
+}
+
+function AccountCreation() {
+  const { provider } = useProviderContext()
+  const { createAccount } = useAction()
+  const network = useNetwork()
+
+  const onPasskeyAccountCreated = async () => {
+    if (!config.passkeyAccountFactory) {
+      throw new Error("Passkey account factory is not set")
+    }
+    const account = await PasskeyAccount.initWithFactory(provider, {
+      owner: await PasskeyOwnerWebAuthn.register(),
+      salt: number.random(),
+      factoryAddress: config.passkeyAccountFactory
+    })
+    await createAccount(account, network.id)
+  }
+
+  return (
+    <div className="text-center">
+      <button
+        className="border-2 border-black rounded-full px-2"
+        onClick={onPasskeyAccountCreated}>
+        Create your first AA account
+      </button>
+    </div>
+  )
+}
+
+export function AccountInfo() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()

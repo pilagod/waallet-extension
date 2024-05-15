@@ -7,7 +7,12 @@ import { config } from "~config"
 import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
-import type { B64UrlString, HexString, RecursivePartial } from "~typing"
+import type {
+  B64UrlString,
+  HexString,
+  Nullable,
+  RecursivePartial
+} from "~typing"
 
 let storage: ObservableStorage<State>
 
@@ -20,16 +25,28 @@ export async function getLocalStorage() {
       console.log("[background] Write state into storage")
       await browser.storage.local.set(state)
     })
-    const account = {
-      ...(config.simpleAccountAddress && {
+    const account = storage.get().account ?? {}
+    const accountAddresses = Object.values(account).map((a) => a.address)
+    // Setup development simple account
+    if (
+      config.simpleAccountAddress &&
+      !accountAddresses.includes(config.simpleAccountAddress)
+    ) {
+      Object.assign(account, {
         [uuidv4()]: {
           type: AccountType.SimpleAccount,
           chainId: config.chainId,
           address: config.simpleAccountAddress,
           ownerPrivateKey: config.simpleAccountOwnerPrivateKey
         }
-      }),
-      ...(config.passkeyAccountAddress && {
+      })
+    }
+    // Setup development passkey account
+    if (
+      config.passkeyAccountAddress &&
+      !accountAddresses.includes(config.passkeyAccountAddress)
+    ) {
+      Object.assign(account, {
         [uuidv4()]: {
           type: AccountType.PasskeyAccount,
           chainId: config.chainId,
@@ -53,7 +70,7 @@ export async function getLocalStorage() {
         chainId: config.chainId,
         nodeRpcUrl: config.nodeRpcUrl,
         bundlerRpcUrl: config.bundlerRpcUrl,
-        accountActive: Object.keys(account)[0]
+        accountActive: Object.keys(account)[0] ?? null
       }
     }
     // TODO: Only for development at this moment. Remove following when getting to production.
@@ -141,7 +158,7 @@ export type Network = {
   chainId: number
   nodeRpcUrl: string
   bundlerRpcUrl: string
-  accountActive: HexString
+  accountActive: Nullable<HexString>
 }
 
 /* Account */
