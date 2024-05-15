@@ -139,10 +139,10 @@ function AccountSelector() {
 
 function AccountSelectorModal(props: { onModalClosed: () => void }) {
   const { provider } = useProviderContext()
+  const { createAccount, switchAccount } = useAction()
   const network = useNetwork()
   const account = useAccount()
   const accounts = useAccounts()
-  const { createAccount, switchAccount } = useAction()
 
   const onPasskeyAccountCreated = async () => {
     if (!network.accountFactory[AccountType.PasskeyAccount]) {
