@@ -9,7 +9,7 @@ import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
 import number from "~packages/util/number"
 
-import type { Account, State } from "./storage/local"
+import type { Account, State } from "."
 
 export class AccountStorageManager implements AccountManager {
   public constructor(

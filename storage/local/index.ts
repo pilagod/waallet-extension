@@ -1,20 +1,19 @@
 import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 
-import { sendToBackground, type MessageName } from "@plasmohq/messaging"
-
 import { getConfig } from "~config"
 import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
-import type {
-  B64UrlString,
-  HexString,
-  Nullable,
-  RecursivePartial
-} from "~typing"
+import type { B64UrlString, HexString, Nullable } from "~typing"
 
 let storage: ObservableStorage<State>
+
+export enum StorageAction {
+  Get = "GetStorage",
+  Set = "SetStorage",
+  Sync = "SyncStorage"
+}
 
 export async function getLocalStorage() {
   if (!storage) {
@@ -22,7 +21,7 @@ export async function getLocalStorage() {
     const localStorage = await browser.storage.local.get(null)
     storage = new ObservableStorage<State>(localStorage as State)
     storage.subscribe(async (state) => {
-      console.log("[background] Write state into storage")
+      console.log("[storage] Write state into storage")
       await browser.storage.local.set(state)
     })
     const state = storage.get()
@@ -87,53 +86,8 @@ export async function getLocalStorage() {
       },
       { override: true }
     )
-    storage.subscribe(async (state) => {
-      // Avoid "Receiving end does not exist" error due to missing app-side addListener.
-      try {
-        await browser.runtime.sendMessage(browser.runtime.id, {
-          action: StorageAction.Sync,
-          state
-        })
-      } catch (e) {
-        console.warn(`An error occurred while receiving end: ${e}`)
-      }
-    })
   }
   return storage
-}
-
-/* Storage Action */
-
-export enum StorageAction {
-  Get = "GetStorage",
-  Set = "SetStorage",
-  Sync = "SyncStorage"
-}
-
-export class StorageMessenger {
-  public get(): Promise<State> {
-    return this.send({
-      action: StorageAction.Get
-    })
-  }
-
-  public set(
-    updates: RecursivePartial<State>,
-    option: { override?: boolean } = {}
-  ) {
-    return this.send({
-      action: StorageAction.Set,
-      updates,
-      option
-    })
-  }
-
-  private send(body: any) {
-    return sendToBackground({
-      name: "storage" as MessageName,
-      body
-    })
-  }
 }
 
 /* State */

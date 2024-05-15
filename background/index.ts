@@ -1,16 +1,20 @@
 import browser from "webextension-polyfill"
 
+import number from "~packages/util/number"
 import {
+  getLocalStorage,
+  StorageAction,
   UserOperationStatus,
   type UserOperationLog
-} from "~background/storage/local"
-import number from "~packages/util/number"
+} from "~storage/local"
+import { getSessionStorage } from "~storage/session"
 
-import { AccountStorageManager, NetworkStorageManager } from "./manager"
+import {
+  AccountStorageManager,
+  NetworkStorageManager
+} from "../storage/local/manager"
 import { UserOperationStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
-import { getLocalStorage } from "./storage/local"
-import { getSessionStorage } from "./storage/session"
 
 console.log(
   "Live now; make now always the most precious time. Now will never come again."
@@ -18,6 +22,17 @@ console.log(
 
 async function main() {
   const storage = await getLocalStorage()
+  storage.subscribe(async (state) => {
+    // Avoid "Receiving end does not exist" error due to missing app-side addListener.
+    try {
+      await browser.runtime.sendMessage(browser.runtime.id, {
+        action: StorageAction.Sync,
+        state
+      })
+    } catch (e) {
+      console.warn(`An error occurred while receiving end: ${e}`)
+    }
+  })
   const state = storage.get()
   const network = state.network[state.networkActive]
   if (!network) {

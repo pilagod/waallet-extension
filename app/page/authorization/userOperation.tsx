@@ -12,7 +12,6 @@ import {
   usePendingUserOperationLogs,
   useStorage
 } from "~app/storage"
-import type { Account, UserOperationLog } from "~background/storage/local"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
@@ -23,6 +22,7 @@ import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import { ETH, Token } from "~packages/token"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
+import type { Account, UserOperationLog } from "~storage/local"
 
 type PaymentOption = {
   name: string
