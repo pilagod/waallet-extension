@@ -50,6 +50,7 @@ function NetworkSelector() {
   )
 }
 function NetworkSelectorModal(props: { onModalClosed: () => void }) {
+  const { switchNetwork } = useAction()
   const network = useNetwork()
   const networks = useNetworks()
   return (
@@ -73,8 +74,8 @@ function NetworkSelectorModal(props: { onModalClosed: () => void }) {
               key={i}
               active={network.id === n.id}
               network={n}
-              onNetworkSelected={() => {
-                /* TODO: Switch network */
+              onNetworkSelected={async () => {
+                await switchNetwork(n.id)
                 props.onModalClosed()
               }}
             />

@@ -25,6 +25,7 @@ interface Storage {
   state: State
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
   switchAccount: (accountId: string) => Promise<void>
+  switchNetwork: (networkId: string) => Promise<void>
   markUserOperationRejected: (userOpId: string) => Promise<void>
   markUserOperationSent: (
     userOpId: string,
@@ -65,6 +66,14 @@ export const useStorage = create<Storage>()(
             throw new Error("Cannot switch to account in other network")
           }
           state.network[state.networkActive].accountActive = accountId
+        })
+      },
+      switchNetwork: async (networkId: string) => {
+        await set(({ state }) => {
+          if (!state.network[networkId]) {
+            throw new Error(`Unknown network: ${networkId}`)
+          }
+          state.networkActive = networkId
         })
       },
       markUserOperationRejected: async (userOpId: string) => {
