@@ -1,28 +1,26 @@
 import * as ethers from "ethers"
-import { useEffect, useState, type MouseEvent } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
+import { Activity } from "~app/page/info/activity"
 import { Path } from "~app/path"
 import {
   useAccount,
   useAction,
   useNetwork,
-  useShouldOnboard,
-  useUserOperationLogs
+  useShouldOnboard
 } from "~app/storage"
-import {
-  UserOperationStatus,
-  type Account,
-  type UserOperationLog
-} from "~background/storage/local"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
-import { UserOperation } from "~packages/bundler"
-import address from "~packages/util/address"
 import number from "~packages/util/number"
+
+export enum InfoNavigation {
+  Activity = "Activity",
+  Null = "Null"
+}
 
 export function Info() {
   const shouldOnboard = useShouldOnboard()
@@ -61,16 +59,21 @@ function AccountCreation() {
   )
 }
 
-function AccountInfo() {
+export function AccountInfo() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()
-  const userOpLogs = useUserOperationLogs()
   const account = useAccount()
   const [balance, setBalance] = useState<bigint>(0n)
   const [balanceLoading, setBalanceLoading] = useState<boolean>(true)
+  const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
+    InfoNavigation.Activity
+  )
 
   useEffect(() => {
+    // TODO: In the future, adding an Indexer to the Background Script to
+    // monitor Account-related transactions. Updates like balance will trigger
+    // as needed, avoiding fixed interval polling with setInterval().
     const getBalanceAsync = async () => {
       const balance = await provider.getBalance(account.address)
       setBalanceLoading(false)
@@ -91,110 +94,55 @@ function AccountInfo() {
     }
   }, [account.id])
 
+  const handleInfoNaviChange = (page: InfoNavigation) => {
+    setInfoNavigation(page)
+  }
+
   return (
-    <div>
+    <NavbarLayout>
+      {/* Display the Account address */}
       {account.address && (
         <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-          <button
-            onClick={handleClick}
-            data-url={`${explorerUrl}account/${
+          <a
+            href={`${explorerUrl}account/${
               account.address
-            }?network=${getChainName(account.chainId)}`}>
+            }?network=${getChainName(account.chainId)}`}
+            target="_blank">
             {`${account.address}`}
-          </button>
+          </a>
         </div>
       )}
+
+      {/* Display the Account balance */}
       <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
         Balance: {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
       </div>
-      <SwitchToSendPage />
-      <UserOpHistory
-        userOpLogs={userOpLogs}
-        account={account}
-        explorerUrl={explorerUrl}
-      />
-    </div>
-  )
-}
 
-const SwitchToSendPage: React.FC = () => {
-  return (
-    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      <Link href={Path.Send}>Send ↗</Link>
-    </div>
-  )
-}
-
-const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-  const url = event.currentTarget.getAttribute("data-url")
-
-  if (url) {
-    chrome.tabs.create({ url })
-  }
-}
-
-const UserOpHistoryItem: React.FC<{
-  userOpLog: UserOperationLog
-  chainName: string
-  explorerUrl: string
-}> = ({ userOpLog, chainName, explorerUrl }) => {
-  const { createdAt, status } = userOpLog
-  const creationDate = new Date(createdAt * 1000).toLocaleDateString()
-
-  if (
-    userOpLog.status === UserOperationStatus.Succeeded ||
-    userOpLog.status === UserOperationStatus.Failed
-  ) {
-    const userOpHash = userOpLog.receipt.userOpHash
-    return (
-      <div>
-        <span>{`${creationDate}: `}</span>
-        <span>{`${status} `}</span>
-        <button
-          onClick={handleClick}
-          data-url={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}>
-          {`${address.ellipsize(userOpHash)}`}
-        </button>
+      {/* Show the send button for switching to the Send page */}
+      <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
+        <Link href={Path.Send}>Send ↗</Link>
       </div>
-    )
-  }
 
-  return (
-    <div>
-      <span>{`${creationDate}: `}</span>
-      <span>{`${status}`}</span>
-    </div>
-  )
-}
-
-const UserOpHistory: React.FC<{
-  userOpLogs: UserOperationLog[]
-  account: Account
-  explorerUrl: string
-}> = ({ userOpLogs, account, explorerUrl }) => {
-  // Filter UserOperationLog objects based on a specific sender address.
-  const userOpHistoryItems = userOpLogs.filter((userOpLog) => {
-    const userOp = new UserOperation(userOpLog.userOp)
-    return userOp.isSender(account.address)
-  })
-  const chainName = getChainName(account.chainId)
-
-  return (
-    <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      User Operation History:
-      {userOpHistoryItems.length === 0 ? (
-        <div>(No user operations)</div>
-      ) : (
-        userOpHistoryItems.map((userOpLog, i, _) => (
-          <UserOpHistoryItem
-            key={i}
-            userOpLog={userOpLog}
-            chainName={chainName}
-            explorerUrl={explorerUrl}
-          />
-        ))
-      )}
-    </div>
+      {/* Display the navigation bar of the Info page */}
+      <div>
+        <nav className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
+          <button
+            className="col-span-1 cursor-pointer"
+            onClick={() => handleInfoNaviChange(InfoNavigation.Activity)}>
+            {InfoNavigation.Activity}
+          </button>
+          <button
+            className="col-span-3 cursor-pointer"
+            onClick={() => handleInfoNaviChange(InfoNavigation.Null)}>
+            {InfoNavigation.Null}
+          </button>
+        </nav>
+        <div>
+          {infoNavigation === InfoNavigation.Activity && <Activity />}
+          {infoNavigation === InfoNavigation.Null && <div>Null page</div>}
+        </div>
+      </div>
+    </NavbarLayout>
   )
 }
 
