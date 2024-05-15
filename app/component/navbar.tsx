@@ -26,7 +26,9 @@ export function Navbar() {
       <div className="col-span-1">
         <NetworkSelector />
       </div>
-      {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
+      <div className="col-span-3">
+        {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
+      </div>
     </nav>
   )
 }
@@ -53,6 +55,12 @@ function NetworkSelectorModal(props: { onModalClosed: () => void }) {
   const { switchNetwork } = useAction()
   const network = useNetwork()
   const networks = useNetworks()
+
+  const onNetworkSelected = async (networkId: string) => {
+    await switchNetwork(networkId)
+    props.onModalClosed()
+  }
+
   return (
     <div className="absolute top-0 left-0 w-screen h-screen p-4">
       <div
@@ -72,12 +80,9 @@ function NetworkSelectorModal(props: { onModalClosed: () => void }) {
           return (
             <NetworkPreview
               key={i}
-              active={network.id === n.id}
               network={n}
-              onNetworkSelected={async () => {
-                await switchNetwork(n.id)
-                props.onModalClosed()
-              }}
+              active={network.id === n.id}
+              onNetworkSelected={() => onNetworkSelected(n.id)}
             />
           )
         })}
@@ -107,7 +112,7 @@ function NetworkPreview(props: {
 
 function NullAccountSelector() {
   return (
-    <div className="col-span-3">
+    <div>
       <span>No account available</span>
     </div>
   )
@@ -121,28 +126,21 @@ function AccountSelector() {
     setIsAccountSelectorModalOpened(!isAccountSelectorModalOpened)
   return (
     <>
-      <div
-        className="col-span-3 cursor-pointer"
-        onClick={toggleAccountSelectorModal}>
+      <div className="cursor-pointer" onClick={toggleAccountSelectorModal}>
         <span>{address.ellipsize(account.address)}</span>
         <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
       </div>
       {isAccountSelectorModalOpened && (
-        <AccountSelectorModal
-          selected={account}
-          onModalClosed={toggleAccountSelectorModal}
-        />
+        <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />
       )}
     </>
   )
 }
 
-function AccountSelectorModal(props: {
-  selected: Account
-  onModalClosed: () => void
-}) {
+function AccountSelectorModal(props: { onModalClosed: () => void }) {
   const { provider } = useProviderContext()
   const network = useNetwork()
+  const account = useAccount()
   const accounts = useAccounts()
   const { createAccount, switchAccount } = useAction()
 
@@ -180,7 +178,7 @@ function AccountSelectorModal(props: {
           <AccountPreview
             key={i}
             account={a}
-            active={props.selected.address === a.address}
+            active={account.id === a.id}
             onAccountSelected={() => onAccountSelected(a.id)}
           />
         ))}
