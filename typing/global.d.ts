@@ -1,5 +1,7 @@
 declare namespace NodeJS {
   interface ProcessEnv {
+    /* Extension */
+
     PLASMO_PUBLIC_ENV?: string
 
     /* Network */
