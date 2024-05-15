@@ -22,6 +22,7 @@ export type Config = {
   networks: {
     chainId: number
     name: string
+    active: boolean
     nodeRpcUrl: string
     bundlerRpcUrl: string
     accountFactory: {

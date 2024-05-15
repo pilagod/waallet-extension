@@ -19,16 +19,17 @@ let storage: ObservableStorage<State>
 export async function getLocalStorage() {
   if (!storage) {
     // TODO: Check browser.runtime.lastError
-    const state = await browser.storage.local.get(null)
-    storage = new ObservableStorage<State>(state as State)
+    const localStorage = await browser.storage.local.get(null)
+    storage = new ObservableStorage<State>(localStorage as State)
     storage.subscribe(async (state) => {
       console.log("[background] Write state into storage")
       await browser.storage.local.set(state)
     })
+    const state = storage.get()
     const config = getConfig()
 
     // Load accounts absent into storage
-    const account = storage.get().account ?? {}
+    const account = state.account ?? {}
     const accountIdentifier = Object.values(account).map((a) => [
       a.chainId,
       a.address
@@ -41,25 +42,28 @@ export async function getLocalStorage() {
       if (isExisting) {
         return
       }
+      const accountId = uuidv4()
       Object.assign(account, {
-        [uuidv4()]: a
+        [accountId]: a
       })
     })
 
     // Load networks absent into storage
-    const network = storage.get().network ?? {}
+    const network = state.network ?? {}
     const networkIdentifier = Object.values(network).map((n) => n.chainId)
+    let networkActive = state.networkActive
     config.networks.forEach((n) => {
       const isExisting =
         networkIdentifier.filter((chainId) => n.chainId === chainId).length > 0
       if (isExisting) {
         return
       }
+      const networkId = uuidv4()
       const accountIds = Object.entries(account)
         .filter(([, a]) => a.chainId === n.chainId)
         .map(([id]) => id)
       Object.assign(network, {
-        [uuidv4()]: {
+        [networkId]: {
           chainId: n.chainId,
           name: n.name,
           nodeRpcUrl: n.nodeRpcUrl,
@@ -68,12 +72,15 @@ export async function getLocalStorage() {
           accountFactory: n.accountFactory
         }
       })
+      if (n.active && !networkActive) {
+        networkActive = networkId
+      }
     })
     // TODO: Only for development at this moment. Remove following when getting to production.
     // Enable only network specified in env
     storage.set(
       {
-        networkActive: storage.get().networkActive ?? Object.keys(network)[0],
+        networkActive: networkActive ?? Object.keys(network)[0],
         network,
         account,
         userOpPool: {}

@@ -22,6 +22,7 @@ export const config = {
     {
       chainId: 11155111,
       name: "Sepolia",
+      active: accountChainId === 11155111,
       nodeRpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_SEPOLIA_ALCHEMY_API_KEY}`,
       bundlerRpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_SEPOLIA_ALCHEMY_API_KEY}`,
       accountFactory: {
@@ -36,6 +37,7 @@ export const config = {
     {
       chainId: 1337,
       name: "Local",
+      active: accountChainId === 1337,
       nodeRpcUrl: "http://localhost:8545",
       bundlerRpcUrl: "http://localhost:3000",
       accountFactory: {
