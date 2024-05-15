@@ -35,7 +35,7 @@ export const config = {
     },
     {
       chainId: 1337,
-      name: "Local Testnet",
+      name: "Local",
       nodeRpcUrl: "http://localhost:8545",
       bundlerRpcUrl: "http://localhost:3000",
       accountFactory: {
