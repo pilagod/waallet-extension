@@ -123,6 +123,17 @@ export const useNetwork = (id?: string) => {
   )
 }
 
+export const useNetworks = () => {
+  return useStorage(
+    useShallow(({ state }) => {
+      return Object.entries(state.network).map(([id, n]) => ({
+        id,
+        ...n
+      }))
+    })
+  )
+}
+
 export const useShouldOnboard = () => {
   return useStorage(
     useShallow(({ state }) => {
