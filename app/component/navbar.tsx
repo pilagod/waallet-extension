@@ -4,48 +4,154 @@ import { formatEther } from "ethers"
 import { useEffect, useState } from "react"
 
 import { useProviderContext } from "~app/context/provider"
-import { useAccount, useAccounts, useAction, useNetwork } from "~app/storage"
-import { type Account } from "~background/storage/local"
-import { config } from "~config"
+import {
+  useAccount,
+  useAccounts,
+  useAction,
+  useNetwork,
+  useNetworks,
+  useShouldOnboard
+} from "~app/storage"
+import type { Account, Network } from "~background/storage/local"
+import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 
 export function Navbar() {
-  const network = useNetwork()
-  const account = useAccount()
-  const [isAccountModalOpened, setIsAccountModalOpened] = useState(false)
-  const toggleAccountModal = () =>
-    setIsAccountModalOpened(!isAccountModalOpened)
+  const shouldOnboard = useShouldOnboard()
   return (
     <nav className="w-full grid grid-cols-5 justify-items-center py-4">
-      <div>{network.chainId}</div>
-      <div className="col-span-3 cursor-pointer" onClick={toggleAccountModal}>
-        <span>{address.ellipsize(account.address)}</span>
-        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+      <div className="col-span-1">
+        <NetworkSelector />
       </div>
-      {isAccountModalOpened && (
-        <AccountModal selected={account} onModalClosed={toggleAccountModal} />
-      )}
+      <div className="col-span-3">
+        {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
+      </div>
     </nav>
   )
 }
 
-function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
-  const { provider } = useProviderContext()
+function NetworkSelector() {
   const network = useNetwork()
-  const accounts = useAccounts()
+  const [isNetworkSelectorModalOpened, setIsNetworkSelectorModalOpened] =
+    useState(false)
+  const toggleNetworkSelectorModal = () =>
+    setIsNetworkSelectorModalOpened(!isNetworkSelectorModalOpened)
+  return (
+    <>
+      <div className="cursor-pointer" onClick={toggleNetworkSelectorModal}>
+        <span>{network.name}</span>
+        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+      </div>
+      {isNetworkSelectorModalOpened && (
+        <NetworkSelectorModal onModalClosed={toggleNetworkSelectorModal} />
+      )}
+    </>
+  )
+}
+function NetworkSelectorModal(props: { onModalClosed: () => void }) {
+  const { switchNetwork } = useAction()
+  const network = useNetwork()
+  const networks = useNetworks()
+
+  const onNetworkSelected = async (networkId: string) => {
+    await switchNetwork(networkId)
+    props.onModalClosed()
+  }
+
+  return (
+    <div className="absolute top-0 left-0 w-screen h-screen p-4">
+      <div
+        className="absolute top-0 left-0 w-full h-full bg-black/75"
+        onClick={props.onModalClosed}
+      />
+      <div className="relative w-full p-4 bg-white rounded">
+        <div className="absolute top-4 right-4">
+          <button onClick={props.onModalClosed}>
+            <FontAwesomeIcon icon={faXmark} className="text-lg" />
+          </button>
+        </div>
+        <div className="my-2 text-center">
+          <h1>Select Network</h1>
+        </div>
+        {networks.map((n, i) => {
+          return (
+            <NetworkPreview
+              key={i}
+              network={n}
+              active={network.id === n.id}
+              onNetworkSelected={() => onNetworkSelected(n.id)}
+            />
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function NetworkPreview(props: {
+  active: boolean
+  network: Network
+  onNetworkSelected: () => void
+}) {
+  return (
+    <div
+      className={
+        "p-2 cursor-pointer hover:bg-black/20" +
+        (props.active ? " bg-black/10 border-l-2 border-l-black" : "")
+      }
+      onClick={props.onNetworkSelected}>
+      <div>
+        <span>{props.network.name}</span>
+      </div>
+    </div>
+  )
+}
+
+function NullAccountSelector() {
+  return (
+    <div>
+      <span>No account available</span>
+    </div>
+  )
+}
+
+function AccountSelector() {
+  const account = useAccount()
+  const [isAccountSelectorModalOpened, setIsAccountSelectorModalOpened] =
+    useState(false)
+  const toggleAccountSelectorModal = () =>
+    setIsAccountSelectorModalOpened(!isAccountSelectorModalOpened)
+  return (
+    <>
+      <div className="cursor-pointer" onClick={toggleAccountSelectorModal}>
+        <span>{address.ellipsize(account.address)}</span>
+        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+      </div>
+      {isAccountSelectorModalOpened && (
+        <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />
+      )}
+    </>
+  )
+}
+
+function AccountSelectorModal(props: { onModalClosed: () => void }) {
+  const { provider } = useProviderContext()
   const { createAccount, switchAccount } = useAction()
+  const network = useNetwork()
+  const account = useAccount()
+  const accounts = useAccounts()
 
   const onPasskeyAccountCreated = async () => {
-    if (!config.passkeyAccountFactory) {
+    if (!network.accountFactory[AccountType.PasskeyAccount]) {
       throw new Error("Passkey account factory is not set")
     }
     const account = await PasskeyAccount.initWithFactory(provider, {
       owner: await PasskeyOwnerWebAuthn.register(),
       salt: number.random(),
-      factoryAddress: config.passkeyAccountFactory
+      factoryAddress: network.accountFactory[AccountType.PasskeyAccount].address
     })
     await createAccount(account, network.id)
     props.onModalClosed()
@@ -72,7 +178,7 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
           <AccountPreview
             key={i}
             account={a}
-            active={props.selected.address === a.address}
+            active={account.id === a.id}
             onAccountSelected={() => onAccountSelected(a.id)}
           />
         ))}
@@ -80,7 +186,7 @@ function AccountModal(props: { selected: Account; onModalClosed: () => void }) {
           <button
             className="w-full border-2 border-black rounded-full"
             onClick={onPasskeyAccountCreated}>
-            Create new passkey account
+            Create new AA account
           </button>
         </div>
       </div>

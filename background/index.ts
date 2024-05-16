@@ -23,10 +23,6 @@ async function main() {
   if (!network) {
     throw new Error("No available network")
   }
-  const account = state.account[network.accountActive]
-  if (!account) {
-    throw new Error("No available account")
-  }
   const networkManager = new NetworkStorageManager(storage)
   const accountManager = new AccountStorageManager(storage, networkManager)
   setupWaalletBackgroundProvider({

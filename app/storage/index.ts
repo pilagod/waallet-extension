@@ -25,6 +25,7 @@ interface Storage {
   state: State
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
   switchAccount: (accountId: string) => Promise<void>
+  switchNetwork: (networkId: string) => Promise<void>
   markUserOperationRejected: (userOpId: string) => Promise<void>
   markUserOperationSent: (
     userOpId: string,
@@ -65,6 +66,14 @@ export const useStorage = create<Storage>()(
             throw new Error("Cannot switch to account in other network")
           }
           state.network[state.networkActive].accountActive = accountId
+        })
+      },
+      switchNetwork: async (networkId: string) => {
+        await set(({ state }) => {
+          if (!state.network[networkId]) {
+            throw new Error(`Unknown network: ${networkId}`)
+          }
+          state.networkActive = networkId
         })
       },
       markUserOperationRejected: async (userOpId: string) => {
@@ -123,6 +132,30 @@ export const useNetwork = (id?: string) => {
   )
 }
 
+export const useNetworks = () => {
+  return useStorage(
+    useShallow(({ state }) => {
+      return Object.entries(state.network).map(([id, n]) => ({
+        id,
+        ...n
+      }))
+    })
+  )
+}
+
+export const useShouldOnboard = () => {
+  return useStorage(
+    useShallow(({ state }) => {
+      const network = state.network[state.networkActive]
+      return (
+        Object.values(state.account).filter(
+          (a) => a.chainId === network.chainId
+        ).length === 0
+      )
+    })
+  )
+}
+
 export const useAccount = (id?: string) => {
   return useStorage(
     useShallow(({ state }) => {
@@ -130,7 +163,7 @@ export const useAccount = (id?: string) => {
       const accountId = id ?? network.accountActive
       return {
         id: accountId,
-        ...state.account[id ?? network.accountActive]
+        ...state.account[accountId]
       }
     })
   )

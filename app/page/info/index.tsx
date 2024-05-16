@@ -7,7 +7,16 @@ import { NavbarLayout } from "~app/layout/navbar"
 import { Activity } from "~app/page/info/activity"
 import { Tokens } from "~app/page/info/tokens"
 import { Path } from "~app/path"
-import { useAccount } from "~app/storage"
+import {
+  useAccount,
+  useAction,
+  useNetwork,
+  useShouldOnboard
+} from "~app/storage"
+import { AccountType } from "~packages/account"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
+import number from "~packages/util/number"
 
 export enum InfoNavigation {
   Activity = "Activity",
@@ -15,6 +24,43 @@ export enum InfoNavigation {
 }
 
 export function Info() {
+  const shouldOnboard = useShouldOnboard()
+  return (
+    <NavbarLayout>
+      {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
+    </NavbarLayout>
+  )
+}
+
+function AccountCreation() {
+  const { provider } = useProviderContext()
+  const { createAccount } = useAction()
+  const network = useNetwork()
+
+  const onPasskeyAccountCreated = async () => {
+    if (!network.accountFactory[AccountType.PasskeyAccount]) {
+      throw new Error("Passkey account factory is not set")
+    }
+    const account = await PasskeyAccount.initWithFactory(provider, {
+      owner: await PasskeyOwnerWebAuthn.register(),
+      salt: number.random(),
+      factoryAddress: network.accountFactory[AccountType.PasskeyAccount].address
+    })
+    await createAccount(account, network.id)
+  }
+
+  return (
+    <div className="text-center">
+      <button
+        className="border-2 border-black rounded-full px-2"
+        onClick={onPasskeyAccountCreated}>
+        Create your first AA account
+      </button>
+    </div>
+  )
+}
+
+export function AccountInfo() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()
@@ -54,7 +100,7 @@ export function Info() {
   }
 
   return (
-    <NavbarLayout>
+    <div>
       {/* Display the Account address */}
       {account.address && (
         <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
@@ -97,7 +143,7 @@ export function Info() {
           {infoNavigation === InfoNavigation.Tokens && <Tokens />}
         </div>
       </div>
-    </NavbarLayout>
+    </div>
   )
 }
 
