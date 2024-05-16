@@ -1,5 +1,5 @@
 import * as ethers from "ethers"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useClsState } from "use-cls-state"
 import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
 import { useHashLocation } from "wouter/use-hash-location"
@@ -76,26 +76,45 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     tokenFee: 0n
   })
   const [userOpSending, setUserOpSending] = useState(false)
+  const [userOpEstimating, setUserOpEstimating] = useState(false)
   const [paymentCalculating, setPaymentCalculating] = useState(false)
+
+  // TODO: Put it into a dedicated module
+  const estimateGasFee = async () => {
+    const fee = await provider.getFeeData()
+    const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
+    // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
+    return {
+      maxFeePerGas: gasPriceWithBuffer,
+      maxPriorityFeePerGas: gasPriceWithBuffer
+    }
+  }
 
   const onPaymentOptionSelected = async (o: PaymentOption) => {
     // TODO: Be able to select token
     // Should show only tokens imported by user
-    setPaymentCalculating(true)
+    setUserOpEstimating(true)
     setPayment({
       ...payment,
       option: o
     })
+    userOp.clearGasLimit()
     userOp.setPaymasterAndData(
       await o.paymaster.requestPaymasterAndData(provider, userOp)
     )
+    userOp.setGasFee(await estimateGasFee())
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
         userOp.data()
       ])
     )
     setUserOp(userOp)
+    setUserOpEstimating(false)
   }
+  // Trigger initial gas estimation
+  useEffect(() => {
+    onPaymentOptionSelected(payment.option)
+  }, [])
 
   const markUserOperationSent = useStorage(
     (storage) => storage.markUserOperationSent
@@ -105,6 +124,9 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
 
     const account = await createAccount(sender)
     try {
+      userOp.setPaymasterAndData(
+        await payment.option.paymaster.requestPaymasterAndData(provider, userOp)
+      )
       userOp.setSignature(
         await account.sign(
           userOp.hash(userOpLog.entryPointAddress, network.chainId)
@@ -143,9 +165,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       })
       setPaymentCalculating(false)
     }
-    if (userOp) {
-      updatePayment()
-    }
+    updatePayment()
   }, [userOp])
 
   return (
@@ -201,11 +221,11 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       </div>
       <div style={{ marginTop: "1em" }}>
         <button
-          disabled={paymentCalculating || userOpSending}
-          onClick={() => sendUserOperation()}>
+          disabled={userOpEstimating || paymentCalculating || userOpSending}
+          onClick={sendUserOperation}>
           Send
         </button>
-        <button disabled={userOpSending} onClick={() => rejectUserOperation()}>
+        <button disabled={userOpSending} onClick={rejectUserOperation}>
           Reject
         </button>
       </div>
