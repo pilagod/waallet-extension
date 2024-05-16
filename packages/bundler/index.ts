@@ -127,14 +127,6 @@ export class UserOperation {
     this.preVerificationGas = number.toBigInt(data.preVerificationGas)
   }
 
-  public clearGasLimit() {
-    this.setGasLimit({
-      callGasLimit: 0n,
-      verificationGasLimit: 0n,
-      preVerificationGas: 0n
-    })
-  }
-
   public setGasFee(data: {
     maxFeePerGas: BigNumberish
     maxPriorityFeePerGas: BigNumberish
