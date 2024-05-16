@@ -99,7 +99,7 @@ export function AccountInfo() {
   }
 
   return (
-    <NavbarLayout>
+    <div>
       {/* Display the Account address */}
       {account.address && (
         <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
@@ -142,7 +142,7 @@ export function AccountInfo() {
           {infoNavigation === InfoNavigation.Null && <div>Null page</div>}
         </div>
       </div>
-    </NavbarLayout>
+    </div>
   )
 }
 
