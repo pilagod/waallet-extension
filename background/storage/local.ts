@@ -3,7 +3,7 @@ import browser from "webextension-polyfill"
 
 import { sendToBackground, type MessageName } from "@plasmohq/messaging"
 
-import { config } from "~config"
+import { getConfig } from "~config"
 import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
@@ -19,68 +19,70 @@ let storage: ObservableStorage<State>
 export async function getLocalStorage() {
   if (!storage) {
     // TODO: Check browser.runtime.lastError
-    const state = await browser.storage.local.get(null)
-    storage = new ObservableStorage<State>(state as State)
+    const localStorage = await browser.storage.local.get(null)
+    storage = new ObservableStorage<State>(localStorage as State)
     storage.subscribe(async (state) => {
       console.log("[background] Write state into storage")
       await browser.storage.local.set(state)
     })
-    const account = storage.get().account ?? {}
-    const accountAddresses = Object.values(account).map((a) => a.address)
-    // Setup development simple account
-    if (
-      config.simpleAccountAddress &&
-      !accountAddresses.includes(config.simpleAccountAddress)
-    ) {
-      Object.assign(account, {
-        [uuidv4()]: {
-          type: AccountType.SimpleAccount,
-          chainId: config.chainId,
-          address: config.simpleAccountAddress,
-          ownerPrivateKey: config.simpleAccountOwnerPrivateKey
-        }
-      })
-    }
-    // Setup development passkey account
-    if (
-      config.passkeyAccountAddress &&
-      !accountAddresses.includes(config.passkeyAccountAddress)
-    ) {
-      Object.assign(account, {
-        [uuidv4()]: {
-          type: AccountType.PasskeyAccount,
-          chainId: config.chainId,
-          address: config.passkeyAccountAddress,
-          credentialId: config.passkeyAccountCredentialId
-        }
-      })
-    }
-    const paymaster = {
-      ...(config.verifyingPaymasterAddress && {
-        [uuidv4()]: {
-          type: PaymasterType.VerifyingPaymaster,
-          chainId: config.chainId,
-          address: config.verifyingPaymasterAddress,
-          ownerPrivateKey: config.verifyingPaymasterOwnerPrivateKey
-        }
-      })
-    }
-    const network = {
-      [uuidv4()]: {
-        chainId: config.chainId,
-        nodeRpcUrl: config.nodeRpcUrl,
-        bundlerRpcUrl: config.bundlerRpcUrl,
-        accountActive: Object.keys(account)[0] ?? null
+    const state = storage.get()
+    const config = getConfig()
+
+    // Load accounts absent into storage
+    const account = state.account ?? {}
+    const accountIdentifier = Object.values(account).map((a) => [
+      a.chainId,
+      a.address
+    ])
+    config.accounts.forEach((a) => {
+      const isExisting =
+        accountIdentifier.filter(
+          ([chainId, address]) => a.chainId === chainId && a.address === address
+        ).length > 0
+      if (isExisting) {
+        return
       }
-    }
+      const accountId = uuidv4()
+      Object.assign(account, {
+        [accountId]: a
+      })
+    })
+
+    // Load networks absent into storage
+    const network = state.network ?? {}
+    const networkIdentifier = Object.values(network).map((n) => n.chainId)
+    let networkActive = state.networkActive
+    config.networks.forEach((n) => {
+      const isExisting =
+        networkIdentifier.filter((chainId) => n.chainId === chainId).length > 0
+      if (isExisting) {
+        return
+      }
+      const networkId = uuidv4()
+      const accountIds = Object.entries(account)
+        .filter(([, a]) => a.chainId === n.chainId)
+        .map(([id]) => id)
+      Object.assign(network, {
+        [networkId]: {
+          chainId: n.chainId,
+          name: n.name,
+          nodeRpcUrl: n.nodeRpcUrl,
+          bundlerRpcUrl: n.bundlerRpcUrl,
+          accountActive: accountIds[0] ?? null,
+          accountFactory: n.accountFactory
+        }
+      })
+      if (n.active && !networkActive) {
+        networkActive = networkId
+      }
+    })
     // TODO: Only for development at this moment. Remove following when getting to production.
     // Enable only network specified in env
     storage.set(
       {
-        networkActive: Object.keys(network)[0],
+        networkActive: networkActive ?? Object.keys(network)[0],
         network,
         account,
-        paymaster,
         userOpPool: {}
       },
       { override: true }
@@ -156,9 +158,15 @@ export type State = {
 
 export type Network = {
   chainId: number
+  name: string
   nodeRpcUrl: string
   bundlerRpcUrl: string
   accountActive: Nullable<HexString>
+  accountFactory: {
+    [type in AccountType]: {
+      address: HexString
+    }
+  }
 }
 
 /* Account */

@@ -1,19 +1,42 @@
-// TODO: Get config based on environment
-export const config = {
-  chainId: parseInt(process.env.PLASMO_PUBLIC_CHAIN_ID),
-  nodeRpcUrl: process.env.PLASMO_PUBLIC_NODE_RPC_URL,
-  bundlerRpcUrl: process.env.PLASMO_PUBLIC_BUNDLER_RPC_URL,
+import { AccountType } from "~packages/account"
+import type { HexString } from "~typing"
 
-  simpleAccountAddress: process.env.PLASMO_PUBLIC_ACCOUNT,
-  simpleAccountOwnerPrivateKey:
-    process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY,
+import { config as developmentConfig } from "./development"
 
-  passkeyAccountAddress: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT,
-  passkeyAccountCredentialId:
-    process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT_CREDENTIAL_ID,
-  passkeyAccountFactory: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT_FACTORY,
+export type Config = {
+  accounts: (
+    | {
+        type: AccountType.SimpleAccount
+        chainId: number
+        address: HexString
+        ownerPrivateKey: HexString
+      }
+    | {
+        type: AccountType.PasskeyAccount
+        chainId: number
+        address: HexString
+        credentialId: string
+      }
+  )[]
 
-  verifyingPaymasterAddress: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
-  verifyingPaymasterOwnerPrivateKey:
-    process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER_OWNER_PRIVATE_KEY
+  networks: {
+    chainId: number
+    name: string
+    active: boolean
+    nodeRpcUrl: string
+    bundlerRpcUrl: string
+    accountFactory: {
+      [type in AccountType]: {
+        address: string
+      }
+    }
+  }[]
+}
+
+export function getConfig(): Config {
+  const env = process.env.PLASMO_PUBLIC_ENV
+  if (env === "development") {
+    return developmentConfig
+  }
+  throw new Error(`Unsupported env ${env}`)
 }
