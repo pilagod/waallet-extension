@@ -160,6 +160,10 @@ export class UserOperation {
     )
   }
 
+  public isGasFeeEstimated() {
+    return !!(this.maxFeePerGas && this.maxPriorityFeePerGas)
+  }
+
   public isSender(address: HexString) {
     return ethers.getAddress(address) === ethers.getAddress(this.sender)
   }

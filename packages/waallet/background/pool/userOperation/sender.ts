@@ -3,7 +3,8 @@ import { v4 as uuidv4 } from "uuid"
 import type { AccountManager } from "~packages/account/manager"
 import { UserOperation } from "~packages/bundler"
 import type { NetworkManager } from "~packages/network/manager"
-import type { HexString } from "~typing"
+import { NodeProvider } from "~packages/node/provider"
+import type { BigNumberish, HexString } from "~typing"
 
 import type { UserOperationPool, UserOperationReceipt } from "./index"
 
@@ -13,7 +14,10 @@ export class UserOperationSender implements UserOperationPool {
   public constructor(
     private accountManager: AccountManager,
     private networkManager: NetworkManager,
-    private userOpHook?: (userOp: UserOperation) => Promise<void>
+    private hook?: {
+      beforeGasEstimation?: (userOp: UserOperation) => Promise<void>
+      afterGasEstimation?: (userOp: UserOperation) => Promise<void>
+    }
   ) {}
 
   public async send(data: {
@@ -23,10 +27,27 @@ export class UserOperationSender implements UserOperationPool {
     entryPointAddress: HexString
   }) {
     const { userOp, senderId, networkId, entryPointAddress } = data
-    const { bundler, chainId } = this.networkManager.get(networkId)
+    const { node, bundler, chainId } = this.networkManager.get(networkId)
     const { account } = await this.accountManager.get(senderId)
-    if (this.userOpHook) {
-      await this.userOpHook(userOp)
+
+    if (this.hook?.beforeGasEstimation) {
+      await this.hook.beforeGasEstimation(userOp)
+    }
+
+    if (!userOp.isGasFeeEstimated()) {
+      userOp.setGasFee(await this.estimateGasFee(node))
+    }
+    const gas = await bundler.estimateUserOperationGas(
+      userOp,
+      entryPointAddress
+    )
+    if (userOp.callGasLimit > gas.callGasLimit) {
+      gas.callGasLimit = userOp.callGasLimit
+    }
+    userOp.setGasLimit(gas)
+
+    if (this.hook?.afterGasEstimation) {
+      await this.hook.afterGasEstimation(userOp)
     }
     userOp.setSignature(
       await account.sign(userOp.hash(entryPointAddress, chainId))
@@ -53,5 +74,18 @@ export class UserOperationSender implements UserOperationPool {
 
   public wait(userOpId: string) {
     return this.pool[userOpId]
+  }
+
+  private async estimateGasFee(node: NodeProvider): Promise<{
+    maxFeePerGas: BigNumberish
+    maxPriorityFeePerGas: BigNumberish
+  }> {
+    const fee = await node.getFeeData()
+    const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
+    // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
+    return {
+      maxFeePerGas: gasPriceWithBuffer,
+      maxPriorityFeePerGas: gasPriceWithBuffer
+    }
   }
 }
