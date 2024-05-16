@@ -1,5 +1,4 @@
 import config from "~config/test"
-import { UserOperation } from "~packages/bundler"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -16,18 +15,25 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
   })
 
   beforeAll(() => {
-    const updatePaymasterAndData = async (userOp: UserOperation) => {
-      userOp.setPaymasterAndData(
-        await verifyingPaymaster.requestPaymasterAndData(node, userOp)
-      )
-    }
     ctx.provider = ctx.provider.clone({
       userOperationPool: new UserOperationSender(
         ctx.provider.accountManager,
         ctx.provider.networkManager,
         {
-          beforeGasEstimation: updatePaymasterAndData,
-          afterGasEstimation: updatePaymasterAndData
+          beforeGasEstimation: async (userOp) => {
+            userOp.setPaymasterAndData(
+              await verifyingPaymaster.requestPaymasterAndData(
+                node,
+                userOp,
+                true
+              )
+            )
+          },
+          afterGasEstimation: async (userOp) => {
+            userOp.setPaymasterAndData(
+              await verifyingPaymaster.requestPaymasterAndData(node, userOp)
+            )
+          }
         }
       )
     })

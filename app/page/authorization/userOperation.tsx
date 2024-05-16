@@ -98,9 +98,8 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       ...payment,
       option: o
     })
-    userOp.clearGasLimit()
     userOp.setPaymasterAndData(
-      await o.paymaster.requestPaymasterAndData(provider, userOp)
+      await o.paymaster.requestPaymasterAndData(provider, userOp, true)
     )
     userOp.setGasFee(await estimateGasFee())
     userOp.setGasLimit(
