@@ -3,11 +3,11 @@ import browser from "webextension-polyfill"
 import { create, type StoreApi } from "zustand"
 import { useShallow } from "zustand/react/shallow"
 
+import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { UserOperationData } from "~packages/bundler"
 import number from "~packages/util/number"
 import {
-  StorageAction,
   UserOperationStatus,
   type State,
   type UserOperationLog,

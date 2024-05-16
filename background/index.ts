@@ -3,16 +3,16 @@ import browser from "webextension-polyfill"
 import number from "~packages/util/number"
 import {
   getLocalStorage,
-  StorageAction,
   UserOperationStatus,
   type UserOperationLog
 } from "~storage/local"
-import { getSessionStorage } from "~storage/session"
-
 import {
   AccountStorageManager,
   NetworkStorageManager
-} from "../storage/local/manager"
+} from "~storage/local/manager"
+import { getSessionStorage } from "~storage/session"
+
+import { StorageAction } from "./messages/storage"
 import { UserOperationStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 

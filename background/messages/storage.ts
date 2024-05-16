@@ -1,6 +1,12 @@
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
-import { getLocalStorage, StorageAction } from "~storage/local"
+import { getLocalStorage } from "~storage/local"
+
+export enum StorageAction {
+  Get = "GetStorage",
+  Set = "SetStorage",
+  Sync = "SyncStorage"
+}
 
 async function handler(
   req: PlasmoMessaging.Request,

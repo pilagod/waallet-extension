@@ -9,12 +9,6 @@ import type { B64UrlString, HexString, Nullable } from "~typing"
 
 let storage: ObservableStorage<State>
 
-export enum StorageAction {
-  Get = "GetStorage",
-  Set = "SetStorage",
-  Sync = "SyncStorage"
-}
-
 export async function getLocalStorage() {
   if (!storage) {
     // TODO: Check browser.runtime.lastError
