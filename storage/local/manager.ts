@@ -10,7 +10,7 @@ import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
 import number from "~packages/util/number"
 
-import type { Account, State } from "."
+import type { Account, State } from "./index"
 
 export class AccountStorageManager implements AccountManager {
   public static async wrap(runner: ContractRunner, account: Account) {
