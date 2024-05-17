@@ -102,8 +102,6 @@ export const useStorage = create<Storage>()(
       importToken: async (accountId: string, token: Token) => {
         await set(({ state }) => {
           state.account[accountId].tokens.push(token)
-
-          console.log(`[tttttt] token: ${token}`)
         })
       }
     }),
