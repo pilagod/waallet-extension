@@ -5,15 +5,46 @@ import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOw
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
 import type { NetworkManager } from "~packages/network/manager"
+import type { ContractRunner } from "~packages/node"
 import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
-import type { Account, State } from "./storage/local"
+import type { Account, State } from "./index"
 
 export class AccountStorageManager implements AccountManager {
+  public static async wrap(runner: ContractRunner, account: Account) {
+    switch (account.type) {
+      case AccountType.SimpleAccount:
+        return SimpleAccount.init({
+          address: account.address,
+          ownerPrivateKey: account.ownerPrivateKey
+        })
+      case AccountType.PasskeyAccount:
+        if (!account.factoryAddress) {
+          return PasskeyAccount.init({
+            address: account.address,
+            owner: new PasskeyOwnerWebAuthn(account.credentialId)
+          })
+        }
+        return PasskeyAccount.initWithFactory(runner, {
+          owner: new PasskeyOwnerWebAuthn(
+            account.credentialId,
+            account.publicKey && {
+              x: number.toBigInt(account.publicKey.x),
+              y: number.toBigInt(account.publicKey.y)
+            }
+          ),
+          salt: number.toBigInt(account.salt),
+          factoryAddress: account.factoryAddress
+        })
+      default:
+        throw new Error(`Unknown account ${account}`)
+    }
+  }
+
   public constructor(
     private storage: ObservableStorage<State>,
     private networkManager: NetworkManager
@@ -25,9 +56,10 @@ export class AccountStorageManager implements AccountManager {
     if (!account) {
       throw new Error(`Unknown account ${id}`)
     }
+    const { node } = this.networkManager.getActive()
     return {
       id,
-      account: await this.init(account)
+      account: await AccountStorageManager.wrap(node, account)
     }
   }
 
@@ -47,37 +79,6 @@ export class AccountStorageManager implements AccountManager {
       })
       .map(([id]) => id)
     return this.get(accountId)
-  }
-
-  private async init(account: Account) {
-    switch (account.type) {
-      case AccountType.SimpleAccount:
-        return SimpleAccount.init({
-          address: account.address,
-          ownerPrivateKey: account.ownerPrivateKey
-        })
-      case AccountType.PasskeyAccount:
-        if (!account.factoryAddress) {
-          return PasskeyAccount.init({
-            address: account.address,
-            owner: new PasskeyOwnerWebAuthn(account.credentialId)
-          })
-        }
-        const { node } = this.networkManager.getActive()
-        return PasskeyAccount.initWithFactory(node, {
-          owner: new PasskeyOwnerWebAuthn(
-            account.credentialId,
-            account.publicKey && {
-              x: number.toBigInt(account.publicKey.x),
-              y: number.toBigInt(account.publicKey.y)
-            }
-          ),
-          salt: number.toBigInt(account.salt),
-          factoryAddress: account.factoryAddress
-        })
-      default:
-        throw new Error(`Unknown account ${account}`)
-    }
   }
 }
 
