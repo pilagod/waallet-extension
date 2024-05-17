@@ -147,7 +147,7 @@ export function AccountInfo() {
   )
 }
 
-const getChainName = (chain: string | number): string => {
+export const getChainName = (chain: string | number): string => {
   const net = typeof chain === "string" ? chain.toLowerCase() : chain
   let chainName: string
   switch (net) {
