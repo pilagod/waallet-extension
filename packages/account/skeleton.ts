@@ -29,11 +29,9 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     runner: ContractRunner,
     call: Call
   ): Promise<UserOperation> {
-    const isDeployed = await this.isDeployed(runner)
-
     const sender = await this.getAddress()
-    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce(runner) : 0)
-    const initCode = isDeployed
+    const nonce = call?.nonce ?? (await this.getNonce(runner))
+    const initCode = (await this.isDeployed(runner))
       ? "0x"
       : await this.mustGetFactory().getInitCode()
     const callData = call ? await this.getCallData(call) : "0x"
@@ -53,6 +51,9 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   }
 
   public async getNonce(runner: ContractRunner): Promise<bigint> {
+    if (!(await this.isDeployed(runner))) {
+      return 0n
+    }
     const account = new ethers.Contract(
       this.address,
       [
