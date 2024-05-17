@@ -12,12 +12,12 @@ import {
   useNetworks,
   useShouldOnboard
 } from "~app/storage"
-import type { Account, Network } from "~background/storage/local"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
+import type { Account, Network } from "~storage/local"
 
 export function Navbar() {
   const shouldOnboard = useShouldOnboard()

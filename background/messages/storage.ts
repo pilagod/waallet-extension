@@ -1,6 +1,12 @@
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
-import { getLocalStorage, StorageAction } from "~background/storage/local"
+import { getLocalStorage } from "~storage/local"
+
+export enum StorageAction {
+  Get = "GetStorage",
+  Set = "SetStorage",
+  Sync = "SyncStorage"
+}
 
 async function handler(
   req: PlasmoMessaging.Request,
@@ -16,6 +22,8 @@ async function handler(
       storage.set(req.body.updates, req.body.option)
       res.send(true)
       break
+    case StorageAction.Sync:
+      throw new Error("Sync action can only be fired from background")
     default:
       throw new Error(`Unknown action ${req.body}`)
   }

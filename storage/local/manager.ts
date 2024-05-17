@@ -5,37 +5,15 @@ import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOw
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
 import type { NetworkManager } from "~packages/network/manager"
+import type { ContractRunner } from "~packages/node"
 import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
 import number from "~packages/util/number"
 
-import type { Account, State } from "./storage/local"
+import type { Account, State } from "./index"
 
 export class AccountStorageManager implements AccountManager {
-  public constructor(
-    private storage: ObservableStorage<State>,
-    private networkManager: NetworkManager
-  ) {}
-
-  public async get(id: string) {
-    const state = this.storage.get()
-    const account = state.account[id]
-    if (!account) {
-      throw new Error(`Unknown account ${id}`)
-    }
-    return {
-      id,
-      account: await this.init(account)
-    }
-  }
-
-  public async getActive() {
-    const state = this.storage.get()
-    const network = state.network[state.networkActive]
-    return this.get(network.accountActive)
-  }
-
-  private async init(account: Account) {
+  public static async wrap(runner: ContractRunner, account: Account) {
     switch (account.type) {
       case AccountType.SimpleAccount:
         return SimpleAccount.init({
@@ -49,8 +27,7 @@ export class AccountStorageManager implements AccountManager {
             owner: new PasskeyOwnerWebAuthn(account.credentialId)
           })
         }
-        const { node } = this.networkManager.getActive()
-        return PasskeyAccount.initWithFactory(node, {
+        return PasskeyAccount.initWithFactory(runner, {
           owner: new PasskeyOwnerWebAuthn(
             account.credentialId,
             account.publicKey && {
@@ -64,6 +41,29 @@ export class AccountStorageManager implements AccountManager {
       default:
         throw new Error(`Unknown account ${account}`)
     }
+  }
+  public constructor(
+    private storage: ObservableStorage<State>,
+    private networkManager: NetworkManager
+  ) {}
+
+  public async get(id: string) {
+    const state = this.storage.get()
+    const account = state.account[id]
+    if (!account) {
+      throw new Error(`Unknown account ${id}`)
+    }
+    const { node } = this.networkManager.getActive()
+    return {
+      id,
+      account: await AccountStorageManager.wrap(node, account)
+    }
+  }
+
+  public async getActive() {
+    const state = this.storage.get()
+    const network = state.network[state.networkActive]
+    return this.get(network.accountActive)
   }
 }
 

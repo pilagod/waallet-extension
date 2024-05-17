@@ -3,19 +3,19 @@ import browser from "webextension-polyfill"
 import { create, type StoreApi } from "zustand"
 import { useShallow } from "zustand/react/shallow"
 
+import { StorageAction } from "~background/messages/storage"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import type { UserOperationData } from "~packages/bundler"
+import number from "~packages/util/number"
 import {
-  StorageAction,
-  StorageMessenger,
   UserOperationStatus,
   type State,
   type UserOperationLog,
   type UserOperationSent
-} from "~background/storage/local"
-import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import type { UserOperationData } from "~packages/bundler"
-import number from "~packages/util/number"
+} from "~storage/local"
 import type { HexString } from "~typing"
 
+import { StorageMessenger } from "./messenger"
 import { background } from "./middleware/background"
 
 const storageMessenger = new StorageMessenger()
