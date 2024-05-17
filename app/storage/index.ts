@@ -53,7 +53,8 @@ export const useStorage = create<Storage>()(
               x: number.toHex(data.publicKey.x),
               y: number.toHex(data.publicKey.y)
             },
-            salt: number.toHex(data.salt)
+            salt: number.toHex(data.salt),
+            tokens: []
           }
           // Set the new account as active
           network.accountActive = id

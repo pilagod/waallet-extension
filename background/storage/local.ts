@@ -4,7 +4,7 @@ import browser from "webextension-polyfill"
 import { sendToBackground, type MessageName } from "@plasmohq/messaging"
 
 import { getConfig } from "~config"
-import { AccountType } from "~packages/account"
+import { AccountType, type Token } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
 import type {
@@ -178,6 +178,7 @@ export type SimpleAccount = {
   chainId: number
   address: HexString
   ownerPrivateKey: HexString
+  tokens: Token[]
 }
 
 export type PasskeyAccount = {
@@ -191,6 +192,7 @@ export type PasskeyAccount = {
   }
   factoryAddress?: HexString
   salt?: HexString
+  tokens: Token[]
 }
 
 /* Paymaster */

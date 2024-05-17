@@ -8,13 +8,15 @@ export const config = {
       type: AccountType.SimpleAccount as AccountType.SimpleAccount,
       chainId: accountChainId,
       address: process.env.PLASMO_PUBLIC_ACCOUNT,
-      ownerPrivateKey: process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY
+      ownerPrivateKey: process.env.PLASMO_PUBLIC_ACCOUNT_OWNER_PRIVATE_KEY,
+      tokens: []
     },
     {
       type: AccountType.PasskeyAccount as AccountType.PasskeyAccount,
       chainId: accountChainId,
       address: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT,
-      credentialId: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT_CREDENTIAL_ID
+      credentialId: process.env.PLASMO_PUBLIC_PASSKEY_ACCOUNT_CREDENTIAL_ID,
+      tokens: []
     }
   ].filter((a) => a.address),
 

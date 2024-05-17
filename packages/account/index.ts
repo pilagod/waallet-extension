@@ -22,6 +22,12 @@ export type Call = {
   nonce?: BigNumberish
 }
 
+export type Token = {
+  address: HexString
+  symbol: string
+  decimals: number
+}
+
 export interface Account {
   createUserOperation(
     runner: ContractRunner,
