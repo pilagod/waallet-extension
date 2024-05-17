@@ -1,5 +1,6 @@
 import * as ethers from "ethers"
 
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -168,7 +169,7 @@ export class UserOperation {
     return !!(this.maxFeePerGas && this.maxPriorityFeePerGas)
   }
 
-  public isSender(address: HexString) {
-    return ethers.getAddress(address) === ethers.getAddress(this.sender)
+  public isSender(accountAddress: HexString) {
+    return address.isEqual(this.sender, accountAddress)
   }
 }

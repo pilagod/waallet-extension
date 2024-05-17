@@ -1,7 +1,9 @@
+import { getAddress } from "ethers"
+
 import type { HexString } from "~typing"
 
 function isEqual(a1: HexString, a2: HexString) {
-  return a1.toLowerCase() === a2.toLowerCase()
+  return getAddress(a1) === getAddress(a2)
 }
 
 function ellipsize(address: HexString) {
