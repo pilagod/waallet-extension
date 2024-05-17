@@ -135,6 +135,10 @@ export class UserOperation {
     this.maxPriorityFeePerGas = number.toBigInt(data.maxPriorityFeePerGas)
   }
 
+  public setNonce(nonce: BigNumberish) {
+    this.nonce = number.toBigInt(nonce)
+  }
+
   public setPaymasterAndData(paymasterAndData: HexString) {
     this.paymasterAndData = paymasterAndData
   }

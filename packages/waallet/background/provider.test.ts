@@ -1,9 +1,8 @@
 import config from "~config/test"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
-
-import { WaalletRpcMethod } from "../rpc"
 
 describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
   const { node } = config.networkManager.getActive()
@@ -52,6 +51,34 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
     })
     expect(byte.isHex(gas)).toBe(true)
     expect(parseInt(gas, 16)).toBeGreaterThan(0)
+  })
+
+  it("should estimate user operation gas with nonce on chain", async () => {
+    const userOp = await ctx.account.createUserOperation(node, {
+      to: await counter.getAddress(),
+      value: 1,
+      data: counter.interface.encodeFunctionData("increment", [])
+    })
+    // Use custom nonce which doesn't match the one on chain
+    userOp.setNonce(userOp.nonce + 1n)
+
+    const gas = await ctx.provider.request<{
+      preVerificationGas: HexString
+      verificationGasLimit: HexString
+      callGasLimit: HexString
+    }>({
+      method: WaalletRpcMethod.eth_estimateUserOperationGas,
+      params: [userOp.data()]
+    })
+
+    expect(byte.isHex(gas.callGasLimit)).toBe(true)
+    expect(parseInt(gas.callGasLimit, 16)).toBeGreaterThan(0)
+
+    expect(byte.isHex(gas.verificationGasLimit)).toBe(true)
+    expect(parseInt(gas.verificationGasLimit, 16)).toBeGreaterThan(0)
+
+    expect(byte.isHex(gas.preVerificationGas)).toBe(true)
+    expect(parseInt(gas.preVerificationGas, 16)).toBeGreaterThan(0)
   })
 
   it("should send transaction to contract", async () => {
