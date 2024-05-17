@@ -48,9 +48,9 @@ function TokenModal(props: { onModalClosed: () => void }) {
   const account = useAccount()
 
   const [tokenAddress, setTokenAddress] = useState<HexString>("")
+  const [tokenName, setTokenName] = useState<string>("")
   const [tokenSymbol, setTokenSymbol] = useState<string>("")
-  const [tokenDecimals, setTokenDecimals] = useState<number>(0)
-
+  const [tokenDecimals, setTokenDecimals] = useState<string>("")
   const [invalidTokenAddress, setInvalidTokenAddress] = useState<boolean>(false)
 
   const handleTokenAddressChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -67,13 +67,14 @@ function TokenModal(props: { onModalClosed: () => void }) {
   }
 
   const onTokenImported = async (event: FormEvent<HTMLFormElement>) => {
-    console.log(`[ttt] tokenAddress: ${tokenAddress}`)
     event.preventDefault()
-    // TODO: Need to set new token address to local storage
+
     await importToken(account.id, {
       address: tokenAddress,
+      name: tokenName,
       symbol: tokenSymbol,
-      decimals: tokenDecimals
+      decimals: tokenDecimals,
+      balance: "0x0"
     })
 
     props.onModalClosed()

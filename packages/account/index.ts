@@ -24,8 +24,10 @@ export type Call = {
 
 export type Token = {
   address: HexString
+  name: string
   symbol: string
-  decimals: number
+  decimals: HexString
+  balance: HexString
 }
 
 export interface Account {
