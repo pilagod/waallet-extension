@@ -12,7 +12,8 @@ export const ProviderContext = createContext<{
 
 export function ProviderContextProvider({ children }: { children: ReactNode }) {
   const provider = new ethers.BrowserProvider(
-    new WaalletContentProvider(new BackgroundDirectMessenger())
+    new WaalletContentProvider(new BackgroundDirectMessenger()),
+    "any"
   )
   return (
     <ProviderContext.Provider

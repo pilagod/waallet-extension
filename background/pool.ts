@@ -2,14 +2,12 @@ import { v4 as uuidv4 } from "uuid"
 
 import { UserOperation } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
-import number from "~packages/util/number"
 import type {
   UserOperationPool,
   UserOperationReceipt
 } from "~packages/waallet/background/pool/userOperation"
+import { UserOperationStatus, type State } from "~storage/local"
 import type { HexString } from "~typing"
-
-import { UserOperationStatus, type State } from "./storage/local"
 
 export class UserOperationStoragePool implements UserOperationPool {
   public constructor(private storage: ObservableStorage<State>) {}

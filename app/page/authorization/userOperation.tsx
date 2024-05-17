@@ -12,17 +12,14 @@ import {
   usePendingUserOperationLogs,
   useStorage
 } from "~app/storage"
-import type { Account, UserOperationLog } from "~background/storage/local"
-import { AccountType } from "~packages/account"
-import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
-import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { UserOperation } from "~packages/bundler"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import { ETH, Token } from "~packages/token"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
+import type { UserOperationLog } from "~storage/local"
+import { AccountStorageManager } from "~storage/local/manager"
 
 type PaymentOption = {
   name: string
@@ -103,7 +100,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   const sendUserOperation = async () => {
     setUserOpSending(true)
 
-    const account = await createAccount(sender)
+    const account = await AccountStorageManager.wrap(provider, sender)
     try {
       userOp.setSignature(
         await account.sign(
@@ -199,7 +196,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
               )} ${payment.token.symbol}`}
         </p>
       </div>
-      <div style={{ marginTop: "1em" }}>
+      <div className="mt-1">
         <button
           disabled={paymentCalculating || userOpSending}
           onClick={() => sendUserOperation()}>
@@ -211,22 +208,4 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       </div>
     </div>
   )
-}
-
-// TODO: Redesign a place to accommodate it
-async function createAccount(account: Account) {
-  switch (account.type) {
-    case AccountType.SimpleAccount:
-      return SimpleAccount.init({
-        address: account.address,
-        ownerPrivateKey: account.ownerPrivateKey
-      })
-    case AccountType.PasskeyAccount:
-      return PasskeyAccount.init({
-        address: account.address,
-        owner: new PasskeyOwnerWebAuthn(account.credentialId)
-      })
-    default:
-      throw new Error(`Unknown account ${account}`)
-  }
 }

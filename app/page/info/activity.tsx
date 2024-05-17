@@ -1,12 +1,12 @@
 import { getChainName } from "~app/page/info/index"
 import { useAccount, useUserOperationLogs } from "~app/storage"
+import { UserOperation } from "~packages/bundler"
+import address from "~packages/util/address"
 import {
   UserOperationStatus,
   type Account,
   type UserOperationLog
-} from "~background/storage/local"
-import { UserOperation } from "~packages/bundler"
-import address from "~packages/util/address"
+} from "~storage/local"
 
 export function Activity() {
   const explorerUrl = "https://jiffyscan.xyz/"
