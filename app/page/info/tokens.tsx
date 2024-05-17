@@ -3,9 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import * as ethers from "ethers"
 import { useState, type ChangeEvent, type FormEvent } from "react"
 
+import { getChainName } from "~app/page/info/index"
+import { useAccount, useAction, useTokens } from "~app/storage"
 import type { HexString } from "~typing"
 
 export function Tokens() {
+  const tokens = useTokens()
+  const account = useAccount()
+  const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
+
   const [isTokenModalOpened, setIsTokenModalOpened] = useState<boolean>(false)
 
   const toggleAccountModal = () => setIsTokenModalOpened(!isTokenModalOpened)
@@ -15,7 +21,18 @@ export function Tokens() {
       <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
         Tokens:
         {/* TODO: Need to get token addresses from local storage */}
-        <div>...</div>
+        {tokens &&
+          tokens.map((token) => {
+            return (
+              <div>
+                <a
+                  href={`${explorerUrl}token/${token.address}`}
+                  target="_blank">
+                  {`${token.address}`}
+                </a>
+              </div>
+            )
+          })}
       </div>
       <div className="col-span-3 cursor-pointer" onClick={toggleAccountModal}>
         <span>Import Tokens</span>
@@ -27,7 +44,13 @@ export function Tokens() {
 }
 
 function TokenModal(props: { onModalClosed: () => void }) {
+  const { importToken } = useAction()
+  const account = useAccount()
+
   const [tokenAddress, setTokenAddress] = useState<HexString>("")
+  const [tokenSymbol, setTokenSymbol] = useState<string>("")
+  const [tokenDecimals, setTokenDecimals] = useState<number>(0)
+
   const [invalidTokenAddress, setInvalidTokenAddress] = useState<boolean>(false)
 
   const handleTokenAddressChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -44,9 +67,15 @@ function TokenModal(props: { onModalClosed: () => void }) {
   }
 
   const onTokenImported = async (event: FormEvent<HTMLFormElement>) => {
+    console.log(`[ttt] tokenAddress: ${tokenAddress}`)
     event.preventDefault()
     // TODO: Need to set new token address to local storage
-    // await importToken(tokenAddress)
+    await importToken(account.id, {
+      address: tokenAddress,
+      symbol: tokenSymbol,
+      decimals: tokenDecimals
+    })
+
     props.onModalClosed()
   }
 

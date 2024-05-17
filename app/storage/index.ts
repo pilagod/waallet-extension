@@ -11,6 +11,7 @@ import {
   type UserOperationLog,
   type UserOperationSent
 } from "~background/storage/local"
+import type { Token } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { UserOperationData } from "~packages/bundler"
 import number from "~packages/util/number"
@@ -32,6 +33,7 @@ interface Storage {
     userOpHash: HexString,
     userOp: UserOperationData
   ) => Promise<void>
+  importToken: (accountId: string, token: Token) => Promise<void>
 }
 
 // @dev: This background middleware sends state first into background storage.
@@ -95,6 +97,13 @@ export const useStorage = create<Storage>()(
           ;(userOpLog as UserOperationSent).receipt = {
             userOpHash
           }
+        })
+      },
+      importToken: async (accountId: string, token: Token) => {
+        await set(({ state }) => {
+          state.account[accountId].tokens.push(token)
+
+          console.log(`[tttttt] token: ${token}`)
         })
       }
     }),
@@ -207,4 +216,14 @@ export const usePendingUserOperationLogs = (
   return useUserOperationLogs((userOp) => {
     return userOp.status === UserOperationStatus.Pending && filter(userOp)
   })
+}
+
+export const useTokens = (id?: string) => {
+  return useStorage(
+    useShallow(({ state }) => {
+      const network = state.network[state.networkActive]
+      const accountId = id ?? network.accountActive
+      return state.account[accountId].tokens
+    })
+  )
 }
