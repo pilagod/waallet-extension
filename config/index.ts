@@ -1,4 +1,4 @@
-import { AccountType, type Token } from "~packages/account"
+import { AccountType } from "~packages/account"
 import type { HexString } from "~typing"
 
 import { config as developmentConfig } from "./development"

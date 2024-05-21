@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 
 import { getConfig } from "~config"
-import { AccountType, type Token } from "~packages/account"
+import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
 import type { B64UrlString, HexString, Nullable } from "~typing"
@@ -141,6 +141,14 @@ export type PasskeyAccount = {
   factoryAddress?: HexString
   salt?: HexString
   tokens: Token[]
+}
+
+export type Token = {
+  address: HexString
+  name: string
+  symbol: string
+  decimals: HexString
+  balance: HexString
 }
 
 /* Paymaster */
