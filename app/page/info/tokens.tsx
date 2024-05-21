@@ -25,16 +25,16 @@ export function Tokens() {
             return (
               <div key={index}>
                 <a
-                  href={`${explorerUrl}token/${token.address}`}
+                  href={`${explorerUrl}token/${token.address}?a=${account.address}`}
                   target="_blank">
-                  {`${token.symbol}`}
-                </a>
-                {` ${parseFloat(
+                  {token.symbol}
+                </a>{" "}
+                {parseFloat(
                   ethers.formatUnits(
                     ethers.toBeHex(token.balance),
                     ethers.toNumber(token.decimals)
                   )
-                ).toFixed(6)}`}
+                ).toFixed(6)}
               </div>
             )
           })}
@@ -57,7 +57,7 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
   const [tokenSymbol, setTokenSymbol] = useState<string>("")
   const [tokenDecimals, setTokenDecimals] = useState<number>(0)
   const [invalidTokenAddress, setInvalidTokenAddress] = useState<boolean>(true)
-  const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
+  const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(true)
 
   const handleTokenAddressChange = async (
     event: ChangeEvent<HTMLInputElement>
@@ -71,11 +71,13 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
       const symbol: string = await erc20.symbol()
       const decimals: number = ethers.toNumber(await erc20.decimals())
       setInvalidTokenAddress(false)
+      setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)
       setTokenDecimals(decimals)
     } catch (error) {
       console.warn(`[Popup][tokens] Invalid token address: ${error}`)
       setInvalidTokenAddress(true)
+      setInvalidTokenSymbol(true)
       setTokenSymbol("")
       setTokenDecimals(0)
     }
@@ -126,12 +128,12 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
         </div>
         <form onSubmit={onTokenImported}>
           <div>
-            <label className="" htmlFor="tokenAddress">
-              Token Address:
-            </label>
+            <label htmlFor="tokenAddress">Token Address:</label>
             <input
               className={`border w-96 outline-none ${
-                invalidTokenAddress ? "border-red-500" : "border-gray-300"
+                tokenAddress && invalidTokenAddress
+                  ? "border-red-500"
+                  : "border-gray-300"
               }`}
               type="text"
               id="tokenAddress"
@@ -139,38 +141,35 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
               onChange={handleTokenAddressChange}
             />
           </div>
-          <div>
-            <label htmlFor="tokenSymbol" hidden={invalidTokenAddress}>
-              Token Symbol:
-            </label>
-            <input
-              className={`border w-96 outline-none ${
-                invalidTokenSymbol ? "border-red-500" : "border-gray-300"
-              }`}
-              type="text"
-              id="tokenSymbol"
-              value={tokenSymbol}
-              hidden={invalidTokenAddress}
-              onChange={handleTokenSymbolChange}
-            />
-          </div>
-          <div>
-            <label htmlFor="tokenDecimals" hidden={invalidTokenAddress}>
-              Token Decimals:
-            </label>
-            <input
-              className="border w-96 outline-none border-gray-300"
-              type="text"
-              id="tokenDecimals"
-              value={tokenDecimals}
-              hidden={invalidTokenAddress}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={invalidTokenAddress || invalidTokenSymbol}>
-            Import
-          </button>
+          {!invalidTokenAddress && (
+            <>
+              <div>
+                <label htmlFor="tokenSymbol">Token Symbol:</label>
+                <input
+                  className={`border w-96 outline-none ${
+                    invalidTokenSymbol ? "border-red-500" : "border-gray-300"
+                  }`}
+                  type="text"
+                  id="tokenSymbol"
+                  value={tokenSymbol}
+                  onChange={handleTokenSymbolChange}
+                />
+              </div>
+              <div>
+                <label htmlFor="tokenDecimals">Token Decimals:</label>
+                <input
+                  className="border w-96 outline-none border-gray-300"
+                  type="text"
+                  id="tokenDecimals"
+                  value={tokenDecimals}
+                  disabled={true}
+                />
+              </div>
+              <button type="submit" disabled={invalidTokenSymbol}>
+                Import
+              </button>
+            </>
+          )}
         </form>
       </div>
     </div>
