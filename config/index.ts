@@ -10,14 +10,12 @@ export type Config = {
         chainId: number
         address: HexString
         ownerPrivateKey: HexString
-        tokens: Token[]
       }
     | {
         type: AccountType.PasskeyAccount
         chainId: number
         address: HexString
         credentialId: string
-        tokens: Token[]
       }
   )[]
 
