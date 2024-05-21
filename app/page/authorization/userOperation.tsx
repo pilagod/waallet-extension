@@ -8,6 +8,7 @@ import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import {
   useAccount,
+  useAction,
   useNetwork,
   usePendingUserOperationLogs,
   useStorage
@@ -63,6 +64,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   ]
   const [, navigate] = useHashLocation()
   const { provider } = useProviderContext()
+  const { markUserOperationSent, markUserOperationRejected } = useAction()
   const network = useNetwork(userOpLog.networkId)
   const sender = useAccount(userOpLog.senderId)
   const [userOp, setUserOp] = useClsState<UserOperation>(
@@ -113,9 +115,6 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     onPaymentOptionSelected(payment.option)
   }, [])
 
-  const markUserOperationSent = useStorage(
-    (storage) => storage.markUserOperationSent
-  )
   const sendUserOperation = async () => {
     setUserOpSending(true)
 
@@ -133,6 +132,9 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
         WaalletRpcMethod.eth_sendUserOperation,
         [userOp.data(), userOpLog.entryPointAddress]
       )
+      if (!userOpHash) {
+        throw new Error("Fail to send user operation")
+      }
       await markUserOperationSent(userOpLog.id, userOpHash, userOp.data())
     } catch (e) {
       // TOOD: Show error on page
@@ -141,11 +143,8 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     }
   }
 
-  const markUserOperationRejected = useStorage(
-    (storage) => storage.markUserOperationRejected
-  )
   const rejectUserOperation = async () => {
-    markUserOperationRejected(userOpLog.id)
+    await markUserOperationRejected(userOpLog.id)
     navigate(Path.Index)
     return
   }

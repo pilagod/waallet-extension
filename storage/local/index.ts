@@ -37,7 +37,10 @@ export async function getLocalStorage() {
       }
       const accountId = uuidv4()
       Object.assign(account, {
-        [accountId]: a
+        [accountId]: {
+          ...a,
+          userOpLog: {}
+        }
       })
     })
 
@@ -76,7 +79,7 @@ export async function getLocalStorage() {
         networkActive: networkActive ?? Object.keys(network)[0],
         network,
         account,
-        userOpPool: {}
+        pendingUserOpLog: {}
       },
       { override: true }
     )
@@ -96,9 +99,6 @@ export type State = {
   }
   paymaster: {
     [id: string]: Paymaster
-  }
-  userOpPool: {
-    [userOpId: string]: UserOperationLog
   }
   pendingUserOpLog: {
     [userOpId: string]: UserOperationPending
@@ -126,7 +126,7 @@ export type Account = SimpleAccount | PasskeyAccount
 
 export type WithAccountPeriphery<T> = {
   userOpLog: {
-    [userOpId: string]: UserOperationLog
+    [userOpId: string]: Exclude<UserOperationLog, UserOperationPending>
   }
 } & T
 

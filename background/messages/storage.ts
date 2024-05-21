@@ -19,7 +19,12 @@ async function handler(
       break
     case StorageAction.Set:
       console.log("[background] Storage update action", req)
-      storage.set(req.body.updates, req.body.option)
+      storage.set((state) => {
+        return {
+          state,
+          ...req.body.updates
+        }
+      })
       res.send(true)
       break
     case StorageAction.Sync:
