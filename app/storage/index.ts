@@ -45,8 +45,13 @@ export const useStorage = create<Storage>()(
         const data = account.dump()
         await set(({ state }) => {
           const network = state.network[networkId]
+          // TODO: Design an account periphery prototype
+          const periphery = {
+            userOpLog: {}
+          }
           state.account[id] = {
             ...data,
+            ...periphery,
             chainId: network.chainId,
             // TODO: Design a value object
             publicKey: {

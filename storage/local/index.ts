@@ -124,14 +124,20 @@ export type Network = {
 
 export type Account = SimpleAccount | PasskeyAccount
 
-export type SimpleAccount = {
+export type WithAccountPeriphery<T> = {
+  userOpLog: {
+    [userOpId: string]: UserOperationLog
+  }
+} & T
+
+export type SimpleAccount = WithAccountPeriphery<{
   type: AccountType.SimpleAccount
   chainId: number
   address: HexString
   ownerPrivateKey: HexString
-}
+}>
 
-export type PasskeyAccount = {
+export type PasskeyAccount = WithAccountPeriphery<{
   type: AccountType.PasskeyAccount
   chainId: number
   address: HexString
@@ -142,7 +148,7 @@ export type PasskeyAccount = {
   }
   factoryAddress?: HexString
   salt?: HexString
-}
+}>
 
 /* Paymaster */
 
