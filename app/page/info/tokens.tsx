@@ -55,17 +55,13 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
 
   const [tokenAddress, setTokenAddress] = useState<HexString>("")
   const [tokenSymbol, setTokenSymbol] = useState<string>("")
-  const [tokenDecimals, setTokenDecimals] = useState<string>("")
-  const [firstOpenTokenModal, setFirstOpenTokenModal] = useState<boolean>(true)
+  const [tokenDecimals, setTokenDecimals] = useState<number>(0)
   const [invalidTokenAddress, setInvalidTokenAddress] = useState<boolean>(true)
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
-  const [invalidTokenDecimals, setInvalidTokenDecimals] =
-    useState<boolean>(false)
 
   const handleTokenAddressChange = async (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-    setFirstOpenTokenModal(false)
     const inputTokenAddress = event.target.value
     setTokenAddress(inputTokenAddress)
     const erc20 = getErc20Contract(inputTokenAddress, provider)
@@ -76,12 +72,12 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
       const decimals: number = ethers.toNumber(await erc20.decimals())
       setInvalidTokenAddress(false)
       setTokenSymbol(symbol)
-      setTokenDecimals(decimals.toString())
+      setTokenDecimals(decimals)
     } catch (error) {
       console.warn(`[Popup][tokens] Invalid token address: ${error}`)
       setInvalidTokenAddress(true)
       setTokenSymbol("")
-      setTokenDecimals("")
+      setTokenDecimals(0)
     }
   }
 
@@ -89,23 +85,6 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
     const inputTokenSymbol = event.target.value
     setTokenSymbol(inputTokenSymbol)
     setInvalidTokenSymbol(inputTokenSymbol.length === 0)
-  }
-
-  const handleTokenDecimalsChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const inputTokenDecimals = event.target.value
-    setTokenDecimals(inputTokenDecimals)
-    try {
-      const decimals = parseInt(inputTokenDecimals)
-      setInvalidTokenDecimals(
-        inputTokenDecimals !== decimals.toString() ||
-          inputTokenDecimals === "NaN" ||
-          decimals > 255 ||
-          inputTokenDecimals.length === 0
-      )
-    } catch (error) {
-      console.warn(`[Popup][tokens] Invalid token decimals: ${error}`)
-      setInvalidTokenDecimals(true)
-    }
   }
 
   const onTokenImported = async (event: FormEvent<HTMLFormElement>) => {
@@ -152,11 +131,7 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
             </label>
             <input
               className={`border w-96 outline-none ${
-                firstOpenTokenModal
-                  ? "border-gray-300"
-                  : invalidTokenAddress
-                  ? "border-red-500"
-                  : "border-gray-300"
+                invalidTokenAddress ? "border-red-500" : "border-gray-300"
               }`}
               type="text"
               id="tokenAddress"
@@ -184,21 +159,16 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
               Token Decimals:
             </label>
             <input
-              className={`border w-96 outline-none ${
-                invalidTokenDecimals ? "border-red-500" : "border-gray-300"
-              }`}
+              className="border w-96 outline-none border-gray-300"
               type="text"
               id="tokenDecimals"
               value={tokenDecimals}
               hidden={invalidTokenAddress}
-              onChange={handleTokenDecimalsChange}
             />
           </div>
           <button
             type="submit"
-            disabled={
-              invalidTokenAddress || invalidTokenSymbol || invalidTokenDecimals
-            }>
+            disabled={invalidTokenAddress || invalidTokenSymbol}>
             Import
           </button>
         </form>
