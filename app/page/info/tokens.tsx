@@ -54,7 +54,6 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
   const account = useAccount()
 
   const [tokenAddress, setTokenAddress] = useState<HexString>("")
-  const [tokenName, setTokenName] = useState<string>("")
   const [tokenSymbol, setTokenSymbol] = useState<string>("")
   const [tokenDecimals, setTokenDecimals] = useState<string>("")
   const [firstOpenTokenModal, setFirstOpenTokenModal] = useState<boolean>(true)
@@ -73,17 +72,14 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
 
     try {
       console.log(`${ethers.getAddress(inputTokenAddress)}`)
-      const name: string = await erc20.name()
       const symbol: string = await erc20.symbol()
       const decimals: number = ethers.toNumber(await erc20.decimals())
       setInvalidTokenAddress(false)
-      setTokenName(name)
       setTokenSymbol(symbol)
       setTokenDecimals(decimals.toString())
     } catch (error) {
       console.warn(`[Popup][tokens] Invalid token address: ${error}`)
       setInvalidTokenAddress(true)
-      setTokenName("")
       setTokenSymbol("")
       setTokenDecimals("")
     }
@@ -130,7 +126,6 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
     }
     await importToken(account.id, {
       address: tokenAddress,
-      name: tokenName,
       symbol: tokenSymbol,
       decimals: ethers.toBeHex(tokenDecimals),
       balance: ethers.toBeHex(balance)
