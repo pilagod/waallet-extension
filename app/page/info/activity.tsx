@@ -1,6 +1,6 @@
-import { getChainName } from "~app/page/info/index"
 import { useAccount, useUserOperationLogs } from "~app/storage"
 import { UserOperation } from "~packages/bundler"
+import { getChainName } from "~packages/network/util/chain"
 import address from "~packages/util/address"
 import {
   UserOperationStatus,

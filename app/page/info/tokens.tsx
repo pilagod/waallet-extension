@@ -4,8 +4,8 @@ import * as ethers from "ethers"
 import { useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
-import { getChainName } from "~app/page/info/index"
 import { useAccount, useAction, useTokens } from "~app/storage"
+import { getChainName } from "~packages/network/util/chain"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Tokens() {
