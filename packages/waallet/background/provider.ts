@@ -7,7 +7,7 @@ import type { NetworkManager } from "~packages/network/manager"
 import { type Paymaster } from "~packages/paymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import number from "~packages/util/number"
-import type { BigNumberish, HexString } from "~typing"
+import type { HexString } from "~typing"
 
 import {
   WaalletRpcMethod,
@@ -21,7 +21,6 @@ import { type UserOperationPool } from "./pool/userOperation"
 export type WaalletBackgroundProviderOption = {
   accountManager?: AccountManager
   networkManager?: NetworkManager
-  paymaster?: Paymaster
   userOperationPool?: UserOperationPool
 }
 
@@ -29,7 +28,6 @@ export class WaalletBackgroundProvider {
   public constructor(
     public accountManager: AccountManager,
     public networkManager: NetworkManager,
-    public paymaster: Paymaster,
     public userOperationPool: UserOperationPool
   ) {}
 
@@ -37,7 +35,6 @@ export class WaalletBackgroundProvider {
     const provider = new WaalletBackgroundProvider(
       option.accountManager ?? this.accountManager,
       option.networkManager ?? this.networkManager,
-      option.paymaster ?? this.paymaster,
       option.userOperationPool ?? this.userOperationPool
     )
     return provider
@@ -96,12 +93,10 @@ export class WaalletBackgroundProvider {
       value: tx.value,
       data: tx.data
     })
-    userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(node, userOp)
-    )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
     }
+    // TODO: Should we consider paymaster here?
     const { callGasLimit } = await bundler.estimateUserOperationGas(
       userOp,
       entryPointAddress
@@ -155,17 +150,15 @@ export class WaalletBackgroundProvider {
       data: tx.data,
       nonce: tx.nonce
     })
-    // TODO: Maybe we don't need to calculate gas and paymaster here
-    userOp.setPaymasterAndData(
-      await this.paymaster.requestPaymasterAndData(node, userOp)
-    )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
     }
-    userOp.setGasFee(await this.estimateGasFee(tx.gasPrice))
-    userOp.setGasLimit(
-      await bundler.estimateUserOperationGas(userOp, entryPointAddress)
-    )
+    if (tx.gasPrice) {
+      userOp.setGasFee({
+        maxFeePerGas: tx.gasPrice,
+        maxPriorityFeePerGas: tx.gasPrice
+      })
+    }
     const userOpId = await this.userOperationPool.send({
       userOp,
       senderId: accountId,
@@ -175,25 +168,5 @@ export class WaalletBackgroundProvider {
     const { transactionHash } = await this.userOperationPool.wait(userOpId)
 
     return transactionHash
-  }
-
-  private async estimateGasFee(gasPrice?: BigNumberish): Promise<{
-    maxFeePerGas: BigNumberish
-    maxPriorityFeePerGas: BigNumberish
-  }> {
-    if (gasPrice) {
-      return {
-        maxFeePerGas: gasPrice,
-        maxPriorityFeePerGas: gasPrice
-      }
-    }
-    const { node } = this.networkManager.getActive()
-    const fee = await node.getFeeData()
-    const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
-    // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
-    return {
-      maxFeePerGas: gasPriceWithBuffer,
-      maxPriorityFeePerGas: gasPriceWithBuffer
-    }
   }
 }

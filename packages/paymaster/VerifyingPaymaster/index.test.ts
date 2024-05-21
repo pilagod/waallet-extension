@@ -16,14 +16,24 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
 
   beforeAll(() => {
     ctx.provider = ctx.provider.clone({
-      paymaster: verifyingPaymaster,
       userOperationPool: new UserOperationSender(
         ctx.provider.accountManager,
         ctx.provider.networkManager,
-        async (userOp) => {
-          userOp.setPaymasterAndData(
-            await verifyingPaymaster.requestPaymasterAndData(node, userOp)
-          )
+        {
+          beforeGasEstimation: async (userOp) => {
+            userOp.setPaymasterAndData(
+              await verifyingPaymaster.requestPaymasterAndData(
+                node,
+                userOp,
+                true
+              )
+            )
+          },
+          afterGasEstimation: async (userOp) => {
+            userOp.setPaymasterAndData(
+              await verifyingPaymaster.requestPaymasterAndData(node, userOp)
+            )
+          }
         }
       )
     })

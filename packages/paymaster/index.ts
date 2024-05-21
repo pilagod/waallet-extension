@@ -15,9 +15,12 @@ export interface Paymaster {
   quoteFee(fee: bigint, quote: Token): Promise<bigint>
   /**
    * Request `paymasterAndData` for user operation.
+   *
+   * @param forGasEstimation Default to `false`.
    */
   requestPaymasterAndData(
     runner: ContractRunner,
-    userOp: UserOperation
+    userOp: UserOperation,
+    forGasEstimation?: boolean
   ): Promise<HexString>
 }

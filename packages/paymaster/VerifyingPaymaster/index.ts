@@ -32,17 +32,17 @@ export class VerifyingPaymaster implements Paymaster {
 
   public async requestPaymasterAndData(
     runner: ContractRunner,
-    userOp: UserOperation
+    userOp: UserOperation,
+    forGasEstimation = false
   ) {
     const validAfter = 0
     const validUntil =
       Math.floor(new Date().getTime() / 1000) + this.intervalSecs
-    const signature = await this.getSignature(
-      runner,
-      userOp,
-      validUntil,
-      validAfter
-    )
+
+    const signature = forGasEstimation
+      ? "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
+      : await this.getSignature(runner, userOp, validUntil, validAfter)
+
     return ethers.concat([
       await this.paymaster.getAddress(),
       ethers.AbiCoder.defaultAbiCoder().encode(
@@ -59,9 +59,6 @@ export class VerifyingPaymaster implements Paymaster {
     validUntil: number,
     validAfter: number
   ) {
-    if (!userOp.isGasEstimated()) {
-      return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
-    }
     const hash = await connect(this.paymaster, runner).getHash(
       userOp,
       validUntil,
