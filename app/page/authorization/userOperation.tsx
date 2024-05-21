@@ -55,7 +55,8 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       paymaster: new VerifyingPaymaster({
         address: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
         ownerPrivateKey:
-          process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER_OWNER_PRIVATE_KEY,
+          process.env
+            .PLASMO_PUBLIC_VERIFYING_PAYMASTER_VERIFYING_SIGNER_PRIVATE_KEY,
         expirationSecs: 300
       })
     }
