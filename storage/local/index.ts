@@ -100,6 +100,9 @@ export type State = {
   userOpPool: {
     [userOpId: string]: UserOperationLog
   }
+  pendingUserOpLog: {
+    [userOpId: string]: UserOperationPending
+  }
 }
 
 /* Netowork */
@@ -159,44 +162,61 @@ export type VerifyingPaymaster = {
 /* User Operation Pool */
 
 export enum UserOperationStatus {
+  // Waiting to be processed in local user operation pool.
   Pending = "Pending",
+  // User rejects the user operation.
   Rejected = "Rejected",
+  // Bundler accepts the user operation.
   Sent = "Sent",
+  // Bundler rejects the user operation.
+  Failed = "Failed",
+  // User operation is executed on chain.
   Succeeded = "Succeeded",
-  Failed = "Failed"
+  // User opreation is reverted on chain.
+  Reverted = "Reverted"
 }
 
-export type UserOperationLog = {
+export type UserOperationLog =
+  | UserOperationPending
+  | UserOperationRejected
+  | UserOperationSent
+  | UserOperationFailed
+  | UserOperationSucceeded
+  | UserOperationReverted
+
+export type WithUserOperationDetail<T> = {
   id: string
   createdAt: number
   userOp: UserOperationData
   senderId: string
   networkId: string
   entryPointAddress: string
-} & (
-  | UserOperationPending
-  | UserOperationRejected
-  | UserOperationSent
-  | UserOperationSucceeded
-  | UserOperationFailed
-)
+} & T
 
-export type UserOperationPending = {
+export type UserOperationPending = WithUserOperationDetail<{
   status: UserOperationStatus.Pending
-}
+}>
 
-export type UserOperationRejected = {
+export type UserOperationRejected = WithUserOperationDetail<{
   status: UserOperationStatus.Rejected
-}
+}>
 
-export type UserOperationSent = {
+export type UserOperationSent = WithUserOperationDetail<{
   status: UserOperationStatus.Sent
   receipt: {
     userOpHash: HexString
   }
-}
+}>
 
-export type UserOperationSucceeded = {
+export type UserOperationFailed = WithUserOperationDetail<{
+  status: UserOperationStatus.Failed
+  receipt: {
+    userOpHash: HexString
+    errorMessage: string
+  }
+}>
+
+export type UserOperationSucceeded = WithUserOperationDetail<{
   status: UserOperationStatus.Succeeded
   receipt: {
     userOpHash: HexString
@@ -204,10 +224,10 @@ export type UserOperationSucceeded = {
     blockHash: HexString
     blockNumber: HexString
   }
-}
+}>
 
-export type UserOperationFailed = {
-  status: UserOperationStatus.Failed
+export type UserOperationReverted = WithUserOperationDetail<{
+  status: UserOperationStatus.Reverted
   receipt: {
     userOpHash: HexString
     transactionHash: HexString
@@ -215,4 +235,4 @@ export type UserOperationFailed = {
     blockNumber: HexString
     errorMessage: string
   }
-}
+}>

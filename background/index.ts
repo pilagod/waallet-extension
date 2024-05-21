@@ -4,7 +4,10 @@ import number from "~packages/util/number"
 import {
   getLocalStorage,
   UserOperationStatus,
-  type UserOperationLog
+  type UserOperationLog,
+  type UserOperationReverted,
+  type UserOperationSent,
+  type UserOperationSucceeded
 } from "~storage/local"
 import {
   AccountStorageManager,
@@ -104,14 +107,12 @@ async function main() {
     const userOps = Object.values(s.userOpPool)
     const sentUserOps = userOps.filter(
       (userOp) => userOp.status === UserOperationStatus.Sent
-    )
+    ) as UserOperationSent[]
 
     sentUserOps.forEach(async (sentUserOp) => {
       const id = sentUserOp.id
-      if (!("receipt" in sentUserOp)) {
-        return
-      }
       const userOpHash = sentUserOp.receipt.userOpHash
+
       await bundler.wait(userOpHash)
 
       const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
@@ -121,7 +122,7 @@ async function main() {
       }
 
       if (userOpReceipt.success) {
-        const succeededUserOp: UserOperationLog = {
+        const succeededUserOp: UserOperationSucceeded = {
           ...sentUserOp,
           status: UserOperationStatus.Succeeded,
           receipt: {
@@ -138,9 +139,9 @@ async function main() {
       }
 
       if (!userOpReceipt.success) {
-        const failedUserOp: UserOperationLog = {
+        const revertedUserOp: UserOperationReverted = {
           ...sentUserOp,
-          status: UserOperationStatus.Failed,
+          status: UserOperationStatus.Reverted,
           receipt: {
             userOpHash: userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
@@ -150,7 +151,7 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.userOpPool[id] = failedUserOp
+          state.userOpPool[id] = revertedUserOp
         })
         return
       }
