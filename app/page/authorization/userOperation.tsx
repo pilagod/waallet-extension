@@ -10,8 +10,7 @@ import {
   useAccount,
   useAction,
   useNetwork,
-  usePendingUserOperationLogs,
-  useStorage
+  usePendingUserOperationLogs
 } from "~app/storage"
 import { UserOperation } from "~packages/bundler"
 import type { Paymaster } from "~packages/paymaster"
