@@ -7,6 +7,7 @@ import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { UserOperationData } from "~packages/bundler"
 import number from "~packages/util/number"
+import type { Token } from "~storage/local"
 import {
   UserOperationStatus,
   type State,
@@ -32,6 +33,7 @@ interface Storage {
     userOpHash: HexString,
     userOp: UserOperationData
   ) => Promise<void>
+  importToken: (accountId: string, token: Token) => Promise<void>
 }
 
 // @dev: This background middleware sends state first into background storage.
@@ -53,7 +55,8 @@ export const useStorage = create<Storage>()(
               x: number.toHex(data.publicKey.x),
               y: number.toHex(data.publicKey.y)
             },
-            salt: number.toHex(data.salt)
+            salt: number.toHex(data.salt),
+            tokens: []
           }
           // Set the new account as active
           network.accountActive = id
@@ -94,6 +97,11 @@ export const useStorage = create<Storage>()(
           ;(userOpLog as UserOperationSent).receipt = {
             userOpHash
           }
+        })
+      },
+      importToken: async (accountId: string, token: Token) => {
+        await set(({ state }) => {
+          state.account[accountId].tokens.push(token)
         })
       }
     }),
@@ -206,4 +214,14 @@ export const usePendingUserOperationLogs = (
   return useUserOperationLogs((userOp) => {
     return userOp.status === UserOperationStatus.Pending && filter(userOp)
   })
+}
+
+export const useTokens = (id?: string) => {
+  return useStorage(
+    useShallow(({ state }) => {
+      const network = state.network[state.networkActive]
+      const accountId = id ?? network.accountActive
+      return state.account[accountId].tokens
+    })
+  )
 }

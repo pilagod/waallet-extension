@@ -126,6 +126,7 @@ export type SimpleAccount = {
   chainId: number
   address: HexString
   ownerPrivateKey: HexString
+  tokens: Token[]
 }
 
 export type PasskeyAccount = {
@@ -139,6 +140,14 @@ export type PasskeyAccount = {
   }
   factoryAddress?: HexString
   salt?: HexString
+  tokens: Token[]
+}
+
+export type Token = {
+  address: HexString
+  symbol: string
+  decimals: number
+  balance: HexString
 }
 
 /* Paymaster */
