@@ -27,7 +27,7 @@ export class SingleAccountManager implements AccountManager {
     return this.get(this.id)
   }
 
-  public async getByAddress(accountAddress: HexString, chainId: number) {
+  public async getByAddress(accountAddress: HexString) {
     if (!address.isEqual(await this.account.getAddress(), accountAddress)) {
       throw new Error(`Account ${address} is not found`)
     }
