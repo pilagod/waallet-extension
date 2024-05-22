@@ -108,7 +108,7 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
     await importToken(account.id, {
       address: tokenAddress,
       symbol: tokenSymbol,
-      decimals: ethers.toBeHex(tokenDecimals),
+      decimals: tokenDecimals,
       balance: ethers.toBeHex(balance)
     })
     onModalClosed()

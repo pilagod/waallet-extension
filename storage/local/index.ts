@@ -146,7 +146,7 @@ export type PasskeyAccount = {
 export type Token = {
   address: HexString
   symbol: string
-  decimals: HexString
+  decimals: number
   balance: HexString
 }
 
