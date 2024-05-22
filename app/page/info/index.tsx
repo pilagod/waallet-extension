@@ -5,6 +5,7 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Activity } from "~app/page/info/activity"
+import { Tokens } from "~app/page/info/tokens"
 import { Path } from "~app/path"
 import {
   useAccount,
@@ -15,11 +16,12 @@ import {
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
+import { getChainName } from "~packages/network/util"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {
   Activity = "Activity",
-  Null = "Null"
+  Tokens = "Tokens"
 }
 
 export function Info() {
@@ -133,37 +135,15 @@ export function AccountInfo() {
           </button>
           <button
             className="col-span-3 cursor-pointer"
-            onClick={() => handleInfoNaviChange(InfoNavigation.Null)}>
-            {InfoNavigation.Null}
+            onClick={() => handleInfoNaviChange(InfoNavigation.Tokens)}>
+            {InfoNavigation.Tokens}
           </button>
         </nav>
         <div>
           {infoNavigation === InfoNavigation.Activity && <Activity />}
-          {infoNavigation === InfoNavigation.Null && <div>Null page</div>}
+          {infoNavigation === InfoNavigation.Tokens && <Tokens />}
         </div>
       </div>
     </div>
   )
-}
-
-const getChainName = (chain: string | number): string => {
-  const net = typeof chain === "string" ? chain.toLowerCase() : chain
-  let chainName: string
-  switch (net) {
-    case "mainnet":
-    case 1:
-      chainName = "mainnet"
-      break
-    case "testnet":
-    case 1337:
-      chainName = "testnet"
-      break
-    case "sepolia":
-    case 11155111:
-      chainName = "sepolia"
-      break
-    default:
-      chainName = null
-  }
-  return chainName
 }

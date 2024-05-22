@@ -10,6 +10,7 @@ import number from "~packages/util/number"
 import {
   UserOperationStatus,
   type State,
+  type Token,
   type UserOperationPending,
   type UserOperationRejected,
   type UserOperationSent
@@ -33,6 +34,7 @@ interface Storage {
     userOpHash: HexString,
     userOp: UserOperationData
   ) => Promise<void>
+  importToken: (accountId: string, token: Token) => Promise<void>
 }
 
 // @dev: This background middleware sends state first into background storage.
@@ -56,7 +58,8 @@ export const useStorage = create<Storage>()(
             },
             salt: number.toHex(data.salt),
             // TODO: Design an account periphery prototype
-            userOpLog: {}
+            userOpLog: {},
+            tokens: []
           }
           // Set the new account as active
           network.accountActive = id
@@ -110,6 +113,11 @@ export const useStorage = create<Storage>()(
           state.account[sentUserOpLog.senderId].userOpLog[sentUserOpLog.id] =
             sentUserOpLog
           delete state.pendingUserOpLog[pendingUserOpLog.id]
+        })
+      },
+      importToken: async (accountId: string, token: Token) => {
+        await set(({ state }) => {
+          state.account[accountId].tokens.push(token)
         })
       }
     }),
@@ -221,6 +229,16 @@ export const usePendingUserOperationLogs = (
   return useStorage(
     useShallow(({ state }) => {
       return Object.values(state.pendingUserOpLog).filter(filter)
+    })
+  )
+}
+
+export const useTokens = (id?: string) => {
+  return useStorage(
+    useShallow(({ state }) => {
+      const network = state.network[state.networkActive]
+      const accountId = id ?? network.accountActive
+      return state.account[accountId].tokens
     })
   )
 }

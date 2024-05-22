@@ -128,6 +128,7 @@ export type WithAccountPeriphery<T> = {
   userOpLog: {
     [userOpId: string]: Exclude<UserOperationLog, UserOperationPending>
   }
+  tokens: Token[]
 } & T
 
 export type SimpleAccount = WithAccountPeriphery<{
@@ -149,6 +150,13 @@ export type PasskeyAccount = WithAccountPeriphery<{
   factoryAddress?: HexString
   salt?: HexString
 }>
+
+export type Token = {
+  address: HexString
+  symbol: string
+  decimals: number
+  balance: HexString
+}
 
 /* Paymaster */
 
