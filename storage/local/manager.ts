@@ -8,7 +8,9 @@ import type { NetworkManager } from "~packages/network/manager"
 import type { ContractRunner } from "~packages/node"
 import { NodeProvider } from "~packages/node/provider"
 import { ObservableStorage } from "~packages/storage/observable"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
+import type { HexString } from "~typing"
 
 import type { Account, State } from "./index"
 
@@ -42,6 +44,7 @@ export class AccountStorageManager implements AccountManager {
         throw new Error(`Unknown account ${account}`)
     }
   }
+
   public constructor(
     private storage: ObservableStorage<State>,
     private networkManager: NetworkManager
@@ -64,6 +67,18 @@ export class AccountStorageManager implements AccountManager {
     const state = this.storage.get()
     const network = state.network[state.networkActive]
     return this.get(network.accountActive)
+  }
+
+  public async getByAddress(accountAddress: HexString, chainId: number) {
+    const { account } = this.storage.get()
+    const [accountId] = Object.entries(account)
+      .filter(([, a]) => {
+        return (
+          address.isEqual(a.address, accountAddress) && a.chainId === chainId
+        )
+      })
+      .map(([id]) => id)
+    return this.get(accountId)
   }
 }
 

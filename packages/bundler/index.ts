@@ -1,5 +1,6 @@
 import * as ethers from "ethers"
 
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -135,6 +136,10 @@ export class UserOperation {
     this.maxPriorityFeePerGas = number.toBigInt(data.maxPriorityFeePerGas)
   }
 
+  public setNonce(nonce: BigNumberish) {
+    this.nonce = number.toBigInt(nonce)
+  }
+
   public setPaymasterAndData(paymasterAndData: HexString) {
     this.paymasterAndData = paymasterAndData
   }
@@ -164,7 +169,7 @@ export class UserOperation {
     return !!(this.maxFeePerGas && this.maxPriorityFeePerGas)
   }
 
-  public isSender(address: HexString) {
-    return ethers.getAddress(address) === ethers.getAddress(this.sender)
+  public isSender(accountAddress: HexString) {
+    return address.isEqual(this.sender, accountAddress)
   }
 }

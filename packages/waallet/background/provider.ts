@@ -4,7 +4,6 @@ import type { AccountManager } from "~packages/account/manager"
 import { UserOperation } from "~packages/bundler"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import type { NetworkManager } from "~packages/network/manager"
-import { type Paymaster } from "~packages/paymaster"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
@@ -112,7 +111,14 @@ export class WaalletBackgroundProvider {
     callGasLimit: HexString
   }> {
     const userOp = new UserOperation(params[0])
-    const { bundler } = this.networkManager.getActive()
+    const { node, bundler, chainId } = this.networkManager.getActive()
+    const { account } = await this.accountManager.getByAddress(
+      userOp.sender,
+      chainId
+    )
+    // Always using nonce on chain to let estimation passed
+    userOp.setNonce(await account.getNonce(node))
+
     const [entryPointAddress] = await bundler.getSupportedEntryPoints()
     const data = await bundler.estimateUserOperationGas(
       userOp,
