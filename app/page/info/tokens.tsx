@@ -20,24 +20,23 @@ export function Tokens() {
     <div>
       <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
         Tokens:
-        {tokens &&
-          tokens.map((token, index) => {
-            return (
-              <div key={index}>
-                <a
-                  href={`${explorerUrl}token/${token.address}?a=${account.address}`}
-                  target="_blank">
-                  {token.symbol}
-                </a>{" "}
-                {parseFloat(
-                  ethers.formatUnits(
-                    ethers.toBeHex(token.balance),
-                    ethers.toNumber(token.decimals)
-                  )
-                ).toFixed(6)}
-              </div>
-            )
-          })}
+        {tokens.map((token, index) => {
+          return (
+            <div key={index}>
+              <a
+                href={`${explorerUrl}token/${token.address}?a=${account.address}`}
+                target="_blank">
+                {token.symbol}
+              </a>{" "}
+              {parseFloat(
+                ethers.formatUnits(
+                  ethers.toBeHex(token.balance),
+                  ethers.toNumber(token.decimals)
+                )
+              ).toFixed(6)}
+            </div>
+          )
+        })}
       </div>
       <div className="col-span-3 cursor-pointer" onClick={toggleAccountModal}>
         <span>Import Tokens</span>
@@ -94,7 +93,7 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
     // allowing for custom handling of the event action.
     event.preventDefault()
 
-    let balance: BigNumberish
+    let balance: BigNumberish = 0
     try {
       balance = await getErc20Contract(tokenAddress, provider).balanceOf(
         account.address
@@ -103,7 +102,6 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
       console.warn(
         `[Popup][tokens] error occurred while getting balance: ${error}`
       )
-      balance = 0
     }
     await importToken(account.id, {
       address: tokenAddress,
