@@ -16,7 +16,7 @@ import {
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
-import { getChainName } from "~packages/network/util/chain"
+import { getChainName } from "~packages/network/util"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {

@@ -5,7 +5,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
-import { getChainName } from "~packages/network/util/chain"
+import { getChainName } from "~packages/network/util"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Tokens() {
