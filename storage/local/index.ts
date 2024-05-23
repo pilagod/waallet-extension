@@ -4,6 +4,7 @@ import browser from "webextension-polyfill"
 import { getConfig } from "~config"
 import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
+import { getChainName } from "~packages/network/util"
 import { ObservableStorage } from "~packages/storage/observable"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
@@ -37,7 +38,18 @@ export async function getLocalStorage() {
       }
       const accountId = uuidv4()
       Object.assign(account, {
-        [accountId]: a
+        [accountId]: {
+          ...a,
+          userOpLog: {},
+          tokens: [
+            {
+              address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+              symbol: `${getChainName(a.chainId)}ETH`,
+              decimals: 18,
+              balance: "0x00"
+            }
+          ]
+        }
       })
     })
 

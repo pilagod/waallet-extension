@@ -6,6 +6,7 @@ import { useShallow } from "zustand/react/shallow"
 import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { UserOperationData } from "~packages/bundler"
+import { getChainName } from "~packages/network/util"
 import number from "~packages/util/number"
 import type { Token } from "~storage/local"
 import {
@@ -56,7 +57,14 @@ export const useStorage = create<Storage>()(
               y: number.toHex(data.publicKey.y)
             },
             salt: number.toHex(data.salt),
-            tokens: []
+            tokens: [
+              {
+                address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+                symbol: `${getChainName(network.chainId)}ETH`,
+                decimals: 18,
+                balance: "0x00"
+              }
+            ]
           }
           // Set the new account as active
           network.accountActive = id
