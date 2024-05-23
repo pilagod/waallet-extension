@@ -16,8 +16,10 @@ export function Tokens() {
   const { updateToken } = useAction()
   const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
 
-  const [isTokenModalOpened, setIsTokenModalOpened] = useState<boolean>(false)
-  const toggleAccountModal = () => setIsTokenModalOpened(!isTokenModalOpened)
+  const [isTokenImportModalOpened, setIsTokenImportModalOpened] =
+    useState<boolean>(false)
+  const toggleTokenImportModal = () =>
+    setIsTokenImportModalOpened(!isTokenImportModalOpened)
 
   useEffect(() => {
     // TODO: In the future, adding an Indexer to the Background Script to
@@ -78,16 +80,20 @@ export function Tokens() {
           )
         })}
       </div>
-      <div className="col-span-3 cursor-pointer" onClick={toggleAccountModal}>
+      <div
+        className="col-span-3 cursor-pointer"
+        onClick={toggleTokenImportModal}>
         <span>Import Tokens</span>
         <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
       </div>
-      {isTokenModalOpened && <TokenModal onModalClosed={toggleAccountModal} />}
+      {isTokenImportModalOpened && (
+        <TokenImportModal onModalClosed={toggleTokenImportModal} />
+      )}
     </div>
   )
 }
 
-function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
+function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const { provider } = useProviderContext()
   const { importToken } = useAction()
   const tokens = useTokens()
