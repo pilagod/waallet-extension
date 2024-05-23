@@ -39,7 +39,8 @@ export async function getLocalStorage() {
       Object.assign(account, {
         [accountId]: {
           ...a,
-          userOpLog: {}
+          userOpLog: {},
+          tokens: []
         }
       })
     })
