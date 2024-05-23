@@ -28,6 +28,7 @@ export interface Account {
     call: Call
   ): Promise<UserOperation>
   getAddress(): Promise<HexString>
+  getNonce(runner: ContractRunner): Promise<bigint>
   isDeployed(runner: ContractRunner): Promise<boolean>
   sign(message: BytesLike, metadata?: any): Promise<HexString>
 }

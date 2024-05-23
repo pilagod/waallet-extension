@@ -29,11 +29,9 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     runner: ContractRunner,
     call: Call
   ): Promise<UserOperation> {
-    const isDeployed = await this.isDeployed(runner)
-
     const sender = await this.getAddress()
-    const nonce = call?.nonce ?? (isDeployed ? await this.getNonce(runner) : 0)
-    const initCode = isDeployed
+    const nonce = call?.nonce ?? (await this.getNonce(runner))
+    const initCode = (await this.isDeployed(runner))
       ? "0x"
       : await this.mustGetFactory().getInitCode()
     const callData = call ? await this.getCallData(call) : "0x"
@@ -52,6 +50,34 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.address
   }
 
+  public async getNonce(runner: ContractRunner): Promise<bigint> {
+    if (!(await this.isDeployed(runner))) {
+      return 0n
+    }
+    const account = new ethers.Contract(
+      this.address,
+      [
+        "function entryPoint() view returns (address)",
+        "function getEntryPoint() view returns (address)"
+      ],
+      runner
+    )
+    const entryPoint = new ethers.Contract(
+      await (async () => {
+        try {
+          return await account.entryPoint()
+        } catch (e) {
+          return await account.getEntryPoint()
+        }
+      })(),
+      [
+        "function getNonce(address sender, uint192 key) view returns (uint256 nonce)"
+      ],
+      runner
+    )
+    return entryPoint.getNonce(this.address, 0)
+  }
+
   public async isDeployed(runner: ContractRunner): Promise<boolean> {
     // TODO: Cache it
     const code = await runner.provider.getCode(await this.getAddress())
@@ -65,30 +91,5 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       throw new Error("No factory")
     }
     return this.factory
-  }
-
-  protected async getNonce(runner: ContractRunner): Promise<bigint> {
-    const account = new ethers.Contract(
-      this.address,
-      [
-        "function entryPoint() view returns (address)",
-        "function getEntryPoint() view returns (address)"
-      ],
-      runner
-    )
-    const entryPoint = new ethers.Contract(
-      await (() => {
-        try {
-          return account.entryPoint()
-        } catch (e) {
-          return account.getEntryPoint()
-        }
-      })(),
-      [
-        "function getNonce(address sender, uint192 key) view returns (uint256 nonce)"
-      ],
-      runner
-    )
-    return entryPoint.getNonce(this.address, 0)
   }
 }

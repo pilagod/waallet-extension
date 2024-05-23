@@ -4,7 +4,10 @@ import number from "~packages/util/number"
 import {
   getLocalStorage,
   UserOperationStatus,
-  type UserOperationLog
+  type UserOperationLog,
+  type UserOperationReverted,
+  type UserOperationSent,
+  type UserOperationSucceeded
 } from "~storage/local"
 import {
   AccountStorageManager,
@@ -72,17 +75,15 @@ async function main() {
   // @dev: Trigger popup when new pending user op is added into the pool.
   storage.subscribe(
     async (_, patches) => {
-      const newPendingUserOpLogs = patches.filter(
-        (p) =>
-          p.op === "add" &&
-          (p.value as UserOperationLog).status === UserOperationStatus.Pending
-      )
-      if (newPendingUserOpLogs.length === 0) {
+      const newPendingUserOpLogs = patches.filter((p) => p.op === "add")
+
+      if (
+        newPendingUserOpLogs.length === 0 ||
+        sessionStorage.get().isPopupOpened
+      ) {
         return
       }
-      if (sessionStorage.get().isPopupOpened) {
-        return
-      }
+
       await browser.windows.create({
         url: browser.runtime.getURL("popup.html"),
         focused: true,
@@ -91,38 +92,40 @@ async function main() {
         height: 720
       })
     },
-    { userOpPool: {} }
+    { pendingUserOpLog: {} }
   )
 
   const fetchUserOpsSent = async () => {
-    const timeout = 1500
+    const timeout = 3000
     console.log(`[background] fetch userOp sent every ${timeout} ms`)
 
-    const s = storage.get()
+    const { account } = storage.get()
     const { bundler } = networkManager.getActive()
 
-    const userOps = Object.values(s.userOpPool)
-    const sentUserOps = userOps.filter(
-      (userOp) => userOp.status === UserOperationStatus.Sent
-    )
+    // Fetch all sent user operations from all accounts
+    const sentUserOpLogs = Object.values(account)
+      .map((a) => a.userOpLog)
+      .reduce((result, userOpLog) => {
+        return result.concat(Object.values(userOpLog) ?? [])
+      }, [] as UserOperationLog[])
+      .filter(
+        (userOpLog) => userOpLog.status === UserOperationStatus.Sent
+      ) as UserOperationSent[]
 
-    sentUserOps.forEach(async (sentUserOp) => {
-      const id = sentUserOp.id
-      if (!("receipt" in sentUserOp)) {
-        return
-      }
-      const userOpHash = sentUserOp.receipt.userOpHash
+    // TODO: Custom nonce user operation may block the whole process
+    sentUserOpLogs.forEach(async (sentUserOpLog) => {
+      const userOpHash = sentUserOpLog.receipt.userOpHash
+
       await bundler.wait(userOpHash)
 
       const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
-
       if (!userOpReceipt) {
         return
       }
 
       if (userOpReceipt.success) {
-        const succeededUserOp: UserOperationLog = {
-          ...sentUserOp,
+        const succeededUserOpLog: UserOperationSucceeded = {
+          ...sentUserOpLog,
           status: UserOperationStatus.Succeeded,
           receipt: {
             userOpHash: userOpHash,
@@ -132,15 +135,17 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.userOpPool[id] = succeededUserOp
+          state.account[succeededUserOpLog.senderId].userOpLog[
+            succeededUserOpLog.id
+          ] = succeededUserOpLog
         })
         return
       }
 
       if (!userOpReceipt.success) {
-        const failedUserOp: UserOperationLog = {
-          ...sentUserOp,
-          status: UserOperationStatus.Failed,
+        const revertedUserOpLog: UserOperationReverted = {
+          ...sentUserOpLog,
+          status: UserOperationStatus.Reverted,
           receipt: {
             userOpHash: userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
@@ -150,7 +155,9 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.userOpPool[id] = failedUserOp
+          state.account[revertedUserOpLog.senderId].userOpLog[
+            revertedUserOpLog.id
+          ] = revertedUserOpLog
         })
         return
       }
