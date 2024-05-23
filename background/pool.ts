@@ -21,7 +21,7 @@ export class UserOperationStoragePool implements UserOperationPool {
     const id = uuidv4()
 
     this.storage.set((state) => {
-      state.userOpPool[id] = {
+      state.pendingUserOpLog[id] = {
         id,
         createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
         userOp: data.userOp.data(),
@@ -37,26 +37,35 @@ export class UserOperationStoragePool implements UserOperationPool {
 
   public wait(userOpId: string) {
     return new Promise<UserOperationReceipt>((resolve, reject) => {
-      const subscriber = async ({ userOpPool }: State) => {
-        const userOp = userOpPool[userOpId]
+      const { senderId } = this.storage.get().pendingUserOpLog[userOpId]
+      const subscriber = async ({ account }: State) => {
+        const userOpLog = account[senderId].userOpLog[userOpId]
 
-        if (userOp.status === UserOperationStatus.Pending) {
+        // Bundler is still processing this user operation
+        if (userOpLog.status === UserOperationStatus.Sent) {
           return
         }
 
-        if (userOp.status === UserOperationStatus.Succeeded) {
-          resolve(userOp.receipt)
-          this.storage.unsubscribe(subscriber)
+        this.storage.unsubscribe(subscriber)
+
+        if (userOpLog.status === UserOperationStatus.Rejected) {
+          reject(new Error("User rejects the user operation"))
           return
         }
 
-        if (userOp.status === UserOperationStatus.Failed) {
-          reject(userOp.receipt.errorMessage)
-          this.storage.unsubscribe(subscriber)
+        if (
+          userOpLog.status === UserOperationStatus.Failed ||
+          userOpLog.status === UserOperationStatus.Reverted
+        ) {
+          reject(new Error(userOpLog.receipt.errorMessage))
           return
         }
+
+        resolve(userOpLog.receipt)
       }
-      this.storage.subscribe(subscriber, { userOpPool: { [userOpId]: {} } })
+      this.storage.subscribe(subscriber, {
+        account: { [senderId]: { userOpLog: { [userOpId]: {} } } }
+      })
     })
   }
 }

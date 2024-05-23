@@ -7,11 +7,12 @@ import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { UserOperationData } from "~packages/bundler"
 import number from "~packages/util/number"
-import type { Token } from "~storage/local"
 import {
   UserOperationStatus,
   type State,
-  type UserOperationLog,
+  type Token,
+  type UserOperationPending,
+  type UserOperationRejected,
   type UserOperationSent
 } from "~storage/local"
 import type { HexString } from "~typing"
@@ -56,6 +57,8 @@ export const useStorage = create<Storage>()(
               y: number.toHex(data.publicKey.y)
             },
             salt: number.toHex(data.salt),
+            // TODO: Design an account periphery prototype
+            userOpLog: {},
             tokens: []
           }
           // Set the new account as active
@@ -81,8 +84,15 @@ export const useStorage = create<Storage>()(
       },
       markUserOperationRejected: async (userOpId: string) => {
         await set(({ state }) => {
-          const userOpLog = state.userOpPool[userOpId]
-          userOpLog.status = UserOperationStatus.Rejected
+          const pendingUserOpLog = state.pendingUserOpLog[userOpId]
+          const rejectedUserOpLog: UserOperationRejected = {
+            ...pendingUserOpLog,
+            status: UserOperationStatus.Rejected
+          }
+          state.account[rejectedUserOpLog.senderId].userOpLog[
+            rejectedUserOpLog.id
+          ] = rejectedUserOpLog
+          delete state.pendingUserOpLog[pendingUserOpLog.id]
         })
       },
       markUserOperationSent: async (
@@ -91,12 +101,18 @@ export const useStorage = create<Storage>()(
         userOp: UserOperationData
       ) => {
         await set(({ state }) => {
-          const userOpLog = state.userOpPool[userOpId]
-          userOpLog.userOp = userOp
-          userOpLog.status = UserOperationStatus.Sent
-          ;(userOpLog as UserOperationSent).receipt = {
-            userOpHash
+          const pendingUserOpLog = state.pendingUserOpLog[userOpId]
+          const sentUserOpLog: UserOperationSent = {
+            ...pendingUserOpLog,
+            status: UserOperationStatus.Sent,
+            userOp,
+            receipt: {
+              userOpHash
+            }
           }
+          state.account[sentUserOpLog.senderId].userOpLog[sentUserOpLog.id] =
+            sentUserOpLog
+          delete state.pendingUserOpLog[pendingUserOpLog.id]
         })
       },
       importToken: async (accountId: string, token: Token) => {
@@ -198,22 +214,23 @@ export const useAction = () => {
   )
 }
 
-export const useUserOperationLogs = (
-  filter: (userOp: UserOperationLog) => boolean = () => true
-) => {
+export const useUserOperationLogs = (accountId?: string) => {
+  const { id } = useAccount(accountId)
   return useStorage(
     useShallow(({ state }) => {
-      return Object.values(state.userOpPool).filter(filter)
+      return Object.values(state.account[id].userOpLog)
     })
   )
 }
 
 export const usePendingUserOperationLogs = (
-  filter: (userOp: UserOperationLog) => boolean = () => true
+  filter: (userOp: UserOperationPending) => boolean = () => true
 ) => {
-  return useUserOperationLogs((userOp) => {
-    return userOp.status === UserOperationStatus.Pending && filter(userOp)
-  })
+  return useStorage(
+    useShallow(({ state }) => {
+      return Object.values(state.pendingUserOpLog).filter(filter)
+    })
+  )
 }
 
 export const useTokens = (id?: string) => {
