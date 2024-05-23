@@ -50,12 +50,15 @@ export function Tokens() {
 function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
   const { provider } = useProviderContext()
   const { importToken } = useAction()
+  const tokens = useTokens()
   const account = useAccount()
 
   const [tokenAddress, setTokenAddress] = useState<HexString>("")
   const [tokenSymbol, setTokenSymbol] = useState<string>("")
   const [tokenDecimals, setTokenDecimals] = useState<number>(0)
   const [invalidTokenAddress, setInvalidTokenAddress] = useState<boolean>(true)
+  const [invalidTokenAddressMessage, setInvalidTokenAddressMessage] =
+    useState<string>("")
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(true)
 
   const handleTokenAddressChange = async (
@@ -63,6 +66,18 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
   ) => {
     const inputTokenAddress = event.target.value
     setTokenAddress(inputTokenAddress)
+
+    if (
+      tokens.some(
+        (token) =>
+          token.address.toLowerCase() === inputTokenAddress.toLowerCase()
+      )
+    ) {
+      setInvalidTokenAddress(true)
+      setInvalidTokenAddressMessage("Token address already exists")
+      return
+    }
+
     const erc20 = getErc20Contract(inputTokenAddress, provider)
 
     try {
@@ -70,12 +85,14 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
       const symbol: string = await erc20.symbol()
       const decimals: number = ethers.toNumber(await erc20.decimals())
       setInvalidTokenAddress(false)
+      setInvalidTokenAddressMessage("")
       setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)
       setTokenDecimals(decimals)
     } catch (error) {
       console.warn(`[Popup][tokens] Invalid token address: ${error}`)
       setInvalidTokenAddress(true)
+      setInvalidTokenAddressMessage("Invalid token address")
       setInvalidTokenSymbol(true)
       setTokenSymbol("")
       setTokenDecimals(0)
@@ -139,6 +156,9 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
               onChange={handleTokenAddressChange}
             />
           </div>
+          {invalidTokenAddressMessage && (
+            <div className="text-red-500">{invalidTokenAddressMessage}</div>
+          )}
           {!invalidTokenAddress && (
             <>
               <div>
