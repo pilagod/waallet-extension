@@ -42,6 +42,7 @@ interface Storage {
     newTokenBalance: HexString,
     newTokenSymbol?: string
   ) => Promise<void>
+  removeToken: (accountId: string, tokenAddress: HexString) => Promise<void>
 }
 
 // @dev: This background middleware sends state first into background storage.
@@ -132,6 +133,18 @@ export const useStorage = create<Storage>()(
       importToken: async (accountId: string, token: Token) => {
         await set(({ state }) => {
           state.account[accountId].tokens.push(token)
+        })
+      },
+      removeToken: async (accountId: string, tokenAddress: HexString) => {
+        await set(({ state }) => {
+          const removeIndex = state.account[accountId].tokens.findIndex(
+            (token) => token.address === tokenAddress
+          )
+          if (removeIndex !== -1) {
+            state.account[accountId].tokens.splice(removeIndex, 1)
+          } else {
+            throw new Error(`Unknown token: ${tokenAddress} to remove`)
+          }
         })
       },
       updateToken: async (
