@@ -5,7 +5,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
-import { getChainName } from "~packages/network/util"
+import { getChainName, getErc20Contract } from "~packages/network/util"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Tokens() {
@@ -191,21 +191,5 @@ function TokenModal({ onModalClosed }: { onModalClosed: () => void }) {
         </form>
       </div>
     </div>
-  )
-}
-
-const getErc20Contract = (
-  address: HexString,
-  runner: ethers.ContractRunner
-) => {
-  return new ethers.Contract(
-    address,
-    [
-      "function balanceOf(address account) external view returns (uint256)",
-      "function name() public view returns (string)",
-      "function symbol() public view returns (string)",
-      "function decimals() public view returns (uint8)"
-    ],
-    runner
   )
 }
