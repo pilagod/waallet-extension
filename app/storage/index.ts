@@ -36,6 +36,12 @@ interface Storage {
     userOp: UserOperationData
   ) => Promise<void>
   importToken: (accountId: string, token: Token) => Promise<void>
+  updateToken: (
+    accountId: string,
+    tokenAddress: HexString,
+    newTokenBalance: HexString,
+    newTokenSymbol?: string
+  ) => Promise<void>
 }
 
 // @dev: This background middleware sends state first into background storage.
@@ -126,6 +132,21 @@ export const useStorage = create<Storage>()(
       importToken: async (accountId: string, token: Token) => {
         await set(({ state }) => {
           state.account[accountId].tokens.push(token)
+        })
+      },
+      updateToken: async (
+        accountId: string,
+        tokenAddress: HexString,
+        newTokenBalance: HexString,
+        newTokenSymbol?: string
+      ) => {
+        await set(({ state }) => {
+          state.account[accountId].tokens.forEach((token) => {
+            if (token.address === tokenAddress) {
+              token.symbol = newTokenSymbol ?? token.symbol
+              token.balance = newTokenBalance
+            }
+          })
         })
       }
     }),
