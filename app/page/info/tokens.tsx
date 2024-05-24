@@ -19,11 +19,18 @@ export function Tokens() {
     useState<boolean>(false)
   const [isTokenInfoModalOpened, setIsTokenInfoModalOpened] =
     useState<boolean>(false)
+  const [selectedTokenAddress, setSelectedTokenAddress] =
+    useState<HexString>("")
 
   const toggleTokenImportModal = () =>
     setIsTokenImportModalOpened(!isTokenImportModalOpened)
-  const toggleTokenInfoModal = () =>
-    setIsTokenInfoModalOpened(!isTokenInfoModalOpened)
+  const renderTokenInfoModal = (tokenAddress: HexString) => {
+    setSelectedTokenAddress(tokenAddress)
+    setIsTokenInfoModalOpened(true)
+  }
+  const closeTokenInfoModal = () => {
+    setIsTokenInfoModalOpened(false)
+  }
 
   useEffect(() => {
     // TODO: In the future, adding an Indexer to the Background Script to
@@ -71,7 +78,7 @@ export function Tokens() {
             <div key={index}>
               <div
                 className="col-span-3 cursor-pointer"
-                onClick={toggleTokenInfoModal}>
+                onClick={() => renderTokenInfoModal(token.address)}>
                 <span>{token.symbol}</span>{" "}
                 <span>
                   {parseFloat(
@@ -84,8 +91,8 @@ export function Tokens() {
               </div>
               {isTokenInfoModalOpened && (
                 <TokenInfoModal
-                  onModalClosed={toggleTokenInfoModal}
-                  tokenAddress={token.address}
+                  onModalClosed={closeTokenInfoModal}
+                  tokenAddress={selectedTokenAddress}
                 />
               )}
             </div>
