@@ -1,7 +1,13 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import * as ethers from "ethers"
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react"
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent
+} from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
@@ -22,34 +28,34 @@ export function Tokens() {
   const [selectedTokenAddress, setSelectedTokenAddress] =
     useState<HexString>("")
 
-  const toggleTokenImportModal = () =>
-    setIsTokenImportModalOpened(!isTokenImportModalOpened)
-  const renderTokenInfoModal = (tokenAddress: HexString) => {
+  const toggleTokenImportModal = useCallback(() => {
+    setIsTokenImportModalOpened((prev) => !prev)
+  }, [])
+  const renderTokenInfoModal = useCallback((tokenAddress: HexString) => {
     setSelectedTokenAddress(tokenAddress)
     setIsTokenInfoModalOpened(true)
-  }
-  const closeTokenInfoModal = () => {
+  }, [])
+  const closeTokenInfoModal = useCallback(() => {
     setIsTokenInfoModalOpened(false)
-  }
+  }, [])
 
   useEffect(() => {
     // TODO: In the future, adding an Indexer to the Background Script to
     // monitor Account-related transactions. Updates like balance will trigger
     // as needed, avoiding fixed interval polling with setInterval().
     const updateTokenBalances = async () => {
-      tokens.map(async (token) => {
-        await updateToken(
-          account.id,
-          token.address,
-          number.toHex(
+      await Promise.all(
+        tokens.map(async (token) => {
+          const balance =
             token.address === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
               ? await provider.getBalance(account.address)
               : await getErc20Contract(token.address, provider).balanceOf(
                   account.address
                 )
-          )
-        )
-      })
+
+          await updateToken(account.id, token.address, number.toHex(balance))
+        })
+      )
     }
 
     // Fetch initial balance
@@ -123,16 +129,19 @@ function TokenInfoModal({
   const account = useAccount()
   const tokens = useTokens()
   const token = tokens.find((token) => token.address === tokenAddress)
-  const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
   const isEth = tokenAddress === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+  const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
+  const tokenExplorerUrl = isEth
+    ? `${explorerUrl}address/${account.address}`
+    : `${explorerUrl}token/${token.address}?a=${account.address}`
 
   const [tokenSymbol, setTokenSymbol] = useState<string>(token.symbol)
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
-
   const [isViewExplorerVisible, setIsViewExplorerVisible] = useState(false)
-  const toggleViewExplorerVisibility = () => {
-    setIsViewExplorerVisible(!isViewExplorerVisible)
-  }
+
+  const toggleViewExplorerVisibility = useCallback(() => {
+    setIsViewExplorerVisible((prev) => !prev)
+  }, [])
 
   const handleTokenSymbolChange = (event: ChangeEvent<HTMLInputElement>) => {
     const inputTokenSymbol = event.target.value
@@ -180,13 +189,7 @@ function TokenInfoModal({
           </button>
           {isViewExplorerVisible && (
             <div className="absolute left-0 bg-white border border-gray-300 p-4 rounded shadow">
-              <a
-                href={
-                  isEth
-                    ? `${explorerUrl}address/${account.address}`
-                    : `${explorerUrl}token/${token.address}?a=${account.address}`
-                }
-                target="_blank">
+              <a href={tokenExplorerUrl} target="_blank">
                 View Asset in explorer
               </a>
             </div>
