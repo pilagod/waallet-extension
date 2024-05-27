@@ -31,7 +31,7 @@ export function Tokens() {
   const toggleTokenImportModal = useCallback(() => {
     setIsTokenImportModalOpened((prev) => !prev)
   }, [])
-  const renderTokenInfoModal = useCallback((tokenAddress: HexString) => {
+  const openTokenInfoModal = useCallback((tokenAddress: HexString) => {
     setSelectedTokenAddress(tokenAddress)
     setIsTokenInfoModalOpened(true)
   }, [])
@@ -84,7 +84,7 @@ export function Tokens() {
             <div key={index}>
               <div
                 className="col-span-3 cursor-pointer"
-                onClick={() => renderTokenInfoModal(token.address)}>
+                onClick={() => openTokenInfoModal(token.address)}>
                 <span>{token.symbol}</span>{" "}
                 <span>
                   {parseFloat(
@@ -149,17 +149,19 @@ function TokenInfoModal({
     setInvalidTokenSymbol(inputTokenSymbol.length === 0)
   }
 
-  const onTokenInfo = (event: FormEvent<HTMLFormElement>) => {
+  const onTokenInfo = async (event: FormEvent<HTMLFormElement>) => {
+    // Prevents the default behavior of the event,
+    // allowing for custom handling of the event action.
     event.preventDefault()
     const action = (event.nativeEvent as any).submitter.name
 
     switch (action) {
       case "update":
-        updateToken(account.id, tokenAddress, token.balance, tokenSymbol)
+        await updateToken(account.id, tokenAddress, token.balance, tokenSymbol)
         onModalClosed()
         break
       case "remove":
-        removeToken(account.id, tokenAddress)
+        await removeToken(account.id, tokenAddress)
         onModalClosed()
         break
       case "close":
@@ -246,7 +248,7 @@ function TokenInfoModal({
             <button type="submit" name="remove" hidden={isEth}>
               Remove
             </button>
-            <button name="close" type="submit">
+            <button type="submit" name="close">
               Close
             </button>
           </div>
