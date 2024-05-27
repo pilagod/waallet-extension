@@ -198,16 +198,8 @@ async function main() {
           )
         )
       }
-      console.log(`[ttt] token: ${token.symbol}`)
-      console.log(
-        `[ttt] token balance: ${ethers.formatUnits(
-          ethers.toBeHex(token.balance),
-          ethers.toNumber(token.decimals)
-        )}`
-      )
     }
 
-    // TODO: Resolve the "Error: Could not establish connection. Receiving end does not exist." error
     storage.set((state) => {
       state.account[accountId].tokens = tokens
     })
@@ -215,6 +207,9 @@ async function main() {
     setTimeout(fetchTokenBalance, timeout)
   }
 
+  // TODO: Using these two asynchronous functions, both executing
+  // `storage.set()` commands, often triggers the error: "Error: Could not
+  // establish connection. Receiving end does not exist."
   await fetchUserOpsSent()
   await fetchTokenBalance()
 }
