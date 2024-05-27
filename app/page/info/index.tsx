@@ -1,5 +1,5 @@
 import * as ethers from "ethers"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
@@ -11,7 +11,8 @@ import {
   useAccount,
   useAction,
   useNetwork,
-  useShouldOnboard
+  useShouldOnboard,
+  useTokens
 } from "~app/storage"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
@@ -63,38 +64,15 @@ function AccountCreation() {
 
 export function AccountInfo() {
   const explorerUrl = "https://jiffyscan.xyz/"
+  const ethAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 
-  const { provider } = useProviderContext()
   const account = useAccount()
-  const [balance, setBalance] = useState<bigint>(0n)
-  const [balanceLoading, setBalanceLoading] = useState<boolean>(true)
+  const tokens = useTokens()
+  const ethToken = tokens.find((token) => token.address === ethAddress)
+
   const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
     InfoNavigation.Activity
   )
-
-  useEffect(() => {
-    // TODO: In the future, adding an Indexer to the Background Script to
-    // monitor Account-related transactions. Updates like balance will trigger
-    // as needed, avoiding fixed interval polling with setInterval().
-    const getBalanceAsync = async () => {
-      const balance = await provider.getBalance(account.address)
-      setBalanceLoading(false)
-      setBalance(balance)
-    }
-    // Fetch initial balance
-    getBalanceAsync()
-
-    // Periodically check the balance of the account
-    const id = setInterval(() => {
-      getBalanceAsync().catch((e) =>
-        console.warn(`An error occurred while receiving balance: ${e}`)
-      )
-    }, 3333) // Every 3.333 seconds
-
-    return () => {
-      clearInterval(id)
-    }
-  }, [account.id])
 
   const handleInfoNaviChange = (page: InfoNavigation) => {
     setInfoNavigation(page)
@@ -117,7 +95,7 @@ export function AccountInfo() {
 
       {/* Display the Account balance */}
       <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        Balance: {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
+        Balance: {ethers.formatEther(ethToken.balance)}
       </div>
 
       {/* Show the send button for switching to the Send page */}

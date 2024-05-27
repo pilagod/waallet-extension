@@ -1,5 +1,7 @@
+import { ethers } from "ethers"
 import browser from "webextension-polyfill"
 
+import { getErc20Contract } from "~packages/network/util"
 import number from "~packages/util/number"
 import {
   getLocalStorage,
@@ -166,7 +168,55 @@ async function main() {
     setTimeout(fetchUserOpsSent, timeout)
   }
 
+  // TODO: In the future, adding an Indexer to the Background Script to
+  // monitor Account-related transactions. Updates like balance will trigger
+  // as needed, avoiding fixed interval polling with setInterval().
+  const fetchTokenBalance = async () => {
+    const timeout = 3000
+    console.log(`[background] fetch token balance every ${timeout} ms`)
+
+    const ethAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+
+    const { account, network } = storage.get()
+    const { node } = networkManager.getActive()
+
+    const accountId = network[state.networkActive].accountActive
+    const accountAddress = account[accountId].address
+
+    const provider = new ethers.JsonRpcProvider(node.url)
+    const balance = await provider.getBalance(accountAddress)
+    const { tokens } = account[accountId]
+
+    // Update the balance of all tokens
+    for (const token of tokens) {
+      if (token.address === ethAddress) {
+        token.balance = number.toHex(balance)
+      } else {
+        token.balance = number.toHex(
+          await getErc20Contract(token.address, provider).balanceOf(
+            accountAddress
+          )
+        )
+      }
+      console.log(`[ttt] token: ${token.symbol}`)
+      console.log(
+        `[ttt] token balance: ${ethers.formatUnits(
+          ethers.toBeHex(token.balance),
+          ethers.toNumber(token.decimals)
+        )}`
+      )
+    }
+
+    // TODO: Resolve the "Error: Could not establish connection. Receiving end does not exist." error
+    storage.set((state) => {
+      state.account[accountId].tokens = tokens
+    })
+
+    setTimeout(fetchTokenBalance, timeout)
+  }
+
   await fetchUserOpsSent()
+  await fetchTokenBalance()
 }
 
 main()
