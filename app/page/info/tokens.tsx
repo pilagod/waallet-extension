@@ -83,11 +83,7 @@ export function Tokens() {
         Tokens:
         <div>
           <span>{getChainName(account.chainId)}ETH </span>
-          <span>
-            {parseFloat(
-              ethers.formatEther(ethers.toBeHex(account.balance))
-            ).toFixed(6)}
-          </span>
+          <span>{formatUnitsToFixed(account.balance, 18)}</span>
         </div>
         {tokens.map((token, index) => {
           return (
@@ -96,14 +92,7 @@ export function Tokens() {
                 className="col-span-3 cursor-pointer"
                 onClick={() => openTokenInfoModal(token.address)}>
                 <span>{token.symbol}</span>{" "}
-                <span>
-                  {parseFloat(
-                    ethers.formatUnits(
-                      ethers.toBeHex(token.balance),
-                      ethers.toNumber(token.decimals)
-                    )
-                  ).toFixed(6)}
-                </span>
+                <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>
               </div>
               {isTokenInfoModalOpened && (
                 <TokenInfoModal
@@ -197,14 +186,7 @@ function TokenInfoModal({
           )}
         </div>
         <div className="text-center">
-          <span>
-            {parseFloat(
-              ethers.formatUnits(
-                ethers.toBeHex(token.balance),
-                ethers.toNumber(token.decimals)
-              )
-            ).toFixed(6)}
-          </span>{" "}
+          <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>{" "}
           <span>{token.symbol}</span>
         </div>
         <form>
@@ -405,4 +387,21 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       </div>
     </div>
   )
+}
+
+function formatUnitsToFixed(
+  balance: BigNumberish,
+  decimals: BigNumberish,
+  fixed: number = 6
+): string {
+  const parseValue = parseFloat(
+    ethers.formatUnits(ethers.toBeHex(balance), ethers.toNumber(decimals))
+  )
+  if (isNaN(parseValue)) {
+    return ""
+  }
+  if (parseValue === 0) {
+    return "0"
+  }
+  return parseValue.toFixed(fixed)
 }
