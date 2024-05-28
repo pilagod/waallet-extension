@@ -115,9 +115,6 @@ async function main() {
     // TODO: Custom nonce user operation may block the whole process
     sentUserOpLogs.forEach(async (sentUserOpLog) => {
       const userOpHash = sentUserOpLog.receipt.userOpHash
-
-      await bundler.wait(userOpHash)
-
       const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
       if (!userOpReceipt) {
         return
@@ -128,7 +125,7 @@ async function main() {
           ...sentUserOpLog,
           status: UserOperationStatus.Succeeded,
           receipt: {
-            userOpHash: userOpHash,
+            userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
             blockHash: userOpReceipt.receipt.blockHash,
             blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
@@ -147,7 +144,7 @@ async function main() {
           ...sentUserOpLog,
           status: UserOperationStatus.Reverted,
           receipt: {
-            userOpHash: userOpHash,
+            userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
             blockHash: userOpReceipt.receipt.blockHash,
             blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),

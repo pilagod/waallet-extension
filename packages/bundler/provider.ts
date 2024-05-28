@@ -127,6 +127,9 @@ export class BundlerProvider {
       method: BundlerRpcMethod.eth_sendUserOperation,
       params: [userOp.data(), entryPointAddress]
     })
+    if (this.mode === BundlerMode.Manual) {
+      await this.debugSendBundleNow()
+    }
     return userOpHash
   }
 
@@ -135,9 +138,6 @@ export class BundlerProvider {
   }
 
   public async wait(userOpHash: HexString): Promise<HexString> {
-    if (this.mode === BundlerMode.Manual) {
-      await this.debugSendBundleNow()
-    }
     while (true) {
       const res = await new Promise<
         Nullable<{
