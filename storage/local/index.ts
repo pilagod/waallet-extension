@@ -41,14 +41,8 @@ export async function getLocalStorage() {
         [accountId]: {
           ...a,
           userOpLog: {},
-          tokens: [
-            {
-              address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-              symbol: `${getChainName(a.chainId)}ETH`,
-              decimals: 18,
-              balance: "0x00"
-            }
-          ]
+          balance: "0x00",
+          tokens: []
         }
       })
     })
@@ -137,6 +131,7 @@ export type WithAccountPeriphery<T> = {
   userOpLog: {
     [userOpId: string]: Exclude<UserOperationLog, UserOperationPending>
   }
+  balance: HexString
   tokens: Token[]
 } & T
 

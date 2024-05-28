@@ -65,9 +65,9 @@ export function AccountInfo() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
   const { provider } = useProviderContext()
+  const { updateBalance } = useAction()
   const account = useAccount()
-  const [balance, setBalance] = useState<bigint>(0n)
-  const [balanceLoading, setBalanceLoading] = useState<boolean>(true)
+
   const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
     InfoNavigation.Activity
   )
@@ -77,9 +77,10 @@ export function AccountInfo() {
     // monitor Account-related transactions. Updates like balance will trigger
     // as needed, avoiding fixed interval polling with setInterval().
     const getBalanceAsync = async () => {
-      const balance = await provider.getBalance(account.address)
-      setBalanceLoading(false)
-      setBalance(balance)
+      const balance = number.toHex(await provider.getBalance(account.address))
+      if (account.balance !== balance) {
+        await updateBalance(account.id, number.toHex(balance))
+      }
     }
     // Fetch initial balance
     getBalanceAsync()
@@ -117,7 +118,7 @@ export function AccountInfo() {
 
       {/* Display the Account balance */}
       <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        Balance: {balanceLoading ? "(Loading...)" : ethers.formatEther(balance)}
+        Balance: {ethers.formatEther(account.balance)}
       </div>
 
       {/* Show the send button for switching to the Send page */}

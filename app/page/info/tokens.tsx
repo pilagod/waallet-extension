@@ -46,14 +46,16 @@ export function Tokens() {
     const updateTokenBalances = async () => {
       await Promise.all(
         tokens.map(async (token) => {
-          const balance =
-            token.address === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-              ? await provider.getBalance(account.address)
-              : await getErc20Contract(token.address, provider).balanceOf(
-                  account.address
-                )
-
-          await updateToken(account.id, token.address, number.toHex(balance))
+          const balance = await getErc20Contract(
+            token.address,
+            provider
+          ).balanceOf(account.address)
+          if (
+            account.tokens.find((t) => t.address === token.address)?.balance !==
+            balance
+          ) {
+            await updateToken(account.id, token.address, number.toHex(balance))
+          }
         })
       )
     }
@@ -79,6 +81,14 @@ export function Tokens() {
     <div>
       <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
         Tokens:
+        <div>
+          <span>{getChainName(account.chainId)}ETH </span>
+          <span>
+            {parseFloat(
+              ethers.formatEther(ethers.toBeHex(account.balance))
+            ).toFixed(6)}
+          </span>
+        </div>
         {tokens.map((token, index) => {
           return (
             <div key={index}>
@@ -129,11 +139,9 @@ function TokenInfoModal({
   const account = useAccount()
   const tokens = useTokens()
   const token = tokens.find((token) => token.address === tokenAddress)
-  const isEth = tokenAddress === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+
   const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
-  const tokenExplorerUrl = isEth
-    ? `${explorerUrl}address/${account.address}`
-    : `${explorerUrl}token/${token.address}?a=${account.address}`
+  const tokenExplorerUrl = `${explorerUrl}token/${token.address}?a=${account.address}`
 
   const [tokenSymbol, setTokenSymbol] = useState<string>(token.symbol)
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
@@ -245,7 +253,7 @@ function TokenInfoModal({
             <button type="submit" name="update" disabled={invalidTokenSymbol}>
               Update
             </button>
-            <button type="submit" name="remove" hidden={isEth}>
+            <button type="submit" name="remove">
               Remove
             </button>
             <button type="submit" name="close">

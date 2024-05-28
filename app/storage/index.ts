@@ -35,6 +35,7 @@ interface Storage {
     userOpHash: HexString,
     userOp: UserOperationData
   ) => Promise<void>
+  updateBalance: (accountId: string, balance: HexString) => Promise<void>
   importToken: (accountId: string, token: Token) => Promise<void>
   updateToken: (
     accountId: string,
@@ -67,14 +68,8 @@ export const useStorage = create<Storage>()(
             salt: number.toHex(data.salt),
             // TODO: Design an account periphery prototype
             userOpLog: {},
-            tokens: [
-              {
-                address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-                symbol: `${getChainName(network.chainId)}ETH`,
-                decimals: 18,
-                balance: "0x00"
-              }
-            ]
+            balance: "0x00",
+            tokens: []
           }
           // Set the new account as active
           network.accountActive = id
@@ -128,6 +123,11 @@ export const useStorage = create<Storage>()(
           state.account[sentUserOpLog.senderId].userOpLog[sentUserOpLog.id] =
             sentUserOpLog
           delete state.pendingUserOpLog[pendingUserOpLog.id]
+        })
+      },
+      updateBalance: async (accountId: string, balance: HexString) => {
+        await set(({ state }) => {
+          state.account[accountId].balance = balance
         })
       },
       importToken: async (accountId: string, token: Token) => {
