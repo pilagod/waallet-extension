@@ -260,6 +260,17 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     const inputTokenAddress = event.target.value
     setTokenAddress(inputTokenAddress)
 
+    try {
+      console.log(`${ethers.getAddress(inputTokenAddress)}`)
+      setInvalidTokenAddress(false)
+      setInvalidTokenAddressMessage("")
+    } catch (error) {
+      console.warn(`[Popup][tokens] Invalid token address: ${error}`)
+      setInvalidTokenAddress(true)
+      setInvalidTokenAddressMessage("Invalid token address")
+      return
+    }
+
     if (
       tokens.some((token) => address.isEqual(token.address, inputTokenAddress))
     ) {
@@ -271,21 +282,17 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     const erc20 = getErc20Contract(inputTokenAddress, provider)
 
     try {
-      console.log(`${ethers.getAddress(inputTokenAddress)}`)
       const symbol: string = await erc20.symbol()
       const decimals: number = ethers.toNumber(await erc20.decimals())
-      setInvalidTokenAddress(false)
-      setInvalidTokenAddressMessage("")
       setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)
       setTokenDecimals(decimals)
     } catch (error) {
-      console.warn(`[Popup][tokens] Invalid token address: ${error}`)
-      setInvalidTokenAddress(true)
-      setInvalidTokenAddressMessage("Invalid token address")
+      console.warn(`[Popup][tokens] Invalid token symbol or decimals: ${error}`)
       setInvalidTokenSymbol(true)
       setTokenSymbol("")
       setTokenDecimals(0)
+      return
     }
   }
 
