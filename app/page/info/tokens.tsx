@@ -12,6 +12,7 @@ import {
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -23,8 +24,6 @@ export function Tokens() {
 
   const [isTokenImportModalOpened, setIsTokenImportModalOpened] =
     useState<boolean>(false)
-  const [isTokenInfoModalOpened, setIsTokenInfoModalOpened] =
-    useState<boolean>(false)
   const [selectedTokenAddress, setSelectedTokenAddress] =
     useState<HexString>("")
 
@@ -33,10 +32,9 @@ export function Tokens() {
   }, [])
   const openTokenInfoModal = useCallback((tokenAddress: HexString) => {
     setSelectedTokenAddress(tokenAddress)
-    setIsTokenInfoModalOpened(true)
   }, [])
   const closeTokenInfoModal = useCallback(() => {
-    setIsTokenInfoModalOpened(false)
+    setSelectedTokenAddress("")
   }, [])
 
   useEffect(() => {
@@ -94,7 +92,7 @@ export function Tokens() {
                 <span>{token.symbol}</span>{" "}
                 <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>
               </div>
-              {isTokenInfoModalOpened && (
+              {selectedTokenAddress && (
                 <TokenInfoModal
                   onModalClosed={closeTokenInfoModal}
                   tokenAddress={selectedTokenAddress}
@@ -263,10 +261,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     setTokenAddress(inputTokenAddress)
 
     if (
-      tokens.some(
-        (token) =>
-          token.address.toLowerCase() === inputTokenAddress.toLowerCase()
-      )
+      tokens.some((token) => address.isEqual(token.address, inputTokenAddress))
     ) {
       setInvalidTokenAddress(true)
       setInvalidTokenAddressMessage("Token address already exists")
@@ -316,7 +311,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       )
     }
     await importToken(account.id, {
-      address: tokenAddress,
+      address: ethers.getAddress(tokenAddress),
       symbol: tokenSymbol,
       decimals: tokenDecimals,
       balance: ethers.toBeHex(balance)
