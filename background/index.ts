@@ -182,27 +182,41 @@ async function main() {
 
     const accountId = network[state.networkActive].accountActive
     const accountAddress = account[accountId].address
-
     const provider = new ethers.JsonRpcProvider(node.url)
-    const balance = await provider.getBalance(accountAddress)
     const { tokens } = account[accountId]
 
     // Update the balance of all tokens
-    for (const token of tokens) {
-      if (token.address === ethAddress) {
-        token.balance = number.toHex(balance)
-      } else {
-        token.balance = number.toHex(
-          await getErc20Contract(token.address, provider).balanceOf(
-            accountAddress
+    let updated = false
+    let balance = ""
+    try {
+      for (const token of tokens) {
+        if (token.address === ethAddress) {
+          balance = number.toHex(await provider.getBalance(accountAddress))
+        }
+        if (token.address !== ethAddress) {
+          balance = number.toHex(
+            await getErc20Contract(token.address, provider).balanceOf(
+              accountAddress
+            )
           )
-        )
+        }
+        if (token.balance !== balance) {
+          updated = true
+          token.balance = balance
+        }
       }
+    } catch (error) {
+      console.warn(
+        `[background] error occurred while fetching token balance: ${error}`
+      )
+      updated = false
     }
 
-    storage.set((state) => {
-      state.account[accountId].tokens = tokens
-    })
+    if (updated) {
+      storage.set((state) => {
+        state.account[accountId].tokens = tokens
+      })
+    }
 
     setTimeout(fetchTokenBalance, timeout)
   }
