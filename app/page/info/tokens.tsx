@@ -44,15 +44,14 @@ export function Tokens() {
     const updateTokenBalances = async () => {
       await Promise.all(
         tokens.map(async (token) => {
-          const balance = await getErc20Contract(
+          const balance: BigNumberish = await getErc20Contract(
             token.address,
             provider
           ).balanceOf(account.address)
-          if (
-            account.tokens.find((t) => t.address === token.address)?.balance !==
-            balance
-          ) {
-            await updateToken(account.id, token.address, number.toHex(balance))
+          if (token.balance !== balance) {
+            await updateToken(account.id, token.address, {
+              balance: balance
+            })
           }
         })
       )
@@ -145,7 +144,10 @@ function TokenInfoModal({
   }
 
   const handleUpdate = async () => {
-    await updateToken(account.id, tokenAddress, token.balance, tokenSymbol)
+    await updateToken(account.id, tokenAddress, {
+      balance: token.balance,
+      symbol: tokenSymbol
+    })
     onModalClosed()
   }
 
@@ -316,10 +318,10 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       )
     }
     await importToken(account.id, {
-      address: ethers.getAddress(tokenAddress),
+      address: tokenAddress,
       symbol: tokenSymbol,
       decimals: tokenDecimals,
-      balance: ethers.toBeHex(balance)
+      balance: number.toHex(balance)
     })
     onModalClosed()
   }

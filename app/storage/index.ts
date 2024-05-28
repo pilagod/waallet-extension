@@ -1,3 +1,4 @@
+import { getAddress } from "ethers"
 import { v4 as uuidV4 } from "uuid"
 import browser from "webextension-polyfill"
 import { create, type StoreApi } from "zustand"
@@ -6,7 +7,7 @@ import { useShallow } from "zustand/react/shallow"
 import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { UserOperationData } from "~packages/bundler"
-import { getChainName } from "~packages/network/util"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
   UserOperationStatus,
@@ -16,7 +17,7 @@ import {
   type UserOperationRejected,
   type UserOperationSent
 } from "~storage/local"
-import type { HexString } from "~typing"
+import type { BigNumberish, HexString } from "~typing"
 
 import { StorageMessenger } from "./messenger"
 import { background } from "./middleware/background"
@@ -35,13 +36,15 @@ interface Storage {
     userOpHash: HexString,
     userOp: UserOperationData
   ) => Promise<void>
-  updateBalance: (accountId: string, balance: HexString) => Promise<void>
+  updateBalance: (accountId: string, balance: BigNumberish) => Promise<void>
   importToken: (accountId: string, token: Token) => Promise<void>
   updateToken: (
     accountId: string,
     tokenAddress: HexString,
-    newTokenBalance: HexString,
-    newTokenSymbol?: string
+    update: {
+      balance?: BigNumberish
+      symbol?: string
+    }
   ) => Promise<void>
   removeToken: (accountId: string, tokenAddress: HexString) => Promise<void>
 }
@@ -125,41 +128,53 @@ export const useStorage = create<Storage>()(
           delete state.pendingUserOpLog[pendingUserOpLog.id]
         })
       },
-      updateBalance: async (accountId: string, balance: HexString) => {
+      updateBalance: async (accountId: string, balance: BigNumberish) => {
         await set(({ state }) => {
-          state.account[accountId].balance = balance
+          state.account[accountId].balance = number.toHex(balance)
         })
       },
       importToken: async (accountId: string, token: Token) => {
         await set(({ state }) => {
-          state.account[accountId].tokens.push(token)
+          state.account[accountId].tokens.push({
+            address: getAddress(token.address),
+            symbol: token.symbol,
+            decimals: token.decimals,
+            balance: token.balance
+          })
         })
       },
       removeToken: async (accountId: string, tokenAddress: HexString) => {
         await set(({ state }) => {
-          const removeIndex = state.account[accountId].tokens.findIndex(
-            (token) => token.address === tokenAddress
+          const tokenIndex = state.account[accountId].tokens.findIndex(
+            (token) => address.isEqual(token.address, tokenAddress)
           )
-          if (removeIndex !== -1) {
-            state.account[accountId].tokens.splice(removeIndex, 1)
-          } else {
-            throw new Error(`Unknown token: ${tokenAddress} to remove`)
+          if (tokenIndex < 0) {
+            throw new Error(`Unknown token: ${tokenAddress}`)
           }
+          state.account[accountId].tokens.splice(tokenIndex, 1)
         })
       },
       updateToken: async (
         accountId: string,
         tokenAddress: HexString,
-        newTokenBalance: HexString,
-        newTokenSymbol?: string
+        update: {
+          balance?: BigNumberish
+          symbol?: string
+        }
       ) => {
         await set(({ state }) => {
-          state.account[accountId].tokens.forEach((token) => {
-            if (token.address === tokenAddress) {
-              token.symbol = newTokenSymbol ?? token.symbol
-              token.balance = newTokenBalance
-            }
-          })
+          const token = state.account[accountId].tokens.find((token) =>
+            address.isEqual(token.address, tokenAddress)
+          )
+          if (!token) {
+            throw new Error(`Unknown token: ${tokenAddress}`)
+          }
+          if (update.balance) {
+            token.balance = number.toHex(update.balance)
+          }
+          if (update.symbol) {
+            token.symbol = update.symbol
+          }
         })
       }
     }),

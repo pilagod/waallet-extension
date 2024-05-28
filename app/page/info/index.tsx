@@ -77,8 +77,8 @@ export function AccountInfo() {
     // monitor Account-related transactions. Updates like balance will trigger
     // as needed, avoiding fixed interval polling with setInterval().
     const getBalanceAsync = async () => {
-      const balance = number.toHex(await provider.getBalance(account.address))
-      if (account.balance !== balance) {
+      const balance = await provider.getBalance(account.address)
+      if (number.toBigInt(account.balance) !== balance) {
         await updateBalance(account.id, number.toHex(balance))
       }
     }
