@@ -157,27 +157,18 @@ function TokenInfoModal({
     setInvalidTokenSymbol(inputTokenSymbol.length === 0)
   }
 
-  const onTokenInfo = async (event: FormEvent<HTMLFormElement>) => {
-    // Prevents the default behavior of the event,
-    // allowing for custom handling of the event action.
-    event.preventDefault()
-    const action = (event.nativeEvent as any).submitter.name
+  const handleUpdate = async () => {
+    await updateToken(account.id, tokenAddress, token.balance, tokenSymbol)
+    onModalClosed()
+  }
 
-    switch (action) {
-      case "update":
-        await updateToken(account.id, tokenAddress, token.balance, tokenSymbol)
-        onModalClosed()
-        break
-      case "remove":
-        await removeToken(account.id, tokenAddress)
-        onModalClosed()
-        break
-      case "close":
-        onModalClosed()
-        break
-      default:
-        console.error("Unknown action")
-    }
+  const handleRemove = async () => {
+    await removeToken(account.id, tokenAddress)
+    onModalClosed()
+  }
+
+  const handleClose = () => {
+    onModalClosed()
   }
 
   return (
@@ -216,7 +207,7 @@ function TokenInfoModal({
           </span>{" "}
           <span>{token.symbol}</span>
         </div>
-        <form onSubmit={onTokenInfo}>
+        <form>
           <div>
             <label htmlFor="tokenAddress">Token Address:</label>
             <input
@@ -250,13 +241,16 @@ function TokenInfoModal({
             />
           </div>
           <div className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
-            <button type="submit" name="update" disabled={invalidTokenSymbol}>
+            <button
+              type="button"
+              onClick={handleUpdate}
+              disabled={invalidTokenSymbol}>
               Update
             </button>
-            <button type="submit" name="remove">
+            <button type="button" onClick={handleRemove}>
               Remove
             </button>
-            <button type="submit" name="close">
+            <button type="button" onClick={handleClose}>
               Close
             </button>
           </div>
