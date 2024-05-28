@@ -280,11 +280,13 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     try {
       const symbol: string = await erc20.symbol()
       const decimals: number = ethers.toNumber(await erc20.decimals())
+      setInvalidTokenAddressMessage("")
       setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)
       setTokenDecimals(decimals)
     } catch (error) {
       console.warn(`[Popup][tokens] Invalid token symbol or decimals: ${error}`)
+      setInvalidTokenAddressMessage("Address is not an ERC20 token")
       setInvalidTokenSymbol(true)
       setTokenSymbol("")
       setTokenDecimals(0)
