@@ -1,6 +1,6 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import * as ethers from "ethers"
+import { formatUnits, getAddress, toNumber } from "ethers"
 import {
   useCallback,
   useEffect,
@@ -262,7 +262,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     setTokenAddress(inputTokenAddress)
 
     try {
-      console.log(`${ethers.getAddress(inputTokenAddress)}`)
+      console.log(`${getAddress(inputTokenAddress)}`)
       setInvalidTokenAddressMessage("")
     } catch (error) {
       console.warn(`[Popup][tokens] Invalid token address: ${error}`)
@@ -281,7 +281,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
 
     try {
       const symbol: string = await erc20.symbol()
-      const decimals: number = ethers.toNumber(await erc20.decimals())
+      const decimals: number = toNumber(await erc20.decimals())
       setInvalidTokenAddressMessage("")
       setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)
@@ -396,13 +396,8 @@ function formatUnitsToFixed(
   decimals: BigNumberish,
   fixed: number = 6
 ): string {
-  const parseValue = parseFloat(
-    ethers.formatUnits(ethers.toBeHex(balance), ethers.toNumber(decimals))
-  )
-  if (isNaN(parseValue)) {
-    return ""
-  }
-  if (parseValue === 0) {
+  const parseValue = parseFloat(formatUnits(balance, toNumber(decimals)))
+  if (isNaN(parseValue) || parseValue === 0) {
     return "0"
   }
   return parseValue.toFixed(fixed)
