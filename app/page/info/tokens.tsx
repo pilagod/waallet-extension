@@ -249,7 +249,6 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const [tokenAddress, setTokenAddress] = useState<HexString>("")
   const [tokenSymbol, setTokenSymbol] = useState<string>("")
   const [tokenDecimals, setTokenDecimals] = useState<number>(0)
-  const [invalidTokenAddress, setInvalidTokenAddress] = useState<boolean>(true)
   const [invalidTokenAddressMessage, setInvalidTokenAddressMessage] =
     useState<string>("")
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(true)
@@ -262,11 +261,9 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
 
     try {
       console.log(`${ethers.getAddress(inputTokenAddress)}`)
-      setInvalidTokenAddress(false)
       setInvalidTokenAddressMessage("")
     } catch (error) {
       console.warn(`[Popup][tokens] Invalid token address: ${error}`)
-      setInvalidTokenAddress(true)
       setInvalidTokenAddressMessage("Invalid token address")
       return
     }
@@ -274,7 +271,6 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     if (
       tokens.some((token) => address.isEqual(token.address, inputTokenAddress))
     ) {
-      setInvalidTokenAddress(true)
       setInvalidTokenAddressMessage("Token address already exists")
       return
     }
@@ -343,7 +339,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
             <label htmlFor="tokenAddress">Token Address:</label>
             <input
               className={`border w-96 outline-none ${
-                tokenAddress && invalidTokenAddress
+                tokenAddress.length > 0 && invalidTokenAddressMessage
                   ? "border-red-500"
                   : "border-gray-300"
               }`}
@@ -356,7 +352,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
           {invalidTokenAddressMessage && (
             <div className="text-red-500">{invalidTokenAddressMessage}</div>
           )}
-          {!invalidTokenAddress && (
+          {tokenAddress.length > 0 && !invalidTokenAddressMessage && (
             <>
               <div>
                 <label htmlFor="tokenSymbol">Token Symbol:</label>
