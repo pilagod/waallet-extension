@@ -50,7 +50,7 @@ export function Tokens() {
           ).balanceOf(account.address)
           if (token.balance !== balance) {
             await updateToken(account.id, token.address, {
-              balance: balance
+              balance
             })
           }
         })
@@ -124,7 +124,9 @@ function TokenInfoModal({
   const { updateToken, removeToken } = useAction()
   const account = useAccount()
   const tokens = useTokens()
-  const token = tokens.find((token) => token.address === tokenAddress)
+  const token = tokens.find((token) =>
+    address.isEqual(token.address, tokenAddress)
+  )
 
   const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
   const tokenExplorerUrl = `${explorerUrl}token/${token.address}?a=${account.address}`
