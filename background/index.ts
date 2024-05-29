@@ -212,11 +212,38 @@ async function main() {
     setTimeout(fetchTokenBalance, timeout)
   }
 
+  // TODO: In the future, adding an Indexer to the Background Script to
+  // monitor Account-related transactions. Updates like balance will trigger
+  // as needed, avoiding fixed interval polling with setInterval().
+  const fetchNativeBalance = async () => {
+    const timeout = 3000
+    console.log(`[background] fetch native balance every ${timeout} ms`)
+
+    const { account, network } = storage.get()
+    const { node } = networkManager.getActive()
+
+    const accountId = network[state.networkActive].accountActive
+    const accountAddress = account[accountId].address
+    const provider = new ethers.JsonRpcProvider(node.url)
+    const { balance } = account[accountId]
+
+    const b = await provider.getBalance(accountAddress)
+    const balanceHex = number.toHex(b)
+    if (balance !== balanceHex) {
+      storage.set((state) => {
+        state.account[accountId].balance = balanceHex
+      })
+    }
+
+    setTimeout(fetchTokenBalance, timeout)
+  }
+
   // TODO: Using these two asynchronous functions, both executing
   // `storage.set()` commands, often triggers the error: "Error: Could not
   // establish connection. Receiving end does not exist."
   await fetchUserOpsSent()
   await fetchTokenBalance()
+  await fetchNativeBalance()
 }
 
 main()
