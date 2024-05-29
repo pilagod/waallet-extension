@@ -6,35 +6,48 @@ import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import { useAccount, useTokens } from "~app/storage"
-import { getErc20Contract } from "~packages/network/util"
+import {
+  formatUnitsToFixed,
+  getChainName,
+  getErc20Contract
+} from "~packages/network/util"
+import address from "~packages/util/address"
 import { type Token } from "~storage/local"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
-  const ethAddress: HexString = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-
   const { provider } = useProviderContext()
   const account = useAccount()
   const tokens = useTokens()
 
-  const [token, setToken] = useState<Token>({
-    address: tokens[0].address,
-    balance: tokens[0].balance,
-    symbol: tokens[0].symbol,
-    decimals: tokens[0].decimals
-  })
+  const nativeToken: Token = {
+    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+    symbol: `${getChainName(account.chainId)}ETH`,
+    decimals: 18,
+    balance: formatUnitsToFixed(account.balance, 18)
+  }
+
+  const [token, setToken] = useState<Token>(nativeToken)
   const [txHash, setTxHash] = useState<HexString>("")
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
-  const [isEth, setIsEth] = useState<boolean>(token.address === ethAddress)
+  const [isEth, setIsEth] = useState<boolean>(
+    address.isEqual(token.address, nativeToken.address)
+  )
 
   const handleAssetChange = async (event: ChangeEvent<HTMLSelectElement>) => {
     const tokenAddress = event.target.value
-    const t = tokens.find((token) => token.address === tokenAddress)
-    setToken(t)
-    setIsEth(t.address === ethAddress)
+    console.log(`tokenAddress: ${tokenAddress}`)
+    if (address.isEqual(nativeToken.address, tokenAddress)) {
+      setToken(nativeToken)
+      setIsEth(true)
+      return
+    }
+    const token = tokens.find((token) => token.address === tokenAddress)
+    setToken(token)
+    setIsEth(false)
   }
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +105,9 @@ export function Send() {
             value={token.address}
             className="border w-96 outline-none border-gray-300"
             onChange={handleAssetChange}>
+            <option key={nativeToken.address} value={nativeToken.address}>
+              {nativeToken.symbol}: {nativeToken.balance} {nativeToken.symbol}
+            </option>
             {tokens.map((token) => {
               const balance = parseFloat(
                 ethers.formatUnits(
