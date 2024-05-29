@@ -1,11 +1,15 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { formatUnits, getAddress, toNumber } from "ethers"
+import { getAddress, toNumber } from "ethers"
 import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
-import { getChainName, getErc20Contract } from "~packages/network/util"
+import {
+  formatUnitsToFixed,
+  getChainName,
+  getErc20Contract
+} from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -346,16 +350,4 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       </div>
     </div>
   )
-}
-
-function formatUnitsToFixed(
-  balance: BigNumberish,
-  decimals: BigNumberish,
-  fixed: number = 6
-): string {
-  const parseValue = parseFloat(formatUnits(balance, toNumber(decimals)))
-  if (isNaN(parseValue) || parseValue === 0) {
-    return "0"
-  }
-  return parseValue.toFixed(fixed)
 }
