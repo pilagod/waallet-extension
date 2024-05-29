@@ -1,19 +1,20 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import * as ethers from "ethers"
+import { formatUnits, getAddress, toNumber } from "ethers"
 import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
+import address from "~packages/util/address"
+import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Tokens() {
   const tokens = useTokens()
+  const account = useAccount()
 
   const [isTokenImportModalOpened, setIsTokenImportModalOpened] =
-    useState<boolean>(false)
-  const [isTokenInfoModalOpened, setIsTokenInfoModalOpened] =
     useState<boolean>(false)
   const [selectedTokenAddress, setSelectedTokenAddress] =
     useState<HexString>("")
@@ -23,16 +24,19 @@ export function Tokens() {
   }, [])
   const openTokenInfoModal = useCallback((tokenAddress: HexString) => {
     setSelectedTokenAddress(tokenAddress)
-    setIsTokenInfoModalOpened(true)
   }, [])
   const closeTokenInfoModal = useCallback(() => {
-    setIsTokenInfoModalOpened(false)
+    setSelectedTokenAddress("")
   }, [])
 
   return (
     <div>
       <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
         Tokens:
+        <div>
+          <span>{getChainName(account.chainId)}ETH </span>
+          <span>{formatUnitsToFixed(account.balance, 18)}</span>
+        </div>
         {tokens.map((token, index) => {
           return (
             <div key={index}>
@@ -40,16 +44,9 @@ export function Tokens() {
                 className="col-span-3 cursor-pointer"
                 onClick={() => openTokenInfoModal(token.address)}>
                 <span>{token.symbol}</span>{" "}
-                <span>
-                  {parseFloat(
-                    ethers.formatUnits(
-                      ethers.toBeHex(token.balance),
-                      ethers.toNumber(token.decimals)
-                    )
-                  ).toFixed(6)}
-                </span>
+                <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>
               </div>
-              {isTokenInfoModalOpened && (
+              {selectedTokenAddress && (
                 <TokenInfoModal
                   onModalClosed={closeTokenInfoModal}
                   tokenAddress={selectedTokenAddress}
@@ -82,12 +79,12 @@ function TokenInfoModal({
   const { updateToken, removeToken } = useAction()
   const account = useAccount()
   const tokens = useTokens()
-  const token = tokens.find((token) => token.address === tokenAddress)
-  const isEth = tokenAddress === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+  const token = tokens.find((token) =>
+    address.isEqual(token.address, tokenAddress)
+  )
+
   const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
-  const tokenExplorerUrl = isEth
-    ? `${explorerUrl}address/${account.address}`
-    : `${explorerUrl}token/${token.address}?a=${account.address}`
+  const tokenExplorerUrl = `${explorerUrl}token/${token.address}?a=${account.address}`
 
   const [tokenSymbol, setTokenSymbol] = useState<string>(token.symbol)
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
@@ -103,27 +100,21 @@ function TokenInfoModal({
     setInvalidTokenSymbol(inputTokenSymbol.length === 0)
   }
 
-  const onTokenInfo = async (event: FormEvent<HTMLFormElement>) => {
-    // Prevents the default behavior of the event,
-    // allowing for custom handling of the event action.
-    event.preventDefault()
-    const action = (event.nativeEvent as any).submitter.name
+  const handleUpdate = async () => {
+    await updateToken(account.id, tokenAddress, {
+      balance: token.balance,
+      symbol: tokenSymbol
+    })
+    onModalClosed()
+  }
 
-    switch (action) {
-      case "update":
-        await updateToken(account.id, tokenAddress, token.balance, tokenSymbol)
-        onModalClosed()
-        break
-      case "remove":
-        await removeToken(account.id, tokenAddress)
-        onModalClosed()
-        break
-      case "close":
-        onModalClosed()
-        break
-      default:
-        console.error("Unknown action")
-    }
+  const handleRemove = async () => {
+    await removeToken(account.id, tokenAddress)
+    onModalClosed()
+  }
+
+  const handleClose = () => {
+    onModalClosed()
   }
 
   return (
@@ -152,17 +143,10 @@ function TokenInfoModal({
           )}
         </div>
         <div className="text-center">
-          <span>
-            {parseFloat(
-              ethers.formatUnits(
-                ethers.toBeHex(token.balance),
-                ethers.toNumber(token.decimals)
-              )
-            ).toFixed(6)}
-          </span>{" "}
+          <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>{" "}
           <span>{token.symbol}</span>
         </div>
-        <form onSubmit={onTokenInfo}>
+        <form>
           <div>
             <label htmlFor="tokenAddress">Token Address:</label>
             <input
@@ -196,13 +180,16 @@ function TokenInfoModal({
             />
           </div>
           <div className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
-            <button type="submit" name="update" disabled={invalidTokenSymbol}>
+            <button
+              type="button"
+              onClick={handleUpdate}
+              disabled={invalidTokenSymbol}>
               Update
             </button>
-            <button type="submit" name="remove" hidden={isEth}>
+            <button type="button" onClick={handleRemove}>
               Remove
             </button>
-            <button type="submit" name="close">
+            <button type="button" onClick={handleClose}>
               Close
             </button>
           </div>
@@ -221,7 +208,6 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const [tokenAddress, setTokenAddress] = useState<HexString>("")
   const [tokenSymbol, setTokenSymbol] = useState<string>("")
   const [tokenDecimals, setTokenDecimals] = useState<number>(0)
-  const [invalidTokenAddress, setInvalidTokenAddress] = useState<boolean>(true)
   const [invalidTokenAddressMessage, setInvalidTokenAddressMessage] =
     useState<string>("")
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(true)
@@ -232,13 +218,18 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     const inputTokenAddress = event.target.value
     setTokenAddress(inputTokenAddress)
 
+    try {
+      console.log(`${getAddress(inputTokenAddress)}`)
+      setInvalidTokenAddressMessage("")
+    } catch (error) {
+      console.warn(`[Popup][tokens] Invalid token address: ${error}`)
+      setInvalidTokenAddressMessage("Invalid token address")
+      return
+    }
+
     if (
-      tokens.some(
-        (token) =>
-          token.address.toLowerCase() === inputTokenAddress.toLowerCase()
-      )
+      tokens.some((token) => address.isEqual(token.address, inputTokenAddress))
     ) {
-      setInvalidTokenAddress(true)
       setInvalidTokenAddressMessage("Token address already exists")
       return
     }
@@ -246,21 +237,19 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     const erc20 = getErc20Contract(inputTokenAddress, provider)
 
     try {
-      console.log(`${ethers.getAddress(inputTokenAddress)}`)
       const symbol: string = await erc20.symbol()
-      const decimals: number = ethers.toNumber(await erc20.decimals())
-      setInvalidTokenAddress(false)
+      const decimals: number = toNumber(await erc20.decimals())
       setInvalidTokenAddressMessage("")
       setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)
       setTokenDecimals(decimals)
     } catch (error) {
-      console.warn(`[Popup][tokens] Invalid token address: ${error}`)
-      setInvalidTokenAddress(true)
-      setInvalidTokenAddressMessage("Invalid token address")
+      console.warn(`[Popup][tokens] Invalid token symbol or decimals: ${error}`)
+      setInvalidTokenAddressMessage("Address is not an ERC20 token")
       setInvalidTokenSymbol(true)
       setTokenSymbol("")
       setTokenDecimals(0)
+      return
     }
   }
 
@@ -289,7 +278,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       address: tokenAddress,
       symbol: tokenSymbol,
       decimals: tokenDecimals,
-      balance: ethers.toBeHex(balance)
+      balance: number.toHex(balance)
     })
     onModalClosed()
   }
@@ -311,7 +300,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
             <label htmlFor="tokenAddress">Token Address:</label>
             <input
               className={`border w-96 outline-none ${
-                tokenAddress && invalidTokenAddress
+                tokenAddress.length > 0 && invalidTokenAddressMessage
                   ? "border-red-500"
                   : "border-gray-300"
               }`}
@@ -324,7 +313,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
           {invalidTokenAddressMessage && (
             <div className="text-red-500">{invalidTokenAddressMessage}</div>
           )}
-          {!invalidTokenAddress && (
+          {tokenAddress.length > 0 && !invalidTokenAddressMessage && (
             <>
               <div>
                 <label htmlFor="tokenSymbol">Token Symbol:</label>
@@ -357,4 +346,16 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       </div>
     </div>
   )
+}
+
+function formatUnitsToFixed(
+  balance: BigNumberish,
+  decimals: BigNumberish,
+  fixed: number = 6
+): string {
+  const parseValue = parseFloat(formatUnits(balance, toNumber(decimals)))
+  if (isNaN(parseValue) || parseValue === 0) {
+    return "0"
+  }
+  return parseValue.toFixed(fixed)
 }

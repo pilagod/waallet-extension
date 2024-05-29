@@ -1,7 +1,6 @@
 import * as ethers from "ethers"
 import { useEffect, useState } from "react"
 import { useClsState } from "use-cls-state"
-import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { useProviderContext } from "~app/context/provider"
@@ -66,16 +65,71 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   const { markUserOperationSent, markUserOperationRejected } = useAction()
   const network = useNetwork(userOpLog.networkId)
   const sender = useAccount(userOpLog.senderId)
+
+  /* User Operation */
+
   const [userOp, setUserOp] = useClsState<UserOperation>(
     new UserOperation(userOpLog.userOp)
   )
+  const [userOpSending, setUserOpSending] = useState(false)
+  const [userOpEstimating, setUserOpEstimating] = useState(false)
+
+  const sendUserOperation = async () => {
+    setUserOpSending(true)
+
+    const account = await AccountStorageManager.wrap(provider, sender)
+    try {
+      userOp.setPaymasterAndData(
+        await payment.option.paymaster.requestPaymasterAndData(provider, userOp)
+      )
+      userOp.setSignature(
+        await account.sign(
+          userOp.hash(userOpLog.entryPointAddress, network.chainId)
+        )
+      )
+      const userOpHash = await provider.send(
+        WaalletRpcMethod.eth_sendUserOperation,
+        [userOp.data(), userOpLog.entryPointAddress]
+      )
+      if (!userOpHash) {
+        throw new Error("Fail to send user operation")
+      }
+      await markUserOperationSent(userOpLog.id, userOpHash, userOp.data())
+    } catch (e) {
+      // TOOD: Show error on page
+      console.error(e)
+      setUserOpSending(false)
+    }
+  }
+
+  const rejectUserOperation = async () => {
+    await markUserOperationRejected(userOpLog.id)
+    navigate(Path.Index)
+    return
+  }
+
+  useEffect(() => {
+    async function updatePayment() {
+      setPaymentCalculating(true)
+      setPayment({
+        ...payment,
+        tokenFee: await payment.option.paymaster.quoteFee(
+          userOp.calculateGasFee(),
+          ETH
+        )
+      })
+      setPaymentCalculating(false)
+    }
+    updatePayment()
+  }, [JSON.stringify(userOp.data())])
+
+  /* Payment */
+
   const [payment, setPayment] = useState<Payment>({
     option: paymentOptions[0],
     token: ETH,
     tokenFee: 0n
   })
-  const [userOpSending, setUserOpSending] = useState(false)
-  const [userOpEstimating, setUserOpEstimating] = useState(false)
   const [paymentCalculating, setPaymentCalculating] = useState(false)
 
   // TODO: Put it into a dedicated module
@@ -113,55 +167,6 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   useEffect(() => {
     onPaymentOptionSelected(payment.option)
   }, [])
-
-  const sendUserOperation = async () => {
-    setUserOpSending(true)
-
-    const account = await AccountStorageManager.wrap(provider, sender)
-    try {
-      userOp.setPaymasterAndData(
-        await payment.option.paymaster.requestPaymasterAndData(provider, userOp)
-      )
-      userOp.setSignature(
-        await account.sign(
-          userOp.hash(userOpLog.entryPointAddress, network.chainId)
-        )
-      )
-      const userOpHash = await provider.send(
-        WaalletRpcMethod.eth_sendUserOperation,
-        [userOp.data(), userOpLog.entryPointAddress]
-      )
-      if (!userOpHash) {
-        throw new Error("Fail to send user operation")
-      }
-      await markUserOperationSent(userOpLog.id, userOpHash, userOp.data())
-    } catch (e) {
-      // TOOD: Show error on page
-      console.error(e)
-      setUserOpSending(false)
-    }
-  }
-
-  const rejectUserOperation = async () => {
-    await markUserOperationRejected(userOpLog.id)
-    navigate(Path.Index)
-    return
-  }
-
-  useDeepCompareEffectNoCheck(() => {
-    async function updatePayment() {
-      setPaymentCalculating(true)
-      setPayment({
-        ...payment,
-        tokenFee: await payment.option.paymaster.quoteFee(
-          userOp.calculateGasFee(),
-          ETH
-        )
-      })
-      setPaymentCalculating(false)
-    }
-    updatePayment()
-  }, [userOp])
 
   return (
     <div>

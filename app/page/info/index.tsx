@@ -11,8 +11,7 @@ import {
   useAccount,
   useAction,
   useNetwork,
-  useShouldOnboard,
-  useTokens
+  useShouldOnboard
 } from "~app/storage"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
@@ -64,12 +63,7 @@ function AccountCreation() {
 
 export function AccountInfo() {
   const explorerUrl = "https://jiffyscan.xyz/"
-  const ethAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-
   const account = useAccount()
-  const tokens = useTokens()
-  const ethToken = tokens.find((token) => token.address === ethAddress)
-
   const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
     InfoNavigation.Activity
   )
@@ -95,7 +89,7 @@ export function AccountInfo() {
 
       {/* Display the Account balance */}
       <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        Balance: {ethers.formatEther(ethToken.balance)}
+        Balance: {ethers.formatEther(account.balance)}
       </div>
 
       {/* Show the send button for switching to the Send page */}

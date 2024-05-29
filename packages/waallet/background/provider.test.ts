@@ -53,7 +53,7 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
     expect(parseInt(gas, 16)).toBeGreaterThan(0)
   })
 
-  it("should estimate user operation gas with nonce on chain", async () => {
+  it("should fail to estimate user operation when nonce doesn't match the one on chain", async () => {
     const userOp = await ctx.account.createUserOperation(node, {
       to: await counter.getAddress(),
       value: 1,
@@ -62,23 +62,17 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
     // Use custom nonce which doesn't match the one on chain
     userOp.setNonce(userOp.nonce + 1n)
 
-    const gas = await ctx.provider.request<{
-      preVerificationGas: HexString
-      verificationGasLimit: HexString
-      callGasLimit: HexString
-    }>({
-      method: WaalletRpcMethod.eth_estimateUserOperationGas,
-      params: [userOp.data()]
-    })
+    const useInvalidNonce = () =>
+      ctx.provider.request<{
+        preVerificationGas: HexString
+        verificationGasLimit: HexString
+        callGasLimit: HexString
+      }>({
+        method: WaalletRpcMethod.eth_estimateUserOperationGas,
+        params: [userOp.data()]
+      })
 
-    expect(byte.isHex(gas.callGasLimit)).toBe(true)
-    expect(parseInt(gas.callGasLimit, 16)).toBeGreaterThan(0)
-
-    expect(byte.isHex(gas.verificationGasLimit)).toBe(true)
-    expect(parseInt(gas.verificationGasLimit, 16)).toBeGreaterThan(0)
-
-    expect(byte.isHex(gas.preVerificationGas)).toBe(true)
-    expect(parseInt(gas.preVerificationGas, 16)).toBeGreaterThan(0)
+    await expect(useInvalidNonce()).rejects.toThrow()
   })
 
   it("should send transaction to contract", async () => {

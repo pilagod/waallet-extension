@@ -111,14 +111,7 @@ export class WaalletBackgroundProvider {
     callGasLimit: HexString
   }> {
     const userOp = new UserOperation(params[0])
-    const { node, bundler, chainId } = this.networkManager.getActive()
-    const { account } = await this.accountManager.getByAddress(
-      userOp.sender,
-      chainId
-    )
-    // Always using nonce on chain to let estimation passed
-    userOp.setNonce(await account.getNonce(node))
-
+    const { bundler } = this.networkManager.getActive()
     const [entryPointAddress] = await bundler.getSupportedEntryPoints()
     const data = await bundler.estimateUserOperationGas(
       userOp,
