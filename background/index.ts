@@ -2,6 +2,7 @@ import { ethers } from "ethers"
 import browser from "webextension-polyfill"
 
 import { getErc20Contract } from "~packages/network/util"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
   getLocalStorage,
@@ -172,8 +173,6 @@ async function main() {
     const timeout = 3000
     console.log(`[background] fetch token balance every ${timeout} ms`)
 
-    const ethAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-
     const { account, network } = storage.get()
     const { node } = networkManager.getActive()
 
@@ -183,36 +182,31 @@ async function main() {
     const { tokens } = account[accountId]
 
     // Update the balance of all tokens
-    let updated = false
-    let balance = ""
-    try {
-      for (const token of tokens) {
-        if (token.address === ethAddress) {
-          balance = number.toHex(await provider.getBalance(accountAddress))
-        }
-        if (token.address !== ethAddress) {
-          balance = number.toHex(
-            await getErc20Contract(token.address, provider).balanceOf(
-              accountAddress
-            )
-          )
-        }
-        if (token.balance !== balance) {
-          updated = true
-          token.balance = balance
-        }
-      }
-    } catch (error) {
-      console.warn(
-        `[background] error occurred while fetching token balance: ${error}`
-      )
-      updated = false
-    }
+    for (const t of tokens) {
+      try {
+        const balance = await getErc20Contract(t.address, provider).balanceOf(
+          accountAddress
+        )
+        const balanceHex = number.toHex(balance)
 
-    if (updated) {
-      storage.set((state) => {
-        state.account[accountId].tokens = tokens
-      })
+        if (t.balance !== balanceHex) {
+          storage.set((state) => {
+            const token = state.account[accountId].tokens.find((token) =>
+              address.isEqual(token.address, t.address)
+            )
+            if (!token) {
+              console.warn(`[Popup][tokens] Unknown token: ${t.address}`)
+              return
+            }
+            token.balance = balanceHex
+          })
+        }
+      } catch (error) {
+        console.warn(
+          `[Popup][tokens] error occurred while getting balance: ${error}`
+        )
+        continue
+      }
     }
 
     setTimeout(fetchTokenBalance, timeout)
