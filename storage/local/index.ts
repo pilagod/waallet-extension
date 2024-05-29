@@ -4,6 +4,7 @@ import browser from "webextension-polyfill"
 import { getConfig } from "~config"
 import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
+import { getChainName } from "~packages/network/util"
 import { ObservableStorage } from "~packages/storage/observable"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
@@ -40,6 +41,7 @@ export async function getLocalStorage() {
         [accountId]: {
           ...a,
           userOpLog: {},
+          balance: "0x00",
           tokens: []
         }
       })
@@ -129,6 +131,7 @@ export type WithAccountPeriphery<T> = {
   userOpLog: {
     [userOpId: string]: Exclude<UserOperationLog, UserOperationPending>
   }
+  balance: HexString
   tokens: Token[]
 } & T
 

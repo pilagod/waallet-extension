@@ -1,3 +1,7 @@
+import * as ethers from "ethers"
+
+import type { HexString } from "~typing"
+
 export function getChainName(chain: string | number): string {
   const net = typeof chain === "string" ? chain.toLowerCase() : chain
   let chainName: string
@@ -18,4 +22,20 @@ export function getChainName(chain: string | number): string {
       chainName = null
   }
   return chainName
+}
+
+export const getErc20Contract = (
+  address: HexString,
+  runner: ethers.ContractRunner
+) => {
+  return new ethers.Contract(
+    address,
+    [
+      "function balanceOf(address account) external view returns (uint256)",
+      "function name() public view returns (string)",
+      "function symbol() public view returns (string)",
+      "function decimals() public view returns (uint8)"
+    ],
+    runner
+  )
 }
