@@ -97,73 +97,69 @@ export function Send() {
 
   return (
     <NavbarLayout>
-      <div className="text-base justify-center items-center h-auto">
-        <div className="flex">
-          <label className="flex-1">Asset:</label>
-          <select
-            id="asset"
-            value={token.address}
-            className="border w-96 outline-none border-gray-300"
-            onChange={handleAssetChange}>
-            <option key={nativeToken.address} value={nativeToken.address}>
-              {nativeToken.symbol}: {nativeToken.balance} {nativeToken.symbol}
-            </option>
-            {tokens.map((token) => {
-              const balance = parseFloat(
-                ethers.formatUnits(
-                  ethers.toBeHex(token.balance),
-                  ethers.toNumber(token.decimals)
-                )
-              ).toFixed(6)
-              return (
-                <option key={token.address} value={token.address}>
-                  {token.symbol}: {balance} {token.symbol}
-                </option>
+      <div className="grid grid-cols-5 gap-4 text-base">
+        <label className="col-span-1">Asset:</label>
+        <select
+          id="asset"
+          value={token.address}
+          className="col-span-4 border w-full outline-none border-gray-300"
+          onChange={handleAssetChange}>
+          <option key={nativeToken.address} value={nativeToken.address}>
+            {nativeToken.symbol}: {nativeToken.balance} {nativeToken.symbol}
+          </option>
+          {tokens.map((token) => {
+            const balance = parseFloat(
+              ethers.formatUnits(
+                ethers.toBeHex(token.balance),
+                ethers.toNumber(token.decimals)
               )
-            })}
-          </select>
-          <label className="flex-1">To:</label>
-          <input
-            type="text"
-            id="to"
-            value={`${txTo}`}
-            onChange={handleToChange}
-            list="suggestionTo"
-            className={`border w-96 outline-none ${
-              invalidTo ? "border-red-500" : "border-gray-300"
-            }`}></input>
-          <datalist id="suggestionTo">
-            <option value={account.address}></option>
-          </datalist>
-        </div>
-        <div className="flex">
-          <label className="flex-1">Amount:</label>
-          <input
-            type="text"
-            id="amount"
-            value={`${txValue}`}
-            onChange={handleAmountChange}
-            className={`border w-96 outline-none ${
-              invalidValue ? "border-red-500" : "border-gray-300"
-            }`}></input>
-        </div>
-        <div className="flex">
-          <button
-            onClick={handleSend}
-            disabled={invalidTo || invalidValue}
-            className="flex-1">
-            Send
-          </button>
-          <Link href={Path.Info} className="flex-1">
-            Cancel
-          </Link>
-        </div>
-        {txHash && (
-          <div className="flex">
-            <label className="flex-1">TxHash:</label>
-            <span className="flex-1">{txHash}</span>
-          </div>
-        )}
+            ).toFixed(6)
+            return (
+              <option key={token.address} value={token.address}>
+                {token.symbol}: {balance} {token.symbol}
+              </option>
+            )
+          })}
+        </select>
+      </div>
+      <div className="grid grid-cols-5 gap-4 text-base">
+        <label className="col-span-1">To:</label>
+        <input
+          type="text"
+          id="to"
+          value={`${txTo}`}
+          onChange={handleToChange}
+          list="suggestionTo"
+          className={`col-span-4 border w-96 outline-none ${
+            invalidTo ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+        <datalist id="suggestionTo">
+          <option value={account.address}></option>
+        </datalist>
+      </div>
+      <div className="grid grid-cols-5 gap-4 text-base">
+        <label className="col-span-1">Amount:</label>
+        <input
+          type="text"
+          id="amount"
+          value={`${txValue}`}
+          onChange={handleAmountChange}
+          className={`col-span-4 border w-96 outline-none ${
+            invalidValue ? "border-red-500" : "border-gray-300"
+          }`}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4 text-base">
+        <button
+          onClick={handleSend}
+          disabled={invalidTo || invalidValue}
+          className="col-span-1">
+          Send
+        </button>
+        <Link href={Path.Info} className="col-span-1">
+          Cancel
+        </Link>
       </div>
     </NavbarLayout>
   )
