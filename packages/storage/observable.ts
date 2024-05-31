@@ -24,24 +24,7 @@ export class ObservableStorage<T extends Record<string, any>> {
     return structuredClone(this.state)
   }
 
-  public set(updater: ObservableStorageUpdater<T>): void
-  public set(
-    updates: RecursivePartial<T>,
-    option?: { override?: boolean }
-  ): void
-  public set(
-    updaterOrUpdates: ObservableStorageUpdater<T> | RecursivePartial<T>,
-    option: { override?: boolean } = {}
-  ) {
-    const updater =
-      typeof updaterOrUpdates === "function"
-        ? updaterOrUpdates
-        : (draft: Draft<T>) => {
-            if (option.override) {
-              return { ...draft, ...updaterOrUpdates }
-            }
-            this.applyUpdates(draft, updaterOrUpdates)
-          }
+  public set(updater: ObservableStorageUpdater<T>) {
     const [state, patches] = produceWithPatches(this.state, updater)
 
     this.state = structuredClone(state)
