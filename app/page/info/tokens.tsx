@@ -1,13 +1,7 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { formatUnits, getAddress, toNumber } from "ethers"
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type ChangeEvent,
-  type FormEvent
-} from "react"
+import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
@@ -19,8 +13,6 @@ import type { BigNumberish, HexString } from "~typing"
 export function Tokens() {
   const tokens = useTokens()
   const account = useAccount()
-  const { provider } = useProviderContext()
-  const { updateToken } = useAction()
 
   const [isTokenImportModalOpened, setIsTokenImportModalOpened] =
     useState<boolean>(false)
@@ -36,43 +28,6 @@ export function Tokens() {
   const closeTokenInfoModal = useCallback(() => {
     setSelectedTokenAddress("")
   }, [])
-
-  useEffect(() => {
-    // TODO: In the future, adding an Indexer to the Background Script to
-    // monitor Account-related transactions. Updates like balance will trigger
-    // as needed, avoiding fixed interval polling with setInterval().
-    const updateTokenBalances = async () => {
-      await Promise.all(
-        tokens.map(async (token) => {
-          const balance: BigNumberish = await getErc20Contract(
-            token.address,
-            provider
-          ).balanceOf(account.address)
-          if (token.balance !== balance) {
-            await updateToken(account.id, token.address, {
-              balance
-            })
-          }
-        })
-      )
-    }
-
-    // Fetch initial balance
-    updateTokenBalances().catch((e) =>
-      console.warn(`An error occurred while receiving token balance: ${e}`)
-    )
-
-    // Periodically check the balance of the account
-    const id = setInterval(() => {
-      updateTokenBalances().catch((e) =>
-        console.warn(`An error occurred while receiving token balance: ${e}`)
-      )
-    }, 3333) // Every 3.333 seconds
-
-    return () => {
-      clearInterval(id)
-    }
-  }, [account.id])
 
   return (
     <div>
