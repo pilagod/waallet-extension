@@ -35,6 +35,31 @@ describe("ObservableStorage", () => {
     expect(state.d.f).toBe("xyz")
   })
 
+  it("should set partial fields in state by patches", () => {
+    const s = new ObservableStorage({
+      a: 123,
+      b: "abc",
+      c: [1, 2, 3],
+      d: { e: null, f: "xyz" }
+    })
+
+    s.set([
+      { op: "replace", path: ["a"], value: 456 },
+      { op: "replace", path: ["b"], value: "def" },
+      { op: "replace", path: ["c", 1], value: 222 },
+      { op: "add", path: ["c", 3], value: 4 },
+      { op: "remove", path: ["d", "e"] }
+    ])
+
+    const state = s.get()
+
+    expect(state.a).toBe(456)
+    expect(state.b).toBe("def")
+    expect(state.c).toEqual([1, 222, 3, 4])
+    expect(state.d.e).toBe(undefined)
+    expect(state.d.f).toBe("xyz")
+  })
+
   it("should not manipulate storage state through state returned from getter", () => {
     const s = new ObservableStorage({ a: 123, b: { c: 123 } })
 

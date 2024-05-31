@@ -1,5 +1,6 @@
 import structuredClone from "@ungap/structured-clone"
 import {
+  applyPatches,
   enablePatches,
   produceWithPatches,
   type Draft,
@@ -24,8 +25,10 @@ export class ObservableStorage<T extends Record<string, any>> {
     return structuredClone(this.state)
   }
 
-  public set(updater: ObservableStorageUpdater<T>) {
-    const [state, patches] = produceWithPatches(this.state, updater)
+  public set(updater: ObservableStorageUpdater<T>)
+  public set(patches: Patch[])
+  public set(updaterOrPatches: ObservableStorageUpdater<T> | Patch[]) {
+    const { state, patches } = this.applyUpdates(updaterOrPatches)
 
     this.state = structuredClone(state)
 
@@ -67,17 +70,18 @@ export class ObservableStorage<T extends Record<string, any>> {
     }
   }
 
-  private applyUpdates(draft: Draft<T>, updates: RecursivePartial<T>) {
-    Object.entries(updates).forEach(([k, v]) => {
-      if (v instanceof Object) {
-        if (!draft[k]) {
-          draft[k as keyof Draft<T>] = {} as typeof v
-        }
-        this.applyUpdates(draft[k], v)
-      } else {
-        draft[k as keyof Draft<T>] = v
-      }
-    })
+  private applyUpdates(
+    updaterOrPatches: ObservableStorageUpdater<T> | Patch[]
+  ): {
+    state: T
+    patches: Patch[]
+  } {
+    if (typeof updaterOrPatches === "function") {
+      const [state, patches] = produceWithPatches(this.state, updaterOrPatches)
+      return { state, patches }
+    }
+    const state = applyPatches(this.state, updaterOrPatches)
+    return { state, patches: updaterOrPatches }
   }
 
   private derivePath(pathStruct?: RecursivePartial<T>) {
