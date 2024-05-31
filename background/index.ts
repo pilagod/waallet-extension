@@ -25,12 +25,12 @@ console.log(
 
 async function main() {
   const storage = await getLocalStorage()
-  storage.subscribe(async (state) => {
+  storage.subscribe(async (_, patches) => {
     // Avoid "Receiving end does not exist" error due to missing app-side addListener.
     try {
       await browser.runtime.sendMessage(browser.runtime.id, {
         action: StorageAction.Sync,
-        state
+        patches
       })
     } catch (e) {
       console.warn(`An error occurred while receiving end: ${e}`)

@@ -1,8 +1,9 @@
 import { getAddress } from "ethers"
 import type { Patch } from "immer"
+import { applyPatches } from "immer"
 import { v4 as uuidV4 } from "uuid"
 import browser from "webextension-polyfill"
-import { create, type StoreApi } from "zustand"
+import { create } from "zustand"
 import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
@@ -191,13 +192,13 @@ export const useStorage = create<Storage>()(
           })
         )
       },
-      sync(set: StoreApi<Storage>["setState"]) {
+      sync(get, set) {
         browser.runtime.onMessage.addListener((message) => {
           if (message.action !== StorageAction.Sync) {
             return
           }
           console.log("[popup] Receive state update from background")
-          set({ state: message.state })
+          set({ state: applyPatches(get().state, message.patches) })
         })
       }
     }

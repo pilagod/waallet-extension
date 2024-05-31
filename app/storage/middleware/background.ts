@@ -23,7 +23,7 @@ type SkipTwo<T> = T extends { length: 0 }
 
 interface BackgroundStorage<T> {
   set: (patches: Patch[]) => Promise<void>
-  sync: (set: StoreApi<T>["setState"]) => void
+  sync: (get: StoreApi<T>["getState"], set: StoreApi<T>["setState"]) => void
 }
 
 type Background = <
@@ -86,7 +86,7 @@ const backgroundImpl: BackgrounImpl = (initializer, storage) => {
     store.setStateLocally = (state: T) => {
       set(state)
     }
-    storage.sync(set)
+    storage.sync(get, set)
 
     return initializer(_store.setState, get, _store)
   }
