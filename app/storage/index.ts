@@ -1,4 +1,5 @@
 import { getAddress } from "ethers"
+import type { Patch } from "immer"
 import { v4 as uuidV4 } from "uuid"
 import browser from "webextension-polyfill"
 import { create, type StoreApi } from "zustand"
@@ -179,8 +180,16 @@ export const useStorage = create<Storage>()(
       }
     }),
     {
-      async set(storage: Storage) {
-        await storageMessenger.set(storage.state)
+      async set(patches: Patch[]) {
+        await storageMessenger.set(
+          patches.map((p) => {
+            const path = [...p.path]
+            if (path[0] === "state") {
+              path.shift()
+            }
+            return { ...p, path }
+          })
+        )
       },
       sync(set: StoreApi<Storage>["setState"]) {
         browser.runtime.onMessage.addListener((message) => {

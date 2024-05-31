@@ -1,8 +1,9 @@
+import type { Patch } from "immer"
+
 import { sendToBackground, type MessageName } from "@plasmohq/messaging"
 
 import { StorageAction } from "~background/messages/storage"
 import { type State } from "~storage/local"
-import type { RecursivePartial } from "~typing"
 
 export class StorageMessenger {
   public get(): Promise<State> {
@@ -11,14 +12,10 @@ export class StorageMessenger {
     })
   }
 
-  public set(
-    updates: RecursivePartial<State>,
-    option: { override?: boolean } = {}
-  ) {
+  public set(patches: Patch[]) {
     return this.send({
       action: StorageAction.Set,
-      updates,
-      option
+      patches
     })
   }
 
