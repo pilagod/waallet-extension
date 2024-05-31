@@ -173,23 +173,32 @@ async function main() {
     const timeout = 3000
     console.log(`[background] fetch token balance every ${timeout} ms`)
 
-    const { account, network } = storage.get()
     const { node } = networkManager.getActive()
+    const { id: accountId } = await accountManager.getActive()
 
-    const accountId = network[state.networkActive].accountActive
-    const accountAddress = account[accountId].address
+    const { account } = storage.get()
+    const { tokens, balance, address: accountAddress } = account[accountId]
+
     const provider = new JsonRpcProvider(node.url)
-    const { tokens } = account[accountId]
+
+    // Update the balance of native token
+    const nativeBalance: bigint = await provider.getBalance(accountAddress)
+
+    if (number.toBigInt(balance) !== nativeBalance) {
+      storage.set((state) => {
+        state.account[accountId].balance = number.toHex(nativeBalance)
+      })
+    }
 
     // Update the balance of all tokens
     for (const t of tokens) {
       try {
-        const balance = await getErc20Contract(t.address, provider).balanceOf(
-          accountAddress
-        )
-        const balanceHex = number.toHex(balance)
+        const tokenBalance: bigint = await getErc20Contract(
+          t.address,
+          provider
+        ).balanceOf(accountAddress)
 
-        if (t.balance !== balanceHex) {
+        if (number.toBigInt(t.balance) !== tokenBalance) {
           storage.set((state) => {
             const token = state.account[accountId].tokens.find((token) =>
               address.isEqual(token.address, t.address)
@@ -198,7 +207,7 @@ async function main() {
               console.warn(`[Popup][tokens] Unknown token: ${t.address}`)
               return
             }
-            token.balance = balanceHex
+            token.balance = number.toHex(tokenBalance)
           })
         }
       } catch (error) {
@@ -212,38 +221,11 @@ async function main() {
     setTimeout(fetchTokenBalance, timeout)
   }
 
-  // TODO: In the future, adding an Indexer to the Background Script to
-  // monitor Account-related transactions. Updates like balance will trigger
-  // as needed, avoiding fixed interval polling with setInterval().
-  const fetchNativeBalance = async () => {
-    const timeout = 3000
-    console.log(`[background] fetch native balance every ${timeout} ms`)
-
-    const { account, network } = storage.get()
-    const { node } = networkManager.getActive()
-
-    const accountId = network[state.networkActive].accountActive
-    const accountAddress = account[accountId].address
-    const provider = new JsonRpcProvider(node.url)
-    const { balance } = account[accountId]
-
-    const b = await provider.getBalance(accountAddress)
-    const balanceHex = number.toHex(b)
-    if (balance !== balanceHex) {
-      storage.set((state) => {
-        state.account[accountId].balance = balanceHex
-      })
-    }
-
-    setTimeout(fetchTokenBalance, timeout)
-  }
-
   // TODO: Using these two asynchronous functions, both executing
   // `storage.set()` commands, often triggers the error: "Error: Could not
   // establish connection. Receiving end does not exist."
   await fetchUserOpsSent()
   await fetchTokenBalance()
-  await fetchNativeBalance()
 }
 
 main()
