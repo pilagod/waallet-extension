@@ -1,5 +1,5 @@
-import * as ethers from "ethers"
-import { useEffect, useState } from "react"
+import { formatEther } from "ethers"
+import { useState } from "react"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
@@ -64,38 +64,11 @@ function AccountCreation() {
 export function AccountInfo() {
   const explorerUrl = "https://jiffyscan.xyz/"
 
-  const { provider } = useProviderContext()
-  const { updateBalance } = useAction()
   const account = useAccount()
 
   const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
     InfoNavigation.Activity
   )
-
-  useEffect(() => {
-    // TODO: In the future, adding an Indexer to the Background Script to
-    // monitor Account-related transactions. Updates like balance will trigger
-    // as needed, avoiding fixed interval polling with setInterval().
-    const getBalanceAsync = async () => {
-      const balance = await provider.getBalance(account.address)
-      if (number.toBigInt(account.balance) !== balance) {
-        await updateBalance(account.id, number.toHex(balance))
-      }
-    }
-    // Fetch initial balance
-    getBalanceAsync()
-
-    // Periodically check the balance of the account
-    const id = setInterval(() => {
-      getBalanceAsync().catch((e) =>
-        console.warn(`An error occurred while receiving balance: ${e}`)
-      )
-    }, 3333) // Every 3.333 seconds
-
-    return () => {
-      clearInterval(id)
-    }
-  }, [account.id])
 
   const handleInfoNaviChange = (page: InfoNavigation) => {
     setInfoNavigation(page)
@@ -118,7 +91,7 @@ export function AccountInfo() {
 
       {/* Display the Account balance */}
       <div className="flex justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        Balance: {ethers.formatEther(account.balance)}
+        Balance: {formatEther(account.balance)}
       </div>
 
       {/* Show the send button for switching to the Send page */}
