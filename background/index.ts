@@ -169,7 +169,7 @@ async function main() {
   // TODO: In the future, adding an Indexer to the Background Script to
   // monitor Account-related transactions. Updates like balance will trigger
   // as needed, avoiding fixed interval polling with setInterval().
-  const fetchTokenBalance = async () => {
+  const fetchAccountBalances = async () => {
     const timeout = 3000
     console.log(`[background] fetch token balance every ${timeout} ms`)
 
@@ -218,14 +218,14 @@ async function main() {
       }
     }
 
-    setTimeout(fetchTokenBalance, timeout)
+    setTimeout(fetchAccountBalances, timeout)
   }
 
   // TODO: Using these two asynchronous functions, both executing
   // `storage.set()` commands, often triggers the error: "Error: Could not
   // establish connection. Receiving end does not exist."
   await fetchUserOpsSent()
-  await fetchTokenBalance()
+  await fetchAccountBalances()
 }
 
 main()
