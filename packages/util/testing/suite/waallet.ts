@@ -18,7 +18,8 @@ export function describeWaalletSuite(
     const ctx = new WaalletSuiteContext()
 
     beforeAll(async () => {
-      ctx.account = await SimpleAccount.init({
+      const { node } = config.networkManager.getActive()
+      ctx.account = await SimpleAccount.init(node, {
         address: config.address.SimpleAccount,
         ownerPrivateKey: config.account.operator.privateKey
       })

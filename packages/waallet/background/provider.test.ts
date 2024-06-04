@@ -54,7 +54,7 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
   })
 
   it("should fail to estimate user operation when nonce doesn't match the one on chain", async () => {
-    const userOp = await ctx.account.createUserOperation(node, {
+    const userOp = await ctx.account.createUserOperation({
       to: await counter.getAddress(),
       value: 1,
       data: counter.interface.encodeFunctionData("increment", [])
@@ -107,7 +107,7 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
       await counter.getAddress()
     )
 
-    const userOp = await ctx.account.createUserOperation(node, {
+    const userOp = await ctx.account.createUserOperation({
       to: await counter.getAddress(),
       value: 1,
       data: counter.interface.encodeFunctionData("increment", [])

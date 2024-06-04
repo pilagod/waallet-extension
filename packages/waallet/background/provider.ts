@@ -84,10 +84,10 @@ export class WaalletBackgroundProvider {
     ) {
       throw new Error("Address `from` doesn't match connected account")
     }
-    const { bundler, node } = this.networkManager.getActive()
+    const { bundler } = this.networkManager.getActive()
     // TODO: Use account's entry point
     const [entryPointAddress] = await bundler.getSupportedEntryPoints()
-    const userOp = await account.createUserOperation(node, {
+    const userOp = await account.createUserOperation({
       to: tx.to,
       value: tx.value,
       data: tx.data
@@ -140,14 +140,13 @@ export class WaalletBackgroundProvider {
     ) {
       throw new Error("Address `from` doesn't match connected account")
     }
-    const { id: networkId, bundler, node } = this.networkManager.getActive()
+    const { id: networkId, bundler } = this.networkManager.getActive()
     // TODO: Use account's entry point
     const [entryPointAddress] = await bundler.getSupportedEntryPoints()
-    const userOp = await account.createUserOperation(node, {
+    const userOp = await account.createUserOperation({
       to: tx.to,
       value: tx.value,
-      data: tx.data,
-      nonce: tx.nonce
+      data: tx.data
     })
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
