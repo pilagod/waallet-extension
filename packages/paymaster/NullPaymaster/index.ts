@@ -10,6 +10,9 @@ export class NullPaymaster implements Paymaster {
   }
 
   public async requestPaymasterAndData() {
-    return "0x"
+    return {
+      paymaster: "0x",
+      paymasterData: "0x"
+    }
   }
 }

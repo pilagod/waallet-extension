@@ -21,12 +21,12 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
         ctx.provider.networkManager,
         {
           beforeGasEstimation: async (userOp) => {
-            userOp.setPaymasterAndData(
+            userOp.setPaymaster(
               await verifyingPaymaster.requestPaymasterAndData(userOp, true)
             )
           },
           afterGasEstimation: async (userOp) => {
-            userOp.setPaymasterAndData(
+            userOp.setPaymaster(
               await verifyingPaymaster.requestPaymasterAndData(userOp)
             )
           }

@@ -91,7 +91,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     setUserOpSending(true)
 
     try {
-      userOp.setPaymasterAndData(
+      userOp.setPaymaster(
         await payment.option.paymaster.requestPaymasterAndData(userOp)
       )
       userOp.setSignature(
@@ -163,9 +163,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       ...payment,
       option: o
     })
-    userOp.setPaymasterAndData(
-      await o.paymaster.requestPaymasterAndData(userOp, true)
-    )
+    userOp.setPaymaster(await o.paymaster.requestPaymasterAndData(userOp, true))
     userOp.setGasFee(await estimateGasFee())
     // TODO: Refine account usage
     userOp.setGasLimit(

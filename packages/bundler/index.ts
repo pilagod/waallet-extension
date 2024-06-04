@@ -20,7 +20,8 @@ export class UserOperation {
   public preVerificationGas: bigint = 0n
   public maxFeePerGas: bigint = 0n
   public maxPriorityFeePerGas: bigint = 0n
-  public paymasterAndData: HexString = "0x"
+  public paymaster: HexString = "0x"
+  public paymasterData: HexString = "0x"
   public signature: HexString = "0x"
 
   public constructor(data: {
@@ -33,7 +34,8 @@ export class UserOperation {
     preVerificationGas?: BigNumberish
     maxFeePerGas?: BigNumberish
     maxPriorityFeePerGas?: BigNumberish
-    paymasterAndData?: HexString
+    paymaster?: HexString
+    paymasterData?: HexString
     signature?: HexString
   }) {
     this.sender = data.sender
@@ -55,8 +57,11 @@ export class UserOperation {
     if (data.maxPriorityFeePerGas) {
       this.maxPriorityFeePerGas = number.toBigInt(data.maxPriorityFeePerGas)
     }
-    if (data.paymasterAndData) {
-      this.paymasterAndData = data.paymasterAndData
+    if (data.paymaster) {
+      this.paymaster = data.paymaster
+    }
+    if (data.paymasterData) {
+      this.paymasterData = data.paymasterData
     }
     if (data.signature) {
       this.signature = data.signature
@@ -88,7 +93,7 @@ export class UserOperation {
         this.preVerificationGas,
         this.maxFeePerGas,
         this.maxPriorityFeePerGas,
-        ethers.keccak256(this.paymasterAndData)
+        ethers.keccak256(ethers.concat([this.paymaster, this.paymasterData]))
       ]
     )
     return ethers.keccak256(
@@ -110,7 +115,7 @@ export class UserOperation {
       preVerificationGas: number.toHex(this.preVerificationGas),
       maxFeePerGas: number.toHex(this.maxFeePerGas),
       maxPriorityFeePerGas: number.toHex(this.maxPriorityFeePerGas),
-      paymasterAndData: this.paymasterAndData,
+      paymasterAndData: ethers.concat([this.paymaster, this.paymasterData]),
       signature: this.signature
     }
   }
@@ -141,8 +146,12 @@ export class UserOperation {
     this.nonce = number.toBigInt(nonce)
   }
 
-  public setPaymasterAndData(paymasterAndData: HexString) {
-    this.paymasterAndData = paymasterAndData
+  public setPaymaster(data: {
+    paymaster: HexString
+    paymasterData: HexString
+  }) {
+    this.paymaster = data.paymaster
+    this.paymasterData = data.paymasterData
   }
 
   public setSignature(signature: HexString) {
@@ -152,7 +161,7 @@ export class UserOperation {
   public calculateGasFee() {
     return (
       (this.callGasLimit +
-        this.verificationGasLimit * (this.paymasterAndData === "0x" ? 1n : 3n) +
+        this.verificationGasLimit * (this.paymaster === "0x" ? 1n : 3n) +
         this.preVerificationGas) *
       this.maxFeePerGas
     )
