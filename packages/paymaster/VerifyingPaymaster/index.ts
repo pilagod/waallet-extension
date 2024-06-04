@@ -1,6 +1,6 @@
 import * as ethers from "ethers"
 
-import { UserOperation, UserOperationStruct } from "~packages/bundler"
+import { UserOperation } from "~packages/bundler"
 import { type ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
 import { ETH, Token } from "~packages/token"
@@ -22,7 +22,7 @@ export class VerifyingPaymaster implements Paymaster {
     this.paymaster = new ethers.Contract(
       option.address,
       [
-        `function getHash(${UserOperationStruct} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
+        `function getHash(${UserOperation.getSolidityStructType()} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
       ],
       runner
     )
