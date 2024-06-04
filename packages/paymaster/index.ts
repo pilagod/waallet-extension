@@ -19,7 +19,6 @@ export interface Paymaster {
    * @param forGasEstimation Default to `false`.
    */
   requestPaymasterAndData(
-    runner: ContractRunner,
     userOp: UserOperation,
     forGasEstimation?: boolean
   ): Promise<HexString>

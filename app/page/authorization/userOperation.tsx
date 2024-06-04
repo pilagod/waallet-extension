@@ -43,6 +43,7 @@ export function UserOperationAuthorization() {
 
 function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   const { userOpLog } = props
+  const { provider } = useProviderContext()
   const paymentOptions: PaymentOption[] = [
     {
       name: "No Paymaster",
@@ -51,7 +52,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     // TODO: Put paymaster into config
     {
       name: "Verifying Paymaster",
-      paymaster: new VerifyingPaymaster({
+      paymaster: new VerifyingPaymaster(provider, {
         address: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
         ownerPrivateKey:
           process.env
@@ -61,7 +62,6 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     }
   ]
   const [, navigate] = useHashLocation()
-  const { provider } = useProviderContext()
   const { markUserOperationSent, markUserOperationRejected } = useAction()
   const network = useNetwork(userOpLog.networkId)
   const sender = useAccount(userOpLog.senderId)
@@ -80,7 +80,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     const account = await AccountStorageManager.wrap(provider, sender)
     try {
       userOp.setPaymasterAndData(
-        await payment.option.paymaster.requestPaymasterAndData(provider, userOp)
+        await payment.option.paymaster.requestPaymasterAndData(userOp)
       )
       userOp.setSignature(
         await account.sign(
@@ -152,7 +152,7 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       option: o
     })
     userOp.setPaymasterAndData(
-      await o.paymaster.requestPaymasterAndData(provider, userOp, true)
+      await o.paymaster.requestPaymasterAndData(userOp, true)
     )
     userOp.setGasFee(await estimateGasFee())
     userOp.setGasLimit(

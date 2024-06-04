@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import { UserOperation, UserOperationStruct } from "~packages/bundler"
-import { connect, type ContractRunner } from "~packages/node"
+import { type ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
 import { ETH, Token } from "~packages/token"
 import type { HexString } from "~typing"
@@ -11,14 +11,21 @@ export class VerifyingPaymaster implements Paymaster {
   private owner: ethers.Wallet
   private intervalSecs: number
 
-  public constructor(option: {
-    address: HexString
-    ownerPrivateKey: HexString
-    expirationSecs: number
-  }) {
-    this.paymaster = new ethers.Contract(option.address, [
-      `function getHash(${UserOperationStruct} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
-    ])
+  public constructor(
+    runner: ContractRunner,
+    option: {
+      address: HexString
+      ownerPrivateKey: HexString
+      expirationSecs: number
+    }
+  ) {
+    this.paymaster = new ethers.Contract(
+      option.address,
+      [
+        `function getHash(${UserOperationStruct} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
+      ],
+      runner
+    )
     this.owner = new ethers.Wallet(option.ownerPrivateKey)
     this.intervalSecs = option.expirationSecs
   }
@@ -31,7 +38,6 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   public async requestPaymasterAndData(
-    runner: ContractRunner,
     userOp: UserOperation,
     forGasEstimation = false
   ) {
@@ -41,7 +47,7 @@ export class VerifyingPaymaster implements Paymaster {
 
     const signature = forGasEstimation
       ? "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
-      : await this.getSignature(runner, userOp, validUntil, validAfter)
+      : await this.getSignature(userOp, validUntil, validAfter)
 
     return ethers.concat([
       await this.paymaster.getAddress(),
@@ -54,16 +60,11 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   private async getSignature(
-    runner: ContractRunner,
     userOp: UserOperation,
     validUntil: number,
     validAfter: number
   ) {
-    const hash = await connect(this.paymaster, runner).getHash(
-      userOp,
-      validUntil,
-      validAfter
-    )
+    const hash = await this.paymaster.getHash(userOp, validUntil, validAfter)
     return this.owner.signMessage(ethers.getBytes(hash))
   }
 }

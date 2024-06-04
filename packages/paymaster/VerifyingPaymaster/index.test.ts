@@ -8,7 +8,7 @@ import { VerifyingPaymaster } from "./index"
 describeWaalletSuite("Verifying Paymaster", (ctx) => {
   const { node } = config.networkManager.getActive()
 
-  const verifyingPaymaster = new VerifyingPaymaster({
+  const verifyingPaymaster = new VerifyingPaymaster(node, {
     address: config.address.VerifyingPaymaster,
     ownerPrivateKey: config.account.operator.privateKey,
     expirationSecs: 300
@@ -22,16 +22,12 @@ describeWaalletSuite("Verifying Paymaster", (ctx) => {
         {
           beforeGasEstimation: async (userOp) => {
             userOp.setPaymasterAndData(
-              await verifyingPaymaster.requestPaymasterAndData(
-                node,
-                userOp,
-                true
-              )
+              await verifyingPaymaster.requestPaymasterAndData(userOp, true)
             )
           },
           afterGasEstimation: async (userOp) => {
             userOp.setPaymasterAndData(
-              await verifyingPaymaster.requestPaymasterAndData(node, userOp)
+              await verifyingPaymaster.requestPaymasterAndData(userOp)
             )
           }
         }
