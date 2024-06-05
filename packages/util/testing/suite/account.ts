@@ -1,20 +1,21 @@
 import config from "~config/test"
 import type { Account } from "~packages/account"
-import type { ContractRunner } from "~packages/node"
+import type { Paymaster } from "~packages/paymaster"
 import byte from "~packages/util/byte"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
-import { describeWaalletSuite, WaalletSuiteContext } from "./waallet"
+import {
+  describeWaalletSuite,
+  WaalletSuiteContext,
+  type WaalletSuiteOption
+} from "./waallet"
 
-export function describeAccountSuite<T extends Account>(option: {
-  name: string
-  setup: (runner: ContractRunner) => Promise<T>
-  suite?: (ctx: WaalletSuiteContext<T>) => void
-}) {
+export function describeAccountSuite<A extends Account, P extends Paymaster>(
+  option: WaalletSuiteOption<A, P>
+) {
   describeWaalletSuite({
-    name: option.name,
-    setup: option.setup,
+    ...option,
     suite: (ctx) => {
       const { node } = config.networkManager.getActive()
       const { counter } = config.contract
@@ -73,7 +74,7 @@ export function describeAccountSuite<T extends Account>(option: {
       })
 
       if (option.suite) {
-        option.suite(ctx as WaalletSuiteContext<T>)
+        option.suite(ctx as WaalletSuiteContext<A>)
       }
     }
   })

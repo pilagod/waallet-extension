@@ -9,7 +9,7 @@ const owner = new PasskeyOwnerP256()
 
 describeAccountSuite({
   name: "PasskeyAccount",
-  setup: (runner) => {
+  useAccount: (runner) => {
     return PasskeyAccount.initWithFactory(runner, {
       owner,
       salt: number.random(),

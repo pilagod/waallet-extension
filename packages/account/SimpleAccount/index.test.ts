@@ -6,7 +6,7 @@ import { SimpleAccount } from "./index"
 
 describeAccountSuite({
   name: "SimpleAccount",
-  setup: (runner) => {
+  useAccount: (runner) => {
     return SimpleAccount.initWithFactory(runner, {
       ownerPrivateKey: config.account.operator.privateKey,
       factoryAddress: config.address.SimpleAccountFactory,

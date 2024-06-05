@@ -1,37 +1,20 @@
 import config from "~config/test"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
-import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
 import { VerifyingPaymaster } from "./index"
 
 describeWaalletSuite({
   name: "Verifying Paymaster",
-  suite: (ctx) => {
-    const { node } = config.networkManager.getActive()
-
-    const verifyingPaymaster = new VerifyingPaymaster(node, {
+  usePaymaster: async (runner) => {
+    return new VerifyingPaymaster(runner, {
       address: config.address.VerifyingPaymaster,
       ownerPrivateKey: config.account.operator.privateKey,
       expirationSecs: 300
     })
-
-    beforeAll(() => {
-      ctx.provider = ctx.provider.clone({
-        transactionPool: new TransactionToUserOperationSender(
-          ctx.provider.accountManager,
-          ctx.provider.networkManager,
-          async (userOp, forGasEstimation) => {
-            userOp.setPaymasterAndData(
-              await verifyingPaymaster.requestPaymasterAndData(
-                userOp,
-                forGasEstimation
-              )
-            )
-          }
-        )
-      })
-    })
+  },
+  suite: (ctx) => {
+    const { node } = config.networkManager.getActive()
 
     it("should pay for account", async () => {
       const accountBalanceBefore = await node.getBalance(
