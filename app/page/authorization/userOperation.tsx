@@ -11,6 +11,7 @@ import {
   useNetwork,
   usePendingUserOperationLogs
 } from "~app/storage"
+import type { Account } from "~packages/account"
 import { UserOperation } from "~packages/bundler"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
@@ -66,6 +67,18 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   const network = useNetwork(userOpLog.networkId)
   const sender = useAccount(userOpLog.senderId)
 
+  /* Account */
+
+  const [senderAccount, setSenderAccount] = useState<Account>(null)
+
+  useEffect(() => {
+    async function setupSenderAccount() {
+      const account = await AccountStorageManager.wrap(provider, sender)
+      setSenderAccount(account)
+    }
+    setupSenderAccount()
+  }, [sender.id])
+
   /* User Operation */
 
   const [userOp, setUserOp] = useClsState<UserOperation>(
@@ -78,12 +91,11 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     setUserOpSending(true)
 
     try {
-      const account = await AccountStorageManager.wrap(provider, sender)
       userOp.setPaymasterAndData(
         await payment.option.paymaster.requestPaymasterAndData(userOp)
       )
       userOp.setSignature(
-        await account.sign(
+        await senderAccount.sign(
           userOp.hash(userOpLog.entryPointAddress, network.chainId)
         )
       )
@@ -156,11 +168,10 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
     )
     userOp.setGasFee(await estimateGasFee())
     // TODO: Refine account usage
-    const account = await AccountStorageManager.wrap(provider, sender)
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
         userOp.data(),
-        await account.getEntryPoint()
+        await senderAccount.getEntryPoint()
       ])
     )
     setUserOp(userOp)
@@ -168,8 +179,15 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   }
   // Trigger initial gas estimation
   useEffect(() => {
+    if (!senderAccount) {
+      return
+    }
     onPaymentOptionSelected(payment.option)
-  }, [])
+  }, [senderAccount])
+
+  if (!senderAccount) {
+    return <></>
+  }
 
   return (
     <div>
