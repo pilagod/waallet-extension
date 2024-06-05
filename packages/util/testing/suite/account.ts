@@ -1,53 +1,23 @@
-import * as ethers from "ethers"
-
 import config from "~config/test"
 import type { Account } from "~packages/account"
-import { SingleAccountManager } from "~packages/account/manager/single"
 import type { ContractRunner } from "~packages/node"
 import byte from "~packages/util/byte"
-import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
-import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
-import { describeWaalletSuite } from "./waallet"
-
-export class AccountSuiteContext<T extends Account> {
-  public account: T
-  public provider: WaalletBackgroundProvider
-}
+import { describeWaalletSuite, WaalletSuiteContext } from "./waallet"
 
 export function describeAccountSuite<T extends Account>(option: {
   name: string
   setup: (runner: ContractRunner) => Promise<T>
-  suite?: (ctx: AccountSuiteContext<T>) => void
+  suite?: (ctx: WaalletSuiteContext<T>) => void
 }) {
   describeWaalletSuite({
     name: option.name,
-    suite: (waalletSuiteCtx) => {
+    setup: option.setup,
+    suite: (ctx) => {
       const { node } = config.networkManager.getActive()
       const { counter } = config.contract
-
-      const ctx = new AccountSuiteContext<T>()
-
-      beforeAll(async () => {
-        ctx.account = await option.setup(node)
-        // TODO: Fix inconsistency between waallet provider and user operation sender
-        const accountManager = new SingleAccountManager(ctx.account)
-        ctx.provider = waalletSuiteCtx.provider.clone({
-          accountManager,
-          transactionPool: new TransactionToUserOperationSender(
-            accountManager,
-            config.networkManager
-          )
-        })
-        await (
-          await config.account.operator.sendTransaction({
-            to: await ctx.account.getAddress(),
-            value: ethers.parseEther("1")
-          })
-        ).wait()
-      })
 
       it("should get accounts", async () => {
         const accounts = await ctx.provider.request<HexString>({
@@ -103,7 +73,7 @@ export function describeAccountSuite<T extends Account>(option: {
       })
 
       if (option.suite) {
-        option.suite(ctx)
+        option.suite(ctx as WaalletSuiteContext<T>)
       }
     }
   })
