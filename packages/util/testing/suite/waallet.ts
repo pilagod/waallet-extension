@@ -10,11 +10,11 @@ export class WaalletSuiteContext {
 }
 
 // TODO: Should be able to customize account setup function
-export function describeWaalletSuite(
-  name: string,
+export function describeWaalletSuite(option: {
+  name: string
   suite?: (ctx: WaalletSuiteContext) => void
-) {
-  describe(name, () => {
+}) {
+  describe(option.name, () => {
     const ctx = new WaalletSuiteContext()
 
     beforeAll(async () => {
@@ -34,8 +34,8 @@ export function describeWaalletSuite(
       )
     })
 
-    if (suite) {
-      suite(ctx)
+    if (option.suite) {
+      option.suite(ctx)
     }
   })
 }

@@ -4,10 +4,13 @@ import { describeAccountSuite } from "~packages/util/testing/suite/account"
 
 import { SimpleAccount } from "./index"
 
-describeAccountSuite("SimpleAccount", (runner) => {
-  return SimpleAccount.initWithFactory(runner, {
-    ownerPrivateKey: config.account.operator.privateKey,
-    factoryAddress: config.address.SimpleAccountFactory,
-    salt: number.random()
-  })
+describeAccountSuite({
+  name: "SimpleAccount",
+  setup: (runner) => {
+    return SimpleAccount.initWithFactory(runner, {
+      ownerPrivateKey: config.account.operator.privateKey,
+      factoryAddress: config.address.SimpleAccountFactory,
+      salt: number.random()
+    })
+  }
 })

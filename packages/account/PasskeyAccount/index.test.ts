@@ -7,16 +7,16 @@ import { PasskeyOwnerP256 } from "./passkeyOwnerP256"
 
 const owner = new PasskeyOwnerP256()
 
-describeAccountSuite(
-  "PasskeyAccount",
-  (runner) => {
+describeAccountSuite({
+  name: "PasskeyAccount",
+  setup: (runner) => {
     return PasskeyAccount.initWithFactory(runner, {
       owner,
       salt: number.random(),
       factoryAddress: config.address.PasskeyAccountFactory
     })
   },
-  (ctx) => {
+  suite: (ctx) => {
     describe("init", () => {
       // TODO: This test at this moment relies on tests in test bed to deploy the account.
       // It would be better to decouple it.
@@ -36,4 +36,4 @@ describeAccountSuite(
       })
     })
   }
-)
+})

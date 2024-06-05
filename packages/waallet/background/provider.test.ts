@@ -4,143 +4,146 @@ import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
-describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
-  const { node } = config.networkManager.getActive()
-  const { counter } = config.contract
+describeWaalletSuite({
+  name: "WalletBackgroundProvider",
+  suite: (ctx) => {
+    const { node } = config.networkManager.getActive()
+    const { counter } = config.contract
 
-  it("should get chain id", async () => {
-    const chainId = await ctx.provider.request<HexString>({
-      method: WaalletRpcMethod.eth_chainId
+    it("should get chain id", async () => {
+      const chainId = await ctx.provider.request<HexString>({
+        method: WaalletRpcMethod.eth_chainId
+      })
+      expect(parseInt(chainId, 16)).toBe(1337)
     })
-    expect(parseInt(chainId, 16)).toBe(1337)
-  })
 
-  it("should get block number", async () => {
-    const blockNumber = await ctx.provider.request<HexString>({
-      method: WaalletRpcMethod.eth_blockNumber
+    it("should get block number", async () => {
+      const blockNumber = await ctx.provider.request<HexString>({
+        method: WaalletRpcMethod.eth_blockNumber
+      })
+      expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
     })
-    expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
-  })
 
-  it("should get accounts", async () => {
-    const accounts = await ctx.provider.request<HexString>({
-      method: WaalletRpcMethod.eth_accounts
+    it("should get accounts", async () => {
+      const accounts = await ctx.provider.request<HexString>({
+        method: WaalletRpcMethod.eth_accounts
+      })
+      expect(accounts.length).toBeGreaterThan(0)
+      expect(accounts[0]).toHaveLength(42)
     })
-    expect(accounts.length).toBeGreaterThan(0)
-    expect(accounts[0]).toHaveLength(42)
-  })
 
-  it("should request accounts", async () => {
-    const accounts = await ctx.provider.request<HexString>({
-      method: WaalletRpcMethod.eth_requestAccounts
+    it("should request accounts", async () => {
+      const accounts = await ctx.provider.request<HexString>({
+        method: WaalletRpcMethod.eth_requestAccounts
+      })
+      expect(accounts.length).toBeGreaterThan(0)
+      expect(accounts[0]).toHaveLength(42)
     })
-    expect(accounts.length).toBeGreaterThan(0)
-    expect(accounts[0]).toHaveLength(42)
-  })
 
-  it("should estimate gas", async () => {
-    const gas = await ctx.provider.request<HexString>({
-      method: WaalletRpcMethod.eth_estimateGas,
-      params: [
-        {
-          to: await counter.getAddress(),
-          value: 1,
-          data: counter.interface.encodeFunctionData("increment", [])
-        }
-      ]
+    it("should estimate gas", async () => {
+      const gas = await ctx.provider.request<HexString>({
+        method: WaalletRpcMethod.eth_estimateGas,
+        params: [
+          {
+            to: await counter.getAddress(),
+            value: 1,
+            data: counter.interface.encodeFunctionData("increment", [])
+          }
+        ]
+      })
+      expect(byte.isHex(gas)).toBe(true)
+      expect(parseInt(gas, 16)).toBeGreaterThan(0)
     })
-    expect(byte.isHex(gas)).toBe(true)
-    expect(parseInt(gas, 16)).toBeGreaterThan(0)
-  })
 
-  it("should fail to estimate user operation when nonce doesn't match the one on chain", async () => {
-    const userOp = await ctx.account.createUserOperation({
-      to: await counter.getAddress(),
-      value: 1,
-      data: counter.interface.encodeFunctionData("increment", [])
+    it("should fail to estimate user operation when nonce doesn't match the one on chain", async () => {
+      const userOp = await ctx.account.createUserOperation({
+        to: await counter.getAddress(),
+        value: 1,
+        data: counter.interface.encodeFunctionData("increment", [])
+      })
+      // Use custom nonce which doesn't match the one on chain
+      userOp.setNonce(userOp.nonce + 1n)
+
+      const useInvalidNonce = async () =>
+        ctx.provider.request<{
+          preVerificationGas: HexString
+          verificationGasLimit: HexString
+          callGasLimit: HexString
+        }>({
+          method: WaalletRpcMethod.eth_estimateUserOperationGas,
+          params: [userOp.data(), await ctx.account.getEntryPoint()]
+        })
+
+      await expect(useInvalidNonce()).rejects.toThrow()
     })
-    // Use custom nonce which doesn't match the one on chain
-    userOp.setNonce(userOp.nonce + 1n)
 
-    const useInvalidNonce = async () =>
-      ctx.provider.request<{
-        preVerificationGas: HexString
-        verificationGasLimit: HexString
-        callGasLimit: HexString
-      }>({
-        method: WaalletRpcMethod.eth_estimateUserOperationGas,
-        params: [userOp.data(), await ctx.account.getEntryPoint()]
+    it("should send transaction to contract", async () => {
+      const balanceBefore = await node.getBalance(counter.getAddress())
+      const counterBefore = (await counter.number()) as bigint
+
+      const txHash = await ctx.provider.request<HexString>({
+        method: WaalletRpcMethod.eth_sendTransaction,
+        params: [
+          {
+            to: await counter.getAddress(),
+            value: 1,
+            data: counter.interface.encodeFunctionData("increment", [])
+          }
+        ]
+      })
+      const receipt = await node.getTransactionReceipt(txHash)
+      expect(receipt.status).toBe(1)
+
+      const balanceAfter = await node.getBalance(counter.getAddress())
+      expect(balanceAfter - balanceBefore).toBe(1n)
+
+      const counterAfter = (await counter.number()) as bigint
+      expect(counterAfter - counterBefore).toBe(1n)
+    })
+
+    it("should send user operation", async () => {
+      const { bundler, node } = ctx.provider.networkManager.getActive()
+
+      const counterBefore = (await counter.number()) as bigint
+      const counterBalanceBefore = await node.getBalance(
+        await counter.getAddress()
+      )
+
+      const userOp = await ctx.account.createUserOperation({
+        to: await counter.getAddress(),
+        value: 1,
+        data: counter.interface.encodeFunctionData("increment", [])
       })
 
-    await expect(useInvalidNonce()).rejects.toThrow()
-  })
+      const { gasPrice } = await node.getFeeData()
+      userOp.setGasFee({
+        maxFeePerGas: gasPrice * 2n,
+        maxPriorityFeePerGas: gasPrice * 2n
+      })
 
-  it("should send transaction to contract", async () => {
-    const balanceBefore = await node.getBalance(counter.getAddress())
-    const counterBefore = (await counter.number()) as bigint
+      const entryPoint = await ctx.account.getEntryPoint()
+      userOp.setGasLimit(
+        await bundler.estimateUserOperationGas(userOp, entryPoint)
+      )
 
-    const txHash = await ctx.provider.request<HexString>({
-      method: WaalletRpcMethod.eth_sendTransaction,
-      params: [
-        {
-          to: await counter.getAddress(),
-          value: 1,
-          data: counter.interface.encodeFunctionData("increment", [])
-        }
-      ]
+      const chainId = await bundler.getChainId()
+      userOp.setSignature(
+        await ctx.account.sign(userOp.hash(entryPoint, chainId))
+      )
+
+      const userOpHash = await ctx.provider.request<HexString>({
+        method: WaalletRpcMethod.eth_sendUserOperation,
+        params: [userOp.data(), entryPoint]
+      })
+      await bundler.wait(userOpHash)
+
+      const counterAfter = (await counter.number()) as bigint
+      expect(counterAfter - counterBefore).toBe(1n)
+
+      const counterBalanceAfter = await node.getBalance(
+        await counter.getAddress()
+      )
+      expect(counterBalanceAfter - counterBalanceBefore).toBe(1n)
     })
-    const receipt = await node.getTransactionReceipt(txHash)
-    expect(receipt.status).toBe(1)
-
-    const balanceAfter = await node.getBalance(counter.getAddress())
-    expect(balanceAfter - balanceBefore).toBe(1n)
-
-    const counterAfter = (await counter.number()) as bigint
-    expect(counterAfter - counterBefore).toBe(1n)
-  })
-
-  it("should send user operation", async () => {
-    const { bundler, node } = ctx.provider.networkManager.getActive()
-
-    const counterBefore = (await counter.number()) as bigint
-    const counterBalanceBefore = await node.getBalance(
-      await counter.getAddress()
-    )
-
-    const userOp = await ctx.account.createUserOperation({
-      to: await counter.getAddress(),
-      value: 1,
-      data: counter.interface.encodeFunctionData("increment", [])
-    })
-
-    const { gasPrice } = await node.getFeeData()
-    userOp.setGasFee({
-      maxFeePerGas: gasPrice * 2n,
-      maxPriorityFeePerGas: gasPrice * 2n
-    })
-
-    const entryPoint = await ctx.account.getEntryPoint()
-    userOp.setGasLimit(
-      await bundler.estimateUserOperationGas(userOp, entryPoint)
-    )
-
-    const chainId = await bundler.getChainId()
-    userOp.setSignature(
-      await ctx.account.sign(userOp.hash(entryPoint, chainId))
-    )
-
-    const userOpHash = await ctx.provider.request<HexString>({
-      method: WaalletRpcMethod.eth_sendUserOperation,
-      params: [userOp.data(), entryPoint]
-    })
-    await bundler.wait(userOpHash)
-
-    const counterAfter = (await counter.number()) as bigint
-    expect(counterAfter - counterBefore).toBe(1n)
-
-    const counterBalanceAfter = await node.getBalance(
-      await counter.getAddress()
-    )
-    expect(counterBalanceAfter - counterBalanceBefore).toBe(1n)
-  })
+  }
 })
