@@ -8,7 +8,7 @@ import type { BigNumberish, HexString } from "~typing"
 
 import type { Transaction, TransactionPool } from "./index"
 
-export class TransactionSender implements TransactionPool {
+export class TransactionToUserOperationSender implements TransactionPool {
   private pool: { [txId: string]: Promise<HexString> } = {}
 
   public constructor(
@@ -29,7 +29,7 @@ export class TransactionSender implements TransactionPool {
     const { account } = await this.accountManager.get(senderId)
     const { chainId, node, bundler } = this.networkManager.get(networkId)
 
-    const userOp = await account.createUserOperation(tx)
+    const userOp = await account.createUserOperation(tx.data())
 
     if (this.usePaymaster) {
       await this.usePaymaster(userOp, true)

@@ -49,16 +49,14 @@ export class VerifyingPaymaster implements Paymaster {
       ? "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
       : await this.getSignature(userOp, validUntil, validAfter)
 
-    return {
-      paymaster: await this.paymaster.getAddress(),
-      paymasterData: ethers.concat([
-        ethers.AbiCoder.defaultAbiCoder().encode(
-          ["uint48", "uint48"],
-          [validUntil, validAfter]
-        ),
-        signature
-      ])
-    }
+    return ethers.concat([
+      await this.paymaster.getAddress(),
+      ethers.AbiCoder.defaultAbiCoder().encode(
+        ["uint48", "uint48"],
+        [validUntil, validAfter]
+      ),
+      signature
+    ])
   }
 
   private async getSignature(

@@ -1,54 +1,30 @@
-import { useAccount, useUserOperationLogs } from "~app/storage"
-import { UserOperation } from "~packages/bundler"
+import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
 import { getChainName } from "~packages/network/util"
 import address from "~packages/util/address"
-import {
-  UserOperationStatus,
-  type Account,
-  type UserOperationLog
-} from "~storage/local"
+import { TransactionStatus, type TransactionLog } from "~storage/local"
+
+const explorerUrl = "https://jiffyscan.xyz/"
 
 export function Activity() {
-  const explorerUrl = "https://jiffyscan.xyz/"
-  const userOpLogs = useUserOperationLogs()
   const account = useAccount()
-
-  return (
-    <div>
-      <UserOpHistory
-        userOpLogs={userOpLogs}
-        account={account}
-        explorerUrl={explorerUrl}
-      />
-    </div>
-  )
+  const txLogs = useTransactionLogs(account.id)
+  return <TransactionHistory txLogs={txLogs} />
 }
 
-const UserOpHistory: React.FC<{
-  userOpLogs: UserOperationLog[]
-  account: Account
-  explorerUrl: string
-}> = ({ userOpLogs, account, explorerUrl }) => {
-  // Filter UserOperationLog objects based on a specific sender address.
-  const userOpHistoryItems = userOpLogs.filter((userOpLog) => {
-    const userOp = new UserOperation(userOpLog.userOp)
-    return userOp.isSender(account.address)
-  })
-  const chainName = getChainName(account.chainId)
-
+const TransactionHistory: React.FC<{
+  txLogs: TransactionLog[]
+}> = ({ txLogs }) => {
+  const { chainId } = useNetwork()
+  const chainName = getChainName(chainId)
   return (
     <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-      User Operation History:
-      {userOpHistoryItems.length === 0 ? (
-        <div>(No user operations)</div>
+      Transaction History:
+      {txLogs.length === 0 ? (
+        <div>(No transactions)</div>
       ) : (
-        userOpHistoryItems.map((userOpLog, i, _) => (
-          <UserOpHistoryItem
-            key={i}
-            userOpLog={userOpLog}
-            chainName={chainName}
-            explorerUrl={explorerUrl}
-          />
+        // TODO: Render based on transaction log type
+        txLogs.map((txLog, i) => (
+          <UserOpHistoryItem key={i} txLog={txLog} chainName={chainName} />
         ))
       )}
     </div>
@@ -56,18 +32,17 @@ const UserOpHistory: React.FC<{
 }
 
 const UserOpHistoryItem: React.FC<{
-  userOpLog: UserOperationLog
+  txLog: TransactionLog
   chainName: string
-  explorerUrl: string
-}> = ({ userOpLog, chainName, explorerUrl }) => {
-  const { createdAt, status } = userOpLog
+}> = ({ txLog, chainName }) => {
+  const { createdAt, status } = txLog
   const creationDate = new Date(createdAt * 1000).toLocaleDateString()
 
   if (
-    userOpLog.status === UserOperationStatus.Succeeded ||
-    userOpLog.status === UserOperationStatus.Failed
+    txLog.status === TransactionStatus.Succeeded ||
+    txLog.status === TransactionStatus.Failed
   ) {
-    const userOpHash = userOpLog.receipt.userOpHash
+    const userOpHash = txLog.receipt.userOpHash
     return (
       <div>
         <span>{`${creationDate}: `}</span>

@@ -20,8 +20,5 @@ export interface Paymaster {
   requestPaymasterAndData(
     userOp: UserOperation,
     forGasEstimation?: boolean
-  ): Promise<{
-    paymaster: HexString
-    paymasterData: HexString
-  }>
+  ): Promise<HexString>
 }

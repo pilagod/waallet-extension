@@ -14,26 +14,26 @@ import {
   type EthSendTransactionArguments,
   type WaalletRequestArguments
 } from "../rpc"
-import { type UserOperationPool } from "./pool/userOperation"
+import { Transaction, type TransactionPool } from "./pool/transaction"
 
 export type WaalletBackgroundProviderOption = {
   accountManager?: AccountManager
   networkManager?: NetworkManager
-  userOperationPool?: UserOperationPool
+  transactionPool?: TransactionPool
 }
 
 export class WaalletBackgroundProvider {
   public constructor(
     public accountManager: AccountManager,
     public networkManager: NetworkManager,
-    public userOperationPool: UserOperationPool
+    public transactionPool: TransactionPool
   ) {}
 
   public clone(option: WaalletBackgroundProviderOption = {}) {
     const provider = new WaalletBackgroundProvider(
       option.accountManager ?? this.accountManager,
       option.networkManager ?? this.networkManager,
-      option.userOperationPool ?? this.userOperationPool
+      option.transactionPool ?? this.transactionPool
     )
     return provider
   }
@@ -125,43 +125,33 @@ export class WaalletBackgroundProvider {
     params: EthSendTransactionArguments["params"]
   ): Promise<HexString> {
     const [tx] = params
-    // TODO: Check tx from is same as account
+
+    // TODO: When `to` is empty, it should create contract
     if (!tx.to) {
-      // TODO: When `to` is empty, it should create contract
       return
     }
+
+    const { id: networkId, bundler } = this.networkManager.getActive()
     const { id: accountId, account } = await this.accountManager.getActive()
     if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
       throw new Error("Address `from` doesn't match connected account")
     }
-    const { id: networkId, bundler } = this.networkManager.getActive()
 
     const entryPoint = await account.getEntryPoint()
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
 
-    const userOp = await account.createUserOperation({
-      to: tx.to,
-      value: tx.value,
-      data: tx.data
-    })
-    if (tx.gas) {
-      userOp.setCallGasLimit(tx.gas)
-    }
-    if (tx.gasPrice) {
-      userOp.setGasFee({
-        maxFeePerGas: tx.gasPrice,
-        maxPriorityFeePerGas: tx.gasPrice
-      })
-    }
-    const userOpId = await this.userOperationPool.send({
-      userOp,
+    const txId = await this.transactionPool.send({
+      tx: new Transaction({
+        ...tx,
+        to: tx.to,
+        gasLimit: tx.gas
+      }),
       senderId: accountId,
-      networkId,
-      entryPointAddress: entryPoint
+      networkId
     })
-    const { transactionHash } = await this.userOperationPool.wait(userOpId)
+    const transactionHash = await this.transactionPool.wait(txId)
 
     return transactionHash
   }
