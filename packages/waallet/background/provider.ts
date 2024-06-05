@@ -110,13 +110,13 @@ export class WaalletBackgroundProvider {
     verificationGasLimit: HexString
     callGasLimit: HexString
   }> {
-    const userOp = new UserOperation(params[0])
+    const [userOpData, entryPoint] = params
+    const userOp = new UserOperation(userOpData)
     const { bundler } = this.networkManager.getActive()
-    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
-    const data = await bundler.estimateUserOperationGas(
-      userOp,
-      entryPointAddress
-    )
+    if (!bundler.isSupportedEntryPoint(entryPoint)) {
+      throw new Error(`Unsupported EntryPoint ${entryPoint}`)
+    }
+    const data = await bundler.estimateUserOperationGas(userOp, entryPoint)
     return {
       preVerificationGas: number.toHex(data.preVerificationGas),
       verificationGasLimit: number.toHex(data.verificationGasLimit),
@@ -141,8 +141,12 @@ export class WaalletBackgroundProvider {
       throw new Error("Address `from` doesn't match connected account")
     }
     const { id: networkId, bundler } = this.networkManager.getActive()
-    // TODO: Use account's entry point
-    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+
+    const entryPoint = await account.getEntryPoint()
+    if (!bundler.isSupportedEntryPoint(entryPoint)) {
+      throw new Error(`Unsupported EntryPoint ${entryPoint}`)
+    }
+
     const userOp = await account.createUserOperation({
       to: tx.to,
       value: tx.value,
@@ -161,7 +165,7 @@ export class WaalletBackgroundProvider {
       userOp,
       senderId: accountId,
       networkId,
-      entryPointAddress
+      entryPointAddress: entryPoint
     })
     const { transactionHash } = await this.userOperationPool.wait(userOpId)
 

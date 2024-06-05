@@ -77,8 +77,8 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
   const sendUserOperation = async () => {
     setUserOpSending(true)
 
-    const account = await AccountStorageManager.wrap(provider, sender)
     try {
+      const account = await AccountStorageManager.wrap(provider, sender)
       userOp.setPaymasterAndData(
         await payment.option.paymaster.requestPaymasterAndData(userOp)
       )
@@ -155,9 +155,12 @@ function UserOperationConfirmation(props: { userOpLog: UserOperationLog }) {
       await o.paymaster.requestPaymasterAndData(userOp, true)
     )
     userOp.setGasFee(await estimateGasFee())
+    // TODO: Refine account usage
+    const account = await AccountStorageManager.wrap(provider, sender)
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
-        userOp.data()
+        userOp.data(),
+        await account.getEntryPoint()
       ])
     )
     setUserOp(userOp)

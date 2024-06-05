@@ -34,14 +34,14 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       factoryAddress: string
     }
   ) {
-    const factory = new PasskeyAccountFactory({
+    const factory = new PasskeyAccountFactory(runner, {
       address: option.factoryAddress,
       credentialId: option.owner.getCredentialId(),
       publicKey: option.owner.getPublicKey(),
       salt: option.salt
     })
     return new PasskeyAccount(runner, {
-      address: await factory.getAddress(runner),
+      address: await factory.getAddress(),
       owner: option.owner,
       factory
     })

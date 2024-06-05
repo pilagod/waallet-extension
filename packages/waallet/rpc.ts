@@ -49,7 +49,8 @@ export type EthEstimateUserOperationGasArguments = {
       | "preVerificationGas"
       | "maxFeePerGas"
       | "maxPriorityFeePerGas"
-    >
+    >,
+    HexString // EntryPoint address
   ]
 }
 

@@ -37,6 +37,11 @@ export class BundlerProvider {
     return entryPointAddresses
   }
 
+  public async isSupportedEntryPoint(entryPoint: HexString): Promise<boolean> {
+    const entryPoints = await this.getSupportedEntryPoints()
+    return entryPoints.filter((ep) => entryPoint === ep).length > 0
+  }
+
   public async getUserOperationByHash(userOpHash: HexString): Promise<
     Nullable<{
       userOperation: UserOperation

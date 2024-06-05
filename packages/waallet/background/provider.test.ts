@@ -62,14 +62,14 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
     // Use custom nonce which doesn't match the one on chain
     userOp.setNonce(userOp.nonce + 1n)
 
-    const useInvalidNonce = () =>
+    const useInvalidNonce = async () =>
       ctx.provider.request<{
         preVerificationGas: HexString
         verificationGasLimit: HexString
         callGasLimit: HexString
       }>({
         method: WaalletRpcMethod.eth_estimateUserOperationGas,
-        params: [userOp.data()]
+        params: [userOp.data(), await ctx.account.getEntryPoint()]
       })
 
     await expect(useInvalidNonce()).rejects.toThrow()
