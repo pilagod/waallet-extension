@@ -24,9 +24,9 @@ export class UserOperationSender implements UserOperationPool {
     userOp: UserOperation
     senderId: string
     networkId: string
-    entryPointAddress: HexString
+    entryPoint: HexString
   }) {
-    const { userOp, senderId, networkId, entryPointAddress } = data
+    const { userOp, senderId, networkId, entryPoint } = data
     const { node, bundler, chainId } = this.networkManager.get(networkId)
     const { account } = await this.accountManager.get(senderId)
 
@@ -37,10 +37,7 @@ export class UserOperationSender implements UserOperationPool {
     if (!userOp.isGasFeeEstimated()) {
       userOp.setGasFee(await this.estimateGasFee(node))
     }
-    const gas = await bundler.estimateUserOperationGas(
-      userOp,
-      entryPointAddress
-    )
+    const gas = await bundler.estimateUserOperationGas(userOp, entryPoint)
     if (userOp.callGasLimit > gas.callGasLimit) {
       gas.callGasLimit = userOp.callGasLimit
     }
@@ -49,13 +46,8 @@ export class UserOperationSender implements UserOperationPool {
     if (this.hook?.afterGasEstimation) {
       await this.hook.afterGasEstimation(userOp)
     }
-    userOp.setSignature(
-      await account.sign(userOp.hash(entryPointAddress, chainId))
-    )
-    const userOpHash = await bundler.sendUserOperation(
-      userOp,
-      entryPointAddress
-    )
+    userOp.setSignature(await account.sign(userOp.hash(entryPoint, chainId)))
+    const userOpHash = await bundler.sendUserOperation(userOp, entryPoint)
     if (!userOpHash) {
       throw new Error("Send user operation fail")
     }

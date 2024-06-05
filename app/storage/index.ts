@@ -32,17 +32,21 @@ interface Storage {
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
   switchAccount: (accountId: string) => Promise<void>
   switchNetwork: (networkId: string) => Promise<void>
-  markERC4337v06TransactionRejected(data: {
-    txId: string
-    userOp: UserOperation
-    entryPointAddress: HexString
-  }): Promise<void>
-  markERC4337v06TransactionSent(data: {
-    txId: string
-    userOp: UserOperation
-    userOpHash: HexString
-    entryPointAddress: string
-  }): Promise<void>
+  markERC4337v06TransactionRejected(
+    txId: string,
+    data: {
+      entryPoint: HexString
+      userOp: UserOperation
+    }
+  ): Promise<void>
+  markERC4337v06TransactionSent(
+    txId: string,
+    data: {
+      entryPoint: HexString
+      userOp: UserOperation
+      userOpHash: HexString
+    }
+  ): Promise<void>
   updateBalance: (accountId: string, balance: BigNumberish) => Promise<void>
   importToken: (accountId: string, token: Token) => Promise<void>
   updateToken: (
@@ -112,13 +116,9 @@ export const useStorage = create<Storage>()(
 
       /* Transaction */
 
-      markERC4337v06TransactionRejected: async (data: {
-        txId: string
-        userOp: UserOperation
-        entryPointAddress: HexString
-      }) => {
+      markERC4337v06TransactionRejected: async (txId, data) => {
         await set(({ state }) => {
-          const tx = state.pendingTransaction[data.txId]
+          const tx = state.pendingTransaction[txId]
           const txRejected: ERC4337v06TransactionRejected = {
             id: tx.id,
             type: TransactionType.ERC4337v06,
@@ -127,7 +127,7 @@ export const useStorage = create<Storage>()(
             networkId: tx.networkId,
             createdAt: tx.createdAt,
             detail: {
-              entryPointAddress: data.entryPointAddress,
+              entryPoint: data.entryPoint,
               data: data.userOp.data()
             }
           }
@@ -137,14 +137,9 @@ export const useStorage = create<Storage>()(
         })
       },
 
-      markERC4337v06TransactionSent: async (data: {
-        txId: string
-        userOp: UserOperation
-        userOpHash: HexString
-        entryPointAddress: string
-      }) => {
+      markERC4337v06TransactionSent: async (txId, data) => {
         await set(({ state }) => {
-          const tx = state.pendingTransaction[data.txId]
+          const tx = state.pendingTransaction[txId]
           const txSent: ERC4337v06TransactionSent = {
             id: tx.id,
             type: TransactionType.ERC4337v06,
@@ -153,7 +148,7 @@ export const useStorage = create<Storage>()(
             networkId: tx.networkId,
             createdAt: tx.createdAt,
             detail: {
-              entryPointAddress: data.entryPointAddress,
+              entryPoint: data.entryPoint,
               data: data.userOp.data()
             },
             receipt: {

@@ -239,7 +239,7 @@ export type ERC4337v06TransactionMeta<T> = TransactionLogMeta<{
   T
 
 export type ERC4337v06TransactionDetail = {
-  entryPointAddress: HexString
+  entryPoint: HexString
   data: UserOperationData
 }
 

@@ -109,11 +109,10 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
       }
-      await markERC4337v06TransactionSent({
-        txId: pendingTx.id,
+      await markERC4337v06TransactionSent(pendingTx.id, {
+        entryPoint,
         userOp,
-        userOpHash,
-        entryPointAddress: entryPoint
+        userOpHash
       })
     } catch (e) {
       // TOOD: Show error on page
@@ -125,10 +124,9 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
   const rejectUserOperation = async () => {
     setUserOpResolving(true)
     try {
-      await markERC4337v06TransactionRejected({
-        txId: pendingTx.id,
-        userOp,
-        entryPointAddress: await senderAccount.getEntryPoint()
+      await markERC4337v06TransactionRejected(pendingTx.id, {
+        entryPoint: await senderAccount.getEntryPoint(),
+        userOp
       })
       navigate(Path.Index)
     } catch (e) {

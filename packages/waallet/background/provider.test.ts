@@ -119,19 +119,19 @@ describeWaalletSuite("WalletBackgroundProvider", (ctx) => {
       maxPriorityFeePerGas: gasPrice * 2n
     })
 
-    const [entryPointAddress] = await bundler.getSupportedEntryPoints()
+    const entryPoint = await ctx.account.getEntryPoint()
     userOp.setGasLimit(
-      await bundler.estimateUserOperationGas(userOp, entryPointAddress)
+      await bundler.estimateUserOperationGas(userOp, entryPoint)
     )
 
     const chainId = await bundler.getChainId()
     userOp.setSignature(
-      await ctx.account.sign(userOp.hash(entryPointAddress, chainId))
+      await ctx.account.sign(userOp.hash(entryPoint, chainId))
     )
 
     const userOpHash = await ctx.provider.request<HexString>({
       method: WaalletRpcMethod.eth_sendUserOperation,
-      params: [userOp.data(), entryPointAddress]
+      params: [userOp.data(), entryPoint]
     })
     await bundler.wait(userOpHash)
 
