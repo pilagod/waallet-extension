@@ -1,6 +1,5 @@
 import { getAddress } from "ethers"
-import type { Patch } from "immer"
-import { applyPatches } from "immer"
+import { applyPatches, type Patch } from "immer"
 import { v4 as uuidV4 } from "uuid"
 import browser from "webextension-polyfill"
 import { create } from "zustand"
