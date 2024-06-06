@@ -42,10 +42,10 @@ export const config = {
       bundlerRpcUrl: "http://localhost:3000",
       accountFactory: {
         [AccountType.SimpleAccount]: {
-          address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+          address: "0x2E983A1Ba5e8b38AAAeC4B440B9dDcFBf72E15d1"
         },
         [AccountType.PasskeyAccount]: {
-          address: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+          address: "0xBC9129Dc0487fc2E169941C75aABC539f208fb01"
         }
       }
     }
