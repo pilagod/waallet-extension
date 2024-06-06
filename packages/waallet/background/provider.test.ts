@@ -41,6 +41,8 @@ describeWaalletSuite({
     })
 
     it("should estimate gas", async () => {
+      await ctx.topupAccount()
+
       const gas = await ctx.provider.request<HexString>({
         method: WaalletRpcMethod.eth_estimateGas,
         params: [
@@ -56,6 +58,8 @@ describeWaalletSuite({
     })
 
     it("should fail to estimate user operation when nonce doesn't match the one on chain", async () => {
+      await ctx.topupAccount()
+
       const userOp = await ctx.account.createUserOperation({
         to: await counter.getAddress(),
         value: 1,
@@ -78,6 +82,8 @@ describeWaalletSuite({
     })
 
     it("should send transaction to contract", async () => {
+      await ctx.topupAccount()
+
       const balanceBefore = await node.getBalance(counter.getAddress())
       const counterBefore = (await counter.number()) as bigint
 
@@ -102,6 +108,8 @@ describeWaalletSuite({
     })
 
     it("should send user operation", async () => {
+      await ctx.topupAccount()
+
       const { bundler, node } = ctx.provider.networkManager.getActive()
 
       const counterBefore = (await counter.number()) as bigint

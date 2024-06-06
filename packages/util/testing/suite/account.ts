@@ -37,6 +37,8 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
       })
 
       it("should estimate gas", async () => {
+        await ctx.topupAccount()
+
         const gas = await ctx.provider.request<HexString>({
           method: WaalletRpcMethod.eth_estimateGas,
           params: [
@@ -52,6 +54,8 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
       })
 
       it("should send transaction to contract", async () => {
+        await ctx.topupAccount()
+
         const balanceBefore = await node.getBalance(counter.getAddress())
         const counterBefore = (await counter.number()) as bigint
 

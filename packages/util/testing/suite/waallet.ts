@@ -8,6 +8,7 @@ import type { ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
 import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
+import type { BigNumberish } from "~typing"
 
 export type WaalletSuiteOption<A extends Account, P extends Paymaster> = {
   name: string
@@ -19,6 +20,16 @@ export type WaalletSuiteOption<A extends Account, P extends Paymaster> = {
 export class WaalletSuiteContext<T extends Account> {
   public account: T
   public provider: WaalletBackgroundProvider
+
+  public async topupAccount(balance?: BigNumberish) {
+    // TODO: Use default paymaster to accelerate
+    return (
+      await config.account.operator.sendTransaction({
+        to: await this.account.getAddress(),
+        value: balance ?? parseEther("1")
+      })
+    ).wait()
+  }
 }
 
 // TODO: Should be able to customize account setup function
@@ -59,13 +70,13 @@ export function describeWaalletSuite<A extends Account, P extends Paymaster>(
         )
       )
 
-      // TODO: Use default paymaster to accelerate
-      await (
-        await config.account.operator.sendTransaction({
-          to: await ctx.account.getAddress(),
-          value: parseEther("1")
-        })
-      ).wait()
+      // // TODO: Use default paymaster to accelerate
+      // await (
+      //   await config.account.operator.sendTransaction({
+      //     to: await ctx.account.getAddress(),
+      //     value: parseEther("1")
+      //   })
+      // ).wait()
     })
 
     if (option.suite) {

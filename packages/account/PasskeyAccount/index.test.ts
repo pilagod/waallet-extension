@@ -19,9 +19,8 @@ describeAccountSuite({
   },
   suite: (ctx) => {
     describe("init", () => {
-      // TODO: This test at this moment relies on tests in test bed to deploy the account.
-      // It would be better to decouple it.
       it("should init with existing passkey account", async () => {
+        await ctx.topupAccount()
         // Use `initCode`` to deploy account
         await ctx.provider.request({
           method: WaalletRpcMethod.eth_sendTransaction,
