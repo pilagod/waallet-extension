@@ -1,4 +1,3 @@
-import config from "~config/test"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
@@ -6,26 +5,28 @@ import { VerifyingPaymaster } from "./index"
 
 describeWaalletSuite({
   name: "Verifying Paymaster",
-  usePaymaster: async (runner) => {
-    return new VerifyingPaymaster(runner, {
-      address: config.address.VerifyingPaymaster,
-      ownerPrivateKey: config.account.operator.privateKey,
+  usePaymaster: async (cfg) => {
+    return new VerifyingPaymaster(cfg.provider.node, {
+      address: cfg.address.VerifyingPaymaster,
+      ownerPrivateKey: cfg.wallet.operator.privateKey,
       expirationSecs: 300
     })
   },
   suite: (ctx) => {
-    const { node } = config.networkManager.getActive()
-
     it("should pay for account", async () => {
+      const {
+        contract: { entryPoint },
+        provider: { node }
+      } = ctx
+
       const accountBalanceBefore = await node.getBalance(
         await ctx.account.getAddress()
       )
-      const paymasterDepositBalanceBefore =
-        await config.contract.entryPoint.balanceOf(
-          config.address.VerifyingPaymaster
-        )
+      const paymasterDepositBalanceBefore = await entryPoint.balanceOf(
+        ctx.address.VerifyingPaymaster
+      )
 
-      await ctx.provider.request({
+      await ctx.provider.waallet.request({
         method: WaalletRpcMethod.eth_sendTransaction,
         params: [
           {
@@ -40,10 +41,9 @@ describeWaalletSuite({
       )
       expect(accountBalanceBefore).toBe(accountBalanceAfter)
 
-      const paymasterDepositBalanceAfter =
-        await config.contract.entryPoint.balanceOf(
-          config.address.VerifyingPaymaster
-        )
+      const paymasterDepositBalanceAfter = await entryPoint.balanceOf(
+        ctx.address.VerifyingPaymaster
+      )
       expect(paymasterDepositBalanceBefore).toBeGreaterThan(
         paymasterDepositBalanceAfter
       )

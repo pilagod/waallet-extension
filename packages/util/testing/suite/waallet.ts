@@ -4,7 +4,7 @@ import config from "~config/test"
 import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import type { ContractRunner } from "~packages/node"
+import { SingleNetworkManager } from "~packages/network/manager/single"
 import type { Paymaster } from "~packages/paymaster"
 import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
@@ -12,19 +12,28 @@ import type { BigNumberish } from "~typing"
 
 export type WaalletSuiteOption<A extends Account, P extends Paymaster> = {
   name: string
-  useAccount?: (runner: ContractRunner) => Promise<A>
-  usePaymaster?: (runner: ContractRunner) => Promise<P>
+  useAccount?: (cfg: typeof config) => Promise<A>
+  usePaymaster?: (cfg: typeof config) => Promise<P>
   suite?: (ctx: WaalletSuiteContext<A>) => void
 }
 
 export class WaalletSuiteContext<T extends Account> {
+  public address = config.address
+  public contract = config.contract
+  public provider: typeof config.provider & {
+    waallet: WaalletBackgroundProvider
+  } = {
+    ...config.provider,
+    waallet: null
+  }
+  public wallet = config.wallet
+
   public account: T
-  public provider: WaalletBackgroundProvider
 
   public async topupAccount(balance?: BigNumberish) {
     // TODO: Use default paymaster to accelerate
     return (
-      await config.account.operator.sendTransaction({
+      await config.wallet.operator.sendTransaction({
         to: await this.account.getAddress(),
         value: balance ?? parseEther("1")
       })
@@ -40,43 +49,46 @@ export function describeWaalletSuite<A extends Account, P extends Paymaster>(
     const ctx = new WaalletSuiteContext()
 
     beforeEach(async () => {
-      const { node } = config.networkManager.getActive()
+      const {
+        provider: { node, bundler }
+      } = ctx
 
+      // Setup account manager
       if (option.useAccount) {
-        ctx.account = await option.useAccount(node)
+        ctx.account = await option.useAccount(ctx)
       } else {
         ctx.account = await SimpleAccount.init(node, {
-          address: config.address.SimpleAccount,
-          ownerPrivateKey: config.account.operator.privateKey
+          address: ctx.address.SimpleAccount,
+          ownerPrivateKey: ctx.wallet.operator.privateKey
         })
       }
       const accountManager = new SingleAccountManager(ctx.account)
 
-      ctx.provider = new WaalletBackgroundProvider(
+      // Setup network manager
+      const { chainId } = await node.getNetwork()
+      const networkManager = new SingleNetworkManager({
+        chaindId: Number(chainId),
+        nodeRpcUrl: node.url,
+        bundlerRpcUrl: bundler.url
+      })
+
+      ctx.provider.waallet = new WaalletBackgroundProvider(
         accountManager,
-        config.networkManager,
+        networkManager,
         new TransactionToUserOperationSender(
           accountManager,
-          config.networkManager,
+          networkManager,
           async (userOp, forGasEstimation) => {
             if (!option.usePaymaster) {
               return
             }
-            const paymaster = await option.usePaymaster(node)
+            const paymaster = await option.usePaymaster(ctx)
             userOp.setPaymasterAndData(
               await paymaster.requestPaymasterAndData(userOp, forGasEstimation)
             )
           }
         )
       )
-
-      // // TODO: Use default paymaster to accelerate
-      // await (
-      //   await config.account.operator.sendTransaction({
-      //     to: await ctx.account.getAddress(),
-      //     value: parseEther("1")
-      //   })
-      // ).wait()
     })
 
     if (option.suite) {

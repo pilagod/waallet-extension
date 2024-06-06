@@ -1,4 +1,3 @@
-import config from "~config/test"
 import type { Account } from "~packages/account"
 import type { Paymaster } from "~packages/paymaster"
 import byte from "~packages/util/byte"
@@ -17,11 +16,8 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
   describeWaalletSuite({
     ...option,
     suite: (ctx) => {
-      const { node } = config.networkManager.getActive()
-      const { counter } = config.contract
-
       it("should get accounts", async () => {
-        const accounts = await ctx.provider.request<HexString>({
+        const accounts = await ctx.provider.waallet.request<HexString>({
           method: WaalletRpcMethod.eth_accounts
         })
         expect(accounts.length).toBeGreaterThan(0)
@@ -29,7 +25,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
       })
 
       it("should request accounts", async () => {
-        const accounts = await ctx.provider.request<HexString>({
+        const accounts = await ctx.provider.waallet.request<HexString>({
           method: WaalletRpcMethod.eth_requestAccounts
         })
         expect(accounts.length).toBeGreaterThan(0)
@@ -39,7 +35,11 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
       it("should estimate gas", async () => {
         await ctx.topupAccount()
 
-        const gas = await ctx.provider.request<HexString>({
+        const {
+          contract: { counter }
+        } = ctx
+
+        const gas = await ctx.provider.waallet.request<HexString>({
           method: WaalletRpcMethod.eth_estimateGas,
           params: [
             {
@@ -56,10 +56,15 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
       it("should send transaction to contract", async () => {
         await ctx.topupAccount()
 
+        const {
+          contract: { counter },
+          provider: { node }
+        } = ctx
+
         const balanceBefore = await node.getBalance(counter.getAddress())
         const counterBefore = (await counter.number()) as bigint
 
-        await ctx.provider.request<HexString>({
+        await ctx.provider.waallet.request<HexString>({
           method: WaalletRpcMethod.eth_sendTransaction,
           params: [
             {

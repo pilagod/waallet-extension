@@ -1,4 +1,3 @@
-import config from "~config/test"
 import number from "~packages/util/number"
 import { describeAccountSuite } from "~packages/util/testing/suite/account"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -10,11 +9,11 @@ const owner = new PasskeyOwnerP256()
 
 describeAccountSuite({
   name: "PasskeyAccount",
-  useAccount: (runner) => {
-    return PasskeyAccount.initWithFactory(runner, {
+  useAccount: (cfg) => {
+    return PasskeyAccount.initWithFactory(cfg.provider.node, {
       owner,
       salt: number.random(),
-      factoryAddress: config.address.PasskeyAccountFactory
+      factoryAddress: cfg.address.PasskeyAccountFactory
     })
   },
   suite: (ctx) => {
@@ -22,7 +21,7 @@ describeAccountSuite({
       it("should init with existing passkey account", async () => {
         await ctx.topupAccount()
         // Use `initCode`` to deploy account
-        await ctx.provider.request({
+        await ctx.provider.waallet.request({
           method: WaalletRpcMethod.eth_sendTransaction,
           params: [
             {
@@ -30,7 +29,11 @@ describeAccountSuite({
             }
           ]
         })
-        const { node } = config.networkManager.getActive()
+
+        const {
+          provider: { node }
+        } = ctx
+
         const account = await PasskeyAccount.init(node, {
           address: await ctx.account.getAddress(),
           owner

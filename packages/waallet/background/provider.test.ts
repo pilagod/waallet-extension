@@ -1,4 +1,3 @@
-import config from "~config/test"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -7,25 +6,22 @@ import type { HexString } from "~typing"
 describeWaalletSuite({
   name: "WalletBackgroundProvider",
   suite: (ctx) => {
-    const { node } = config.networkManager.getActive()
-    const { counter } = config.contract
-
     it("should get chain id", async () => {
-      const chainId = await ctx.provider.request<HexString>({
+      const chainId = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_chainId
       })
       expect(parseInt(chainId, 16)).toBe(1337)
     })
 
     it("should get block number", async () => {
-      const blockNumber = await ctx.provider.request<HexString>({
+      const blockNumber = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_blockNumber
       })
       expect(parseInt(blockNumber, 16)).toBeGreaterThan(0)
     })
 
     it("should get accounts", async () => {
-      const accounts = await ctx.provider.request<HexString>({
+      const accounts = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_accounts
       })
       expect(accounts.length).toBeGreaterThan(0)
@@ -33,7 +29,7 @@ describeWaalletSuite({
     })
 
     it("should request accounts", async () => {
-      const accounts = await ctx.provider.request<HexString>({
+      const accounts = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_requestAccounts
       })
       expect(accounts.length).toBeGreaterThan(0)
@@ -43,7 +39,11 @@ describeWaalletSuite({
     it("should estimate gas", async () => {
       await ctx.topupAccount()
 
-      const gas = await ctx.provider.request<HexString>({
+      const {
+        contract: { counter }
+      } = ctx
+
+      const gas = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_estimateGas,
         params: [
           {
@@ -60,6 +60,10 @@ describeWaalletSuite({
     it("should fail to estimate user operation when nonce doesn't match the one on chain", async () => {
       await ctx.topupAccount()
 
+      const {
+        contract: { counter }
+      } = ctx
+
       const userOp = await ctx.account.createUserOperation({
         to: await counter.getAddress(),
         value: 1,
@@ -69,7 +73,7 @@ describeWaalletSuite({
       userOp.setNonce(userOp.nonce + 1n)
 
       const useInvalidNonce = async () =>
-        ctx.provider.request<{
+        ctx.provider.waallet.request<{
           preVerificationGas: HexString
           verificationGasLimit: HexString
           callGasLimit: HexString
@@ -84,10 +88,15 @@ describeWaalletSuite({
     it("should send transaction to contract", async () => {
       await ctx.topupAccount()
 
+      const {
+        contract: { counter },
+        provider: { node }
+      } = ctx
+
       const balanceBefore = await node.getBalance(counter.getAddress())
       const counterBefore = (await counter.number()) as bigint
 
-      const txHash = await ctx.provider.request<HexString>({
+      const txHash = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_sendTransaction,
         params: [
           {
@@ -110,7 +119,10 @@ describeWaalletSuite({
     it("should send user operation", async () => {
       await ctx.topupAccount()
 
-      const { bundler, node } = ctx.provider.networkManager.getActive()
+      const {
+        contract: { counter },
+        provider: { node, bundler }
+      } = ctx
 
       const counterBefore = (await counter.number()) as bigint
       const counterBalanceBefore = await node.getBalance(
@@ -139,7 +151,7 @@ describeWaalletSuite({
         await ctx.account.sign(userOp.hash(entryPoint, chainId))
       )
 
-      const userOpHash = await ctx.provider.request<HexString>({
+      const userOpHash = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_sendUserOperation,
         params: [userOp.data(), entryPoint]
       })
