@@ -1,4 +1,4 @@
-import { produce, type Draft } from "immer"
+import { produceWithPatches, type Draft, type Patch } from "immer"
 import {
   type Mutate,
   type StateCreator,
@@ -22,8 +22,8 @@ type SkipTwo<T> = T extends { length: 0 }
   : never
 
 interface BackgroundStorage<T> {
-  set: (state: T) => Promise<void>
-  sync: (set: StoreApi<T>["setState"]) => void
+  set: (patches: Patch[]) => Promise<void>
+  sync: (get: StoreApi<T>["getState"], set: StoreApi<T>["setState"]) => void
 }
 
 type Background = <
@@ -68,16 +68,25 @@ const backgroundImpl: BackgrounImpl = (initializer, storage) => {
 
     const store = _store as Mutate<StoreApi<T>, [["background", never]]>
 
-    store.setState = async (updater) => {
-      const nextState = (
-        typeof updater === "function" ? produce(updater as any)(get()) : updater
-      ) as T
-      await storage.set(nextState)
+    store.setState = async (updaterOrUpdates) => {
+      const updater = (
+        typeof updaterOrUpdates === "function"
+          ? updaterOrUpdates
+          : (draft: Draft<T>) => {
+              return {
+                ...draft,
+                ...updater
+              }
+            }
+      ) as (state: Draft<T>) => Draft<T> | void
+
+      const [_, patches] = produceWithPatches(get(), updater)
+      await storage.set(patches)
     }
     store.setStateLocally = (state: T) => {
       set(state)
     }
-    storage.sync(set)
+    storage.sync(get, set)
 
     return initializer(_store.setState, get, _store)
   }

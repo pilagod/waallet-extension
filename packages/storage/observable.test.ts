@@ -19,30 +19,6 @@ describe("ObservableStorage", () => {
       d: { e: null, f: "xyz" }
     })
 
-    s.set({
-      a: 456,
-      b: "def",
-      c: [4, 5, 6],
-      d: { e: 999 }
-    })
-
-    const state = s.get()
-
-    expect(state.a).toBe(456)
-    expect(state.b).toBe("def")
-    expect(state.c).toEqual([4, 5, 6])
-    expect(state.d.e).toBe(999)
-    expect(state.d.f).toBe("xyz")
-  })
-
-  it("should set partial fields in state by updater", () => {
-    const s = new ObservableStorage({
-      a: 123,
-      b: "abc",
-      c: [1, 2, 3],
-      d: { e: null, f: "xyz" }
-    })
-
     s.set((draft) => {
       draft.a = 456
       draft.b = "def"
@@ -59,22 +35,29 @@ describe("ObservableStorage", () => {
     expect(state.d.f).toBe("xyz")
   })
 
-  it("should set and override fields in state", () => {
-    const s = new ObservableStorage<Record<string, any>>({
-      a: { b: 123 }
+  it("should set partial fields in state by patches", () => {
+    const s = new ObservableStorage({
+      a: 123,
+      b: "abc",
+      c: [1, 2, 3],
+      d: { e: null, f: "xyz" }
     })
 
-    s.set(
-      {
-        a: { c: 999 }
-      },
-      { override: true }
-    )
+    s.set([
+      { op: "replace", path: ["a"], value: 456 },
+      { op: "replace", path: ["b"], value: "def" },
+      { op: "replace", path: ["c", 1], value: 222 },
+      { op: "add", path: ["c", 3], value: 4 },
+      { op: "remove", path: ["d", "e"] }
+    ])
 
     const state = s.get()
 
-    expect(state.a.b).toBeUndefined()
-    expect(state.a.c).toBe(999)
+    expect(state.a).toBe(456)
+    expect(state.b).toBe("def")
+    expect(state.c).toEqual([1, 222, 3, 4])
+    expect(state.d.e).toBe(undefined)
+    expect(state.d.f).toBe("xyz")
   })
 
   it("should not manipulate storage state through state returned from getter", () => {
@@ -98,7 +81,9 @@ describe("ObservableStorage", () => {
       stateSubscribed = state
     })
 
-    s.set({ a: 456 })
+    s.set((draft) => {
+      draft.a = 456
+    })
 
     expect(stateSubscribed.a).toBe(456)
   })
@@ -139,7 +124,9 @@ describe("ObservableStorage", () => {
       }
     )
 
-    s.set({ a: { b: { c: 999 } } })
+    s.set((draft) => {
+      draft.a.b.c = 999
+    })
 
     expect(s1.a.b.c).toBe(999)
     expect(s2.a.b.c).toBe(999)
@@ -156,7 +143,9 @@ describe("ObservableStorage", () => {
     s.subscribe(handler)
     s.unsubscribe(handler)
 
-    s.set({ a: 456 })
+    s.set((draft) => {
+      draft.a = 456
+    })
 
     expect(handlerCalled).toBe(false)
   })

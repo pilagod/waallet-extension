@@ -4,7 +4,6 @@ import browser from "webextension-polyfill"
 import { getConfig } from "~config"
 import { AccountType } from "~packages/account"
 import type { UserOperationData } from "~packages/bundler"
-import { getChainName } from "~packages/network/util"
 import { ObservableStorage } from "~packages/storage/observable"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
@@ -24,16 +23,11 @@ export async function getLocalStorage() {
 
     // Load accounts absent into storage
     const account = state.account ?? {}
-    const accountIdentifier = Object.values(account).map((a) => [
-      a.chainId,
-      a.address
-    ])
     config.accounts.forEach((a) => {
-      const isExisting =
-        accountIdentifier.filter(
-          ([chainId, address]) => a.chainId === chainId && a.address === address
-        ).length > 0
-      if (isExisting) {
+      const targetAccount = Object.values(account).find(
+        ({ address, chainId }) => a.chainId === chainId && a.address === address
+      )
+      if (targetAccount) {
         return
       }
       const accountId = uuidv4()
@@ -49,25 +43,29 @@ export async function getLocalStorage() {
 
     // Load networks absent into storage
     const network = state.network ?? {}
-    const networkIdentifier = Object.values(network).map((n) => n.chainId)
     let networkActive = state.networkActive
     config.networks.forEach((n) => {
-      const isExisting =
-        networkIdentifier.filter((chainId) => n.chainId === chainId).length > 0
-      if (isExisting) {
+      const targetNetwork = Object.values(network).find(
+        ({ chainId }) => n.chainId === chainId
+      )
+      const fallbackAccount = Object.entries(account).find(
+        ([_, a]) => a.chainId === n.chainId
+      )
+      const fallbackAccountActive = fallbackAccount ? fallbackAccount[0] : null
+      if (targetNetwork) {
+        if (!targetNetwork.accountActive) {
+          targetNetwork.accountActive = fallbackAccountActive
+        }
         return
       }
       const networkId = uuidv4()
-      const accountIds = Object.entries(account)
-        .filter(([, a]) => a.chainId === n.chainId)
-        .map(([id]) => id)
       Object.assign(network, {
         [networkId]: {
           chainId: n.chainId,
           name: n.name,
           nodeRpcUrl: n.nodeRpcUrl,
           bundlerRpcUrl: n.bundlerRpcUrl,
-          accountActive: accountIds[0] ?? null,
+          accountActive: fallbackAccountActive,
           accountFactory: n.accountFactory
         }
       })
@@ -77,15 +75,15 @@ export async function getLocalStorage() {
     })
     // TODO: Only for development at this moment. Remove following when getting to production.
     // Enable only network specified in env
-    storage.set(
-      {
+    storage.set((draft) => {
+      return {
+        ...draft,
         networkActive: networkActive ?? Object.keys(network)[0],
         network,
         account,
         pendingUserOpLog: {}
-      },
-      { override: true }
-    )
+      }
+    })
   }
   return storage
 }

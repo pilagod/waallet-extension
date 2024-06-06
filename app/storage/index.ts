@@ -1,7 +1,8 @@
 import { getAddress } from "ethers"
+import { applyPatches, type Patch } from "immer"
 import { v4 as uuidV4 } from "uuid"
 import browser from "webextension-polyfill"
-import { create, type StoreApi } from "zustand"
+import { create } from "zustand"
 import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
@@ -179,16 +180,24 @@ export const useStorage = create<Storage>()(
       }
     }),
     {
-      async set(storage: Storage) {
-        await storageMessenger.set(storage.state)
+      async set(patches: Patch[]) {
+        await storageMessenger.set(
+          patches.map((p) => {
+            const path = [...p.path]
+            if (path[0] === "state") {
+              path.shift()
+            }
+            return { ...p, path }
+          })
+        )
       },
-      sync(set: StoreApi<Storage>["setState"]) {
+      sync(get, set) {
         browser.runtime.onMessage.addListener((message) => {
           if (message.action !== StorageAction.Sync) {
             return
           }
           console.log("[popup] Receive state update from background")
-          set({ state: message.state })
+          set({ state: applyPatches(get().state, message.patches) })
         })
       }
     }
