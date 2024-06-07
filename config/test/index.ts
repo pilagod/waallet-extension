@@ -19,13 +19,13 @@ const account = {
 }
 
 const address = {
-  EntryPoint: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  SimpleAccountFactory: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-  SimpleAccount: "0x661b4a3909b486a3da520403ecc78f7a7b683c63",
-  Counter: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-  PasskeyAccountFactory: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-  PasskeyAccount: "0xf30a89a6a3836e2b270650822e3f3cebff3b7497",
-  VerifyingPaymaster: "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+  Counter: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
+  EntryPoint: "0x663F3ad617193148711d28f5334eE4Ed07016602",
+  SimpleAccountFactory: "0x2E983A1Ba5e8b38AAAeC4B440B9dDcFBf72E15d1",
+  SimpleAccount: "0x1E684E8937774B00Ee2Ea562256f27a5c9D20d7c",
+  PasskeyAccountFactory: "0xBC9129Dc0487fc2E169941C75aABC539f208fb01",
+  PasskeyAccount: "0xF4bb6e38fC8A5ec977D4Fdc74B4E0fa84c8dc704",
+  VerifyingPaymaster: "0xF6168876932289D073567f347121A267095f3DD6"
 }
 
 const contract = {
