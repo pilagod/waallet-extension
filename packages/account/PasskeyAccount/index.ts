@@ -13,11 +13,14 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   /**
    * Use when account is already deployed
    */
-  public static async init(option: {
-    address: HexString
-    owner: PasskeyOwner
-  }) {
-    return new PasskeyAccount({ ...option })
+  public static async init(
+    runner: ContractRunner,
+    option: {
+      address: HexString
+      owner: PasskeyOwner
+    }
+  ) {
+    return new PasskeyAccount(runner, { ...option })
   }
 
   /**
@@ -37,7 +40,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       publicKey: option.owner.getPublicKey(),
       salt: option.salt
     })
-    return new PasskeyAccount({
+    return new PasskeyAccount(runner, {
       address: await factory.getAddress(runner),
       owner: option.owner,
       factory
@@ -49,10 +52,10 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
    */
   public static async getCredentialId(
     runner: ContractRunner,
-    accountAddress: HexString
+    address: HexString
   ) {
     const account = new ethers.Contract(
-      accountAddress,
+      address,
       [
         "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)"
       ],
@@ -65,12 +68,15 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   private account: ethers.Contract
   private owner: PasskeyOwner
 
-  private constructor(option: {
-    address: HexString
-    owner: PasskeyOwner
-    factory?: PasskeyAccountFactory
-  }) {
-    super({
+  private constructor(
+    runner: ContractRunner,
+    option: {
+      address: HexString
+      owner: PasskeyOwner
+      factory?: PasskeyAccountFactory
+    }
+  ) {
+    super(runner, {
       address: option.address,
       factory: option.factory
     })

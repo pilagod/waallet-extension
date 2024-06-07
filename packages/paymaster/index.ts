@@ -1,5 +1,4 @@
 import { UserOperation } from "~packages/bundler"
-import type { ContractRunner } from "~packages/node"
 import { Token } from "~packages/token"
 import type { HexString } from "~typing"
 
@@ -19,7 +18,6 @@ export interface Paymaster {
    * @param forGasEstimation Default to `false`.
    */
   requestPaymasterAndData(
-    runner: ContractRunner,
     userOp: UserOperation,
     forGasEstimation?: boolean
   ): Promise<HexString>

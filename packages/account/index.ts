@@ -1,5 +1,4 @@
 import { UserOperation } from "~packages/bundler"
-import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export enum AccountType {
@@ -19,16 +18,12 @@ export type Call = {
   to: HexString
   value: BigNumberish
   data: HexString
-  nonce?: BigNumberish
 }
 
 export interface Account {
-  createUserOperation(
-    runner: ContractRunner,
-    call: Call
-  ): Promise<UserOperation>
+  createUserOperation(call: Call): Promise<UserOperation>
   getAddress(): Promise<HexString>
-  getNonce(runner: ContractRunner): Promise<bigint>
-  isDeployed(runner: ContractRunner): Promise<boolean>
+  getNonce(): Promise<bigint>
+  isDeployed(): Promise<boolean>
   sign(message: BytesLike, metadata?: any): Promise<HexString>
 }

@@ -18,13 +18,13 @@ export class AccountStorageManager implements AccountManager {
   public static async wrap(runner: ContractRunner, account: Account) {
     switch (account.type) {
       case AccountType.SimpleAccount:
-        return SimpleAccount.init({
+        return SimpleAccount.init(runner, {
           address: account.address,
           ownerPrivateKey: account.ownerPrivateKey
         })
       case AccountType.PasskeyAccount:
         if (!account.factoryAddress) {
-          return PasskeyAccount.init({
+          return PasskeyAccount.init(runner, {
             address: account.address,
             owner: new PasskeyOwnerWebAuthn(account.credentialId)
           })

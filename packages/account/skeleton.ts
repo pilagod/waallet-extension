@@ -12,9 +12,15 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   protected address: HexString
   protected factory?: T
 
-  protected constructor(opts: { address: HexString; factory?: T }) {
-    this.address = ethers.getAddress(opts.address)
-    this.factory = opts.factory
+  protected constructor(
+    protected runner: ContractRunner,
+    option: {
+      address: HexString
+      factory?: T
+    }
+  ) {
+    this.address = ethers.getAddress(option.address)
+    this.factory = option.factory
   }
 
   /* abstract */
@@ -25,13 +31,11 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   /* public */
 
-  public async createUserOperation(
-    runner: ContractRunner,
-    call: Call
-  ): Promise<UserOperation> {
+  public async createUserOperation(call: Call): Promise<UserOperation> {
     const sender = await this.getAddress()
-    const nonce = call?.nonce ?? (await this.getNonce(runner))
-    const initCode = (await this.isDeployed(runner))
+    // Only nonce on chain can be used
+    const nonce = await this.getNonce()
+    const initCode = (await this.isDeployed())
       ? "0x"
       : await this.mustGetFactory().getInitCode()
     const callData = call ? await this.getCallData(call) : "0x"
@@ -50,8 +54,8 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.address
   }
 
-  public async getNonce(runner: ContractRunner): Promise<bigint> {
-    if (!(await this.isDeployed(runner))) {
+  public async getNonce(): Promise<bigint> {
+    if (!(await this.isDeployed())) {
       return 0n
     }
     const account = new ethers.Contract(
@@ -60,7 +64,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
         "function entryPoint() view returns (address)",
         "function getEntryPoint() view returns (address)"
       ],
-      runner
+      this.runner
     )
     const entryPoint = new ethers.Contract(
       await (async () => {
@@ -73,14 +77,14 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       [
         "function getNonce(address sender, uint192 key) view returns (uint256 nonce)"
       ],
-      runner
+      this.runner
     )
     return entryPoint.getNonce(this.address, 0)
   }
 
-  public async isDeployed(runner: ContractRunner): Promise<boolean> {
+  public async isDeployed(): Promise<boolean> {
     // TODO: Cache it
-    const code = await runner.provider.getCode(await this.getAddress())
+    const code = await this.runner.provider.getCode(await this.getAddress())
     return code !== "0x"
   }
 
