@@ -138,11 +138,12 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
   // TODO: Put it into a dedicated module
   const estimateGasFee = async () => {
     const fee = await provider.getFeeData()
-    const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
-    // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
+    const maxFeePerGasBuffer = (fee.maxFeePerGas * 120n) / 100n
+    const maxPriorityFeePerGasBuffer = (fee.maxPriorityFeePerGas * 120n) / 100n
+
     return {
-      maxFeePerGas: gasPriceWithBuffer,
-      maxPriorityFeePerGas: gasPriceWithBuffer
+      maxFeePerGas: maxFeePerGasBuffer,
+      maxPriorityFeePerGas: maxPriorityFeePerGasBuffer
     }
   }
 

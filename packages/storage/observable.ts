@@ -25,8 +25,8 @@ export class ObservableStorage<T extends Record<string, any>> {
     return structuredClone(this.state)
   }
 
-  public set(updater: ObservableStorageUpdater<T>)
-  public set(patches: Patch[])
+  public set(updater: ObservableStorageUpdater<T>): void
+  public set(patches: Patch[]): void
   public set(updaterOrPatches: ObservableStorageUpdater<T> | Patch[]) {
     const { state, patches } = this.applyUpdates(updaterOrPatches)
 

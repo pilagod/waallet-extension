@@ -1,5 +1,8 @@
+import { JsonRpcProvider } from "ethers"
 import browser from "webextension-polyfill"
 
+import { getErc20Contract } from "~packages/network/util"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
   getLocalStorage,
@@ -157,7 +160,66 @@ async function main() {
     setTimeout(indexTransactionSent, timeout)
   }
 
+  // TODO: In the future, adding an Indexer to the Background Script to
+  // monitor Account-related transactions. Updates like balance will trigger
+  // as needed, avoiding fixed interval polling with setInterval().
+  const fetchAccountBalances = async () => {
+    const timeout = 3000
+    console.log(`[background] fetch token balance every ${timeout} ms`)
+
+    const { node } = networkManager.getActive()
+    const { id: accountId } = await accountManager.getActive()
+
+    const { account } = storage.get()
+    const { tokens, balance, address: accountAddress } = account[accountId]
+
+    const provider = new JsonRpcProvider(node.url)
+
+    // Update the balance of native token
+    const nativeBalance: bigint = await provider.getBalance(accountAddress)
+
+    if (number.toBigInt(balance) !== nativeBalance) {
+      storage.set((state) => {
+        state.account[accountId].balance = number.toHex(nativeBalance)
+      })
+    }
+
+    // Update the balance of all tokens
+    for (const t of tokens) {
+      try {
+        const tokenBalance: bigint = await getErc20Contract(
+          t.address,
+          provider
+        ).balanceOf(accountAddress)
+
+        if (number.toBigInt(t.balance) !== tokenBalance) {
+          storage.set((state) => {
+            const token = state.account[accountId].tokens.find((token) =>
+              address.isEqual(token.address, t.address)
+            )
+            if (!token) {
+              console.warn(`[Popup][tokens] Unknown token: ${t.address}`)
+              return
+            }
+            token.balance = number.toHex(tokenBalance)
+          })
+        }
+      } catch (error) {
+        console.warn(
+          `[Popup][tokens] error occurred while getting balance: ${error}`
+        )
+        continue
+      }
+    }
+
+    setTimeout(fetchAccountBalances, timeout)
+  }
+
+  // TODO: Using these two asynchronous functions, both executing
+  // `storage.set()` commands, often triggers the error: "Error: Could not
+  // establish connection. Receiving end does not exist."
   await indexTransactionSent()
+  await fetchAccountBalances()
 }
 
 main()
