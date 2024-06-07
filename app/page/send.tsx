@@ -5,17 +5,49 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
-import { useAccount } from "~app/storage"
+import { useAccount, useTokens } from "~app/storage"
+import {
+  formatUnitsToFixed,
+  getChainName,
+  getErc20Contract
+} from "~packages/network/util"
+import address from "~packages/util/address"
+import { type Token } from "~storage/local"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
   const { provider } = useProviderContext()
   const account = useAccount()
-  const [txHash, setTxHash] = useState<HexString>("")
+  const tokens = useTokens()
+
+  const nativeToken: Token = {
+    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+    symbol: `${getChainName(account.chainId)}ETH`,
+    decimals: 18,
+    balance: formatUnitsToFixed(account.balance, 18)
+  }
+
+  const [token, setToken] = useState<Token>(nativeToken)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
+  const [isEth, setIsEth] = useState<boolean>(
+    address.isEqual(token.address, nativeToken.address)
+  )
+
+  const handleAssetChange = async (event: ChangeEvent<HTMLSelectElement>) => {
+    const tokenAddress = event.target.value
+    console.log(`tokenAddress: ${tokenAddress}`)
+    if (address.isEqual(nativeToken.address, tokenAddress)) {
+      setToken(nativeToken)
+      setIsEth(true)
+      return
+    }
+    const token = tokens.find((token) => token.address === tokenAddress)
+    setToken(token)
+    setIsEth(false)
+  }
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -43,17 +75,51 @@ export function Send() {
 
   const handleSend = useCallback(async () => {
     const signer = await provider.getSigner()
-    const txResult = await signer.sendTransaction({
-      to: ethers.getAddress(txTo),
-      value: ethers.parseUnits(txValue.toString(), "ether")
+    const erc20 = getErc20Contract(token.address, provider)
+    const to = isEth ? txTo : token.address
+    const value = isEth ? ethers.parseUnits(txValue.toString(), "ether") : 0
+    const data = isEth
+      ? "0x"
+      : erc20.interface.encodeFunctionData("transfer", [
+          txTo,
+          ethers.parseUnits(txValue.toString(), token.decimals)
+        ])
+
+    await signer.sendTransaction({
+      to: to,
+      value: value,
+      data: data
     })
-    // TODO: Need to avoid Popup closure
-    setTxHash(txResult.hash)
   }, [txTo, txValue])
 
   return (
     <NavbarLayout>
       <div className="text-base justify-center items-center h-auto">
+        <div className="flex">
+          <label className="col-span-1">Asset:</label>
+          <select
+            id="asset"
+            value={token.address}
+            className="col-span-4 border w-full outline-none border-gray-300"
+            onChange={handleAssetChange}>
+            <option key={nativeToken.address} value={nativeToken.address}>
+              {nativeToken.symbol}: {nativeToken.balance} {nativeToken.symbol}
+            </option>
+            {tokens.map((token) => {
+              const balance = parseFloat(
+                ethers.formatUnits(
+                  ethers.toBeHex(token.balance),
+                  ethers.toNumber(token.decimals)
+                )
+              ).toFixed(6)
+              return (
+                <option key={token.address} value={token.address}>
+                  {token.symbol}: {balance} {token.symbol}
+                </option>
+              )
+            })}
+          </select>
+        </div>
         <div className="flex">
           <label className="flex-1">To:</label>
           <input
@@ -91,12 +157,6 @@ export function Send() {
             Cancel
           </Link>
         </div>
-        {txHash && (
-          <div className="flex">
-            <label className="flex-1">TxHash:</label>
-            <span className="flex-1">{txHash}</span>
-          </div>
-        )}
       </div>
     </NavbarLayout>
   )

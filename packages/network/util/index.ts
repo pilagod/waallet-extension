@@ -32,6 +32,7 @@ export const getErc20Contract = (
     address,
     [
       "function balanceOf(address account) external view returns (uint256)",
+      "function transfer(address to, uint256 value) public returns (bool)",
       "function name() public view returns (string)",
       "function symbol() public view returns (string)",
       "function decimals() public view returns (uint8)"
