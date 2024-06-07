@@ -16,7 +16,7 @@ export interface UserOperationPool {
     userOp: UserOperation
     senderId: string
     networkId: string
-    entryPointAddress: HexString
+    entryPoint: HexString
   }): Promise<string>
   /**
    * Wait for an user operation to be processed by bundler and finally included in a transaction on chain.

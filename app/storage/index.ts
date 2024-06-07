@@ -7,16 +7,16 @@ import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import type { UserOperationData } from "~packages/bundler"
+import { UserOperation } from "~packages/bundler"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
-  UserOperationStatus,
+  TransactionStatus,
+  TransactionType,
+  type ERC4337v06TransactionRejected,
+  type ERC4337v06TransactionSent,
   type State,
-  type Token,
-  type UserOperationPending,
-  type UserOperationRejected,
-  type UserOperationSent
+  type Token
 } from "~storage/local"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -31,12 +31,21 @@ interface Storage {
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
   switchAccount: (accountId: string) => Promise<void>
   switchNetwork: (networkId: string) => Promise<void>
-  markUserOperationRejected: (userOpId: string) => Promise<void>
-  markUserOperationSent: (
-    userOpId: string,
-    userOpHash: HexString,
-    userOp: UserOperationData
-  ) => Promise<void>
+  markERC4337v06TransactionRejected(
+    txId: string,
+    data: {
+      entryPoint: HexString
+      userOp: UserOperation
+    }
+  ): Promise<void>
+  markERC4337v06TransactionSent(
+    txId: string,
+    data: {
+      entryPoint: HexString
+      userOp: UserOperation
+      userOpHash: HexString
+    }
+  ): Promise<void>
   updateBalance: (accountId: string, balance: BigNumberish) => Promise<void>
   importToken: (accountId: string, token: Token) => Promise<void>
   updateToken: (
@@ -56,6 +65,9 @@ export const useStorage = create<Storage>()(
   background(
     (set) => ({
       state: null,
+
+      /* Account */
+
       createAccount: async (account: PasskeyAccount, networkId: string) => {
         const id = uuidV4()
         const data = account.dump()
@@ -71,7 +83,7 @@ export const useStorage = create<Storage>()(
             },
             salt: number.toHex(data.salt),
             // TODO: Design an account periphery prototype
-            userOpLog: {},
+            transactionLog: {},
             balance: "0x00",
             tokens: []
           }
@@ -79,6 +91,7 @@ export const useStorage = create<Storage>()(
           network.accountActive = id
         })
       },
+
       switchAccount: async (accountId: string) => {
         await set(({ state }) => {
           const { account, network, networkActive } = state
@@ -88,6 +101,9 @@ export const useStorage = create<Storage>()(
           state.network[state.networkActive].accountActive = accountId
         })
       },
+
+      /* Network */
+
       switchNetwork: async (networkId: string) => {
         await set(({ state }) => {
           if (!state.network[networkId]) {
@@ -96,44 +112,61 @@ export const useStorage = create<Storage>()(
           state.networkActive = networkId
         })
       },
-      markUserOperationRejected: async (userOpId: string) => {
+
+      /* Transaction */
+
+      markERC4337v06TransactionRejected: async (txId, data) => {
         await set(({ state }) => {
-          const pendingUserOpLog = state.pendingUserOpLog[userOpId]
-          const rejectedUserOpLog: UserOperationRejected = {
-            ...pendingUserOpLog,
-            status: UserOperationStatus.Rejected
-          }
-          state.account[rejectedUserOpLog.senderId].userOpLog[
-            rejectedUserOpLog.id
-          ] = rejectedUserOpLog
-          delete state.pendingUserOpLog[pendingUserOpLog.id]
-        })
-      },
-      markUserOperationSent: async (
-        userOpId: string,
-        userOpHash: HexString,
-        userOp: UserOperationData
-      ) => {
-        await set(({ state }) => {
-          const pendingUserOpLog = state.pendingUserOpLog[userOpId]
-          const sentUserOpLog: UserOperationSent = {
-            ...pendingUserOpLog,
-            status: UserOperationStatus.Sent,
-            userOp,
-            receipt: {
-              userOpHash
+          const tx = state.pendingTransaction[txId]
+          const txRejected: ERC4337v06TransactionRejected = {
+            id: tx.id,
+            type: TransactionType.ERC4337v06,
+            status: TransactionStatus.Rejected,
+            senderId: tx.senderId,
+            networkId: tx.networkId,
+            createdAt: tx.createdAt,
+            detail: {
+              entryPoint: data.entryPoint,
+              data: data.userOp.data()
             }
           }
-          state.account[sentUserOpLog.senderId].userOpLog[sentUserOpLog.id] =
-            sentUserOpLog
-          delete state.pendingUserOpLog[pendingUserOpLog.id]
+          state.account[txRejected.senderId].transactionLog[txRejected.id] =
+            txRejected
+          delete state.pendingTransaction[tx.id]
         })
       },
+
+      markERC4337v06TransactionSent: async (txId, data) => {
+        await set(({ state }) => {
+          const tx = state.pendingTransaction[txId]
+          const txSent: ERC4337v06TransactionSent = {
+            id: tx.id,
+            type: TransactionType.ERC4337v06,
+            status: TransactionStatus.Sent,
+            senderId: tx.senderId,
+            networkId: tx.networkId,
+            createdAt: tx.createdAt,
+            detail: {
+              entryPoint: data.entryPoint,
+              data: data.userOp.data()
+            },
+            receipt: {
+              userOpHash: data.userOpHash
+            }
+          }
+          state.account[txSent.senderId].transactionLog[txSent.id] = txSent
+          delete state.pendingTransaction[tx.id]
+        })
+      },
+
+      /* Token */
+
       updateBalance: async (accountId: string, balance: BigNumberish) => {
         await set(({ state }) => {
           state.account[accountId].balance = number.toHex(balance)
         })
       },
+
       importToken: async (accountId: string, token: Token) => {
         await set(({ state }) => {
           state.account[accountId].tokens.push({
@@ -144,6 +177,7 @@ export const useStorage = create<Storage>()(
           })
         })
       },
+
       removeToken: async (accountId: string, tokenAddress: HexString) => {
         await set(({ state }) => {
           const tokenIndex = state.account[accountId].tokens.findIndex(
@@ -155,6 +189,7 @@ export const useStorage = create<Storage>()(
           state.account[accountId].tokens.splice(tokenIndex, 1)
         })
       },
+
       updateToken: async (
         accountId: string,
         tokenAddress: HexString,
@@ -209,6 +244,14 @@ storageMessenger.get().then((state) => {
 })
 
 /* Custom Hooks */
+
+export const useAction = () => {
+  return useStorage(
+    useShallow(({ state, ...action }) => {
+      return action
+    })
+  )
+}
 
 export const useNetwork = (id?: string) => {
   return useStorage(
@@ -272,29 +315,18 @@ export const useAccounts = () => {
   )
 }
 
-export const useAction = () => {
+export const useTransactionLogs = (accountId: string) => {
   return useStorage(
-    useShallow(({ state, ...action }) => {
-      return action
+    useShallow(({ state }) => {
+      return Object.values(state.account[accountId].transactionLog)
     })
   )
 }
 
-export const useUserOperationLogs = (accountId?: string) => {
-  const { id } = useAccount(accountId)
+export const usePendingTransactions = () => {
   return useStorage(
     useShallow(({ state }) => {
-      return Object.values(state.account[id].userOpLog)
-    })
-  )
-}
-
-export const usePendingUserOperationLogs = (
-  filter: (userOp: UserOperationPending) => boolean = () => true
-) => {
-  return useStorage(
-    useShallow(({ state }) => {
-      return Object.values(state.pendingUserOpLog).filter(filter)
+      return Object.values(state.pendingTransaction)
     })
   )
 }

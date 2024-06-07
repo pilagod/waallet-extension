@@ -6,11 +6,10 @@ import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
   getLocalStorage,
-  UserOperationStatus,
-  type UserOperationLog,
-  type UserOperationReverted,
-  type UserOperationSent,
-  type UserOperationSucceeded
+  TransactionStatus,
+  type ERC4337v06TransactionReverted,
+  type ERC4337v06TransactionSucceeded,
+  type TransactionLog
 } from "~storage/local"
 import {
   AccountStorageManager,
@@ -19,7 +18,7 @@ import {
 import { getSessionStorage } from "~storage/session"
 
 import { StorageAction } from "./messages/storage"
-import { UserOperationStoragePool } from "./pool"
+import { TransactionStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 
 console.log(
@@ -49,7 +48,7 @@ async function main() {
   setupWaalletBackgroundProvider({
     accountManager,
     networkManager,
-    userOpPool: new UserOperationStoragePool(storage)
+    transactionPool: new TransactionStoragePool(storage)
   })
 
   const sessionStorage = await getSessionStorage()
@@ -78,12 +77,9 @@ async function main() {
   // @dev: Trigger popup when new pending user op is added into the pool.
   storage.subscribe(
     async (_, patches) => {
-      const newPendingUserOpLogs = patches.filter((p) => p.op === "add")
+      const newPendingTxs = patches.filter((p) => p.op === "add")
 
-      if (
-        newPendingUserOpLogs.length === 0 ||
-        sessionStorage.get().isPopupOpened
-      ) {
+      if (newPendingTxs.length === 0 || sessionStorage.get().isPopupOpened) {
         return
       }
 
@@ -95,38 +91,38 @@ async function main() {
         height: 720
       })
     },
-    { pendingUserOpLog: {} }
+    { pendingTransaction: {} }
   )
 
-  const fetchUserOpsSent = async () => {
+  const indexTransactionSent = async () => {
     const timeout = 3000
-    console.log(`[background] fetch userOp sent every ${timeout} ms`)
+    console.log(`[background] Sync transactions sent every ${timeout} ms`)
 
     const { account } = storage.get()
     const { bundler } = networkManager.getActive()
 
     // Fetch all sent user operations from all accounts
-    const sentUserOpLogs = Object.values(account)
-      .map((a) => a.userOpLog)
-      .reduce((result, userOpLog) => {
-        return result.concat(Object.values(userOpLog) ?? [])
-      }, [] as UserOperationLog[])
-      .filter(
-        (userOpLog) => userOpLog.status === UserOperationStatus.Sent
-      ) as UserOperationSent[]
+    const txLogs = Object.values(account)
+      .map((a) => a.transactionLog)
+      .reduce((result, txLog) => {
+        return result.concat(Object.values(txLog) ?? [])
+      }, [] as TransactionLog[])
 
-    // TODO: Custom nonce user operation may block the whole process
-    sentUserOpLogs.forEach(async (sentUserOpLog) => {
-      const userOpHash = sentUserOpLog.receipt.userOpHash
+    txLogs.forEach(async (txLog) => {
+      if (txLog.status !== TransactionStatus.Sent) {
+        return
+      }
+      // TODO: Handle different version
+      const userOpHash = txLog.receipt.userOpHash
       const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
       if (!userOpReceipt) {
         return
       }
 
       if (userOpReceipt.success) {
-        const succeededUserOpLog: UserOperationSucceeded = {
-          ...sentUserOpLog,
-          status: UserOperationStatus.Succeeded,
+        const txSucceeded: ERC4337v06TransactionSucceeded = {
+          ...txLog,
+          status: TransactionStatus.Succeeded,
           receipt: {
             userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
@@ -135,17 +131,16 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.account[succeededUserOpLog.senderId].userOpLog[
-            succeededUserOpLog.id
-          ] = succeededUserOpLog
+          state.account[txSucceeded.senderId].transactionLog[txSucceeded.id] =
+            txSucceeded
         })
         return
       }
 
       if (!userOpReceipt.success) {
-        const revertedUserOpLog: UserOperationReverted = {
-          ...sentUserOpLog,
-          status: UserOperationStatus.Reverted,
+        const txReverted: ERC4337v06TransactionReverted = {
+          ...txLog,
+          status: TransactionStatus.Reverted,
           receipt: {
             userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
@@ -155,15 +150,14 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.account[revertedUserOpLog.senderId].userOpLog[
-            revertedUserOpLog.id
-          ] = revertedUserOpLog
+          state.account[txReverted.senderId].transactionLog[txReverted.id] =
+            txReverted
         })
         return
       }
     })
 
-    setTimeout(fetchUserOpsSent, timeout)
+    setTimeout(indexTransactionSent, timeout)
   }
 
   // TODO: In the future, adding an Indexer to the Background Script to
@@ -224,7 +218,7 @@ async function main() {
   // TODO: Using these two asynchronous functions, both executing
   // `storage.set()` commands, often triggers the error: "Error: Could not
   // establish connection. Receiving end does not exist."
-  await fetchUserOpsSent()
+  await indexTransactionSent()
   await fetchAccountBalances()
 }
 

@@ -5,7 +5,7 @@ import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import type { ContractRunner } from "~packages/node"
 import byte from "~packages/util/byte"
-import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
+import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
@@ -34,7 +34,7 @@ export function describeAccountSuite<T extends Account>(
       const accountManager = new SingleAccountManager(ctx.account)
       ctx.provider = waalletSuiteCtx.provider.clone({
         accountManager,
-        userOperationPool: new UserOperationSender(
+        transactionPool: new TransactionToUserOperationSender(
           accountManager,
           config.networkManager
         )

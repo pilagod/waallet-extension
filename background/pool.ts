@@ -1,70 +1,68 @@
 import { v4 as uuidv4 } from "uuid"
 
-import { UserOperation } from "~packages/bundler"
 import { ObservableStorage } from "~packages/storage/observable"
 import type {
-  UserOperationPool,
-  UserOperationReceipt
-} from "~packages/waallet/background/pool/userOperation"
-import { UserOperationStatus, type State } from "~storage/local"
-import type { HexString } from "~typing"
+  Transaction,
+  TransactionPool
+} from "~packages/waallet/background/pool/transaction"
+import { TransactionStatus, type State } from "~storage/local"
 
-export class UserOperationStoragePool implements UserOperationPool {
+export class TransactionStoragePool implements TransactionPool {
   public constructor(private storage: ObservableStorage<State>) {}
 
   public async send(data: {
-    userOp: UserOperation
+    tx: Transaction
     senderId: string
     networkId: string
-    entryPointAddress: HexString
   }) {
+    const { tx, senderId, networkId } = data
     const id = uuidv4()
 
     this.storage.set((state) => {
-      state.pendingUserOpLog[id] = {
+      state.pendingTransaction[id] = {
         id,
+        status: TransactionStatus.Pending,
         createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
-        userOp: data.userOp.data(),
-        senderId: data.senderId,
-        networkId: data.networkId,
-        entryPointAddress: data.entryPointAddress,
-        status: UserOperationStatus.Pending
+        senderId,
+        networkId,
+        ...tx.data()
       }
     })
 
     return id
   }
 
-  public wait(userOpId: string) {
-    return new Promise<UserOperationReceipt>((resolve, reject) => {
-      const { senderId } = this.storage.get().pendingUserOpLog[userOpId]
+  public wait(txId: string) {
+    return new Promise<string>((resolve, reject) => {
+      const { senderId } = this.storage.get().pendingTransaction[txId]
+
       const subscriber = async ({ account }: State) => {
-        const userOpLog = account[senderId].userOpLog[userOpId]
+        const txLog = account[senderId].transactionLog[txId]
 
         // Bundler is still processing this user operation
-        if (userOpLog.status === UserOperationStatus.Sent) {
+        if (txLog.status === TransactionStatus.Sent) {
           return
         }
 
         this.storage.unsubscribe(subscriber)
 
-        if (userOpLog.status === UserOperationStatus.Rejected) {
+        if (txLog.status === TransactionStatus.Rejected) {
           reject(new Error("User rejects the user operation"))
           return
         }
 
         if (
-          userOpLog.status === UserOperationStatus.Failed ||
-          userOpLog.status === UserOperationStatus.Reverted
+          txLog.status === TransactionStatus.Failed ||
+          txLog.status === TransactionStatus.Reverted
         ) {
-          reject(new Error(userOpLog.receipt.errorMessage))
+          reject(new Error(txLog.receipt.errorMessage))
           return
         }
 
-        resolve(userOpLog.receipt)
+        resolve(txLog.receipt.transactionHash)
       }
       this.storage.subscribe(subscriber, {
-        account: { [senderId]: { userOpLog: { [userOpId]: {} } } }
+        account: { [senderId]: { transactionLog: { [txId]: {} } } }
       })
     })
   }

@@ -6,47 +6,62 @@ import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import type { BigNumberish, HexString } from "~typing"
 
-import type { UserOperationPool, UserOperationReceipt } from "./index"
+import type { Transaction, TransactionPool } from "./index"
 
-export class UserOperationSender implements UserOperationPool {
-  private pool: { [userOpHash: HexString]: Promise<UserOperationReceipt> } = {}
+export class TransactionToUserOperationSender implements TransactionPool {
+  private pool: { [txId: string]: Promise<HexString> } = {}
 
   public constructor(
     private accountManager: AccountManager,
     private networkManager: NetworkManager,
-    private hook?: {
-      beforeGasEstimation?: (userOp: UserOperation) => Promise<void>
-      afterGasEstimation?: (userOp: UserOperation) => Promise<void>
-    }
+    private usePaymaster?: (
+      userOp: UserOperation,
+      forGasEstimation: boolean
+    ) => Promise<void>
   ) {}
 
   public async send(data: {
-    userOp: UserOperation
+    tx: Transaction
     senderId: string
     networkId: string
-    entryPoint: HexString
   }) {
-    const { userOp, senderId, networkId, entryPoint } = data
-    const { node, bundler, chainId } = this.networkManager.get(networkId)
+    const { tx, senderId, networkId } = data
     const { account } = await this.accountManager.get(senderId)
+    const { chainId, node, bundler } = this.networkManager.get(networkId)
 
-    if (this.hook?.beforeGasEstimation) {
-      await this.hook.beforeGasEstimation(userOp)
+    const userOp = await account.createUserOperation(tx.data())
+
+    if (this.usePaymaster) {
+      await this.usePaymaster(userOp, true)
     }
 
-    if (!userOp.isGasFeeEstimated()) {
+    if (tx.gasPrice) {
+      userOp.setGasFee({
+        maxFeePerGas: tx.gasPrice,
+        maxPriorityFeePerGas: tx.gasPrice
+      })
+    } else {
       userOp.setGasFee(await this.estimateGasFee(node))
     }
+
+    const entryPoint = await account.getEntryPoint()
+    const isSupportedByBundler = await bundler.isSupportedEntryPoint(entryPoint)
+    if (!isSupportedByBundler) {
+      throw new Error(`Cannot support this version of EntryPoint ${entryPoint}`)
+    }
+
     const gas = await bundler.estimateUserOperationGas(userOp, entryPoint)
-    if (userOp.callGasLimit > gas.callGasLimit) {
-      gas.callGasLimit = userOp.callGasLimit
+    if (tx.gasLimit) {
+      gas.callGasLimit = tx.gasLimit
     }
     userOp.setGasLimit(gas)
 
-    if (this.hook?.afterGasEstimation) {
-      await this.hook.afterGasEstimation(userOp)
+    if (this.usePaymaster) {
+      await this.usePaymaster(userOp, false)
     }
+
     userOp.setSignature(await account.sign(userOp.hash(entryPoint, chainId)))
+
     const userOpHash = await bundler.sendUserOperation(userOp, entryPoint)
     if (!userOpHash) {
       throw new Error("Send user operation fail")
@@ -55,17 +70,14 @@ export class UserOperationSender implements UserOperationPool {
 
     this.pool[id] = new Promise(async (resolve) => {
       const transactionHash = await bundler.wait(userOpHash)
-      resolve({
-        userOpHash: userOpHash,
-        transactionHash
-      })
+      resolve(transactionHash)
     })
 
     return id
   }
 
-  public wait(userOpId: string) {
-    return this.pool[userOpId]
+  public wait(txId: string) {
+    return this.pool[txId]
   }
 
   private async estimateGasFee(node: NodeProvider): Promise<{

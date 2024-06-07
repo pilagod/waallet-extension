@@ -4,12 +4,13 @@ import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
-export const UserOperationStruct =
-  "(address sender, uint256 nonce, bytes initCode, bytes callData, uint256 callGasLimit, uint256 verificationGasLimit, uint256 preVerificationGas, uint256 maxFeePerGas, uint256 maxPriorityFeePerGas, bytes paymasterAndData, bytes signature)"
-
 export type UserOperationData = ReturnType<UserOperation["data"]>
 
 export class UserOperation {
+  public static getSolidityStructType() {
+    return "(address sender, uint256 nonce, bytes initCode, bytes callData, uint256 callGasLimit, uint256 verificationGasLimit, uint256 preVerificationGas, uint256 maxFeePerGas, uint256 maxPriorityFeePerGas, bytes paymasterAndData, bytes signature)"
+  }
+
   public sender: HexString
   public nonce: bigint
   public initCode: HexString
@@ -62,7 +63,7 @@ export class UserOperation {
     }
   }
 
-  public hash(entryPointAddress: HexString, chainId: BigNumberish) {
+  public hash(entryPoint: HexString, chainId: BigNumberish) {
     const abiCoder = ethers.AbiCoder.defaultAbiCoder()
     const userOpPacked = abiCoder.encode(
       [
@@ -93,7 +94,7 @@ export class UserOperation {
     return ethers.keccak256(
       abiCoder.encode(
         ["bytes32", "address", "uint256"],
-        [ethers.keccak256(userOpPacked), entryPointAddress, chainId]
+        [ethers.keccak256(userOpPacked), entryPoint, chainId]
       )
     )
   }

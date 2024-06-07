@@ -1,7 +1,7 @@
 import config from "~config/test"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { UserOperationSender } from "~packages/waallet/background/pool/userOperation/sender"
+import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 
 export class WaalletSuiteContext {
@@ -27,7 +27,10 @@ export function describeWaalletSuite(
       ctx.provider = new WaalletBackgroundProvider(
         accountManager,
         config.networkManager,
-        new UserOperationSender(accountManager, config.networkManager)
+        new TransactionToUserOperationSender(
+          accountManager,
+          config.networkManager
+        )
       )
     })
 

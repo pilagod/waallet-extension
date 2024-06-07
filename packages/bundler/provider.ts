@@ -1,3 +1,4 @@
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
@@ -31,10 +32,10 @@ export class BundlerProvider {
   }
 
   public async getSupportedEntryPoints(): Promise<HexString[]> {
-    const entryPointAddresses = await this.bundler.send<HexString[]>({
+    const entryPoints = await this.bundler.send<HexString[]>({
       method: BundlerRpcMethod.eth_supportedEntryPoints
     })
-    return entryPointAddresses
+    return entryPoints
   }
 
   public async isSupportedEntryPoint(entryPoint: HexString): Promise<boolean> {
@@ -103,7 +104,7 @@ export class BundlerProvider {
 
   public async estimateUserOperationGas(
     userOp: UserOperation,
-    entryPointAddress: HexString
+    entryPoint: HexString
   ): Promise<{
     preVerificationGas: bigint
     verificationGasLimit: bigint
@@ -115,7 +116,7 @@ export class BundlerProvider {
       callGasLimit: HexString
     }>({
       method: BundlerRpcMethod.eth_estimateUserOperationGas,
-      params: [userOp.data(), entryPointAddress]
+      params: [userOp.data(), entryPoint]
     })
     return {
       preVerificationGas: number.toBigInt(gasLimit.preVerificationGas),
@@ -126,11 +127,11 @@ export class BundlerProvider {
 
   public async sendUserOperation(
     userOp: UserOperation,
-    entryPointAddress: HexString
+    entryPoint: HexString
   ): Promise<HexString> {
     const userOpHash = await this.bundler.send<HexString>({
       method: BundlerRpcMethod.eth_sendUserOperation,
-      params: [userOp.data(), entryPointAddress]
+      params: [userOp.data(), entryPoint]
     })
     if (this.mode === BundlerMode.Manual) {
       await this.debugSendBundleNow()

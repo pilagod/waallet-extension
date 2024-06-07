@@ -34,7 +34,7 @@ export async function getLocalStorage() {
       Object.assign(account, {
         [accountId]: {
           ...a,
-          userOpLog: {},
+          transactionLog: {},
           balance: "0x00",
           tokens: []
         }
@@ -81,7 +81,7 @@ export async function getLocalStorage() {
         networkActive: networkActive ?? Object.keys(network)[0],
         network,
         account,
-        pendingUserOpLog: {}
+        pendingTransaction: {}
       }
     })
   }
@@ -101,8 +101,8 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
-  pendingUserOpLog: {
-    [userOpId: string]: UserOperationPending
+  pendingTransaction: {
+    [txId: string]: TransactionPending
   }
 }
 
@@ -125,22 +125,22 @@ export type Network = {
 
 export type Account = SimpleAccount | PasskeyAccount
 
-export type WithAccountPeriphery<T> = {
-  userOpLog: {
-    [userOpId: string]: Exclude<UserOperationLog, UserOperationPending>
+export type AccountMeta<T> = {
+  transactionLog: {
+    [txId: string]: TransactionLog
   }
   balance: HexString
   tokens: Token[]
 } & T
 
-export type SimpleAccount = WithAccountPeriphery<{
+export type SimpleAccount = AccountMeta<{
   type: AccountType.SimpleAccount
   chainId: number
   address: HexString
   ownerPrivateKey: HexString
 }>
 
-export type PasskeyAccount = WithAccountPeriphery<{
+export type PasskeyAccount = AccountMeta<{
   type: AccountType.PasskeyAccount
   chainId: number
   address: HexString
@@ -175,9 +175,9 @@ export type VerifyingPaymaster = {
   ownerPrivateKey: HexString
 }
 
-/* User Operation Pool */
+/* Transaction */
 
-export enum UserOperationStatus {
+export enum TransactionStatus {
   // Waiting to be processed in local user operation pool.
   Pending = "Pending",
   // User rejects the user operation.
@@ -192,48 +192,78 @@ export enum UserOperationStatus {
   Reverted = "Reverted"
 }
 
-export type UserOperationLog =
-  | UserOperationPending
-  | UserOperationRejected
-  | UserOperationSent
-  | UserOperationFailed
-  | UserOperationSucceeded
-  | UserOperationReverted
+export enum TransactionType {
+  ERC4337v06 = "ERC4337v06"
+}
 
-export type WithUserOperationDetail<T> = {
+/* Transaction - Pending */
+
+export type TransactionPending = {
   id: string
+  status: TransactionStatus.Pending
   createdAt: number
-  userOp: UserOperationData
   senderId: string
   networkId: string
-  entryPointAddress: string
+  to: HexString
+  value: HexString
+  data: HexString
+  nonce?: HexString
+  gasLimit?: HexString
+  gasPrice?: HexString
+}
+
+/* Transaction - Log */
+
+export type TransactionLog = ERC4337v06TransactionLog
+
+export type TransactionLogMeta<T> = {
+  id: string
+  senderId: string
+  networkId: string
+  createdAt: number
 } & T
 
-export type UserOperationPending = WithUserOperationDetail<{
-  status: UserOperationStatus.Pending
+/* Transaction - ERC4337v06 */
+
+export type ERC4337v06TransactionLog =
+  | ERC4337v06TransactionRejected
+  | ERC4337v06TransactionSent
+  | ERC4337v06TransactionFailed
+  | ERC4337v06TransactionSucceeded
+  | ERC4337v06TransactionReverted
+
+export type ERC4337v06TransactionMeta<T> = TransactionLogMeta<{
+  type: TransactionType.ERC4337v06
+  detail: ERC4337v06TransactionDetail
+}> &
+  T
+
+export type ERC4337v06TransactionDetail = {
+  entryPoint: HexString
+  data: UserOperationData
+}
+
+export type ERC4337v06TransactionRejected = ERC4337v06TransactionMeta<{
+  status: TransactionStatus.Rejected
 }>
 
-export type UserOperationRejected = WithUserOperationDetail<{
-  status: UserOperationStatus.Rejected
-}>
-
-export type UserOperationSent = WithUserOperationDetail<{
-  status: UserOperationStatus.Sent
+export type ERC4337v06TransactionSent = ERC4337v06TransactionMeta<{
+  status: TransactionStatus.Sent
   receipt: {
     userOpHash: HexString
   }
 }>
 
-export type UserOperationFailed = WithUserOperationDetail<{
-  status: UserOperationStatus.Failed
+export type ERC4337v06TransactionFailed = ERC4337v06TransactionMeta<{
+  status: TransactionStatus.Failed
   receipt: {
     userOpHash: HexString
     errorMessage: string
   }
 }>
 
-export type UserOperationSucceeded = WithUserOperationDetail<{
-  status: UserOperationStatus.Succeeded
+export type ERC4337v06TransactionSucceeded = ERC4337v06TransactionMeta<{
+  status: TransactionStatus.Succeeded
   receipt: {
     userOpHash: HexString
     transactionHash: HexString
@@ -242,8 +272,8 @@ export type UserOperationSucceeded = WithUserOperationDetail<{
   }
 }>
 
-export type UserOperationReverted = WithUserOperationDetail<{
-  status: UserOperationStatus.Reverted
+export type ERC4337v06TransactionReverted = ERC4337v06TransactionMeta<{
+  status: TransactionStatus.Reverted
   receipt: {
     userOpHash: HexString
     transactionHash: HexString

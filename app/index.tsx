@@ -12,7 +12,7 @@ import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
 import { WebAuthnRegistration } from "~app/page/webauthn/registration"
 import { Path } from "~app/path"
-import { usePendingUserOperationLogs, useStorage } from "~app/storage"
+import { usePendingTransactions, useStorage } from "~app/storage"
 
 import "~style.css"
 
@@ -50,9 +50,9 @@ function PageRouter() {
     window.scrollTo(0, 0)
   }, [location])
 
-  const pendingUserOpLogs = usePendingUserOperationLogs()
+  const pendingTxs = usePendingTransactions()
   if (
-    pendingUserOpLogs.length > 0 &&
+    pendingTxs.length > 0 &&
     !location.startsWith(Path.UserOperationAuthorization)
   ) {
     navigate(Path.UserOperationAuthorization)
