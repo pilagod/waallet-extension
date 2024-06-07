@@ -1,39 +1,51 @@
-import config from "~config/test"
 import number from "~packages/util/number"
 import { describeAccountSuite } from "~packages/util/testing/suite/account"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 
 import { PasskeyAccount } from "./index"
 import { PasskeyOwnerP256 } from "./passkeyOwnerP256"
 
 const owner = new PasskeyOwnerP256()
 
-describeAccountSuite(
-  "PasskeyAccount",
-  (runner) => {
-    return PasskeyAccount.initWithFactory(runner, {
+describeAccountSuite({
+  name: "PasskeyAccount",
+  useAccount: (cfg) => {
+    return PasskeyAccount.initWithFactory(cfg.provider.node, {
       owner,
       salt: number.random(),
-      factoryAddress: config.address.PasskeyAccountFactory
+      factoryAddress: cfg.address.PasskeyAccountFactory
     })
   },
-  (ctx) => {
+  suite: (ctx) => {
     describe("init", () => {
-      // TODO: This test at this moment relies on tests in test bed to deploy the account.
-      // It would be better to decouple it.
       it("should init with existing passkey account", async () => {
-        const { node } = config.networkManager.getActive()
-        const a = await PasskeyAccount.init(node, {
+        await ctx.topupAccount()
+        // Use `initCode`` to deploy account
+        await ctx.provider.waallet.request({
+          method: WaalletRpcMethod.eth_sendTransaction,
+          params: [
+            {
+              to: await ctx.account.getAddress()
+            }
+          ]
+        })
+
+        const {
+          provider: { node }
+        } = ctx
+
+        const account = await PasskeyAccount.init(node, {
           address: await ctx.account.getAddress(),
           owner
         })
-        expect(await a.getAddress()).toBe(await ctx.account.getAddress())
+        expect(await account.getAddress()).toBe(await ctx.account.getAddress())
 
         const credentialId = await PasskeyAccount.getCredentialId(
           node,
-          await a.getAddress()
+          await account.getAddress()
         )
         expect(credentialId).toBe(owner.getCredentialId())
       })
     })
   }
-)
+})

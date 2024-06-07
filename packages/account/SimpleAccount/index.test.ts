@@ -1,13 +1,15 @@
-import config from "~config/test"
 import number from "~packages/util/number"
 import { describeAccountSuite } from "~packages/util/testing/suite/account"
 
 import { SimpleAccount } from "./index"
 
-describeAccountSuite("SimpleAccount", (runner) => {
-  return SimpleAccount.initWithFactory(runner, {
-    ownerPrivateKey: config.account.operator.privateKey,
-    factoryAddress: config.address.SimpleAccountFactory,
-    salt: number.random()
-  })
+describeAccountSuite({
+  name: "SimpleAccount",
+  useAccount: (cfg) => {
+    return SimpleAccount.initWithFactory(cfg.provider.node, {
+      ownerPrivateKey: cfg.wallet.operator.privateKey,
+      factoryAddress: cfg.address.SimpleAccountFactory,
+      salt: number.random()
+    })
+  }
 })

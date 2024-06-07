@@ -1,17 +1,15 @@
 import * as ethers from "ethers"
-import { v4 as uuidv4 } from "uuid"
 
-import { SingleNetworkManager } from "~packages/network/manager/single"
+import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
+import { NodeProvider } from "~packages/node/provider"
 
-const networkManager = new SingleNetworkManager({
-  id: uuidv4(),
-  chaindId: 1337,
-  nodeRpcUrl: "http://localhost:8545",
-  bundlerRpcUrl: "http://localhost:3000"
-})
-const { node } = networkManager.getActive()
+const provider = {
+  node: new NodeProvider("http://localhost:8545"),
+  bundler: new BundlerProvider("http://localhost:3000", BundlerMode.Manual)
+}
+const { node } = provider
 
-const account = {
+const wallet = {
   operator: new ethers.Wallet(
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
     node
@@ -56,8 +54,8 @@ const contract = {
 }
 
 export default {
-  account,
   address,
   contract,
-  networkManager
+  provider,
+  wallet
 }

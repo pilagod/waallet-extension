@@ -1,107 +1,90 @@
-import * as ethers from "ethers"
-
-import config from "~config/test"
 import type { Account } from "~packages/account"
-import { SingleAccountManager } from "~packages/account/manager/single"
-import type { ContractRunner } from "~packages/node"
+import type { Paymaster } from "~packages/paymaster"
 import byte from "~packages/util/byte"
-import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
-import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
-import { describeWaalletSuite } from "./waallet"
+import {
+  describeWaalletSuite,
+  WaalletSuiteContext,
+  type WaalletSuiteOption
+} from "./waallet"
 
-export class AccountSuiteContext<T extends Account> {
-  public account: T
-  public provider: WaalletBackgroundProvider
-}
-
-export function describeAccountSuite<T extends Account>(
-  name: string,
-  setup: (runner: ContractRunner) => Promise<T>,
-  suite?: (ctx: AccountSuiteContext<T>) => void
+export function describeAccountSuite<A extends Account, P extends Paymaster>(
+  option: WaalletSuiteOption<A, P>
 ) {
-  describeWaalletSuite(name, (waalletSuiteCtx) => {
-    const { node } = config.networkManager.getActive()
-    const { counter } = config.contract
-
-    const ctx = new AccountSuiteContext<T>()
-
-    beforeAll(async () => {
-      ctx.account = await setup(node)
-      // TODO: Fix inconsistency between waallet provider and user operation sender
-      const accountManager = new SingleAccountManager(ctx.account)
-      ctx.provider = waalletSuiteCtx.provider.clone({
-        accountManager,
-        transactionPool: new TransactionToUserOperationSender(
-          accountManager,
-          config.networkManager
-        )
-      })
-      await (
-        await config.account.operator.sendTransaction({
-          to: await ctx.account.getAddress(),
-          value: ethers.parseEther("1")
+  describeWaalletSuite({
+    ...option,
+    suite: (ctx) => {
+      it("should get accounts", async () => {
+        const accounts = await ctx.provider.waallet.request<HexString>({
+          method: WaalletRpcMethod.eth_accounts
         })
-      ).wait()
-    })
-
-    it("should get accounts", async () => {
-      const accounts = await ctx.provider.request<HexString>({
-        method: WaalletRpcMethod.eth_accounts
-      })
-      expect(accounts.length).toBeGreaterThan(0)
-      expect(accounts[0]).toBe(await ctx.account.getAddress())
-    })
-
-    it("should request accounts", async () => {
-      const accounts = await ctx.provider.request<HexString>({
-        method: WaalletRpcMethod.eth_requestAccounts
-      })
-      expect(accounts.length).toBeGreaterThan(0)
-      expect(accounts[0]).toBe(await ctx.account.getAddress())
-    })
-
-    it("should estimate gas", async () => {
-      const gas = await ctx.provider.request<HexString>({
-        method: WaalletRpcMethod.eth_estimateGas,
-        params: [
-          {
-            to: await counter.getAddress(),
-            value: 1,
-            data: counter.interface.encodeFunctionData("increment", [])
-          }
-        ]
-      })
-      expect(byte.isHex(gas)).toBe(true)
-      expect(parseInt(gas, 16)).toBeGreaterThan(0)
-    })
-
-    it("should send transaction to contract", async () => {
-      const balanceBefore = await node.getBalance(counter.getAddress())
-      const counterBefore = (await counter.number()) as bigint
-
-      await ctx.provider.request<HexString>({
-        method: WaalletRpcMethod.eth_sendTransaction,
-        params: [
-          {
-            to: await counter.getAddress(),
-            value: 1,
-            data: counter.interface.encodeFunctionData("increment", [])
-          }
-        ]
+        expect(accounts.length).toBeGreaterThan(0)
+        expect(accounts[0]).toBe(await ctx.account.getAddress())
       })
 
-      const balanceAfter = await node.getBalance(counter.getAddress())
-      expect(balanceAfter - balanceBefore).toBe(1n)
+      it("should request accounts", async () => {
+        const accounts = await ctx.provider.waallet.request<HexString>({
+          method: WaalletRpcMethod.eth_requestAccounts
+        })
+        expect(accounts.length).toBeGreaterThan(0)
+        expect(accounts[0]).toBe(await ctx.account.getAddress())
+      })
 
-      const counterAfter = (await counter.number()) as bigint
-      expect(counterAfter - counterBefore).toBe(1n)
-    })
+      it("should estimate gas", async () => {
+        await ctx.topupAccount()
 
-    if (suite) {
-      suite(ctx)
+        const {
+          contract: { counter }
+        } = ctx
+
+        const gas = await ctx.provider.waallet.request<HexString>({
+          method: WaalletRpcMethod.eth_estimateGas,
+          params: [
+            {
+              to: await counter.getAddress(),
+              value: 1,
+              data: counter.interface.encodeFunctionData("increment", [])
+            }
+          ]
+        })
+        expect(byte.isHex(gas)).toBe(true)
+        expect(parseInt(gas, 16)).toBeGreaterThan(0)
+      })
+
+      it("should send transaction to contract", async () => {
+        await ctx.topupAccount()
+
+        const {
+          contract: { counter },
+          provider: { node }
+        } = ctx
+
+        const balanceBefore = await node.getBalance(counter.getAddress())
+        const counterBefore = (await counter.number()) as bigint
+
+        await ctx.provider.waallet.request<HexString>({
+          method: WaalletRpcMethod.eth_sendTransaction,
+          params: [
+            {
+              to: await counter.getAddress(),
+              value: 1,
+              data: counter.interface.encodeFunctionData("increment", [])
+            }
+          ]
+        })
+
+        const balanceAfter = await node.getBalance(counter.getAddress())
+        expect(balanceAfter - balanceBefore).toBe(1n)
+
+        const counterAfter = (await counter.number()) as bigint
+        expect(counterAfter - counterBefore).toBe(1n)
+      })
+
+      if (option.suite) {
+        option.suite(ctx as WaalletSuiteContext<A>)
+      }
     }
   })
 }
