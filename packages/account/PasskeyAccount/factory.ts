@@ -14,28 +14,36 @@ export class PasskeyAccountFactory implements AccountFactory {
   private credentialId: string
   private publicKey: PasskeyPublicKey
 
-  public constructor(opts: {
-    address: HexString
-    credentialId: string
-    publicKey: PasskeyPublicKey
-    salt: BigNumberish
-  }) {
-    this.address = opts.address
-    this.salt = opts.salt
-    this.factory = new ethers.Contract(opts.address, [
-      "function getAddress(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt) view returns (address)",
-      "function createAccount(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt)"
-    ])
-    this.credentialId = opts.credentialId
-    this.publicKey = opts.publicKey
+  public constructor(
+    private runner: ContractRunner,
+    option: {
+      address: HexString
+      credentialId: string
+      publicKey: PasskeyPublicKey
+      salt: BigNumberish
+    }
+  ) {
+    this.address = option.address
+    this.salt = option.salt
+    this.factory = new ethers.Contract(
+      option.address,
+      [
+        "function getAddress(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt) view returns (address)",
+        "function createAccount(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt)",
+        "function entryPoint() view returns (address)"
+      ],
+      this.runner
+    )
+    this.credentialId = option.credentialId
+    this.publicKey = option.publicKey
   }
 
-  public async getAddress(runner: ContractRunner) {
+  public async getAddress() {
     return ethers.zeroPadValue(
       ethers.stripZerosLeft(
         // The name of `getAddress` conflicts with the function on ethers.Contract.
         // So we build call data from interface and directly send through node rpc provider.
-        await runner.provider.call(
+        await this.runner.provider.call(
           await this.factory
             .getFunction("getAddress")
             .populateTransaction(
@@ -48,6 +56,10 @@ export class PasskeyAccountFactory implements AccountFactory {
       ),
       20
     )
+  }
+
+  public async getEntryPoint() {
+    return this.factory.entryPoint()
   }
 
   public async getInitCode() {

@@ -54,9 +54,9 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.address
   }
 
-  public async getNonce(): Promise<bigint> {
+  public async getEntryPoint(): Promise<HexString> {
     if (!(await this.isDeployed())) {
-      return 0n
+      return this.mustGetFactory().getEntryPoint()
     }
     const account = new ethers.Contract(
       this.address,
@@ -66,14 +66,19 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       ],
       this.runner
     )
+    try {
+      return await account.entryPoint()
+    } catch (e) {
+      return await account.getEntryPoint()
+    }
+  }
+
+  public async getNonce(): Promise<bigint> {
+    if (!(await this.isDeployed())) {
+      return 0n
+    }
     const entryPoint = new ethers.Contract(
-      await (async () => {
-        try {
-          return await account.entryPoint()
-        } catch (e) {
-          return await account.getEntryPoint()
-        }
-      })(),
+      await this.getEntryPoint(),
       [
         "function getNonce(address sender, uint192 key) view returns (uint256 nonce)"
       ],
