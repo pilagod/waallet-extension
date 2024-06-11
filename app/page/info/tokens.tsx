@@ -1,6 +1,6 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { formatUnits, getAddress, toNumber } from "ethers"
+import { formatUnits, getAddress, parseUnits, toNumber } from "ethers"
 import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
@@ -89,6 +89,8 @@ function TokenInfoModal({
   const [tokenSymbol, setTokenSymbol] = useState<string>(token.symbol)
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
   const [isViewExplorerVisible, setIsViewExplorerVisible] = useState(false)
+  const [isTokenSendModalOpened, setIsTokenSendModalOpened] =
+    useState<boolean>(false)
 
   const toggleViewExplorerVisibility = useCallback(() => {
     setIsViewExplorerVisible((prev) => !prev)
@@ -116,6 +118,10 @@ function TokenInfoModal({
   const handleClose = () => {
     onModalClosed()
   }
+
+  const toggleTokenSendModal = useCallback(() => {
+    setIsTokenSendModalOpened((prev) => !prev)
+  }, [])
 
   return (
     <div className="absolute top-0 left-0 w-screen h-screen p-4">
@@ -189,8 +195,166 @@ function TokenInfoModal({
             <button type="button" onClick={handleRemove}>
               Remove
             </button>
+            <button type="button" onClick={toggleTokenSendModal}>
+              Send
+            </button>
             <button type="button" onClick={handleClose}>
               Close
+            </button>
+          </div>
+        </form>
+        {isTokenSendModalOpened && (
+          <TokenSendModal
+            onModalClosed={toggleTokenSendModal}
+            tokenAddress={tokenAddress}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function TokenSendModal({
+  onModalClosed,
+  tokenAddress
+}: {
+  onModalClosed: () => void
+  tokenAddress: HexString
+}) {
+  const { provider } = useProviderContext()
+  const account = useAccount()
+  const tokens = useTokens()
+  const token = tokens.find((token) =>
+    address.isEqual(token.address, tokenAddress)
+  )
+
+  const [inputTo, setInputTo] = useState<string>("")
+  const [inputValue, setInputValue] = useState<string>("")
+  const [invalidTo, setInvalidTo] = useState<boolean>(false)
+  const [invalidValue, setInvalidValue] = useState<boolean>(false)
+
+  const handleClose = useCallback(() => {
+    onModalClosed()
+  }, [])
+
+  const handleToChange = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value
+      setInputTo(value)
+      try {
+        console.log(`${getAddress(value)}`)
+        setInvalidTo(false)
+      } catch (error) {
+        console.warn(`Invalid to address: ${error}`)
+        setInvalidTo(true)
+      }
+    },
+    []
+  )
+
+  const handleAmountChange = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value
+      setInputValue(value)
+      try {
+        console.log(`${parseUnits(value, token.decimals)}`)
+        setInvalidValue(false)
+      } catch (error) {
+        console.warn(`Invalid value: ${error}`)
+        setInvalidValue(true)
+      }
+    },
+    []
+  )
+
+  const handleSend = useCallback(async () => {
+    const erc20 = getErc20Contract(token.address, provider)
+
+    try {
+      const data = erc20.interface.encodeFunctionData("transfer", [
+        inputTo,
+        parseUnits(inputValue.toString(), token.decimals)
+      ])
+
+      //   const { hash } = await provider.send(
+      //     WaalletRpcMethod.eth_sendTransaction,
+      //     [{ from: account.address, to, value, data }]
+      //   )
+
+      // TODO: Need to fix the Popup Script might be re-opened.
+      const signer = await provider.getSigner()
+      const { hash } = await signer.sendTransaction({
+        to: token.address,
+        value: 0,
+        data: data
+      })
+
+      console.log(`[Popup][TokenSendModal] transaction hash: ${hash}`)
+    } catch (error) {
+      console.warn(`[Popup][TokenSendModal] send transaction error: ${error}`)
+    }
+  }, [inputTo, inputValue])
+
+  return (
+    <div className="absolute top-0 left-0 w-screen h-screen p-4">
+      <div
+        className="absolute top-0 left-0 w-full h-full bg-black/75"
+        onClick={onModalClosed}
+      />
+      <div className="relative w-full p-4 bg-white rounded">
+        <div className="absolute top-4 right-4">
+          <button onClick={onModalClosed}>
+            <FontAwesomeIcon icon={faXmark} className="text-lg" />
+          </button>
+        </div>
+        <form>
+          <div>
+            <label>Asset:</label>
+            <input
+              type="text"
+              id="asset"
+              value={token.symbol}
+              disabled={true}
+              className="border w-96 outline-none border-gray-300"
+            />
+          </div>
+          <div>
+            <label>To:</label>
+            <input
+              type="text"
+              id="to"
+              value={`${inputTo}`}
+              onChange={handleToChange}
+              list="suggestionTo"
+              className={`border w-96 outline-none ${
+                invalidTo ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            <datalist id="suggestionTo">
+              <option value={account.address} />
+            </datalist>
+          </div>
+          <div>
+            <label>Amount:</label>
+            <input
+              type="text"
+              id="amount"
+              value={`${inputValue}`}
+              onChange={handleAmountChange}
+              className={`border w-96 outline-none ${
+                invalidValue ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+          </div>
+          <div className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
+            <button
+              onClick={handleSend}
+              disabled={invalidTo || invalidValue}
+              className="flex-1">
+              Send
+            </button>
+            <button type="button" onClick={handleClose}>
+              Cancel
             </button>
           </div>
         </form>
@@ -198,7 +362,6 @@ function TokenInfoModal({
     </div>
   )
 }
-
 function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const { provider } = useProviderContext()
   const { importToken } = useAction()
