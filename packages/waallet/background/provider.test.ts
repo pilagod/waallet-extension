@@ -1,3 +1,4 @@
+import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -64,11 +65,13 @@ describeWaalletSuite({
         contract: { counter }
       } = ctx
 
-      const userOp = await ctx.account.createUserOperation({
-        to: await counter.getAddress(),
-        value: 1,
-        data: counter.interface.encodeFunctionData("increment", [])
-      })
+      const userOp = new UserOperationV0_6(
+        await ctx.account.createUserOperationCall({
+          to: await counter.getAddress(),
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
+        })
+      )
       // Use custom nonce which doesn't match the one on chain
       userOp.setNonce(userOp.nonce + 1n)
 
@@ -129,11 +132,13 @@ describeWaalletSuite({
         await counter.getAddress()
       )
 
-      const userOp = await ctx.account.createUserOperation({
-        to: await counter.getAddress(),
-        value: 1,
-        data: counter.interface.encodeFunctionData("increment", [])
-      })
+      const userOp = new UserOperationV0_6(
+        await ctx.account.createUserOperationCall({
+          to: await counter.getAddress(),
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
+        })
+      )
 
       const { gasPrice } = await node.getFeeData()
       userOp.setGasFee({

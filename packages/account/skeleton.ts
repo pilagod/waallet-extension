@@ -2,7 +2,6 @@ import * as ethers from "ethers"
 
 import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
-import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import type { ContractRunner } from "~packages/node"
 import type { BytesLike, HexString } from "~typing"
 
@@ -31,23 +30,21 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   /* public */
 
-  public async createUserOperation(call: Call): Promise<UserOperationV0_6> {
+  public async createUserOperationCall(call: Call) {
     const sender = await this.getAddress()
     // Only nonce on chain can be used
     const nonce = await this.getNonce()
-    const initCode = (await this.isDeployed())
-      ? "0x"
-      : await this.mustGetFactory().getInitCode()
+    const initCode = await this.getInitCode()
     const callData = call ? await this.getCallData(call) : "0x"
-    const signature = await this.getDummySignature()
+    const dummySignature = await this.getDummySignature()
 
-    return new UserOperationV0_6({
+    return {
       sender,
       nonce,
       initCode,
       callData,
-      signature
-    })
+      signature: dummySignature
+    }
   }
 
   public async getAddress(): Promise<HexString> {
@@ -94,6 +91,13 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   }
 
   /* protected */
+
+  protected async getInitCode() {
+    if (await this.isDeployed()) {
+      return "0x"
+    }
+    return this.mustGetFactory().getInitCode()
+  }
 
   protected mustGetFactory() {
     if (!this.factory) {

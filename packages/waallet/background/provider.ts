@@ -85,11 +85,13 @@ export class WaalletBackgroundProvider {
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
-    const userOp = await account.createUserOperation({
-      to: tx.to,
-      value: tx.value,
-      data: tx.data
-    })
+    const userOp = new UserOperationV0_6(
+      await account.createUserOperationCall({
+        to: tx.to,
+        value: tx.value,
+        data: tx.data
+      })
+    )
     if (tx.gas) {
       userOp.setCallGasLimit(tx.gas)
     }

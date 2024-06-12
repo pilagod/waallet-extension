@@ -1,4 +1,3 @@
-import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export enum AccountType {
@@ -12,8 +11,19 @@ export type Call = {
   data: HexString
 }
 
+export type UserOperationCall = {
+  sender: HexString
+  nonce: bigint
+  initCode: HexString
+  callData: HexString
+  /**
+   * @dev Dummy signature for validation
+   */
+  signature: HexString
+}
+
 export interface Account {
-  createUserOperation(call: Call): Promise<UserOperationV0_6>
+  createUserOperationCall(call: Call): Promise<UserOperationCall>
   getAddress(): Promise<HexString>
   getEntryPoint(): Promise<HexString>
   getNonce(): Promise<bigint>

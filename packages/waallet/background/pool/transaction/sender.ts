@@ -29,7 +29,9 @@ export class TransactionToUserOperationSender implements TransactionPool {
     const { account } = await this.accountManager.get(senderId)
     const { chainId, node, bundler } = this.networkManager.get(networkId)
 
-    const userOp = await account.createUserOperation(tx.data())
+    const userOp = new UserOperationV0_6(
+      await account.createUserOperationCall(tx.data())
+    )
 
     if (this.usePaymaster) {
       await this.usePaymaster(userOp, true)
