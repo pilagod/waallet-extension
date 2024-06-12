@@ -1,6 +1,6 @@
 import type { AccountManager } from "~packages/account/manager"
-import { UserOperation } from "~packages/bundler"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import type { NetworkManager } from "~packages/network/manager"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import address from "~packages/util/address"
@@ -56,7 +56,7 @@ export class WaalletBackgroundProvider {
         return this.handleSendTransaction(args.params) as T
       case WaalletRpcMethod.eth_sendUserOperation:
         return bundler.sendUserOperation(
-          new UserOperation(args.params[0]),
+          new UserOperationV0_6(args.params[0]),
           args.params[1]
         ) as T
       // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
@@ -108,7 +108,7 @@ export class WaalletBackgroundProvider {
     callGasLimit: HexString
   }> {
     const [userOpData, entryPoint] = params
-    const userOp = new UserOperation(userOpData)
+    const userOp = new UserOperationV0_6(userOpData)
     const { bundler } = this.networkManager.getActive()
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)

@@ -1,4 +1,4 @@
-import { UserOperation } from "~packages/bundler"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export enum AccountType {
@@ -13,7 +13,7 @@ export type Call = {
 }
 
 export interface Account {
-  createUserOperation(call: Call): Promise<UserOperation>
+  createUserOperation(call: Call): Promise<UserOperationV0_6>
   getAddress(): Promise<HexString>
   getEntryPoint(): Promise<HexString>
   getNonce(): Promise<bigint>

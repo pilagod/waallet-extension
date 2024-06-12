@@ -3,8 +3,8 @@ import number from "~packages/util/number"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
 import { JsonRpcProvider } from "../rpc/json/provider"
-import { UserOperation } from "./index"
 import { BundlerRpcMethod } from "./rpc"
+import { UserOperationV0_6 } from "./userOperation/v0_6"
 
 export enum BundlerMode {
   Manual = "manual",
@@ -40,12 +40,14 @@ export class BundlerProvider {
 
   public async isSupportedEntryPoint(entryPoint: HexString): Promise<boolean> {
     const entryPoints = await this.getSupportedEntryPoints()
-    return entryPoints.filter((ep) => entryPoint === ep).length > 0
+    return (
+      entryPoints.filter((ep) => address.isEqual(entryPoint, ep)).length > 0
+    )
   }
 
   public async getUserOperationByHash(userOpHash: HexString): Promise<
     Nullable<{
-      userOperation: UserOperation
+      userOperation: UserOperationV0_6
       entryPoint: HexString
       blockNumber: bigint
       blockHash: HexString
@@ -54,7 +56,7 @@ export class BundlerProvider {
   > {
     const data = await this.bundler.send<
       Nullable<{
-        userOperation: ReturnType<UserOperation["data"]>
+        userOperation: ReturnType<UserOperationV0_6["data"]>
         entryPoint: HexString
         blockNumber: HexString
         blockHash: HexString
@@ -71,7 +73,7 @@ export class BundlerProvider {
     }
     return {
       ...data,
-      userOperation: new UserOperation(data.userOperation),
+      userOperation: new UserOperationV0_6(data.userOperation),
       ...(data.blockNumber && {
         blockNumber: number.toBigInt(data.blockNumber)
       })
@@ -103,7 +105,7 @@ export class BundlerProvider {
   }
 
   public async estimateUserOperationGas(
-    userOp: UserOperation,
+    userOp: UserOperationV0_6,
     entryPoint: HexString
   ): Promise<{
     preVerificationGas: bigint
@@ -126,7 +128,7 @@ export class BundlerProvider {
   }
 
   public async sendUserOperation(
-    userOp: UserOperation,
+    userOp: UserOperationV0_6,
     entryPoint: HexString
   ): Promise<HexString> {
     const userOpHash = await this.bundler.send<HexString>({

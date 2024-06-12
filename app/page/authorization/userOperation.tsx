@@ -12,7 +12,7 @@ import {
   usePendingTransactions
 } from "~app/storage"
 import type { Account } from "~packages/account"
-import { UserOperation } from "~packages/bundler"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
@@ -87,7 +87,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
 
   /* User Operation */
 
-  const [userOp, setUserOp] = useClsState<UserOperation>(null)
+  const [userOp, setUserOp] = useClsState<UserOperationV0_6>(null)
   const [userOpResolving, setUserOpResolving] = useState(false)
   const [userOpEstimating, setUserOpEstimating] = useState(false)
 
@@ -147,7 +147,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
     }
   }
 
-  const estimateGas = async (userOp: UserOperation) => {
+  const estimateGas = async (userOp: UserOperationV0_6) => {
     userOp.setPaymasterAndData(
       await paymentOption.paymaster.requestPaymasterAndData(userOp, true)
     )

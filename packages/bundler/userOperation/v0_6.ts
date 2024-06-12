@@ -4,9 +4,9 @@ import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
-export type UserOperationData = ReturnType<UserOperation["data"]>
+export type UserOperationDataV0_6 = ReturnType<UserOperationV0_6["data"]>
 
-export class UserOperation {
+export class UserOperationV0_6 {
   public static getSolidityStructType() {
     return "(address sender, uint256 nonce, bytes initCode, bytes callData, uint256 callGasLimit, uint256 verificationGasLimit, uint256 preVerificationGas, uint256 maxFeePerGas, uint256 maxPriorityFeePerGas, bytes paymasterAndData, bytes signature)"
   }

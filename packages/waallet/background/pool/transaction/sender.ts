@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 
 import type { AccountManager } from "~packages/account/manager"
-import { UserOperation } from "~packages/bundler"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import type { BigNumberish, HexString } from "~typing"
@@ -15,7 +15,7 @@ export class TransactionToUserOperationSender implements TransactionPool {
     private accountManager: AccountManager,
     private networkManager: NetworkManager,
     private usePaymaster?: (
-      userOp: UserOperation,
+      userOp: UserOperationV0_6,
       forGasEstimation: boolean
     ) => Promise<void>
   ) {}

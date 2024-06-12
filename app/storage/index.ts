@@ -7,7 +7,7 @@ import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { UserOperation } from "~packages/bundler"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
@@ -35,14 +35,14 @@ interface Storage {
     txId: string,
     data: {
       entryPoint: HexString
-      userOp: UserOperation
+      userOp: UserOperationV0_6
     }
   ): Promise<void>
   markERC4337v06TransactionSent(
     txId: string,
     data: {
       entryPoint: HexString
-      userOp: UserOperation
+      userOp: UserOperationV0_6
       userOpHash: HexString
     }
   ): Promise<void>

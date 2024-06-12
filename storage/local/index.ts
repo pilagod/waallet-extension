@@ -3,7 +3,7 @@ import browser from "webextension-polyfill"
 
 import { getConfig } from "~config"
 import { AccountType } from "~packages/account"
-import type { UserOperationData } from "~packages/bundler"
+import type { UserOperationDataV0_6 } from "~packages/bundler/userOperation/v0_6"
 import { ObservableStorage } from "~packages/storage/observable"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
@@ -240,7 +240,7 @@ export type ERC4337v06TransactionMeta<T> = TransactionLogMeta<{
 
 export type ERC4337v06TransactionDetail = {
   entryPoint: HexString
-  data: UserOperationData
+  data: UserOperationDataV0_6
 }
 
 export type ERC4337v06TransactionRejected = ERC4337v06TransactionMeta<{

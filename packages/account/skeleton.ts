@@ -2,7 +2,7 @@ import * as ethers from "ethers"
 
 import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
-import { UserOperation } from "~packages/bundler"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import type { ContractRunner } from "~packages/node"
 import type { BytesLike, HexString } from "~typing"
 
@@ -31,7 +31,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   /* public */
 
-  public async createUserOperation(call: Call): Promise<UserOperation> {
+  public async createUserOperation(call: Call): Promise<UserOperationV0_6> {
     const sender = await this.getAddress()
     // Only nonce on chain can be used
     const nonce = await this.getNonce()
@@ -41,7 +41,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     const callData = call ? await this.getCallData(call) : "0x"
     const signature = await this.getDummySignature()
 
-    return new UserOperation({
+    return new UserOperationV0_6({
       sender,
       nonce,
       initCode,
