@@ -4,7 +4,17 @@ import type { BigNumberish, HexString, Nullable } from "~typing"
 
 import { JsonRpcProvider } from "../rpc/json/provider"
 import { BundlerRpcMethod } from "./rpc"
-import { UserOperationV0_6 } from "./userOperation/v0_6"
+import {
+  UserOperationV0_6,
+  type UserOperationDataV0_6
+} from "./userOperation/v0_6"
+import {
+  UserOperationV0_7,
+  type UserOperationDataV0_7
+} from "./userOperation/v0_7"
+
+type UserOperation = UserOperationV0_6 | UserOperationV0_7
+type UserOperationData = UserOperationDataV0_6 | UserOperationDataV0_7
 
 export enum BundlerMode {
   Manual = "manual",
@@ -47,7 +57,7 @@ export class BundlerProvider {
 
   public async getUserOperationByHash(userOpHash: HexString): Promise<
     Nullable<{
-      userOperation: UserOperationV0_6
+      userOperation: UserOperation
       entryPoint: HexString
       blockNumber: bigint
       blockHash: HexString
@@ -56,7 +66,7 @@ export class BundlerProvider {
   > {
     const data = await this.bundler.send<
       Nullable<{
-        userOperation: ReturnType<UserOperationV0_6["data"]>
+        userOperation: ReturnType<UserOperation["data"]>
         entryPoint: HexString
         blockNumber: HexString
         blockHash: HexString
@@ -73,7 +83,7 @@ export class BundlerProvider {
     }
     return {
       ...data,
-      userOperation: new UserOperationV0_6(data.userOperation),
+      userOperation: this.deriveUserOperation(data.userOperation),
       ...(data.blockNumber && {
         blockNumber: number.toBigInt(data.blockNumber)
       })
@@ -105,17 +115,19 @@ export class BundlerProvider {
   }
 
   public async estimateUserOperationGas(
-    userOp: UserOperationV0_6,
+    userOp: UserOperation,
     entryPoint: HexString
   ): Promise<{
     preVerificationGas: bigint
     verificationGasLimit: bigint
     callGasLimit: bigint
+    paymasterVerificationGasLimit: bigint
   }> {
     const gasLimit = await this.bundler.send<{
       preVerificationGas: HexString
       verificationGasLimit: HexString
       callGasLimit: HexString
+      paymasterVerificationGasLimit: HexString
     }>({
       method: BundlerRpcMethod.eth_estimateUserOperationGas,
       params: [userOp.data(), entryPoint]
@@ -123,12 +135,15 @@ export class BundlerProvider {
     return {
       preVerificationGas: number.toBigInt(gasLimit.preVerificationGas),
       verificationGasLimit: number.toBigInt(gasLimit.verificationGasLimit),
-      callGasLimit: number.toBigInt(gasLimit.callGasLimit)
+      callGasLimit: number.toBigInt(gasLimit.callGasLimit),
+      paymasterVerificationGasLimit: number.toBigInt(
+        gasLimit.paymasterVerificationGasLimit ?? "0x0"
+      )
     }
   }
 
   public async sendUserOperation(
-    userOp: UserOperationV0_6,
+    userOp: UserOperation,
     entryPoint: HexString
   ): Promise<HexString> {
     const userOpHash = await this.bundler.send<HexString>({
@@ -162,9 +177,18 @@ export class BundlerProvider {
     }
   }
 
+  /* private */
+
   private async debugSendBundleNow() {
     await this.bundler.send({
       method: BundlerRpcMethod.debug_bundler_sendBundleNow
     })
+  }
+
+  private deriveUserOperation(data: UserOperationData) {
+    if ("factory" in data) {
+      return new UserOperationV0_7(data)
+    }
+    return new UserOperationV0_6(data)
   }
 }
