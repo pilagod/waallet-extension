@@ -58,7 +58,7 @@ export function describeWaalletSuite<A extends Account, P extends Paymaster>(
         ctx.account = await option.useAccount(ctx)
       } else {
         ctx.account = await SimpleAccount.init(node, {
-          address: ctx.address.SimpleAccount,
+          address: ctx.address.SimpleAccountV0_6,
           ownerPrivateKey: ctx.wallet.operator.privateKey
         })
       }
