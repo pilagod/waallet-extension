@@ -8,6 +8,7 @@ import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Tokens() {
@@ -19,15 +20,15 @@ export function Tokens() {
   const [selectedTokenAddress, setSelectedTokenAddress] =
     useState<HexString>("")
 
-  const toggleTokenImportModal = useCallback(() => {
+  const toggleTokenImportModal = () => {
     setIsTokenImportModalOpened((prev) => !prev)
-  }, [])
-  const openTokenInfoModal = useCallback((tokenAddress: HexString) => {
+  }
+  const openTokenInfoModal = (tokenAddress: HexString) => {
     setSelectedTokenAddress(tokenAddress)
-  }, [])
-  const closeTokenInfoModal = useCallback(() => {
+  }
+  const closeTokenInfoModal = () => {
     setSelectedTokenAddress("")
-  }, [])
+  }
 
   return (
     <div>
@@ -92,9 +93,9 @@ function TokenInfoModal({
   const [isTokenSendModalOpened, setIsTokenSendModalOpened] =
     useState<boolean>(false)
 
-  const toggleViewExplorerVisibility = useCallback(() => {
+  const toggleViewExplorerVisibility = () => {
     setIsViewExplorerVisible((prev) => !prev)
-  }, [])
+  }
 
   const handleTokenSymbolChange = (event: ChangeEvent<HTMLInputElement>) => {
     const inputTokenSymbol = event.target.value
@@ -119,9 +120,9 @@ function TokenInfoModal({
     onModalClosed()
   }
 
-  const toggleTokenSendModal = useCallback(() => {
+  const toggleTokenSendModal = () => {
     setIsTokenSendModalOpened((prev) => !prev)
-  }, [])
+  }
 
   return (
     <div className="absolute top-0 left-0 w-screen h-screen p-4">
@@ -231,39 +232,33 @@ function TokenSendModal({
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
 
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     onModalClosed()
-  }, [])
+  }
 
-  const handleToChange = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value
-      setInputTo(value)
-      try {
-        console.log(`${getAddress(value)}`)
-        setInvalidTo(false)
-      } catch (error) {
-        console.warn(`Invalid to address: ${error}`)
-        setInvalidTo(true)
-      }
-    },
-    []
-  )
+  const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setInputTo(value)
+    try {
+      console.log(`${getAddress(value)}`)
+      setInvalidTo(false)
+    } catch (error) {
+      console.warn(`Invalid to address: ${error}`)
+      setInvalidTo(true)
+    }
+  }
 
-  const handleAmountChange = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value
-      setInputValue(value)
-      try {
-        console.log(`${parseUnits(value, token.decimals)}`)
-        setInvalidValue(false)
-      } catch (error) {
-        console.warn(`Invalid value: ${error}`)
-        setInvalidValue(true)
-      }
-    },
-    []
-  )
+  const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setInputValue(value)
+    try {
+      console.log(`${parseUnits(value, token.decimals)}`)
+      setInvalidValue(false)
+    } catch (error) {
+      console.warn(`Invalid value: ${error}`)
+      setInvalidValue(true)
+    }
+  }
 
   const handleSend = useCallback(async () => {
     const erc20 = getErc20Contract(token.address, provider)
@@ -274,18 +269,10 @@ function TokenSendModal({
         parseUnits(inputValue.toString(), token.decimals)
       ])
 
-      //   const { hash } = await provider.send(
-      //     WaalletRpcMethod.eth_sendTransaction,
-      //     [{ from: account.address, to, value, data }]
-      //   )
-
-      // TODO: Need to fix the Popup Script might be re-opened.
-      const signer = await provider.getSigner()
-      const { hash } = await signer.sendTransaction({
-        to: token.address,
-        value: 0,
-        data: data
-      })
+      const { hash } = await provider.send(
+        WaalletRpcMethod.eth_sendTransaction,
+        [{ from: account.address, to: token.address, value: 0, data }]
+      )
 
       console.log(`[Popup][TokenSendModal] transaction hash: ${hash}`)
     } catch (error) {
@@ -306,7 +293,7 @@ function TokenSendModal({
           </button>
         </div>
         <div>
-          <label>Asset:</label>
+          <label htmlFor="asset">Asset:</label>
           <input
             type="text"
             id="asset"
@@ -316,7 +303,7 @@ function TokenSendModal({
           />
         </div>
         <div>
-          <label>To:</label>
+          <label htmlFor="to">To:</label>
           <input
             type="text"
             id="to"
@@ -332,7 +319,7 @@ function TokenSendModal({
           </datalist>
         </div>
         <div>
-          <label>Amount:</label>
+          <label htmlFor="amount">Amount:</label>
           <input
             type="text"
             id="amount"
@@ -419,10 +406,6 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   }
 
   const onTokenImported = async () => {
-    // Prevents the default behavior of the event,
-    // allowing for custom handling of the event action.
-    event.preventDefault()
-
     let balance: BigNumberish = 0
     try {
       balance = await getErc20Contract(tokenAddress, provider).balanceOf(
