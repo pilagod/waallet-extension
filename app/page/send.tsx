@@ -15,35 +15,26 @@ import type { BigNumberish, HexString } from "~typing"
 export function Send() {
   const { provider } = useProviderContext()
   const account = useAccount()
-  const tokens = useTokens()
 
   const nativeToken: Token = {
     address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
     symbol: `${getChainName(account.chainId)}ETH`,
     decimals: 18,
-    balance: number.formatUnitsToFixed(account.balance, 18)
+    balance: account.balance
   }
+  const tokens = [nativeToken, ...useTokens()]
 
   const [token, setToken] = useState<Token>(nativeToken)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
-  const [isEth, setIsEth] = useState<boolean>(
-    address.isEqual(token.address, nativeToken.address)
-  )
 
   const handleAssetChange = async (event: ChangeEvent<HTMLSelectElement>) => {
     const tokenAddress = event.target.value
     console.log(`tokenAddress: ${tokenAddress}`)
-    if (address.isEqual(nativeToken.address, tokenAddress)) {
-      setToken(nativeToken)
-      setIsEth(true)
-      return
-    }
     const token = tokens.find((token) => token.address === tokenAddress)
     setToken(token)
-    setIsEth(false)
   }
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -72,21 +63,10 @@ export function Send() {
 
   const handleSend = useCallback(async () => {
     const signer = await provider.getSigner()
-    const erc20 = getErc20Contract(token.address, provider)
-    const to = isEth ? txTo : token.address
-    const value = isEth ? ethers.parseUnits(txValue.toString(), "ether") : 0
-    const data = isEth
-      ? "0x"
-      : erc20.interface.encodeFunctionData("transfer", [
-          txTo,
-          ethers.parseUnits(txValue.toString(), token.decimals)
-        ])
-
-    await signer.sendTransaction({
-      to: to,
-      value: value,
-      data: data
-    })
+    if (address.isEqual(token.address, nativeToken.address)) {
+      return sendNativeToken(signer, txTo, txValue)
+    }
+    return sendErc20Token(signer, txTo, txValue, token)
   }, [txTo, txValue])
 
   return (
@@ -99,9 +79,6 @@ export function Send() {
             value={token.address}
             className="col-span-4 border w-full outline-none border-gray-300"
             onChange={handleAssetChange}>
-            <option key={nativeToken.address} value={nativeToken.address}>
-              {nativeToken.symbol}: {nativeToken.balance} {nativeToken.symbol}
-            </option>
             {tokens.map((token) => {
               const balance = number.formatUnitsToFixed(
                 token.balance,
@@ -155,4 +132,34 @@ export function Send() {
       </div>
     </NavbarLayout>
   )
+}
+
+const sendNativeToken = async (
+  signer: ethers.JsonRpcSigner,
+  to: HexString,
+  value: BigNumberish
+) => {
+  return await signer.sendTransaction({
+    to: to,
+    value: ethers.parseUnits(value.toString(), "ether"),
+    data: "0x"
+  })
+}
+
+const sendErc20Token = async (
+  signer: ethers.JsonRpcSigner,
+  toAddress: HexString,
+  value: BigNumberish,
+  token: Token
+) => {
+  const erc20 = getErc20Contract(token.address, signer)
+  const data = erc20.interface.encodeFunctionData("transfer", [
+    toAddress,
+    ethers.parseUnits(value.toString(), token.decimals)
+  ])
+  return await signer.sendTransaction({
+    to: token.address,
+    value: 0,
+    data: data
+  })
 }
