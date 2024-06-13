@@ -67,9 +67,9 @@ export function describeWaalletSuite<A extends Account, P extends Paymaster>(
       // Setup network manager
       const { chainId } = await node.getNetwork()
       const networkManager = new SingleNetworkManager({
-        chaindId: Number(chainId),
-        nodeRpcUrl: node.url,
-        bundlerRpcUrl: bundler.url
+        chainId: Number(chainId),
+        node,
+        bundler
       })
 
       ctx.provider.waallet = new WaalletBackgroundProvider(

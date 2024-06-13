@@ -5,35 +5,34 @@ import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 
 export class SingleNetworkManager implements NetworkManager {
-  public constructor(
-    private network: {
-      id?: string
-      chaindId: number
-      nodeRpcUrl: string
-      bundlerRpcUrl: string
-    }
-  ) {
-    if (!this.network.id) {
-      this.network.id = uuidv4()
-    }
+  private id = uuidv4()
+  private chainId: number
+  private node: NodeProvider
+  private bundler: BundlerProvider
+
+  public constructor(option: {
+    chainId: number
+    node: NodeProvider
+    bundler: BundlerProvider
+  }) {
+    this.chainId = option.chainId
+    this.node = option.node
+    this.bundler = option.bundler
   }
 
   public get(id: string) {
-    if (id !== this.network.id) {
+    if (id !== this.id) {
       throw new Error(`Unknown network ${id}`)
     }
     return {
-      id: this.network.id,
-      chainId: this.network.chaindId,
-      node: new NodeProvider(this.network.nodeRpcUrl),
-      bundler: new BundlerProvider(
-        this.network.bundlerRpcUrl,
-        BundlerMode.Manual
-      )
+      id: this.id,
+      chainId: this.chainId,
+      node: this.node,
+      bundler: this.bundler
     }
   }
 
   public getActive() {
-    return this.get(this.network.id)
+    return this.get(this.id)
   }
 }

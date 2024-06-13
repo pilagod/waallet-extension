@@ -1,20 +1,8 @@
 import * as ethers from "ethers"
 
+import { EntryPointVersion } from "~packages/bundler"
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
 import { NodeProvider } from "~packages/node/provider"
-
-const provider = {
-  node: new NodeProvider("http://localhost:8545"),
-  bundler: new BundlerProvider("http://localhost:3000", BundlerMode.Manual)
-}
-const { node } = provider
-
-const wallet = {
-  operator: new ethers.Wallet(
-    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-    node
-  )
-}
 
 const address = {
   Counter: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
@@ -33,6 +21,26 @@ const address = {
   EntryPointV0_7: "0x057ef64E23666F000b34aE31332854aCBd1c8544",
   SimpleAccountFactoryV0_7: "0x261D8c5e9742e6f7f1076Fa1F560894524e19cad",
   SimpleAccountV0_7: "0xe569f1d8487239659C09b5cA1881320B5EbB0ab2"
+}
+
+const provider = {
+  node: new NodeProvider("http://localhost:8545"),
+  bundler: new BundlerProvider({
+    url: "http://localhost:3000",
+    entryPoint: {
+      [EntryPointVersion.V0_6]: address.EntryPointV0_6,
+      [EntryPointVersion.V0_7]: address.EntryPointV0_7
+    },
+    mode: BundlerMode.Manual
+  })
+}
+const { node } = provider
+
+const wallet = {
+  operator: new ethers.Wallet(
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    node
+  )
 }
 
 const contract = {

@@ -3,6 +3,7 @@ import number from "~packages/util/number"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
 import { JsonRpcProvider } from "../rpc/json/provider"
+import { EntryPointVersion } from "./index"
 import { BundlerRpcMethod } from "./rpc"
 import {
   UserOperationV0_6,
@@ -25,13 +26,24 @@ export class BundlerProvider {
   public readonly url: string
 
   private bundler: JsonRpcProvider
+  private entryPoint: {
+    [v in EntryPointVersion]: HexString
+  }
+  private mode: BundlerMode = BundlerMode.Auto
 
-  public constructor(
-    bundlerRpcUrl: string,
-    private mode: BundlerMode = BundlerMode.Auto
-  ) {
-    this.url = bundlerRpcUrl
-    this.bundler = new JsonRpcProvider(bundlerRpcUrl)
+  public constructor(option: {
+    url: string
+    entryPoint: {
+      [v in EntryPointVersion]: HexString
+    }
+    mode?: BundlerMode
+  }) {
+    this.url = option.url
+    this.bundler = new JsonRpcProvider(option.url)
+    this.entryPoint = option.entryPoint
+    if (option.mode) {
+      this.mode = option.mode
+    }
   }
 
   public async getChainId(): Promise<bigint> {
