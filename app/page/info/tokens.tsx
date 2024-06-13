@@ -1,7 +1,7 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { formatUnits, getAddress, parseUnits, toNumber } from "ethers"
-import { useCallback, useState, type ChangeEvent } from "react"
+import { getAddress, parseUnits, toNumber } from "ethers"
+import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
@@ -36,7 +36,7 @@ export function Tokens() {
         Tokens:
         <div>
           <span>{getChainName(account.chainId)}ETH </span>
-          <span>{formatUnitsToFixed(account.balance, 18)}</span>
+          <span>{number.formatUnitsToFixed(account.balance, 18)}</span>
         </div>
         {tokens.map((token, index) => {
           return (
@@ -45,7 +45,9 @@ export function Tokens() {
                 className="col-span-3 cursor-pointer"
                 onClick={() => openTokenInfoModal(token.address)}>
                 <span>{token.symbol}</span>{" "}
-                <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>
+                <span>
+                  {number.formatUnitsToFixed(token.balance, token.decimals)}
+                </span>
               </div>
               {selectedTokenAddress && (
                 <TokenInfoModal
@@ -150,7 +152,9 @@ function TokenInfoModal({
           )}
         </div>
         <div className="text-center">
-          <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>{" "}
+          <span>
+            {number.formatUnitsToFixed(token.balance, token.decimals)}
+          </span>
           <span>{token.symbol}</span>
         </div>
         <div>
@@ -491,16 +495,4 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       </div>
     </div>
   )
-}
-
-function formatUnitsToFixed(
-  balance: BigNumberish,
-  decimals: BigNumberish,
-  fixed: number = 6
-): string {
-  const parseValue = parseFloat(formatUnits(balance, toNumber(decimals)))
-  if (isNaN(parseValue) || parseValue === 0) {
-    return "0"
-  }
-  return parseValue.toFixed(fixed)
 }
