@@ -2,13 +2,14 @@ import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { formatUnits, getAddress, parseUnits, toNumber } from "ethers"
 import { useCallback, useState, type ChangeEvent } from "react"
+import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
+import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Tokens() {
@@ -35,8 +36,10 @@ export function Tokens() {
       <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
         Tokens:
         <div>
-          <span>{getChainName(account.chainId)}ETH </span>
-          <span>{formatUnitsToFixed(account.balance, 18)}</span>
+          <Link href={Path.Send}>
+            <span>{getChainName(account.chainId)}ETH </span>
+            <span>{formatUnitsToFixed(account.balance, 18)}</span>
+          </Link>
         </div>
         {tokens.map((token, index) => {
           return (
