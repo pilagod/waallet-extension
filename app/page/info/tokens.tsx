@@ -1,7 +1,7 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { getAddress, toNumber } from "ethers"
-import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
+import { getAddress, parseUnits, toNumber } from "ethers"
+import { useCallback, useState, type ChangeEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
@@ -19,15 +19,15 @@ export function Tokens() {
   const [selectedTokenAddress, setSelectedTokenAddress] =
     useState<HexString>("")
 
-  const toggleTokenImportModal = useCallback(() => {
+  const toggleTokenImportModal = () => {
     setIsTokenImportModalOpened((prev) => !prev)
-  }, [])
-  const openTokenInfoModal = useCallback((tokenAddress: HexString) => {
+  }
+  const openTokenInfoModal = (tokenAddress: HexString) => {
     setSelectedTokenAddress(tokenAddress)
-  }, [])
-  const closeTokenInfoModal = useCallback(() => {
+  }
+  const closeTokenInfoModal = () => {
     setSelectedTokenAddress("")
-  }, [])
+  }
 
   return (
     <div>
@@ -91,10 +91,12 @@ function TokenInfoModal({
   const [tokenSymbol, setTokenSymbol] = useState<string>(token.symbol)
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
   const [isViewExplorerVisible, setIsViewExplorerVisible] = useState(false)
+  const [isTokenSendModalOpened, setIsTokenSendModalOpened] =
+    useState<boolean>(false)
 
-  const toggleViewExplorerVisibility = useCallback(() => {
+  const toggleViewExplorerVisibility = () => {
     setIsViewExplorerVisible((prev) => !prev)
-  }, [])
+  }
 
   const handleTokenSymbolChange = (event: ChangeEvent<HTMLInputElement>) => {
     const inputTokenSymbol = event.target.value
@@ -117,6 +119,10 @@ function TokenInfoModal({
 
   const handleClose = () => {
     onModalClosed()
+  }
+
+  const toggleTokenSendModal = () => {
+    setIsTokenSendModalOpened((prev) => !prev)
   }
 
   return (
@@ -150,59 +156,200 @@ function TokenInfoModal({
           </span>
           <span>{token.symbol}</span>
         </div>
-        <form>
-          <div>
-            <label htmlFor="tokenAddress">Token Address:</label>
-            <input
-              className="border w-96 outline-none border-gray-300"
-              type="text"
-              id="tokenAddress"
-              value={tokenAddress}
-              disabled={true}
-            />
-          </div>
-          <div>
-            <label htmlFor="tokenSymbol">Token Symbol:</label>
-            <input
-              className={`border w-96 outline-none ${
-                invalidTokenSymbol ? "border-red-500" : "border-gray-300"
-              }`}
-              type="text"
-              id="tokenSymbol"
-              value={tokenSymbol}
-              onChange={handleTokenSymbolChange}
-            />
-          </div>
-          <div>
-            <label htmlFor="tokenDecimals">Token Decimals:</label>
-            <input
-              className="border w-96 outline-none border-gray-300"
-              type="text"
-              id="tokenDecimals"
-              value={token.decimals}
-              disabled={true}
-            />
-          </div>
-          <div className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
-            <button
-              type="button"
-              onClick={handleUpdate}
-              disabled={invalidTokenSymbol}>
-              Update
-            </button>
-            <button type="button" onClick={handleRemove}>
-              Remove
-            </button>
-            <button type="button" onClick={handleClose}>
-              Close
-            </button>
-          </div>
-        </form>
+        <div>
+          <label htmlFor="tokenAddress">Token Address:</label>
+          <input
+            className="border w-96 outline-none border-gray-300"
+            type="text"
+            id="tokenAddress"
+            value={tokenAddress}
+            disabled={true}
+          />
+        </div>
+        <div>
+          <label htmlFor="tokenSymbol">Token Symbol:</label>
+          <input
+            className={`border w-96 outline-none ${
+              invalidTokenSymbol ? "border-red-500" : "border-gray-300"
+            }`}
+            type="text"
+            id="tokenSymbol"
+            value={tokenSymbol}
+            onChange={handleTokenSymbolChange}
+          />
+        </div>
+        <div>
+          <label htmlFor="tokenDecimals">Token Decimals:</label>
+          <input
+            className="border w-96 outline-none border-gray-300"
+            type="text"
+            id="tokenDecimals"
+            value={token.decimals}
+            disabled={true}
+          />
+        </div>
+        <div className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
+          <button
+            type="button"
+            onClick={handleUpdate}
+            disabled={invalidTokenSymbol}>
+            Update
+          </button>
+          <button type="button" onClick={handleRemove}>
+            Remove
+          </button>
+          <button type="button" onClick={toggleTokenSendModal}>
+            Send
+          </button>
+          <button type="button" onClick={handleClose}>
+            Close
+          </button>
+        </div>
+        {isTokenSendModalOpened && (
+          <TokenSendModal
+            onModalClosed={toggleTokenSendModal}
+            tokenAddress={tokenAddress}
+          />
+        )}
       </div>
     </div>
   )
 }
 
+function TokenSendModal({
+  onModalClosed,
+  tokenAddress
+}: {
+  onModalClosed: () => void
+  tokenAddress: HexString
+}) {
+  const { provider } = useProviderContext()
+  const account = useAccount()
+  const tokens = useTokens()
+  const token = tokens.find((token) =>
+    address.isEqual(token.address, tokenAddress)
+  )
+
+  const [inputTo, setInputTo] = useState<string>("")
+  const [inputValue, setInputValue] = useState<string>("")
+  const [invalidTo, setInvalidTo] = useState<boolean>(false)
+  const [invalidValue, setInvalidValue] = useState<boolean>(false)
+
+  const handleClose = () => {
+    onModalClosed()
+  }
+
+  const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setInputTo(value)
+    try {
+      console.log(`${getAddress(value)}`)
+      setInvalidTo(false)
+    } catch (error) {
+      console.warn(`Invalid to address: ${error}`)
+      setInvalidTo(true)
+    }
+  }
+
+  const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setInputValue(value)
+    try {
+      console.log(`${parseUnits(value, token.decimals)}`)
+      setInvalidValue(false)
+    } catch (error) {
+      console.warn(`Invalid value: ${error}`)
+      setInvalidValue(true)
+    }
+  }
+
+  const handleSend = useCallback(async () => {
+    const erc20 = getErc20Contract(token.address, provider)
+
+    try {
+      const data = erc20.interface.encodeFunctionData("transfer", [
+        inputTo,
+        parseUnits(inputValue.toString(), token.decimals)
+      ])
+
+      const signer = await provider.getSigner()
+      const { hash } = await signer.sendTransaction({
+        to: token.address,
+        value: 0,
+        data: data
+      })
+
+      console.log(`[Popup][TokenSendModal] transaction hash: ${hash}`)
+    } catch (error) {
+      console.warn(`[Popup][TokenSendModal] send transaction error: ${error}`)
+    }
+  }, [inputTo, inputValue])
+
+  return (
+    <div className="absolute top-0 left-0 w-screen h-screen p-4">
+      <div
+        className="absolute top-0 left-0 w-full h-full bg-black/75"
+        onClick={onModalClosed}
+      />
+      <div className="relative w-full p-4 bg-white rounded">
+        <div className="absolute top-4 right-4">
+          <button onClick={onModalClosed}>
+            <FontAwesomeIcon icon={faXmark} className="text-lg" />
+          </button>
+        </div>
+        <div>
+          <label htmlFor="asset">Asset:</label>
+          <input
+            type="text"
+            id="asset"
+            value={token.symbol}
+            disabled={true}
+            className="border w-96 outline-none border-gray-300"
+          />
+        </div>
+        <div>
+          <label htmlFor="to">To:</label>
+          <input
+            type="text"
+            id="to"
+            value={`${inputTo}`}
+            onChange={handleToChange}
+            list="suggestionTo"
+            className={`border w-96 outline-none ${
+              invalidTo ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          <datalist id="suggestionTo">
+            <option value={account.address} />
+          </datalist>
+        </div>
+        <div>
+          <label htmlFor="amount">Amount:</label>
+          <input
+            type="text"
+            id="amount"
+            value={`${inputValue}`}
+            onChange={handleAmountChange}
+            className={`border w-96 outline-none ${
+              invalidValue ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+        </div>
+        <div className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
+          <button
+            onClick={handleSend}
+            disabled={invalidTo || invalidValue}
+            className="flex-1">
+            Send
+          </button>
+          <button type="button" onClick={handleClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const { provider } = useProviderContext()
   const { importToken } = useAction()
@@ -263,11 +410,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     setInvalidTokenSymbol(inputTokenSymbol.length === 0)
   }
 
-  const onTokenImported = async (event: FormEvent<HTMLFormElement>) => {
-    // Prevents the default behavior of the event,
-    // allowing for custom handling of the event action.
-    event.preventDefault()
-
+  const onTokenImported = async () => {
     let balance: BigNumberish = 0
     try {
       balance = await getErc20Contract(tokenAddress, provider).balanceOf(
@@ -299,54 +442,55 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
             <FontAwesomeIcon icon={faXmark} className="text-lg" />
           </button>
         </div>
-        <form onSubmit={onTokenImported}>
-          <div>
-            <label htmlFor="tokenAddress">Token Address:</label>
-            <input
-              className={`border w-96 outline-none ${
-                tokenAddress.length > 0 && invalidTokenAddressMessage
-                  ? "border-red-500"
-                  : "border-gray-300"
-              }`}
-              type="text"
-              id="tokenAddress"
-              value={tokenAddress}
-              onChange={handleTokenAddressChange}
-            />
-          </div>
-          {invalidTokenAddressMessage && (
-            <div className="text-red-500">{invalidTokenAddressMessage}</div>
-          )}
-          {tokenAddress.length > 0 && !invalidTokenAddressMessage && (
-            <>
-              <div>
-                <label htmlFor="tokenSymbol">Token Symbol:</label>
-                <input
-                  className={`border w-96 outline-none ${
-                    invalidTokenSymbol ? "border-red-500" : "border-gray-300"
-                  }`}
-                  type="text"
-                  id="tokenSymbol"
-                  value={tokenSymbol}
-                  onChange={handleTokenSymbolChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="tokenDecimals">Token Decimals:</label>
-                <input
-                  className="border w-96 outline-none border-gray-300"
-                  type="text"
-                  id="tokenDecimals"
-                  value={tokenDecimals}
-                  disabled={true}
-                />
-              </div>
-              <button type="submit" disabled={invalidTokenSymbol}>
-                Import
-              </button>
-            </>
-          )}
-        </form>
+        <div>
+          <label htmlFor="tokenAddress">Token Address:</label>
+          <input
+            className={`border w-96 outline-none ${
+              tokenAddress.length > 0 && invalidTokenAddressMessage
+                ? "border-red-500"
+                : "border-gray-300"
+            }`}
+            type="text"
+            id="tokenAddress"
+            value={tokenAddress}
+            onChange={handleTokenAddressChange}
+          />
+        </div>
+        {invalidTokenAddressMessage && (
+          <div className="text-red-500">{invalidTokenAddressMessage}</div>
+        )}
+        {tokenAddress.length > 0 && !invalidTokenAddressMessage && (
+          <>
+            <div>
+              <label htmlFor="tokenSymbol">Token Symbol:</label>
+              <input
+                className={`border w-96 outline-none ${
+                  invalidTokenSymbol ? "border-red-500" : "border-gray-300"
+                }`}
+                type="text"
+                id="tokenSymbol"
+                value={tokenSymbol}
+                onChange={handleTokenSymbolChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="tokenDecimals">Token Decimals:</label>
+              <input
+                className="border w-96 outline-none border-gray-300"
+                type="text"
+                id="tokenDecimals"
+                value={tokenDecimals}
+                disabled={true}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={onTokenImported}
+              disabled={invalidTokenSymbol}>
+              Import
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
