@@ -1,6 +1,5 @@
 import type { AccountManager } from "~packages/account/manager"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
-import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
 import type { NetworkManager } from "~packages/network/manager"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import address from "~packages/util/address"
@@ -12,6 +11,7 @@ import {
   type EthEstimateGasArguments,
   type EthEstimateUserOperationGasArguments,
   type EthSendTransactionArguments,
+  type EthSendUserOperationArguments,
   type WaalletRequestArguments
 } from "../rpc"
 import { Transaction, type TransactionPool } from "./pool/transaction"
@@ -55,10 +55,7 @@ export class WaalletBackgroundProvider {
       case WaalletRpcMethod.eth_sendTransaction:
         return this.handleSendTransaction(args.params) as T
       case WaalletRpcMethod.eth_sendUserOperation:
-        return bundler.sendUserOperation(
-          new UserOperationV0_6(args.params[0]),
-          args.params[1]
-        ) as T
+        return this.handleSendUserOperation(args.params) as T
       // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
       default:
         if (args.method in BundlerRpcMethod) {
@@ -85,15 +82,16 @@ export class WaalletBackgroundProvider {
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
-    const userOp = new UserOperationV0_6(
+    const userOp = bundler.deriveUserOperation(
       await account.createUserOperationCall({
         to: tx.to,
         value: tx.value,
         data: tx.data
-      })
+      }),
+      entryPoint
     )
     if (tx.gas) {
-      userOp.setCallGasLimit(tx.gas)
+      userOp.setGasLimit({ callGasLimit: tx.gas })
     }
     const { callGasLimit } = await bundler.estimateUserOperationGas(
       userOp,
@@ -108,18 +106,24 @@ export class WaalletBackgroundProvider {
     preVerificationGas: HexString
     verificationGasLimit: HexString
     callGasLimit: HexString
+    paymasterVerificationGasLimit: HexString
   }> {
-    const [userOpData, entryPoint] = params
-    const userOp = new UserOperationV0_6(userOpData)
+    const [userOp, entryPoint] = params
     const { bundler } = this.networkManager.getActive()
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
-    const data = await bundler.estimateUserOperationGas(userOp, entryPoint)
+    const data = await bundler.estimateUserOperationGas(
+      bundler.deriveUserOperation(userOp, entryPoint),
+      entryPoint
+    )
     return {
       preVerificationGas: number.toHex(data.preVerificationGas),
       verificationGasLimit: number.toHex(data.verificationGasLimit),
-      callGasLimit: number.toHex(data.callGasLimit)
+      callGasLimit: number.toHex(data.callGasLimit),
+      paymasterVerificationGasLimit: number.toHex(
+        data.paymasterVerificationGasLimit ?? 0n
+      )
     }
   }
 
@@ -156,5 +160,16 @@ export class WaalletBackgroundProvider {
     const transactionHash = await this.transactionPool.wait(txId)
 
     return transactionHash
+  }
+
+  private async handleSendUserOperation(
+    params: EthSendUserOperationArguments["params"]
+  ): Promise<HexString> {
+    const [userOp, entryPoint] = params
+    const { bundler } = this.networkManager.getActive()
+    return bundler.sendUserOperation(
+      bundler.deriveUserOperation(userOp, entryPoint),
+      entryPoint
+    )
   }
 }

@@ -4,6 +4,7 @@ import config from "~config/test"
 import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import { UserOperationV0_7 } from "~packages/bundler/userOperation"
 import { SingleNetworkManager } from "~packages/network/manager/single"
 import type { Paymaster } from "~packages/paymaster"
 import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
@@ -80,6 +81,10 @@ export function describeWaalletSuite<A extends Account, P extends Paymaster>(
           networkManager,
           async (userOp, forGasEstimation) => {
             if (!option.usePaymaster) {
+              return
+            }
+            // TODO: Handle v0.7 paymaster
+            if (userOp instanceof UserOperationV0_7) {
               return
             }
             const paymaster = await option.usePaymaster(ctx)

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 
 import type { AccountManager } from "~packages/account/manager"
-import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
+import type { UserOperation } from "~packages/bundler/userOperation"
 import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import type { BigNumberish, HexString } from "~typing"
@@ -15,7 +15,7 @@ export class TransactionToUserOperationSender implements TransactionPool {
     private accountManager: AccountManager,
     private networkManager: NetworkManager,
     private usePaymaster?: (
-      userOp: UserOperationV0_6,
+      userOp: UserOperation,
       forGasEstimation: boolean
     ) => Promise<void>
   ) {}
@@ -29,8 +29,15 @@ export class TransactionToUserOperationSender implements TransactionPool {
     const { account } = await this.accountManager.get(senderId)
     const { chainId, node, bundler } = this.networkManager.get(networkId)
 
-    const userOp = new UserOperationV0_6(
-      await account.createUserOperationCall(tx.data())
+    const entryPoint = await account.getEntryPoint()
+    const isSupportedByBundler = await bundler.isSupportedEntryPoint(entryPoint)
+    if (!isSupportedByBundler) {
+      throw new Error(`Cannot support this version of EntryPoint ${entryPoint}`)
+    }
+
+    const userOp = bundler.deriveUserOperation(
+      await account.createUserOperationCall(tx.data()),
+      entryPoint
     )
 
     if (this.usePaymaster) {
@@ -38,18 +45,9 @@ export class TransactionToUserOperationSender implements TransactionPool {
     }
 
     if (tx.gasPrice) {
-      userOp.setGasFee({
-        maxFeePerGas: tx.gasPrice,
-        maxPriorityFeePerGas: tx.gasPrice
-      })
+      userOp.setGasFee(tx.gasPrice)
     } else {
       userOp.setGasFee(await this.estimateGasFee(node))
-    }
-
-    const entryPoint = await account.getEntryPoint()
-    const isSupportedByBundler = await bundler.isSupportedEntryPoint(entryPoint)
-    if (!isSupportedByBundler) {
-      throw new Error(`Cannot support this version of EntryPoint ${entryPoint}`)
     }
 
     const gas = await bundler.estimateUserOperationGas(userOp, entryPoint)

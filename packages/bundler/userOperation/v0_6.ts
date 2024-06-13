@@ -2,7 +2,7 @@ import * as ethers from "ethers"
 
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import type { BigNumberish, HexString, RequiredPick } from "~typing"
+import type { BigNumberish, HexString } from "~typing"
 
 export type UserOperationDataV0_6 = {
   sender: HexString
@@ -35,33 +35,18 @@ export class UserOperationV0_6 {
   public paymasterAndData: HexString = "0x"
   public signature: HexString = "0x"
 
-  public constructor(
-    data: RequiredPick<
-      Partial<UserOperationDataV0_6>,
-      "sender" | "nonce" | "callData"
-    >
-  ) {
+  public constructor(data: Partial<UserOperationDataV0_6>) {
     this.sender = data.sender
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
+
     if (data.initCode) {
       this.initCode = data.initCode
     }
-    if (data.callGasLimit) {
-      this.callGasLimit = number.toBigInt(data.callGasLimit)
-    }
-    if (data.verificationGasLimit) {
-      this.verificationGasLimit = number.toBigInt(data.verificationGasLimit)
-    }
-    if (data.preVerificationGas) {
-      this.preVerificationGas = number.toBigInt(data.preVerificationGas)
-    }
-    if (data.maxFeePerGas) {
-      this.maxFeePerGas = number.toBigInt(data.maxFeePerGas)
-    }
-    if (data.maxPriorityFeePerGas) {
-      this.maxPriorityFeePerGas = number.toBigInt(data.maxPriorityFeePerGas)
-    }
+
+    this.setGasFee(data)
+    this.setGasLimit(data)
+
     if (data.paymasterAndData) {
       this.paymasterAndData = data.paymasterAndData
     }
@@ -122,30 +107,54 @@ export class UserOperationV0_6 {
     }
   }
 
-  public setCallGasLimit(callGasLimit: BigNumberish) {
-    this.callGasLimit = number.toBigInt(callGasLimit)
-  }
-
-  public setGasLimit(data: {
-    callGasLimit: BigNumberish
-    verificationGasLimit: BigNumberish
-    preVerificationGas: BigNumberish
-  }) {
-    this.setCallGasLimit(data.callGasLimit)
-    this.verificationGasLimit = number.toBigInt(data.verificationGasLimit)
-    this.preVerificationGas = number.toBigInt(data.preVerificationGas)
-  }
-
-  public setGasFee(data: {
-    maxFeePerGas: BigNumberish
-    maxPriorityFeePerGas: BigNumberish
-  }) {
-    this.maxFeePerGas = number.toBigInt(data.maxFeePerGas)
-    this.maxPriorityFeePerGas = number.toBigInt(data.maxPriorityFeePerGas)
-  }
+  /* setter */
 
   public setNonce(nonce: BigNumberish) {
     this.nonce = number.toBigInt(nonce)
+  }
+
+  public setGasFee(gasPrice: BigNumberish): void
+  public setGasFee(gasFee: {
+    maxFeePerGas?: BigNumberish
+    maxPriorityFeePerGas?: BigNumberish
+  }): void
+  public setGasFee(
+    gasPriceOrFee:
+      | BigNumberish
+      | {
+          maxFeePerGas?: BigNumberish
+          maxPriorityFeePerGas?: BigNumberish
+        }
+  ) {
+    if (typeof gasPriceOrFee !== "object") {
+      const gasPrice = number.toBigInt(gasPriceOrFee)
+      this.maxFeePerGas = gasPrice
+      this.maxPriorityFeePerGas = gasPrice
+      return
+    }
+    const { maxFeePerGas, maxPriorityFeePerGas } = gasPriceOrFee
+    if (maxFeePerGas) {
+      this.maxFeePerGas = number.toBigInt(maxFeePerGas)
+    }
+    if (maxPriorityFeePerGas) {
+      this.maxPriorityFeePerGas = number.toBigInt(maxPriorityFeePerGas)
+    }
+  }
+
+  public setGasLimit(data: {
+    callGasLimit?: BigNumberish
+    verificationGasLimit?: BigNumberish
+    preVerificationGas?: BigNumberish
+  }) {
+    if (data.callGasLimit) {
+      this.callGasLimit = number.toBigInt(data.callGasLimit)
+    }
+    if (data.verificationGasLimit) {
+      this.verificationGasLimit = number.toBigInt(data.verificationGasLimit)
+    }
+    if (data.preVerificationGas) {
+      this.preVerificationGas = number.toBigInt(data.preVerificationGas)
+    }
   }
 
   public setPaymasterAndData(paymasterAndData: HexString) {

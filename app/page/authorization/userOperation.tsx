@@ -12,7 +12,7 @@ import {
   usePendingTransactions
 } from "~app/storage"
 import type { Account } from "~packages/account"
-import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"

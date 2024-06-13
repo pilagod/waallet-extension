@@ -7,7 +7,7 @@ import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {

@@ -7,15 +7,10 @@ import { EntryPointVersion } from "./index"
 import { BundlerRpcMethod } from "./rpc"
 import {
   UserOperationV0_6,
-  type UserOperationDataV0_6
-} from "./userOperation/v0_6"
-import {
   UserOperationV0_7,
-  type UserOperationDataV0_7
-} from "./userOperation/v0_7"
-
-type UserOperation = UserOperationV0_6 | UserOperationV0_7
-type UserOperationData = UserOperationDataV0_6 | UserOperationDataV0_7
+  type UserOperation,
+  type UserOperationData
+} from "./userOperation"
 
 export enum BundlerMode {
   Manual = "manual",
@@ -46,6 +41,8 @@ export class BundlerProvider {
     }
   }
 
+  /* rpc */
+
   public async getChainId(): Promise<bigint> {
     const chainId = await this.bundler.send<HexString>({
       method: BundlerRpcMethod.eth_chainId
@@ -60,13 +57,6 @@ export class BundlerProvider {
     return entryPoints
   }
 
-  public async isSupportedEntryPoint(entryPoint: HexString): Promise<boolean> {
-    const entryPoints = await this.getSupportedEntryPoints()
-    return (
-      entryPoints.filter((ep) => address.isEqual(entryPoint, ep)).length > 0
-    )
-  }
-
   public async getUserOperationByHash(userOpHash: HexString): Promise<
     Nullable<{
       userOperation: UserOperation
@@ -78,7 +68,7 @@ export class BundlerProvider {
   > {
     const data = await this.bundler.send<
       Nullable<{
-        userOperation: ReturnType<UserOperation["data"]>
+        userOperation: UserOperationData
         entryPoint: HexString
         blockNumber: HexString
         blockHash: HexString
@@ -172,6 +162,38 @@ export class BundlerProvider {
     return this.bundler.send(args) as T
   }
 
+  /* util */
+
+  public deriveUserOperation(
+    data: Partial<UserOperationData>,
+    entryPoint: HexString
+  ): UserOperation
+  public deriveUserOperation(data: UserOperationData): UserOperation
+  public deriveUserOperation(
+    data: Partial<UserOperationData> | UserOperationData,
+    entryPoint?: HexString
+  ) {
+    if (!entryPoint) {
+      const userOp = data as UserOperationData
+      if ("factory" in data) {
+        return new UserOperationV0_7(userOp)
+      }
+      return new UserOperationV0_6(userOp)
+    }
+    const userOp = data as Partial<UserOperationData>
+    if (address.isEqual(entryPoint, this.entryPoint[EntryPointVersion.V0_6])) {
+      return new UserOperationV0_6(userOp)
+    }
+    return new UserOperationV0_7(userOp)
+  }
+
+  public async isSupportedEntryPoint(entryPoint: HexString): Promise<boolean> {
+    const entryPoints = await this.getSupportedEntryPoints()
+    return (
+      entryPoints.filter((ep) => address.isEqual(entryPoint, ep)).length > 0
+    )
+  }
+
   public async wait(userOpHash: HexString): Promise<HexString> {
     while (true) {
       const res = await new Promise<
@@ -195,12 +217,5 @@ export class BundlerProvider {
     await this.bundler.send({
       method: BundlerRpcMethod.debug_bundler_sendBundleNow
     })
-  }
-
-  private deriveUserOperation(data: UserOperationData) {
-    if ("factory" in data) {
-      return new UserOperationV0_7(data)
-    }
-    return new UserOperationV0_6(data)
   }
 }

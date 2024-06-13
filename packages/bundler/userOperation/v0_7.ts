@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import number from "~packages/util/number"
-import type { BigNumberish, HexString, RequiredPick } from "~typing"
+import type { BigNumberish, HexString, OptionalPick } from "~typing"
 
 export type UserOperationDataV0_7 = {
   sender: HexString
@@ -29,7 +29,7 @@ export class UserOperationV0_7 {
   public sender: HexString
   public nonce: bigint
   public callData: HexString
-  public factory: HexString = "0x"
+  public factory?: HexString
   public factoryData: HexString = "0x"
   public callGasLimit: bigint = 0n
   public verificationGasLimit: bigint = 0n
@@ -38,30 +38,28 @@ export class UserOperationV0_7 {
   public maxPriorityFeePerGas: bigint = 0n
   public paymasterVerificationGasLimit: bigint = 0n
   public paymasterPostOpGasLimit: bigint = 0n
-  public paymaster: HexString = "0x"
+  public paymaster?: HexString
   public paymasterData: HexString = "0x"
   public signature: HexString = "0x"
 
   public constructor(
-    data: RequiredPick<
-      Partial<UserOperationDataV0_7>,
-      "sender" | "nonce" | "callData"
-    >
+    data: Partial<UserOperationDataV0_7> & { initCode?: HexString }
   ) {
     this.sender = data.sender
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
-    if (this.factory) {
-      this.factory = data.factory
-    }
-    if (this.factoryData) {
-      this.factoryData = data.factoryData
+
+    // TODO: A better way to tackle init code
+    if (data.initCode) {
+      this.setFactory(data.initCode)
+    } else {
+      this.setFactory(data)
     }
     this.setGasFee(data)
     this.setGasLimit(data)
 
     if (data.paymaster) {
-      this.paymaster = data.paymaster
+      this.paymaster = ethers.getAddress(data.paymaster)
     }
     if (data.paymasterData) {
       this.paymasterData = data.paymasterData
@@ -103,13 +101,18 @@ export class UserOperationV0_7 {
     )
   }
 
-  public data(): UserOperationDataV0_7 {
+  public data(): OptionalPick<
+    UserOperationDataV0_7,
+    "factory" | "factoryData" | "paymaster" | "paymasterData"
+  > {
     return {
       sender: this.sender,
       nonce: number.toHex(this.nonce),
-      factory: this.factory,
-      factoryData: this.factoryData,
       callData: this.callData,
+      ...(this.factory && {
+        factory: this.factory,
+        factoryData: this.factoryData
+      }),
       callGasLimit: number.toHex(this.callGasLimit),
       verificationGasLimit: number.toHex(this.verificationGasLimit),
       preVerificationGas: number.toHex(this.preVerificationGas),
@@ -119,13 +122,20 @@ export class UserOperationV0_7 {
         this.paymasterVerificationGasLimit
       ),
       paymasterPostOpGasLimit: number.toHex(this.paymasterPostOpGasLimit),
-      paymaster: this.paymaster,
-      paymasterData: this.paymasterData,
+      ...(this.paymaster && {
+        paymaster: this.paymaster,
+        paymasterData: this.paymasterData
+      }),
       signature: this.signature
     }
   }
 
+  /* getter */
+
   public getInitCode() {
+    if (!this.factory) {
+      return "0x"
+    }
     return ethers.concat([this.factory, this.factoryData])
   }
 
@@ -144,6 +154,9 @@ export class UserOperationV0_7 {
   }
 
   public getPaymasterAndData() {
+    if (!this.paymaster) {
+      return "0x"
+    }
     return ethers.concat([
       this.paymaster,
       ethers.zeroPadValue(number.toHex(this.paymasterVerificationGasLimit), 16),
@@ -152,8 +165,38 @@ export class UserOperationV0_7 {
     ])
   }
 
+  /* setter */
+
   public setNonce(nonce: BigNumberish) {
     this.nonce = number.toBigInt(nonce)
+  }
+
+  public setFactory(initCode: HexString): void
+  public setFactory(data: {
+    factory?: HexString
+    factoryData?: HexString
+  }): void
+  public setFactory(
+    initCodeOrData:
+      | HexString
+      | {
+          factory?: HexString
+          factoryData?: HexString
+        }
+  ) {
+    if (typeof initCodeOrData !== "object") {
+      const initCode = initCodeOrData
+      this.factory = ethers.dataSlice(initCode, 0, 20)
+      this.factoryData = ethers.dataSlice(initCode, 20)
+      return
+    }
+    const { factory, factoryData } = initCodeOrData
+    if (factory) {
+      this.factory = ethers.getAddress(factory)
+    }
+    if (factoryData) {
+      this.factoryData = factoryData
+    }
   }
 
   public setGasFee(gasPrice: BigNumberish): void

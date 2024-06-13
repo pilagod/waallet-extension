@@ -1,7 +1,5 @@
-import * as ethers from "ethers"
-
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { UserOperationV0_7 } from "~packages/bundler/userOperation/v0_7"
+import { UserOperationV0_7 } from "~packages/bundler/userOperation"
 import byte from "~packages/util/byte"
 import number from "~packages/util/number"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
@@ -9,7 +7,7 @@ import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
 describeWaalletSuite({
-  name: "WalletBackgroundProvider",
+  name: "WalletBackgroundProvider v0.7",
   useAccount: (cfg) => {
     return SimpleAccount.initWithFactory(cfg.provider.node, {
       ownerPrivateKey: cfg.wallet.operator.privateKey,
@@ -76,16 +74,13 @@ describeWaalletSuite({
         contract: { counter }
       } = ctx
 
-      const userOpCall = await ctx.account.createUserOperationCall({
-        to: await counter.getAddress(),
-        value: 1,
-        data: counter.interface.encodeFunctionData("increment", [])
-      })
-      const userOp = new UserOperationV0_7({
-        ...userOpCall,
-        factory: ethers.dataSlice(userOpCall.initCode, 0, 20),
-        factoryData: ethers.dataSlice(userOpCall.initCode, 20)
-      })
+      const userOp = new UserOperationV0_7(
+        await ctx.account.createUserOperationCall({
+          to: await counter.getAddress(),
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
+        })
+      )
       // Use custom nonce which doesn't match the one on chain
       userOp.setNonce(userOp.nonce + 1n)
 
@@ -133,7 +128,7 @@ describeWaalletSuite({
       expect(counterAfter - counterBefore).toBe(1n)
     })
 
-    it.only("should send user operation", async () => {
+    it("should send user operation", async () => {
       await ctx.topupAccount()
 
       const {
@@ -146,16 +141,13 @@ describeWaalletSuite({
         await counter.getAddress()
       )
 
-      const userOpCall = await ctx.account.createUserOperationCall({
-        to: await counter.getAddress(),
-        value: 1,
-        data: counter.interface.encodeFunctionData("increment", [])
-      })
-      const userOp = new UserOperationV0_7({
-        ...userOpCall,
-        factory: ethers.dataSlice(userOpCall.initCode, 0, 20),
-        factoryData: ethers.dataSlice(userOpCall.initCode, 20)
-      })
+      const userOp = new UserOperationV0_7(
+        await ctx.account.createUserOperationCall({
+          to: await counter.getAddress(),
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
+        })
+      )
 
       const { gasPrice } = await node.getFeeData()
       userOp.setGasFee(gasPrice * 2n)

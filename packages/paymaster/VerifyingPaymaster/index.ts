@@ -1,6 +1,6 @@
 import * as ethers from "ethers"
 
-import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import { type ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
 import { ETH, Token } from "~packages/token"

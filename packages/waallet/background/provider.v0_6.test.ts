@@ -1,11 +1,11 @@
-import { UserOperationV0_6 } from "~packages/bundler/userOperation/v0_6"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
 describeWaalletSuite({
-  name: "WalletBackgroundProvider",
+  name: "WalletBackgroundProvider v0.6",
   suite: (ctx) => {
     it("should get chain id", async () => {
       const chainId = await ctx.provider.waallet.request<HexString>({
@@ -141,10 +141,7 @@ describeWaalletSuite({
       )
 
       const { gasPrice } = await node.getFeeData()
-      userOp.setGasFee({
-        maxFeePerGas: gasPrice * 2n,
-        maxPriorityFeePerGas: gasPrice * 2n
-      })
+      userOp.setGasFee(gasPrice * 2n)
 
       const entryPoint = await ctx.account.getEntryPoint()
       userOp.setGasLimit(
