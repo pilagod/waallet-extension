@@ -269,10 +269,12 @@ function TokenSendModal({
         parseUnits(inputValue.toString(), token.decimals)
       ])
 
-      const { hash } = await provider.send(
-        WaalletRpcMethod.eth_sendTransaction,
-        [{ from: account.address, to: token.address, value: 0, data }]
-      )
+      const signer = await provider.getSigner()
+      const { hash } = await signer.sendTransaction({
+        to: token.address,
+        value: 0,
+        data: data
+      })
 
       console.log(`[Popup][TokenSendModal] transaction hash: ${hash}`)
     } catch (error) {
