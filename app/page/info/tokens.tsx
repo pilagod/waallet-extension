@@ -1,14 +1,13 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getAddress, parseUnits, toNumber } from "ethers"
-import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
+import { useCallback, useState, type ChangeEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Tokens() {
