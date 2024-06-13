@@ -57,31 +57,9 @@ export class UserOperationV0_7 {
     if (this.factoryData) {
       this.factoryData = data.factoryData
     }
-    if (data.callGasLimit) {
-      this.callGasLimit = number.toBigInt(data.callGasLimit)
-    }
-    if (data.verificationGasLimit) {
-      this.verificationGasLimit = number.toBigInt(data.verificationGasLimit)
-    }
-    if (data.preVerificationGas) {
-      this.preVerificationGas = number.toBigInt(data.preVerificationGas)
-    }
-    if (data.maxFeePerGas) {
-      this.maxFeePerGas = number.toBigInt(data.maxFeePerGas)
-    }
-    if (data.maxPriorityFeePerGas) {
-      this.maxPriorityFeePerGas = number.toBigInt(data.maxPriorityFeePerGas)
-    }
-    if (data.paymasterVerificationGasLimit) {
-      this.paymasterVerificationGasLimit = number.toBigInt(
-        data.paymasterVerificationGasLimit
-      )
-    }
-    if (data.paymasterPostOpGasLimit) {
-      this.paymasterPostOpGasLimit = number.toBigInt(
-        data.paymasterVerificationGasLimit
-      )
-    }
+    this.setGasFee(data)
+    this.setGasLimit(data)
+
     if (data.paymaster) {
       this.paymaster = data.paymaster
     }
@@ -172,6 +150,69 @@ export class UserOperationV0_7 {
       ethers.zeroPadValue(number.toHex(this.paymasterPostOpGasLimit), 16),
       this.paymasterData
     ])
+  }
+
+  public setNonce(nonce: BigNumberish) {
+    this.nonce = number.toBigInt(nonce)
+  }
+
+  public setGasFee(gasPrice: BigNumberish): void
+  public setGasFee(gasFee: {
+    maxFeePerGas?: BigNumberish
+    maxPriorityFeePerGas?: BigNumberish
+  }): void
+  public setGasFee(
+    gasPriceOrFee:
+      | BigNumberish
+      | {
+          maxFeePerGas?: BigNumberish
+          maxPriorityFeePerGas?: BigNumberish
+        }
+  ) {
+    if (typeof gasPriceOrFee !== "object") {
+      const gasPrice = number.toBigInt(gasPriceOrFee)
+      this.maxFeePerGas = gasPrice
+      this.maxPriorityFeePerGas = gasPrice
+      return
+    }
+    const { maxFeePerGas, maxPriorityFeePerGas } = gasPriceOrFee
+    if (maxFeePerGas) {
+      this.maxFeePerGas = number.toBigInt(maxFeePerGas)
+    }
+    if (maxPriorityFeePerGas) {
+      this.maxPriorityFeePerGas = number.toBigInt(maxPriorityFeePerGas)
+    }
+  }
+  public setGasLimit(data: {
+    callGasLimit?: BigNumberish
+    verificationGasLimit?: BigNumberish
+    preVerificationGas?: BigNumberish
+    paymasterVerificationGasLimit?: BigNumberish
+    paymasterPostOpGasLimit?: BigNumberish
+  }) {
+    if (data.callGasLimit) {
+      this.callGasLimit = number.toBigInt(data.callGasLimit)
+    }
+    if (data.verificationGasLimit) {
+      this.verificationGasLimit = number.toBigInt(data.verificationGasLimit)
+    }
+    if (data.preVerificationGas) {
+      this.preVerificationGas = number.toBigInt(data.preVerificationGas)
+    }
+    if (data.paymasterVerificationGasLimit) {
+      this.paymasterVerificationGasLimit = number.toBigInt(
+        data.paymasterVerificationGasLimit
+      )
+    }
+    if (data.paymasterPostOpGasLimit) {
+      this.paymasterPostOpGasLimit = number.toBigInt(
+        data.paymasterVerificationGasLimit
+      )
+    }
+  }
+
+  public setSignature(signature: HexString) {
+    this.signature = signature
   }
 
   public calculateGasFee() {
