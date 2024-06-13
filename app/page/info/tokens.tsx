@@ -5,11 +5,7 @@ import { useCallback, useState, type ChangeEvent, type FormEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
 import { useAccount, useAction, useTokens } from "~app/storage"
-import {
-  formatUnitsToFixed,
-  getChainName,
-  getErc20Contract
-} from "~packages/network/util"
+import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -39,7 +35,7 @@ export function Tokens() {
         Tokens:
         <div>
           <span>{getChainName(account.chainId)}ETH </span>
-          <span>{formatUnitsToFixed(account.balance, 18)}</span>
+          <span>{number.formatUnitsToFixed(account.balance, 18)}</span>
         </div>
         {tokens.map((token, index) => {
           return (
@@ -48,7 +44,9 @@ export function Tokens() {
                 className="col-span-3 cursor-pointer"
                 onClick={() => openTokenInfoModal(token.address)}>
                 <span>{token.symbol}</span>{" "}
-                <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>
+                <span>
+                  {number.formatUnitsToFixed(token.balance, token.decimals)}
+                </span>
               </div>
               {selectedTokenAddress && (
                 <TokenInfoModal
@@ -147,7 +145,9 @@ function TokenInfoModal({
           )}
         </div>
         <div className="text-center">
-          <span>{formatUnitsToFixed(token.balance, token.decimals)}</span>{" "}
+          <span>
+            {number.formatUnitsToFixed(token.balance, token.decimals)}
+          </span>
           <span>{token.symbol}</span>
         </div>
         <form>

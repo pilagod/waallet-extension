@@ -1,6 +1,6 @@
-import { Contract, formatUnits, toNumber, type ContractRunner } from "ethers"
+import { Contract, type ContractRunner } from "ethers"
 
-import type { BigNumberish, HexString } from "~typing"
+import type { HexString } from "~typing"
 
 export function getChainName(chain: string | number): string {
   const net = typeof chain === "string" ? chain.toLowerCase() : chain
@@ -39,16 +39,4 @@ export const getErc20Contract = (
     ],
     runner
   )
-}
-
-export const formatUnitsToFixed = (
-  balance: BigNumberish,
-  decimals: BigNumberish,
-  fixed: number = 6
-): string => {
-  const parseValue = parseFloat(formatUnits(balance, toNumber(decimals)))
-  if (isNaN(parseValue) || parseValue === 0) {
-    return "0"
-  }
-  return parseValue.toFixed(fixed)
 }

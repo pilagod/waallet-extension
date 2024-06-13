@@ -6,12 +6,9 @@ import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import { useAccount, useTokens } from "~app/storage"
-import {
-  formatUnitsToFixed,
-  getChainName,
-  getErc20Contract
-} from "~packages/network/util"
+import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
+import number from "~packages/util/number"
 import { type Token } from "~storage/local"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -24,7 +21,7 @@ export function Send() {
     address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
     symbol: `${getChainName(account.chainId)}ETH`,
     decimals: 18,
-    balance: formatUnitsToFixed(account.balance, 18)
+    balance: number.formatUnitsToFixed(account.balance, 18)
   }
 
   const [token, setToken] = useState<Token>(nativeToken)
@@ -106,12 +103,10 @@ export function Send() {
               {nativeToken.symbol}: {nativeToken.balance} {nativeToken.symbol}
             </option>
             {tokens.map((token) => {
-              const balance = parseFloat(
-                ethers.formatUnits(
-                  ethers.toBeHex(token.balance),
-                  ethers.toNumber(token.decimals)
-                )
-              ).toFixed(6)
+              const balance = number.formatUnitsToFixed(
+                token.balance,
+                token.decimals
+              )
               return (
                 <option key={token.address} value={token.address}>
                   {token.symbol}: {balance} {token.symbol}
