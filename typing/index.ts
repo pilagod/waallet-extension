@@ -12,3 +12,5 @@ export type RecursivePartial<T> = {
     ? RecursivePartial<T[P]>
     : T[P]
 }
+export type RequiredPick<T, K extends keyof T> = Omit<T, K> &
+  Required<Pick<T, K>>

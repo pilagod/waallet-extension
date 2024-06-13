@@ -217,7 +217,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
           {Object.entries(userOp.data()).map(([key, value], i) => {
             return (
               <div key={i}>
-                {key}: {value}
+                {key}: {`${value}`}
               </div>
             )
           })}

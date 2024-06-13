@@ -2,9 +2,21 @@ import * as ethers from "ethers"
 
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, HexString, RequiredPick } from "~typing"
 
-export type UserOperationDataV0_6 = ReturnType<UserOperationV0_6["data"]>
+export type UserOperationDataV0_6 = {
+  sender: HexString
+  nonce: BigNumberish
+  initCode: HexString
+  callData: HexString
+  callGasLimit: BigNumberish
+  verificationGasLimit: BigNumberish
+  preVerificationGas: BigNumberish
+  maxFeePerGas: BigNumberish
+  maxPriorityFeePerGas: BigNumberish
+  paymasterAndData: HexString
+  signature: HexString
+}
 
 export class UserOperationV0_6 {
   public static getSolidityStructType() {
@@ -23,23 +35,18 @@ export class UserOperationV0_6 {
   public paymasterAndData: HexString = "0x"
   public signature: HexString = "0x"
 
-  public constructor(data: {
-    sender: HexString
-    nonce: BigNumberish
-    initCode: HexString
-    callData: HexString
-    callGasLimit?: BigNumberish
-    verificationGasLimit?: BigNumberish
-    preVerificationGas?: BigNumberish
-    maxFeePerGas?: BigNumberish
-    maxPriorityFeePerGas?: BigNumberish
-    paymasterAndData?: HexString
-    signature?: HexString
-  }) {
+  public constructor(
+    data: RequiredPick<
+      Partial<UserOperationDataV0_6>,
+      "sender" | "nonce" | "callData"
+    >
+  ) {
     this.sender = data.sender
     this.nonce = number.toBigInt(data.nonce)
-    this.initCode = data.initCode
     this.callData = data.callData
+    if (data.initCode) {
+      this.initCode = data.initCode
+    }
     if (data.callGasLimit) {
       this.callGasLimit = number.toBigInt(data.callGasLimit)
     }
@@ -99,7 +106,7 @@ export class UserOperationV0_6 {
     )
   }
 
-  public data() {
+  public data(): UserOperationDataV0_6 {
     return {
       sender: this.sender,
       nonce: number.toHex(this.nonce),

@@ -1,9 +1,25 @@
 import * as ethers from "ethers"
 
 import number from "~packages/util/number"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, HexString, RequiredPick } from "~typing"
 
-export type UserOperationDataV0_7 = ReturnType<UserOperationV0_7["data"]>
+export type UserOperationDataV0_7 = {
+  sender: HexString
+  nonce: BigNumberish
+  callData: HexString
+  factory: HexString
+  factoryData: HexString
+  callGasLimit: BigNumberish
+  verificationGasLimit: BigNumberish
+  preVerificationGas: BigNumberish
+  maxFeePerGas: BigNumberish
+  maxPriorityFeePerGas: BigNumberish
+  paymasterVerificationGasLimit: BigNumberish
+  paymasterPostOpGasLimit: BigNumberish
+  paymaster: HexString
+  paymasterData: HexString
+  signature: HexString
+}
 
 export class UserOperationV0_7 {
   public static getSolidityStructType() {
@@ -12,9 +28,9 @@ export class UserOperationV0_7 {
 
   public sender: HexString
   public nonce: bigint
+  public callData: HexString
   public factory: HexString = "0x"
   public factoryData: HexString = "0x"
-  public callData: HexString
   public callGasLimit: bigint = 0n
   public verificationGasLimit: bigint = 0n
   public preVerificationGas: bigint = 0n
@@ -26,23 +42,12 @@ export class UserOperationV0_7 {
   public paymasterData: HexString = "0x"
   public signature: HexString = "0x"
 
-  public constructor(data: {
-    sender: HexString
-    nonce: BigNumberish
-    callData: HexString
-    factory?: HexString
-    factoryData?: HexString
-    callGasLimit?: BigNumberish
-    verificationGasLimit?: BigNumberish
-    preVerificationGas?: BigNumberish
-    maxFeePerGas?: BigNumberish
-    maxPriorityFeePerGas?: BigNumberish
-    paymasterVerificationGasLimit?: BigNumberish
-    paymasterPostOpGasLimit?: BigNumberish
-    paymaster?: HexString
-    paymasterData?: HexString
-    signature?: HexString
-  }) {
+  public constructor(
+    data: RequiredPick<
+      Partial<UserOperationDataV0_7>,
+      "sender" | "nonce" | "callData"
+    >
+  ) {
     this.sender = data.sender
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
@@ -120,7 +125,7 @@ export class UserOperationV0_7 {
     )
   }
 
-  public data() {
+  public data(): UserOperationDataV0_7 {
     return {
       sender: this.sender,
       nonce: number.toHex(this.nonce),
