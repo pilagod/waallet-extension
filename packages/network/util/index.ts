@@ -1,4 +1,4 @@
-import * as ethers from "ethers"
+import { Contract, type ContractRunner } from "ethers"
 
 import type { HexString } from "~typing"
 
@@ -26,9 +26,9 @@ export function getChainName(chain: string | number): string {
 
 export const getErc20Contract = (
   address: HexString,
-  runner: ethers.ContractRunner
+  runner: ContractRunner
 ) => {
-  return new ethers.Contract(
+  return new Contract(
     address,
     [
       "function balanceOf(address account) external view returns (uint256)",
