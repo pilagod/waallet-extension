@@ -1,4 +1,5 @@
 import { type UserOperationDataV0_6 } from "~packages/bundler/userOperation/v0_6"
+import { type UserOperationDataV0_7 } from "~packages/bundler/userOperation/v0_7"
 import type { BigNumberish, HexString, OptionalPick } from "~typing"
 
 export enum WaalletRpcMethod {
@@ -42,14 +43,26 @@ export type EthEstimateGasArguments = {
 export type EthEstimateUserOperationGasArguments = {
   method: WaalletRpcMethod.eth_estimateUserOperationGas
   params: [
-    OptionalPick<
-      UserOperationDataV0_6,
-      | "callGasLimit"
-      | "verificationGasLimit"
-      | "preVerificationGas"
-      | "maxFeePerGas"
-      | "maxPriorityFeePerGas"
-    >,
+    (
+      | OptionalPick<
+          UserOperationDataV0_6,
+          | "callGasLimit"
+          | "verificationGasLimit"
+          | "preVerificationGas"
+          | "maxFeePerGas"
+          | "maxPriorityFeePerGas"
+        >
+      | OptionalPick<
+          UserOperationDataV0_7,
+          | "callGasLimit"
+          | "verificationGasLimit"
+          | "preVerificationGas"
+          | "maxFeePerGas"
+          | "maxPriorityFeePerGas"
+          | "paymasterVerificationGasLimit"
+          | "paymasterPostOpGasLimit"
+        >
+    ),
     HexString // EntryPoint address
   ]
 }
@@ -76,5 +89,5 @@ export type EthSendTransactionArguments = {
  */
 export type EthSendUserOperationArguments = {
   method: WaalletRpcMethod.eth_sendUserOperation
-  params: [UserOperationDataV0_6, HexString]
+  params: [UserOperationDataV0_6 | UserOperationDataV0_7, HexString]
 }
