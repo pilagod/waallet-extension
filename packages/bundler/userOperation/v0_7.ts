@@ -1,14 +1,14 @@
 import * as ethers from "ethers"
 
 import number from "~packages/util/number"
-import type { BigNumberish, HexString, OptionalPick } from "~typing"
+import type { BigNumberish, HexString } from "~typing"
 
 export type UserOperationDataV0_7 = {
   sender: HexString
   nonce: BigNumberish
   callData: HexString
-  factory: HexString
-  factoryData: HexString
+  factory?: HexString
+  factoryData?: HexString
   callGasLimit: BigNumberish
   verificationGasLimit: BigNumberish
   preVerificationGas: BigNumberish
@@ -16,8 +16,8 @@ export type UserOperationDataV0_7 = {
   maxPriorityFeePerGas: BigNumberish
   paymasterVerificationGasLimit: BigNumberish
   paymasterPostOpGasLimit: BigNumberish
-  paymaster: HexString
-  paymasterData: HexString
+  paymaster?: HexString
+  paymasterData?: HexString
   signature: HexString
 }
 
@@ -101,10 +101,7 @@ export class UserOperationV0_7 {
     )
   }
 
-  public unwrap(): OptionalPick<
-    UserOperationDataV0_7,
-    "factory" | "factoryData" | "paymaster" | "paymasterData"
-  > {
+  public unwrap(): UserOperationDataV0_7 {
     return {
       sender: this.sender,
       nonce: number.toHex(this.nonce),
