@@ -7,6 +7,7 @@ import type {
   PasskeyOwner,
   PasskeyPublicKey
 } from "~packages/account/PasskeyAccount/passkeyOwner"
+import cryptography from "~packages/util/cryptography"
 import { format } from "~packages/util/json"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
 import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
@@ -37,12 +38,15 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       sender?: browser.Runtime.MessageSender
     }
   ): Promise<string> {
-    const challengeB64Url = isoBase64URL.fromBuffer(
+    const challengeUint8Array =
       typeof challenge === "string"
         ? challenge.startsWith("0x")
           ? isoUint8Array.fromHex(challenge.slice(2))
           : isoUint8Array.fromHex(challenge)
         : challenge
+
+    const challengeB64Url = isoBase64URL.fromBuffer(
+      cryptography.toEthSignedMessageHash(challengeUint8Array)
     )
     const webAuthnAuthentication = await (this.isWebAuthnAvailable()
       ? this.authenticateInPlace(challengeB64Url)

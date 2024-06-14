@@ -2,6 +2,7 @@ import { p256 } from "@noble/curves/p256"
 import * as ethers from "ethers"
 
 import byte from "~packages/util/byte"
+import cryptography from "~packages/util/cryptography"
 import type { BytesLike } from "~typing"
 
 import type { PasskeyOwner } from "./passkeyOwner"
@@ -94,7 +95,9 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
   private getClientDataJson(challenge: BytesLike) {
     const clientJsonData = {
       type: "webauthn.get",
-      challenge: byte.normalize(challenge).toString("base64url"),
+      challenge: byte
+        .normalize(cryptography.toEthSignedMessageHash(challenge))
+        .toString("base64url"),
       origin: "https://webauthn.passwordless.id",
       crossOrigin: false
     }
