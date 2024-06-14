@@ -25,7 +25,7 @@ export class TransactionStoragePool implements TransactionPool {
         createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
         senderId,
         networkId,
-        ...tx.data()
+        ...tx.unwrap()
       }
     })
 

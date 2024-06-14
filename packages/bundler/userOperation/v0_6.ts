@@ -91,7 +91,7 @@ export class UserOperationV0_6 {
     )
   }
 
-  public data(): UserOperationDataV0_6 {
+  public unwrap(): UserOperationDataV0_6 {
     return {
       sender: this.sender,
       nonce: number.toHex(this.nonce),

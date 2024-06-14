@@ -65,7 +65,7 @@ export class VerifyingPaymaster implements Paymaster {
     validAfter: number
   ) {
     const hash = await this.paymaster.getHash(
-      userOp.data(),
+      userOp.unwrap(),
       validUntil,
       validAfter
     )

@@ -104,7 +104,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       )
       const userOpHash = await provider.send(
         WaalletRpcMethod.eth_sendUserOperation,
-        [userOp.data(), entryPoint]
+        [userOp.unwrap(), entryPoint]
       )
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
@@ -154,7 +154,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
     userOp.setGasFee(await estimateGasFee())
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
-        userOp.data(),
+        userOp.unwrap(),
         await senderAccount.getEntryPoint()
       ])
     )
@@ -203,7 +203,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       return
     }
     calculatePayment()
-  }, [JSON.stringify(userOp?.data())])
+  }, [JSON.stringify(userOp?.unwrap())])
 
   if (!senderAccount || !userOp) {
     return <></>
@@ -214,7 +214,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       <div>
         <h1>Transaction Detail</h1>
         <div>
-          {Object.entries(userOp.data()).map(([key, value], i) => {
+          {Object.entries(userOp.unwrap()).map(([key, value], i) => {
             return (
               <div key={i}>
                 {key}: {`${value}`}

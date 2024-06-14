@@ -101,7 +101,7 @@ export class UserOperationV0_7 {
     )
   }
 
-  public data(): OptionalPick<
+  public unwrap(): OptionalPick<
     UserOperationDataV0_7,
     "factory" | "factoryData" | "paymaster" | "paymasterData"
   > {

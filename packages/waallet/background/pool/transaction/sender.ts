@@ -36,7 +36,7 @@ export class TransactionToUserOperationSender implements TransactionPool {
     }
 
     const userOp = bundler.deriveUserOperation(
-      await account.createUserOperationCall(tx.data()),
+      await account.createUserOperationCall(tx.unwrap()),
       entryPoint
     )
 

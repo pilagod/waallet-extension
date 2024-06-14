@@ -127,7 +127,7 @@ export const useStorage = create<Storage>()(
             createdAt: tx.createdAt,
             detail: {
               entryPoint: data.entryPoint,
-              data: data.userOp.data()
+              data: data.userOp.unwrap()
             }
           }
           state.account[txRejected.senderId].transactionLog[txRejected.id] =
@@ -148,7 +148,7 @@ export const useStorage = create<Storage>()(
             createdAt: tx.createdAt,
             detail: {
               entryPoint: data.entryPoint,
-              data: data.userOp.data()
+              data: data.userOp.unwrap()
             },
             receipt: {
               userOpHash: data.userOpHash
