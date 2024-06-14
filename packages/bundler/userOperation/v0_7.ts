@@ -1,5 +1,6 @@
 import * as ethers from "ethers"
 
+import { Execution } from "~packages/account"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -24,6 +25,10 @@ export type UserOperationDataV0_7 = {
 export class UserOperationV0_7 {
   public static getSolidityStructType() {
     return "(address sender, uint256 nonce, bytes initCode, bytes callData, bytes32 accountGasLimits, uint256 preVerificationGas, bytes32 gasFees, bytes paymasterAndData, bytes signature)"
+  }
+
+  public static wrap(intent: Execution | Partial<UserOperationDataV0_7>) {
+    return new UserOperationV0_7({ ...intent })
   }
 
   public sender: HexString

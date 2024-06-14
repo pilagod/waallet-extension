@@ -62,16 +62,19 @@ describeWaalletSuite({
       await ctx.topupAccount()
 
       const {
+        provider: { bundler },
         contract: { counter }
       } = ctx
 
-      const userOp = new UserOperationV0_6(
-        await ctx.account.createUserOperationCall({
+      const userOp = bundler.deriveUserOperation(
+        await ctx.account.buildExecution({
           to: await counter.getAddress(),
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
-        })
+        }),
+        await ctx.account.getEntryPoint()
       )
+
       // Use custom nonce which doesn't match the one on chain
       userOp.setNonce(userOp.nonce + 1n)
 
@@ -132,12 +135,13 @@ describeWaalletSuite({
         await counter.getAddress()
       )
 
-      const userOp = new UserOperationV0_6(
-        await ctx.account.createUserOperationCall({
+      const userOp = bundler.deriveUserOperation(
+        await ctx.account.buildExecution({
           to: await counter.getAddress(),
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
-        })
+        }),
+        await ctx.account.getEntryPoint()
       )
 
       const { gasPrice } = await node.getFeeData()

@@ -83,7 +83,7 @@ export class WaalletBackgroundProvider {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
     const userOp = bundler.deriveUserOperation(
-      await account.createUserOperationCall({
+      await account.buildExecution({
         to: tx.to,
         value: tx.value,
         data: tx.data

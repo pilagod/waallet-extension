@@ -1,5 +1,6 @@
 import * as ethers from "ethers"
 
+import { Execution } from "~packages/account"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -21,6 +22,17 @@ export type UserOperationDataV0_6 = {
 export class UserOperationV0_6 {
   public static getSolidityStructType() {
     return "(address sender, uint256 nonce, bytes initCode, bytes callData, uint256 callGasLimit, uint256 verificationGasLimit, uint256 preVerificationGas, uint256 maxFeePerGas, uint256 maxPriorityFeePerGas, bytes paymasterAndData, bytes signature)"
+  }
+
+  public static wrap(intent: Execution | Partial<UserOperationDataV0_6>) {
+    if (intent instanceof Execution) {
+      const { factory, factoryData, ...data } = intent
+      return new UserOperationV0_6({
+        ...data,
+        initCode: ethers.concat([factory ?? "0x", factoryData ?? "0x"])
+      })
+    }
+    return new UserOperationV0_6({ ...intent })
   }
 
   public sender: HexString

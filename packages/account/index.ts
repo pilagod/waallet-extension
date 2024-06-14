@@ -1,3 +1,5 @@
+import address from "~packages/util/address"
+import number from "~packages/util/number"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 export enum AccountType {
@@ -11,19 +13,37 @@ export type Call = {
   data: HexString
 }
 
-export type UserOperationCall = {
-  sender: HexString
-  nonce: bigint
-  initCode: HexString
-  callData: HexString
-  /**
-   * @dev Dummy signature for validation
-   */
-  signature: HexString
+export class Execution {
+  public sender: HexString
+  public nonce: bigint
+  public callData: HexString
+  public signature: HexString
+  public factory?: HexString
+  public factoryData?: HexString
+
+  public constructor(data: {
+    sender: HexString
+    nonce: BigNumberish
+    callData: HexString
+    signature: HexString
+    factory?: HexString
+    factoryData?: HexString
+  }) {
+    this.sender = data.sender
+    this.nonce = number.toBigInt(data.nonce)
+    this.callData = data.callData
+    this.signature = data.signature
+    if (data.factory) {
+      this.factory = address.normalize(data.factory)
+    }
+    if (data.factoryData) {
+      this.factoryData = data.factoryData
+    }
+  }
 }
 
 export interface Account {
-  createUserOperationCall(call: Call): Promise<UserOperationCall>
+  buildExecution(call: Call): Promise<Execution>
   getAddress(): Promise<HexString>
   getEntryPoint(): Promise<HexString>
   getNonce(): Promise<bigint>

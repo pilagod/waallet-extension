@@ -162,8 +162,8 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
 
   useEffect(() => {
     async function setupUserOp() {
-      const userOp = new UserOperationV0_6(
-        await senderAccount.createUserOperationCall(pendingTx)
+      const userOp = UserOperationV0_6.wrap(
+        await senderAccount.buildExecution(pendingTx)
       )
       await estimateGas(userOp)
       setUserOp(userOp)

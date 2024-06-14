@@ -1,5 +1,4 @@
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { UserOperationV0_7 } from "~packages/bundler/userOperation"
 import byte from "~packages/util/byte"
 import number from "~packages/util/number"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
@@ -71,15 +70,17 @@ describeWaalletSuite({
       await ctx.topupAccount()
 
       const {
-        contract: { counter }
+        contract: { counter },
+        provider: { bundler }
       } = ctx
 
-      const userOp = new UserOperationV0_7(
-        await ctx.account.createUserOperationCall({
+      const userOp = bundler.deriveUserOperation(
+        await ctx.account.buildExecution({
           to: await counter.getAddress(),
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
-        })
+        }),
+        await ctx.account.getEntryPoint()
       )
       // Use custom nonce which doesn't match the one on chain
       userOp.setNonce(userOp.nonce + 1n)
@@ -141,12 +142,13 @@ describeWaalletSuite({
         await counter.getAddress()
       )
 
-      const userOp = new UserOperationV0_7(
-        await ctx.account.createUserOperationCall({
+      const userOp = bundler.deriveUserOperation(
+        await ctx.account.buildExecution({
           to: await counter.getAddress(),
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
-        })
+        }),
+        await ctx.account.getEntryPoint()
       )
 
       const { gasPrice } = await node.getFeeData()

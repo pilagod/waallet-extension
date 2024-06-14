@@ -1,3 +1,4 @@
+import { Execution } from "~packages/account"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString, Nullable } from "~typing"
@@ -165,26 +166,33 @@ export class BundlerProvider {
   /* util */
 
   public deriveUserOperation(
-    data: Partial<UserOperationData>,
+    intent: Execution | Partial<UserOperationData>,
     entryPoint: HexString
   ): UserOperation
   public deriveUserOperation(data: UserOperationData): UserOperation
   public deriveUserOperation(
-    data: Partial<UserOperationData> | UserOperationData,
+    intent: (Execution | Partial<UserOperationData>) | UserOperationData,
     entryPoint?: HexString
   ) {
     if (!entryPoint) {
-      const userOp = data as UserOperationData
-      if ("factory" in data) {
-        return new UserOperationV0_7(userOp)
+      const data = intent as UserOperationData
+      if ("initCode" in data) {
+        return UserOperationV0_6.wrap(data)
       }
-      return new UserOperationV0_6(userOp)
+      return UserOperationV0_7.wrap(data)
     }
-    const userOp = data as Partial<UserOperationData>
+    const version = this.getEntryPointVersion(entryPoint)
+    if (version === EntryPointVersion.V0_6) {
+      return UserOperationV0_6.wrap(intent)
+    }
+    return UserOperationV0_7.wrap(intent)
+  }
+
+  public getEntryPointVersion(entryPoint: HexString): EntryPointVersion {
     if (address.isEqual(entryPoint, this.entryPoint[EntryPointVersion.V0_6])) {
-      return new UserOperationV0_6(userOp)
+      return EntryPointVersion.V0_6
     }
-    return new UserOperationV0_7(userOp)
+    return EntryPointVersion.V0_7
   }
 
   public async isSupportedEntryPoint(entryPoint: HexString): Promise<boolean> {
