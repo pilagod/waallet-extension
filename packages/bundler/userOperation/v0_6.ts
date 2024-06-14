@@ -177,6 +177,8 @@ export class UserOperationV0_6 {
     this.signature = signature
   }
 
+  /* util */
+
   public calculateGasFee() {
     return (
       (this.callGasLimit +

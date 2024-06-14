@@ -56,9 +56,9 @@ export class UserOperationV0_7 {
 
     // TODO: A better way to tackle init code
     if (data.initCode) {
-      this.setFactory(data.initCode)
+      this.setDeployment(data.initCode)
     } else {
-      this.setFactory(data)
+      this.setDeployment(data)
     }
     this.setGasFee(data)
     this.setGasLimit(data)
@@ -173,26 +173,26 @@ export class UserOperationV0_7 {
     this.nonce = number.toBigInt(nonce)
   }
 
-  public setFactory(initCode: HexString): void
-  public setFactory(data: {
+  public setDeployment(initCode: HexString): void
+  public setDeployment(deployment: {
     factory?: HexString
     factoryData?: HexString
   }): void
-  public setFactory(
-    initCodeOrData:
+  public setDeployment(
+    initCodeOrDeployment:
       | HexString
       | {
           factory?: HexString
           factoryData?: HexString
         }
   ) {
-    if (typeof initCodeOrData !== "object") {
-      const initCode = initCodeOrData
+    if (typeof initCodeOrDeployment !== "object") {
+      const initCode = initCodeOrDeployment
       this.factory = ethers.dataSlice(initCode, 0, 20)
       this.factoryData = ethers.dataSlice(initCode, 20)
       return
     }
-    const { factory, factoryData } = initCodeOrData
+    const { factory, factoryData } = initCodeOrDeployment
     if (factory) {
       this.factory = ethers.getAddress(factory)
     }
@@ -228,6 +228,7 @@ export class UserOperationV0_7 {
       this.maxPriorityFeePerGas = number.toBigInt(maxPriorityFeePerGas)
     }
   }
+
   public setGasLimit(data: {
     callGasLimit?: BigNumberish
     verificationGasLimit?: BigNumberish
@@ -259,6 +260,8 @@ export class UserOperationV0_7 {
   public setSignature(signature: HexString) {
     this.signature = signature
   }
+
+  /* util */
 
   public calculateGasFee() {
     return (
