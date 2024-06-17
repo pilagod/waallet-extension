@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 
 import { Execution } from "~packages/account"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -56,19 +57,14 @@ export class UserOperationV0_7 {
 
     // TODO: A better way to tackle init code
     if (data.initCode) {
-      this.setDeployment(data.initCode)
+      this.setFactory(data.initCode)
     } else {
-      this.setDeployment(data)
+      this.setFactory(data)
     }
     this.setGasFee(data)
     this.setGasLimit(data)
+    this.setPaymaster(data)
 
-    if (data.paymaster) {
-      this.paymaster = ethers.getAddress(data.paymaster)
-    }
-    if (data.paymasterData) {
-      this.paymasterData = data.paymasterData
-    }
     if (data.signature) {
       this.signature = data.signature
     }
@@ -193,26 +189,26 @@ export class UserOperationV0_7 {
     this.nonce = number.toBigInt(nonce)
   }
 
-  public setDeployment(initCode: HexString): void
-  public setDeployment(deployment: {
+  public setFactory(initCode: HexString): void
+  public setFactory(data: {
     factory?: HexString
     factoryData?: HexString
   }): void
-  public setDeployment(
-    initCodeOrDeployment:
+  public setFactory(
+    initCodeOrData:
       | HexString
       | {
           factory?: HexString
           factoryData?: HexString
         }
   ) {
-    if (typeof initCodeOrDeployment !== "object") {
-      const initCode = initCodeOrDeployment
+    if (typeof initCodeOrData !== "object") {
+      const initCode = initCodeOrData
       this.factory = ethers.dataSlice(initCode, 0, 20)
       this.factoryData = ethers.dataSlice(initCode, 20)
       return
     }
-    const { factory, factoryData } = initCodeOrDeployment
+    const { factory, factoryData } = initCodeOrData
     if (factory) {
       this.factory = ethers.getAddress(factory)
     }
@@ -274,6 +270,18 @@ export class UserOperationV0_7 {
       this.paymasterPostOpGasLimit = number.toBigInt(
         data.paymasterVerificationGasLimit
       )
+    }
+  }
+
+  public setPaymaster(data: {
+    paymaster?: HexString
+    paymasterData?: HexString
+  }) {
+    if (data.paymaster) {
+      this.paymaster = address.normalize(data.paymaster)
+    }
+    if (data.paymasterData) {
+      this.paymasterData = data.paymasterData
     }
   }
 
