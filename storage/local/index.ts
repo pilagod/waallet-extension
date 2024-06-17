@@ -50,10 +50,9 @@ export async function getLocalStorage() {
         .map(([id, ns]) => ({ id, ...ns }))
         .find((ns) => n.chainId === ns.chainId) ?? {
         id: uuidv4(),
-        accountActive:
-          Object.entries(account)
-            .map(([id, a]) => ({ id, ...a }))
-            .filter((a) => a.chainId === n.chainId)[0] ?? null
+        accountActive: Object.entries(account)
+          .map(([id, a]) => ({ id, ...a }))
+          .filter((a) => a.chainId === n.chainId)[0]?.id
       }
       Object.assign(network, {
         [targetNetwork.id]: {
