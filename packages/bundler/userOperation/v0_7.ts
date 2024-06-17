@@ -106,6 +106,9 @@ export class UserOperationV0_7 {
     )
   }
 
+  /**
+   * @dev This data format is for bundler.
+   */
   public unwrap(): UserOperationDataV0_7 {
     return {
       sender: this.sender,
@@ -128,6 +131,23 @@ export class UserOperationV0_7 {
         paymaster: this.paymaster,
         paymasterData: this.paymasterData
       }),
+      signature: this.signature
+    }
+  }
+
+  /**
+   * @dev This data format is for Solidity contract.
+   */
+  public unwrapPacked() {
+    return {
+      sender: this.sender,
+      nonce: number.toHex(this.nonce),
+      initCode: this.getInitCode(),
+      callData: this.callData,
+      accountGasLimits: this.getAccountGasLimits(),
+      preVerificationGas: number.toHex(this.preVerificationGas),
+      gasFees: this.getGasFees(),
+      paymasterAndData: this.getPaymasterAndData(),
       signature: this.signature
     }
   }
