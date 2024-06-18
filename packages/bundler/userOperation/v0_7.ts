@@ -48,19 +48,12 @@ export class UserOperationV0_7 {
   public paymasterData: HexString = "0x"
   public signature: HexString = "0x"
 
-  public constructor(
-    data: Partial<UserOperationDataV0_7> & { initCode?: HexString }
-  ) {
+  public constructor(data: Partial<UserOperationDataV0_7>) {
     this.sender = data.sender
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
 
-    // TODO: A better way to tackle init code
-    if (data.initCode) {
-      this.setFactory(data.initCode)
-    } else {
-      this.setFactory(data)
-    }
+    this.setFactory(data)
     this.setGasFee(data)
     this.setGasLimit(data)
     this.setPaymaster(data)
@@ -189,31 +182,12 @@ export class UserOperationV0_7 {
     this.nonce = number.toBigInt(nonce)
   }
 
-  public setFactory(initCode: HexString): void
-  public setFactory(data: {
-    factory?: HexString
-    factoryData?: HexString
-  }): void
-  public setFactory(
-    initCodeOrData:
-      | HexString
-      | {
-          factory?: HexString
-          factoryData?: HexString
-        }
-  ) {
-    if (typeof initCodeOrData !== "object") {
-      const initCode = initCodeOrData
-      this.factory = ethers.dataSlice(initCode, 0, 20)
-      this.factoryData = ethers.dataSlice(initCode, 20)
-      return
+  public setFactory(data: { factory?: HexString; factoryData?: HexString }) {
+    if (data.factory) {
+      this.factory = ethers.getAddress(data.factory)
     }
-    const { factory, factoryData } = initCodeOrData
-    if (factory) {
-      this.factory = ethers.getAddress(factory)
-    }
-    if (factoryData) {
-      this.factoryData = factoryData
+    if (data.factoryData) {
+      this.factoryData = data.factoryData
     }
   }
 
