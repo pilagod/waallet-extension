@@ -1,13 +1,12 @@
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser"
 import { isoBase64URL, isoUint8Array } from "@simplewebauthn/server/helpers"
-import * as ethers from "ethers"
+import { AbiCoder, getBytes, hashMessage } from "ethers"
 import browser from "webextension-polyfill"
 
 import type {
   PasskeyOwner,
   PasskeyPublicKey
 } from "~packages/account/PasskeyAccount/passkeyOwner"
-import cryptography from "~packages/util/cryptography"
 import { format } from "~packages/util/json"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
 import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
@@ -46,7 +45,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
         : challenge
 
     const challengeB64Url = isoBase64URL.fromBuffer(
-      cryptography.toEthSignedMessageHash(challengeUint8Array)
+      getBytes(hashMessage(challengeUint8Array))
     )
     const webAuthnAuthentication = await (this.isWebAuthnAvailable()
       ? this.authenticateInPlace(challengeB64Url)
@@ -56,7 +55,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
         webAuthnAuthentication
       )}`
     )
-    const signature = ethers.AbiCoder.defaultAbiCoder().encode(
+    const signature = AbiCoder.defaultAbiCoder().encode(
       [
         "bool",
         "bytes",

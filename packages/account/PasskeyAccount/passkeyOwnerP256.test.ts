@@ -6,7 +6,7 @@ describe("PasskeyOwnerP256", () => {
   const owner = new PasskeyOwnerP256()
 
   it("should sign challenge", async () => {
-    const challenge = toUtf8Bytes("challenge")
+    const challenge = "challenge"
     const signature = await owner.sign(challenge)
     console.log(signature)
   })
