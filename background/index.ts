@@ -7,8 +7,8 @@ import number from "~packages/util/number"
 import {
   getLocalStorage,
   TransactionStatus,
-  type ERC4337v06TransactionReverted,
-  type ERC4337v06TransactionSucceeded,
+  type ERC4337TransactionReverted,
+  type ERC4337TransactionSucceeded,
   type TransactionLog
 } from "~storage/local"
 import {
@@ -120,7 +120,7 @@ async function main() {
       }
 
       if (userOpReceipt.success) {
-        const txSucceeded: ERC4337v06TransactionSucceeded = {
+        const txSucceeded: ERC4337TransactionSucceeded = {
           ...txLog,
           status: TransactionStatus.Succeeded,
           receipt: {
@@ -138,7 +138,7 @@ async function main() {
       }
 
       if (!userOpReceipt.success) {
-        const txReverted: ERC4337v06TransactionReverted = {
+        const txReverted: ERC4337TransactionReverted = {
           ...txLog,
           status: TransactionStatus.Reverted,
           receipt: {

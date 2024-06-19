@@ -4,7 +4,10 @@ import browser from "webextension-polyfill"
 import { getConfig } from "~config"
 import { AccountType } from "~packages/account"
 import { EntryPointVersion } from "~packages/bundler"
-import type { UserOperationDataV0_6 } from "~packages/bundler/userOperation"
+import type {
+  UserOperationDataV0_6,
+  UserOperationDataV0_7
+} from "~packages/bundler/userOperation"
 import { ObservableStorage } from "~packages/storage/observable"
 import address from "~packages/util/address"
 import type { B64UrlString, HexString, Nullable } from "~typing"
@@ -185,7 +188,8 @@ export enum TransactionStatus {
 }
 
 export enum TransactionType {
-  ERC4337v06 = "ERC4337v06"
+  ERC4337V0_6 = "ERC4337V0_6",
+  ERC4337V0_7 = "ERC4337V0_7"
 }
 
 /* Transaction - Pending */
@@ -206,7 +210,7 @@ export type TransactionPending = {
 
 /* Transaction - Log */
 
-export type TransactionLog = ERC4337v06TransactionLog
+export type TransactionLog = ERC4337TransactionLog
 
 export type TransactionLogMeta<T> = {
   id: string
@@ -215,38 +219,45 @@ export type TransactionLogMeta<T> = {
   createdAt: number
 } & T
 
-/* Transaction - ERC4337v06 */
+/* Transaction - ERC4337 */
 
-export type ERC4337v06TransactionLog =
-  | ERC4337v06TransactionRejected
-  | ERC4337v06TransactionSent
-  | ERC4337v06TransactionFailed
-  | ERC4337v06TransactionSucceeded
-  | ERC4337v06TransactionReverted
-
-export type ERC4337v06TransactionMeta<T> = TransactionLogMeta<{
-  type: TransactionType.ERC4337v06
-  detail: ERC4337v06TransactionDetail
-}> &
+export type ERC4337TransactionMeta<T> = TransactionLogMeta<
+  | {
+      type: TransactionType.ERC4337V0_6
+      detail: {
+        entryPoint: HexString
+        data: UserOperationDataV0_6
+      }
+    }
+  | {
+      type: TransactionType.ERC4337V0_7
+      detail: {
+        entryPoint: HexString
+        data: UserOperationDataV0_7
+      }
+    }
+> &
   T
 
-export type ERC4337v06TransactionDetail = {
-  entryPoint: HexString
-  data: UserOperationDataV0_6
-}
+export type ERC4337TransactionLog =
+  | ERC4337TransactionRejected
+  | ERC4337TransactionSent
+  | ERC4337TransactionFailed
+  | ERC4337TransactionSucceeded
+  | ERC4337TransactionReverted
 
-export type ERC4337v06TransactionRejected = ERC4337v06TransactionMeta<{
+export type ERC4337TransactionRejected = ERC4337TransactionMeta<{
   status: TransactionStatus.Rejected
 }>
 
-export type ERC4337v06TransactionSent = ERC4337v06TransactionMeta<{
+export type ERC4337TransactionSent = ERC4337TransactionMeta<{
   status: TransactionStatus.Sent
   receipt: {
     userOpHash: HexString
   }
 }>
 
-export type ERC4337v06TransactionFailed = ERC4337v06TransactionMeta<{
+export type ERC4337TransactionFailed = ERC4337TransactionMeta<{
   status: TransactionStatus.Failed
   receipt: {
     userOpHash: HexString
@@ -254,7 +265,7 @@ export type ERC4337v06TransactionFailed = ERC4337v06TransactionMeta<{
   }
 }>
 
-export type ERC4337v06TransactionSucceeded = ERC4337v06TransactionMeta<{
+export type ERC4337TransactionSucceeded = ERC4337TransactionMeta<{
   status: TransactionStatus.Succeeded
   receipt: {
     userOpHash: HexString
@@ -264,7 +275,7 @@ export type ERC4337v06TransactionSucceeded = ERC4337v06TransactionMeta<{
   }
 }>
 
-export type ERC4337v06TransactionReverted = ERC4337v06TransactionMeta<{
+export type ERC4337TransactionReverted = ERC4337TransactionMeta<{
   status: TransactionStatus.Reverted
   receipt: {
     userOpHash: HexString

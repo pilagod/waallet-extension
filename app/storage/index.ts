@@ -13,8 +13,8 @@ import number from "~packages/util/number"
 import {
   TransactionStatus,
   TransactionType,
-  type ERC4337v06TransactionRejected,
-  type ERC4337v06TransactionSent,
+  type ERC4337TransactionRejected,
+  type ERC4337TransactionSent,
   type State,
   type Token
 } from "~storage/local"
@@ -118,9 +118,9 @@ export const useStorage = create<Storage>()(
       markERC4337v06TransactionRejected: async (txId, data) => {
         await set(({ state }) => {
           const tx = state.pendingTransaction[txId]
-          const txRejected: ERC4337v06TransactionRejected = {
+          const txRejected: ERC4337TransactionRejected = {
             id: tx.id,
-            type: TransactionType.ERC4337v06,
+            type: TransactionType.ERC4337V0_6,
             status: TransactionStatus.Rejected,
             senderId: tx.senderId,
             networkId: tx.networkId,
@@ -139,9 +139,9 @@ export const useStorage = create<Storage>()(
       markERC4337v06TransactionSent: async (txId, data) => {
         await set(({ state }) => {
           const tx = state.pendingTransaction[txId]
-          const txSent: ERC4337v06TransactionSent = {
+          const txSent: ERC4337TransactionSent = {
             id: tx.id,
-            type: TransactionType.ERC4337v06,
+            type: TransactionType.ERC4337V0_6,
             status: TransactionStatus.Sent,
             senderId: tx.senderId,
             networkId: tx.networkId,
