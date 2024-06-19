@@ -7,7 +7,7 @@ import type {
 import address from "~packages/util/address"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
-export class StateViewer {
+export class StateActor {
   public constructor(private state: State) {}
 
   public getEntryPointVersion(networkId: string, entryPoint: HexString) {

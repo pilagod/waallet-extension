@@ -259,6 +259,14 @@ export class UserOperationV0_7 {
     }
   }
 
+  public setPaymasterAndData(paymasterAndData: HexString) {
+    if (ethers.dataLength(paymasterAndData) < 20) {
+      return
+    }
+    this.paymaster = ethers.dataSlice(paymasterAndData, 0, 20)
+    this.paymasterData = ethers.dataSlice(paymasterAndData, 20)
+  }
+
   public setSignature(signature: HexString) {
     this.signature = signature
   }

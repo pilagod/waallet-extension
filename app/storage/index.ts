@@ -11,7 +11,7 @@ import { type UserOperation } from "~packages/bundler/userOperation"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
-  StateViewer,
+  StateActor,
   TransactionStatus,
   type ERC4337TransactionRejected,
   type ERC4337TransactionSent,
@@ -117,7 +117,7 @@ export const useStorage = create<Storage>()(
 
       markERC4337TransactionRejected: async (txId, data) => {
         await set(({ state }) => {
-          const v = new StateViewer(state)
+          const v = new StateActor(state)
           const tx = state.pendingTransaction[txId]
           const txRejected: ERC4337TransactionRejected = {
             id: tx.id,
@@ -139,7 +139,7 @@ export const useStorage = create<Storage>()(
 
       markERC4337TransactionSent: async (txId, data) => {
         await set(({ state }) => {
-          const v = new StateViewer(state)
+          const v = new StateActor(state)
           const tx = state.pendingTransaction[txId]
           const txSent: ERC4337TransactionSent = {
             id: tx.id,
@@ -245,6 +245,12 @@ storageMessenger.get().then((state) => {
   useStorage.setStateLocally({ state })
 })
 
+/* Util */
+
+export function getStateActor() {
+  return new StateActor(useStorage.getState().state)
+}
+
 /* Custom Hooks */
 
 export const useAction = () => {
@@ -281,7 +287,7 @@ export const useNetworks = () => {
 export const useShouldOnboard = () => {
   return useStorage(
     useShallow(({ state }) => {
-      const network = state.network[state.networkActive]
+      const network = useNetwork()
       return (
         Object.values(state.account).filter(
           (a) => a.chainId === network.chainId
@@ -294,7 +300,7 @@ export const useShouldOnboard = () => {
 export const useAccount = (id?: string) => {
   return useStorage(
     useShallow(({ state }) => {
-      const network = state.network[state.networkActive]
+      const network = useNetwork()
       const accountId = id ?? network.accountActive
       return {
         id: accountId,
@@ -307,7 +313,7 @@ export const useAccount = (id?: string) => {
 export const useAccounts = () => {
   return useStorage(
     useShallow(({ state }) => {
-      const network = state.network[state.networkActive]
+      const network = useNetwork()
       return Object.entries(state.account)
         .filter(([_, a]) => a.chainId === network.chainId)
         .map(([id, a]) => {
@@ -333,12 +339,11 @@ export const usePendingTransactions = () => {
   )
 }
 
-export const useTokens = (id?: string) => {
+export const useTokens = (accountId?: string) => {
   return useStorage(
     useShallow(({ state }) => {
-      const network = state.network[state.networkActive]
-      const accountId = id ?? network.accountActive
-      return state.account[accountId].tokens
+      const account = useAccount(accountId)
+      return state.account[account.id].tokens
     })
   )
 }
