@@ -14,7 +14,8 @@ function toBigInt(n: BigNumberish) {
 }
 
 function toHex(n: BigNumberish, withPrefix: boolean = true) {
-  return (withPrefix ? `0x` : ``) + ethers.toBigInt(n).toString(16)
+  const result = ethers.toBeHex(n)
+  return withPrefix ? result : result.slice(2)
 }
 
 function formatUnitsToFixed(

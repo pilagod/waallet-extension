@@ -23,13 +23,13 @@ export const replacer = {
 
 export function format(
   data: any,
-  customReplacer?: (this: any, key: string, value: any) => any
+  replacerFunc?: (this: any, key: string, value: any) => any
 ): string {
   return json.stringify(
     data,
-    customReplacer
+    replacerFunc
       ? (key: string, value: any) => {
-          return replacer.uint8ArrayToHexString(key, customReplacer(key, value))
+          return replacer.uint8ArrayToHexString(key, replacerFunc(key, value))
         }
       : replacer.uint8ArrayToHexString,
     2

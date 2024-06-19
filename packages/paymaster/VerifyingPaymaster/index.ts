@@ -1,6 +1,6 @@
 import * as ethers from "ethers"
 
-import { UserOperation } from "~packages/bundler"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import { type ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
 import { ETH, Token } from "~packages/token"
@@ -22,7 +22,7 @@ export class VerifyingPaymaster implements Paymaster {
     this.paymaster = new ethers.Contract(
       option.address,
       [
-        `function getHash(${UserOperation.getSolidityStructType()} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
+        `function getHash(${UserOperationV0_6.getSolidityStructType()} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
       ],
       runner
     )
@@ -38,7 +38,7 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   public async requestPaymasterAndData(
-    userOp: UserOperation,
+    userOp: UserOperationV0_6,
     forGasEstimation = false
   ) {
     const validAfter = 0
@@ -60,12 +60,12 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   private async getSignature(
-    userOp: UserOperation,
+    userOp: UserOperationV0_6,
     validUntil: number,
     validAfter: number
   ) {
     const hash = await this.paymaster.getHash(
-      userOp.data(),
+      userOp.unwrap(),
       validUntil,
       validAfter
     )

@@ -1,4 +1,5 @@
 import { AccountType } from "~packages/account"
+import { EntryPointVersion } from "~packages/bundler"
 import type { HexString } from "~typing"
 
 import { config as developmentConfig } from "./development"
@@ -25,10 +26,11 @@ export type Config = {
     active: boolean
     nodeRpcUrl: string
     bundlerRpcUrl: string
+    entryPoint: {
+      [v in EntryPointVersion]: HexString
+    }
     accountFactory: {
-      [type in AccountType]: {
-        address: string
-      }
+      [type in AccountType]: HexString
     }
   }[]
 }

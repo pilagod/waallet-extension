@@ -12,7 +12,7 @@ import {
   usePendingTransactions
 } from "~app/storage"
 import type { Account } from "~packages/account"
-import { UserOperation } from "~packages/bundler"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
@@ -87,7 +87,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
 
   /* User Operation */
 
-  const [userOp, setUserOp] = useClsState<UserOperation>(null)
+  const [userOp, setUserOp] = useClsState<UserOperationV0_6>(null)
   const [userOpResolving, setUserOpResolving] = useState(false)
   const [userOpEstimating, setUserOpEstimating] = useState(false)
 
@@ -104,7 +104,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       )
       const userOpHash = await provider.send(
         WaalletRpcMethod.eth_sendUserOperation,
-        [userOp.data(), entryPoint]
+        [userOp.unwrap(), entryPoint]
       )
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
@@ -147,14 +147,14 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
     }
   }
 
-  const estimateGas = async (userOp: UserOperation) => {
+  const estimateGas = async (userOp: UserOperationV0_6) => {
     userOp.setPaymasterAndData(
       await paymentOption.paymaster.requestPaymasterAndData(userOp, true)
     )
     userOp.setGasFee(await estimateGasFee())
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
-        userOp.data(),
+        userOp.unwrap(),
         await senderAccount.getEntryPoint()
       ])
     )
@@ -162,7 +162,9 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
 
   useEffect(() => {
     async function setupUserOp() {
-      const userOp = await senderAccount.createUserOperation(pendingTx)
+      const userOp = UserOperationV0_6.wrap(
+        await senderAccount.buildExecution(pendingTx)
+      )
       await estimateGas(userOp)
       setUserOp(userOp)
     }
@@ -201,7 +203,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       return
     }
     calculatePayment()
-  }, [JSON.stringify(userOp?.data())])
+  }, [JSON.stringify(userOp?.unwrap())])
 
   if (!senderAccount || !userOp) {
     return <></>
@@ -212,10 +214,10 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       <div>
         <h1>Transaction Detail</h1>
         <div>
-          {Object.entries(userOp.data()).map(([key, value], i) => {
+          {Object.entries(userOp.unwrap()).map(([key, value], i) => {
             return (
               <div key={i}>
-                {key}: {value}
+                {key}: {`${value}`}
               </div>
             )
           })}

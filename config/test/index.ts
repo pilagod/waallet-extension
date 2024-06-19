@@ -1,11 +1,38 @@
 import * as ethers from "ethers"
 
+import { EntryPointVersion } from "~packages/bundler"
 import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
 import { NodeProvider } from "~packages/node/provider"
 
+const address = {
+  Counter: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
+
+  /* v0.6 */
+
+  EntryPointV0_6: "0x663F3ad617193148711d28f5334eE4Ed07016602",
+  SimpleAccountFactoryV0_6: "0x2E983A1Ba5e8b38AAAeC4B440B9dDcFBf72E15d1",
+  SimpleAccountV0_6: "0x1E684E8937774B00Ee2Ea562256f27a5c9D20d7c",
+  PasskeyAccountFactoryV0_6: "0xBC9129Dc0487fc2E169941C75aABC539f208fb01",
+  PasskeyAccountV0_6: "0xF4bb6e38fC8A5ec977D4Fdc74B4E0fa84c8dc704",
+  VerifyingPaymasterV0_6: "0xF6168876932289D073567f347121A267095f3DD6",
+
+  /* v0.7 */
+
+  EntryPointV0_7: "0x057ef64E23666F000b34aE31332854aCBd1c8544",
+  SimpleAccountFactoryV0_7: "0x261D8c5e9742e6f7f1076Fa1F560894524e19cad",
+  SimpleAccountV0_7: "0xe569f1d8487239659C09b5cA1881320B5EbB0ab2"
+}
+
 const provider = {
   node: new NodeProvider("http://localhost:8545"),
-  bundler: new BundlerProvider("http://localhost:3000", BundlerMode.Manual)
+  bundler: new BundlerProvider({
+    url: "http://localhost:3000",
+    entryPoint: {
+      [EntryPointVersion.V0_6]: address.EntryPointV0_6,
+      [EntryPointVersion.V0_7]: address.EntryPointV0_7
+    },
+    mode: BundlerMode.Manual
+  })
 }
 const { node } = provider
 
@@ -16,28 +43,18 @@ const wallet = {
   )
 }
 
-const address = {
-  Counter: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
-  EntryPoint: "0x663F3ad617193148711d28f5334eE4Ed07016602",
-  SimpleAccountFactory: "0x2E983A1Ba5e8b38AAAeC4B440B9dDcFBf72E15d1",
-  SimpleAccount: "0x1E684E8937774B00Ee2Ea562256f27a5c9D20d7c",
-  PasskeyAccountFactory: "0xBC9129Dc0487fc2E169941C75aABC539f208fb01",
-  PasskeyAccount: "0xF4bb6e38fC8A5ec977D4Fdc74B4E0fa84c8dc704",
-  VerifyingPaymaster: "0xF6168876932289D073567f347121A267095f3DD6"
-}
-
 const contract = {
   entryPoint: new ethers.Contract(
-    address.EntryPoint,
+    address.EntryPointV0_6,
     ["function balanceOf(address account) public view returns (uint256)"],
     node
   ),
   simpleAccountFactory: new ethers.Contract(
-    address.SimpleAccountFactory,
+    address.SimpleAccountFactoryV0_6,
     ["function getAddress(address owner, uint256 salt) view returns (address)"],
     node
   ),
-  simpleAccount: new ethers.Contract(address.SimpleAccount, [], node),
+  simpleAccount: new ethers.Contract(address.SimpleAccountV0_6, [], node),
   counter: new ethers.Contract(
     address.Counter,
     [
@@ -47,7 +64,7 @@ const contract = {
     node
   ),
   passkeyAccountFactory: new ethers.Contract(
-    address.PasskeyAccountFactory,
+    address.PasskeyAccountFactoryV0_6,
     [],
     node
   )

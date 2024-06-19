@@ -95,12 +95,13 @@ export class NetworkStorageManager implements NetworkManager {
       id,
       chainId: network.chainId,
       node: new NodeProvider(network.nodeRpcUrl),
-      bundler: new BundlerProvider(
-        network.bundlerRpcUrl,
-        this.isLocalTestnet(network.chainId)
+      bundler: new BundlerProvider({
+        url: network.bundlerRpcUrl,
+        entryPoint: network.entryPoint,
+        mode: this.isLocalTestnet(network.chainId)
           ? BundlerMode.Manual
           : BundlerMode.Auto
-      )
+      })
     }
   }
 

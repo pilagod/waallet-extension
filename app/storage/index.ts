@@ -7,7 +7,7 @@ import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { UserOperation } from "~packages/bundler"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
@@ -35,14 +35,14 @@ interface Storage {
     txId: string,
     data: {
       entryPoint: HexString
-      userOp: UserOperation
+      userOp: UserOperationV0_6
     }
   ): Promise<void>
   markERC4337v06TransactionSent(
     txId: string,
     data: {
       entryPoint: HexString
-      userOp: UserOperation
+      userOp: UserOperationV0_6
       userOpHash: HexString
     }
   ): Promise<void>
@@ -127,7 +127,7 @@ export const useStorage = create<Storage>()(
             createdAt: tx.createdAt,
             detail: {
               entryPoint: data.entryPoint,
-              data: data.userOp.data()
+              data: data.userOp.unwrap()
             }
           }
           state.account[txRejected.senderId].transactionLog[txRejected.id] =
@@ -148,7 +148,7 @@ export const useStorage = create<Storage>()(
             createdAt: tx.createdAt,
             detail: {
               entryPoint: data.entryPoint,
-              data: data.userOp.data()
+              data: data.userOp.unwrap()
             },
             receipt: {
               userOpHash: data.userOpHash

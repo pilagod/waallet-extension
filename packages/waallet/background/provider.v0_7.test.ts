@@ -1,10 +1,19 @@
+import { SimpleAccount } from "~packages/account/SimpleAccount"
 import byte from "~packages/util/byte"
+import number from "~packages/util/number"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
 describeWaalletSuite({
-  name: "WalletBackgroundProvider",
+  name: "WalletBackgroundProvider v0.7",
+  useAccount: (cfg) => {
+    return SimpleAccount.initWithFactory(cfg.provider.node, {
+      ownerPrivateKey: cfg.wallet.operator.privateKey,
+      factoryAddress: cfg.address.SimpleAccountFactoryV0_7,
+      salt: number.random()
+    })
+  },
   suite: (ctx) => {
     it("should get chain id", async () => {
       const chainId = await ctx.provider.waallet.request<HexString>({
@@ -61,14 +70,18 @@ describeWaalletSuite({
       await ctx.topupAccount()
 
       const {
-        contract: { counter }
+        contract: { counter },
+        provider: { bundler }
       } = ctx
 
-      const userOp = await ctx.account.createUserOperation({
-        to: await counter.getAddress(),
-        value: 1,
-        data: counter.interface.encodeFunctionData("increment", [])
-      })
+      const userOp = bundler.deriveUserOperation(
+        await ctx.account.buildExecution({
+          to: await counter.getAddress(),
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
+        }),
+        await ctx.account.getEntryPoint()
+      )
       // Use custom nonce which doesn't match the one on chain
       userOp.setNonce(userOp.nonce + 1n)
 
@@ -79,7 +92,7 @@ describeWaalletSuite({
           callGasLimit: HexString
         }>({
           method: WaalletRpcMethod.eth_estimateUserOperationGas,
-          params: [userOp.data(), await ctx.account.getEntryPoint()]
+          params: [userOp.unwrap(), await ctx.account.getEntryPoint()]
         })
 
       await expect(useInvalidNonce()).rejects.toThrow()
@@ -129,17 +142,17 @@ describeWaalletSuite({
         await counter.getAddress()
       )
 
-      const userOp = await ctx.account.createUserOperation({
-        to: await counter.getAddress(),
-        value: 1,
-        data: counter.interface.encodeFunctionData("increment", [])
-      })
+      const userOp = bundler.deriveUserOperation(
+        await ctx.account.buildExecution({
+          to: await counter.getAddress(),
+          value: 1,
+          data: counter.interface.encodeFunctionData("increment", [])
+        }),
+        await ctx.account.getEntryPoint()
+      )
 
       const { gasPrice } = await node.getFeeData()
-      userOp.setGasFee({
-        maxFeePerGas: gasPrice * 2n,
-        maxPriorityFeePerGas: gasPrice * 2n
-      })
+      userOp.setGasFee(gasPrice * 2n)
 
       const entryPoint = await ctx.account.getEntryPoint()
       userOp.setGasLimit(
@@ -153,7 +166,7 @@ describeWaalletSuite({
 
       const userOpHash = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_sendUserOperation,
-        params: [userOp.data(), entryPoint]
+        params: [userOp.unwrap(), entryPoint]
       })
       await bundler.wait(userOpHash)
 

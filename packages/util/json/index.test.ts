@@ -10,35 +10,38 @@ describe("json", () => {
 
   it("should format the JSON data using the format() function", () => {
     const output = format(data)
-
-    expect(output).toBe(`{
+    const expected = `{
   "jsonrpc": "1.0",
   "id": 2,
   "x": 345,
   "rpIdHash": "060708"
-}`)
+}`
+
+    expect(output).toBe(expected)
   })
 
   it("should format the JSON data using the format() function with uint8ArrayToHexString replacer", () => {
     const output = format(data, replacer.uint8ArrayToHexString)
-
-    expect(output).toBe(`{
+    const expected = `{
   "jsonrpc": "1.0",
   "id": 2,
   "x": 345,
   "rpIdHash": "060708"
-}`)
+}`
+
+    expect(output).toBe(expected)
   })
 
   it("should format the JSON data using the format() function with numberToHex replacer", () => {
     const output = format(data, replacer.numberToHex)
-
-    expect(output).toBe(`{
+    const expected = `{
   "jsonrpc": "1.0",
-  "id": "0x2",
-  "x": "0x159",
+  "id": "0x02",
+  "x": "0x0159",
   "rpIdHash": "060708"
-}`)
+}`
+
+    expect(output).toBe(expected)
   })
 
   it("should format the JSON data using the format() function with custom replacer", () => {
@@ -49,13 +52,14 @@ describe("json", () => {
       return replacer.numberToHex(k, v)
     }
     const output = format(data, customReplacer)
-
-    expect(output).toBe(`{
+    const expected = `{
   "jsonrpc": "1.0",
   "id": 2,
-  "x": "0x159",
+  "x": "0x0159",
   "rpIdHash": "060708"
-}`)
+}`
+
+    expect(output).toBe(expected)
   })
 
   it("should format the JSON data using the json.stringify() function", () => {
@@ -76,7 +80,7 @@ describe("json", () => {
     const output = json.stringify(data, replacer.numberToHex)
 
     expect(output).toBe(
-      `{"jsonrpc":"1.0","id":"0x2","x":"0x159","rpIdHash":{"0":"0x6","1":"0x7","2":"0x8"}}`
+      `{"jsonrpc":"1.0","id":"0x02","x":"0x0159","rpIdHash":{"0":"0x06","1":"0x07","2":"0x08"}}`
     )
   })
 
@@ -90,7 +94,7 @@ describe("json", () => {
     const output = json.stringify(data, customReplacer)
 
     expect(output).toBe(
-      `{"jsonrpc":"1.0","id":2,"x":"0x159","rpIdHash":{"0":"0x6","1":"0x7","2":"0x8"}}`
+      `{"jsonrpc":"1.0","id":2,"x":"0x0159","rpIdHash":{"0":"0x06","1":"0x07","2":"0x08"}}`
     )
   })
 })
