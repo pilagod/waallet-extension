@@ -7,12 +7,12 @@ import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { UserOperationV0_6 } from "~packages/bundler/userOperation"
+import { type UserOperation } from "~packages/bundler/userOperation"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
+  StateViewer,
   TransactionStatus,
-  TransactionType,
   type ERC4337TransactionRejected,
   type ERC4337TransactionSent,
   type State,
@@ -35,14 +35,14 @@ interface Storage {
     txId: string,
     data: {
       entryPoint: HexString
-      userOp: UserOperationV0_6
+      userOp: UserOperation
     }
   ): Promise<void>
   markERC4337TransactionSent(
     txId: string,
     data: {
       entryPoint: HexString
-      userOp: UserOperationV0_6
+      userOp: UserOperation
       userOpHash: HexString
     }
   ): Promise<void>
@@ -117,17 +117,18 @@ export const useStorage = create<Storage>()(
 
       markERC4337TransactionRejected: async (txId, data) => {
         await set(({ state }) => {
+          const v = new StateViewer(state)
           const tx = state.pendingTransaction[txId]
           const txRejected: ERC4337TransactionRejected = {
             id: tx.id,
-            type: TransactionType.ERC4337V0_6,
+            type: v.getTransactionType(tx.networkId, data.entryPoint),
             status: TransactionStatus.Rejected,
             senderId: tx.senderId,
             networkId: tx.networkId,
             createdAt: tx.createdAt,
             detail: {
               entryPoint: data.entryPoint,
-              data: data.userOp.unwrap()
+              data: data.userOp.unwrap() as any
             }
           }
           state.account[txRejected.senderId].transactionLog[txRejected.id] =
@@ -138,17 +139,18 @@ export const useStorage = create<Storage>()(
 
       markERC4337TransactionSent: async (txId, data) => {
         await set(({ state }) => {
+          const v = new StateViewer(state)
           const tx = state.pendingTransaction[txId]
           const txSent: ERC4337TransactionSent = {
             id: tx.id,
-            type: TransactionType.ERC4337V0_6,
+            type: v.getTransactionType(tx.networkId, data.entryPoint),
             status: TransactionStatus.Sent,
             senderId: tx.senderId,
             networkId: tx.networkId,
             createdAt: tx.createdAt,
             detail: {
               entryPoint: data.entryPoint,
-              data: data.userOp.unwrap()
+              data: data.userOp.unwrap() as any
             },
             receipt: {
               userOpHash: data.userOpHash

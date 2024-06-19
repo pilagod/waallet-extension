@@ -4,7 +4,31 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
+import address from "~packages/util/address"
 import type { B64UrlString, HexString, Nullable } from "~typing"
+
+export class StateViewer {
+  public constructor(private state: State) {}
+
+  public getEntryPointVersion(networkId: string, entryPoint: HexString) {
+    const network = this.state.network[networkId]
+    if (address.isEqual(entryPoint, network.entryPoint["v0.6"])) {
+      return EntryPointVersion.V0_6
+    }
+    return EntryPointVersion.V0_7
+  }
+
+  /**
+   * @dev Expected to be overloaded for different type of transaction.
+   */
+  public getTransactionType(networkId: string, entryPoint: HexString) {
+    const entryPointVersion = this.getEntryPointVersion(networkId, entryPoint)
+    if (entryPointVersion === EntryPointVersion.V0_6) {
+      return TransactionType.ERC4337V0_6
+    }
+    return TransactionType.ERC4337V0_7
+  }
+}
 
 /* State */
 
