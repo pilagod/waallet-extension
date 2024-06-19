@@ -1,6 +1,6 @@
 import { p256 } from "@noble/curves/p256"
 import { isoBase64URL } from "@simplewebauthn/server/helpers"
-import { AbiCoder, getBytes, hashMessage } from "ethers"
+import { AbiCoder, getBytes, hashMessage, sha256 } from "ethers"
 
 import byte from "~packages/util/byte"
 
@@ -37,11 +37,11 @@ describe("PasskeyOwnerP256", () => {
       JSON.parse(clientDataJSON).challenge
     )
 
-    const message = byte
-      .sha256(
-        `${authenticatorData}${byte.sha256(clientDataJSON).toString("hex")}`
+    const message = sha256(
+      byte.normalize(
+        `${authenticatorData}${sha256(byte.normalize(clientDataJSON)).slice(2)}`
       )
-      .toString("hex")
+    ).slice(2)
 
     expect(p256.verify({ r, s }, message, owner.publicKey)).toBe(true)
   })

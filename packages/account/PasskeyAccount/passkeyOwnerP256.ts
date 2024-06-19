@@ -74,11 +74,15 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
   private getMessage(challenge: BytesLike) {
     const authenticatorData = this.getAuthenticatorData()
     const clientDataJson = this.getClientDataJson(challenge)
-    const message = byte
+    const message = ethers
       .sha256(
-        `${authenticatorData}${byte.sha256(clientDataJson).toString("hex")}`
+        byte.normalize(
+          `${authenticatorData}${ethers
+            .sha256(byte.normalize(clientDataJson))
+            .slice(2)}`
+        )
       )
-      .toString("hex")
+      .slice(2)
     return {
       message,
       authenticatorData,
