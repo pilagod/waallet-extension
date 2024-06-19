@@ -4,7 +4,7 @@ import type { BigNumberish, HexString } from "~typing"
 export class Transaction {
   public to: HexString
   public value: bigint
-  public callData: HexString
+  public data: HexString
   public nonce?: bigint
   public gasLimit?: bigint
   public gasPrice?: bigint
@@ -19,7 +19,7 @@ export class Transaction {
   }) {
     this.to = data.to
     this.value = number.toBigInt(data.value ?? 0n)
-    this.callData = data.data ?? "0x"
+    this.data = data.data ?? "0x"
     if (data.nonce) {
       this.nonce = number.toBigInt(data.nonce)
     }
@@ -31,11 +31,11 @@ export class Transaction {
     }
   }
 
-  public data() {
+  public unwrap() {
     return {
       to: this.to,
       value: number.toHex(this.value),
-      data: this.callData,
+      data: this.data,
       ...(this.nonce && {
         nonce: number.toHex(this.nonce)
       }),

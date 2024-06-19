@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid"
 
 import type { AccountManager } from "~packages/account/manager"
-import { UserOperation } from "~packages/bundler"
+import type { UserOperation } from "~packages/bundler/userOperation"
 import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import type { BigNumberish, HexString } from "~typing"
@@ -29,25 +29,25 @@ export class TransactionToUserOperationSender implements TransactionPool {
     const { account } = await this.accountManager.get(senderId)
     const { chainId, node, bundler } = this.networkManager.get(networkId)
 
-    const userOp = await account.createUserOperation(tx.data())
+    const entryPoint = await account.getEntryPoint()
+    const isSupportedByBundler = await bundler.isSupportedEntryPoint(entryPoint)
+    if (!isSupportedByBundler) {
+      throw new Error(`Cannot support this version of EntryPoint ${entryPoint}`)
+    }
+
+    const userOp = bundler.deriveUserOperation(
+      await account.buildExecution(tx.unwrap()),
+      entryPoint
+    )
 
     if (this.usePaymaster) {
       await this.usePaymaster(userOp, true)
     }
 
     if (tx.gasPrice) {
-      userOp.setGasFee({
-        maxFeePerGas: tx.gasPrice,
-        maxPriorityFeePerGas: tx.gasPrice
-      })
+      userOp.setGasFee(tx.gasPrice)
     } else {
       userOp.setGasFee(await this.estimateGasFee(node))
-    }
-
-    const entryPoint = await account.getEntryPoint()
-    const isSupportedByBundler = await bundler.isSupportedEntryPoint(entryPoint)
-    if (!isSupportedByBundler) {
-      throw new Error(`Cannot support this version of EntryPoint ${entryPoint}`)
     }
 
     const gas = await bundler.estimateUserOperationGas(userOp, entryPoint)

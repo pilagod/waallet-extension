@@ -3,8 +3,10 @@ import browser from "webextension-polyfill"
 
 import { getConfig } from "~config"
 import { AccountType } from "~packages/account"
-import type { UserOperationData } from "~packages/bundler"
+import { EntryPointVersion } from "~packages/bundler"
+import type { UserOperationDataV0_6 } from "~packages/bundler/userOperation"
 import { ObservableStorage } from "~packages/storage/observable"
+import address from "~packages/util/address"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
 let storage: ObservableStorage<State>
@@ -21,56 +23,45 @@ export async function getLocalStorage() {
     const state = storage.get()
     const config = getConfig()
 
-    // Load accounts absent into storage
+    // Load accounts into storage
+    // TODO: Consider to write id into account
     const account = state.account ?? {}
     config.accounts.forEach((a) => {
-      const targetAccount = Object.values(account).find(
-        ({ address, chainId }) => a.chainId === chainId && a.address === address
-      )
-      if (targetAccount) {
-        return
-      }
-      const accountId = uuidv4()
+      const targetAccount = Object.entries(account)
+        .map(([id, as]) => ({ id, ...as }))
+        .find(
+          (as) =>
+            a.chainId === as.chainId && address.isEqual(a.address, as.address)
+        ) ?? { id: uuidv4(), transactionLog: {}, balance: "0x00", tokens: [] }
       Object.assign(account, {
-        [accountId]: {
-          ...a,
-          transactionLog: {},
-          balance: "0x00",
-          tokens: []
+        [targetAccount.id]: {
+          ...targetAccount,
+          ...a
         }
       })
     })
 
-    // Load networks absent into storage
+    // Load networks into storage
+    // TODO: Consider to write id into network
     const network = state.network ?? {}
     let networkActive = state.networkActive
     config.networks.forEach((n) => {
-      const targetNetwork = Object.values(network).find(
-        ({ chainId }) => n.chainId === chainId
-      )
-      const fallbackAccount = Object.entries(account).find(
-        ([_, a]) => a.chainId === n.chainId
-      )
-      const fallbackAccountActive = fallbackAccount ? fallbackAccount[0] : null
-      if (targetNetwork) {
-        if (!targetNetwork.accountActive) {
-          targetNetwork.accountActive = fallbackAccountActive
-        }
-        return
+      const targetNetwork = Object.entries(network)
+        .map(([id, ns]) => ({ id, ...ns }))
+        .find((ns) => n.chainId === ns.chainId) ?? {
+        id: uuidv4(),
+        accountActive: Object.entries(account)
+          .map(([id, a]) => ({ id, ...a }))
+          .filter((a) => a.chainId === n.chainId)[0]?.id
       }
-      const networkId = uuidv4()
       Object.assign(network, {
-        [networkId]: {
-          chainId: n.chainId,
-          name: n.name,
-          nodeRpcUrl: n.nodeRpcUrl,
-          bundlerRpcUrl: n.bundlerRpcUrl,
-          accountActive: fallbackAccountActive,
-          accountFactory: n.accountFactory
+        [targetNetwork.id]: {
+          ...targetNetwork,
+          ...n
         }
       })
       if (n.active && !networkActive) {
-        networkActive = networkId
+        networkActive = targetNetwork.id
       }
     })
     // TODO: Only for development at this moment. Remove following when getting to production.
@@ -114,10 +105,11 @@ export type Network = {
   nodeRpcUrl: string
   bundlerRpcUrl: string
   accountActive: Nullable<HexString>
+  entryPoint: {
+    [v in EntryPointVersion]: HexString
+  }
   accountFactory: {
-    [type in AccountType]: {
-      address: HexString
-    }
+    [type in AccountType]: HexString
   }
 }
 
@@ -240,7 +232,7 @@ export type ERC4337v06TransactionMeta<T> = TransactionLogMeta<{
 
 export type ERC4337v06TransactionDetail = {
   entryPoint: HexString
-  data: UserOperationData
+  data: UserOperationDataV0_6
 }
 
 export type ERC4337v06TransactionRejected = ERC4337v06TransactionMeta<{

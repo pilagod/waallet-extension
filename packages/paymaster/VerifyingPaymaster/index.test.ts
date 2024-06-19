@@ -7,7 +7,7 @@ describeWaalletSuite({
   name: "Verifying Paymaster",
   usePaymaster: async (cfg) => {
     return new VerifyingPaymaster(cfg.provider.node, {
-      address: cfg.address.VerifyingPaymaster,
+      address: cfg.address.VerifyingPaymasterV0_6,
       ownerPrivateKey: cfg.wallet.operator.privateKey,
       expirationSecs: 300
     })
@@ -23,7 +23,7 @@ describeWaalletSuite({
         await ctx.account.getAddress()
       )
       const paymasterDepositBalanceBefore = await entryPoint.balanceOf(
-        ctx.address.VerifyingPaymaster
+        ctx.address.VerifyingPaymasterV0_6
       )
 
       await ctx.provider.waallet.request({
@@ -42,7 +42,7 @@ describeWaalletSuite({
       expect(accountBalanceBefore).toBe(accountBalanceAfter)
 
       const paymasterDepositBalanceAfter = await entryPoint.balanceOf(
-        ctx.address.VerifyingPaymaster
+        ctx.address.VerifyingPaymasterV0_6
       )
       expect(paymasterDepositBalanceBefore).toBeGreaterThan(
         paymasterDepositBalanceAfter
