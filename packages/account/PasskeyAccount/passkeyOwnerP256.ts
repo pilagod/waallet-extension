@@ -1,4 +1,5 @@
 import { p256 } from "@noble/curves/p256"
+import { isoBase64URL } from "@simplewebauthn/server/helpers"
 import * as ethers from "ethers"
 
 import byte from "~packages/util/byte"
@@ -94,9 +95,9 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
   private getClientDataJson(challenge: BytesLike) {
     const clientJsonData = {
       type: "webauthn.get",
-      challenge: byte
-        .normalize(ethers.hashMessage(challenge))
-        .toString("base64url"),
+      challenge: isoBase64URL.fromBuffer(
+        ethers.getBytes(ethers.hashMessage(byte.normalize(challenge)))
+      ),
       origin: "https://webauthn.passwordless.id",
       crossOrigin: false
     }
