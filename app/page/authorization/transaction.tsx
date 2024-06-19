@@ -26,17 +26,17 @@ type PaymentOption = {
   paymaster: Paymaster
 }
 
-export function UserOperationAuthorization() {
+export function TransactionAuthorization() {
   const [, navigate] = useHashLocation()
   const pendingTxs = usePendingTransactions()
   if (pendingTxs.length === 0) {
     navigate(Path.Index)
     return
   }
-  return <UserOperationConfirmation pendingTx={pendingTxs[0]} />
+  return <TransactionConfirmation pendingTx={pendingTxs[0]} />
 }
 
-function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
+function TransactionConfirmation(props: { pendingTx: TransactionPending }) {
   const { pendingTx } = props
   const { provider } = useProviderContext()
   const paymentOptions: PaymentOption[] = [
