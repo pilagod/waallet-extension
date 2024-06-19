@@ -4,17 +4,17 @@ import browser from "webextension-polyfill"
 import { getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import {
-  getLocalStorage,
-  TransactionStatus,
-  type ERC4337TransactionReverted,
-  type ERC4337TransactionSucceeded,
-  type TransactionLog
-} from "~storage/local"
+import { getLocalStorage } from "~storage/local"
 import {
   AccountStorageManager,
   NetworkStorageManager
 } from "~storage/local/manager"
+import {
+  TransactionStatus,
+  type ERC4337TransactionReverted,
+  type ERC4337TransactionSucceeded,
+  type TransactionLog
+} from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
 
 import { StorageAction } from "./messages/storage"

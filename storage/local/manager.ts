@@ -12,7 +12,7 @@ import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
-import type { Account, State } from "./index"
+import type { Account, State } from "./state"
 
 export class AccountStorageManager implements AccountManager {
   public static async wrap(runner: ContractRunner, account: Account) {

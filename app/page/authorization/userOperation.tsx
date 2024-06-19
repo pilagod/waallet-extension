@@ -18,8 +18,8 @@ import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import { ETH } from "~packages/token"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
-import type { TransactionPending } from "~storage/local"
 import { AccountStorageManager } from "~storage/local/manager"
+import type { TransactionPending } from "~storage/local/state"
 
 type PaymentOption = {
   name: string
@@ -57,8 +57,10 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
     }
   ]
   const [, navigate] = useHashLocation()
-  const { markERC4337v06TransactionSent, markERC4337v06TransactionRejected } =
-    useAction()
+  const {
+    markERC4337TransactionSent: markERC4337v06TransactionSent,
+    markERC4337TransactionRejected: markERC4337v06TransactionRejected
+  } = useAction()
   const network = useNetwork(pendingTx.networkId)
   const sender = useAccount(pendingTx.senderId)
 

@@ -17,7 +17,7 @@ import {
   type ERC4337TransactionSent,
   type State,
   type Token
-} from "~storage/local"
+} from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 import { StorageMessenger } from "./messenger"
@@ -31,14 +31,14 @@ interface Storage {
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
   switchAccount: (accountId: string) => Promise<void>
   switchNetwork: (networkId: string) => Promise<void>
-  markERC4337v06TransactionRejected(
+  markERC4337TransactionRejected(
     txId: string,
     data: {
       entryPoint: HexString
       userOp: UserOperationV0_6
     }
   ): Promise<void>
-  markERC4337v06TransactionSent(
+  markERC4337TransactionSent(
     txId: string,
     data: {
       entryPoint: HexString
@@ -115,7 +115,7 @@ export const useStorage = create<Storage>()(
 
       /* Transaction */
 
-      markERC4337v06TransactionRejected: async (txId, data) => {
+      markERC4337TransactionRejected: async (txId, data) => {
         await set(({ state }) => {
           const tx = state.pendingTransaction[txId]
           const txRejected: ERC4337TransactionRejected = {
@@ -136,7 +136,7 @@ export const useStorage = create<Storage>()(
         })
       },
 
-      markERC4337v06TransactionSent: async (txId, data) => {
+      markERC4337TransactionSent: async (txId, data) => {
         await set(({ state }) => {
           const tx = state.pendingTransaction[txId]
           const txSent: ERC4337TransactionSent = {
