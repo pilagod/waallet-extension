@@ -6,7 +6,6 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import {
-  getStateActor,
   useAccount,
   useAction,
   useNetwork,
@@ -54,40 +53,34 @@ function TransactionConfirmation(props: { tx: TransactionPending }) {
   const sender = useAccount(tx.senderId)
 
   const [senderAccount, setSenderAccount] = useState<Account>(null)
-  const [transactionType, setTransactionType] = useState<TransactionType>(null)
 
   useEffect(() => {
-    async function setup() {
+    async function setupSenderAccount() {
       const account = await AccountStorageManager.wrap(provider, sender)
       setSenderAccount(account)
-
-      const entryPoint = await account.getEntryPoint()
-      setTransactionType(
-        getStateActor().getTransactionType(network.id, entryPoint)
-      )
     }
-    setup()
+    setupSenderAccount()
   }, [sender.id])
 
-  if (!senderAccount || !transactionType) {
+  if (!senderAccount) {
     return
   }
 
   return (
     <UserOperationConfirmation
-      tx={{ ...tx, type: transactionType }}
-      network={network}
+      tx={tx}
       sender={senderAccount}
+      network={network}
     />
   )
 }
 
 function UserOperationConfirmation(props: {
-  tx: TransactionPending & { type: TransactionType }
-  network: Network
+  tx: TransactionPending
   sender: Account
+  network: Network
 }) {
-  const { tx, network, sender } = props
+  const { tx, sender, network } = props
 
   const [, navigate] = useHashLocation()
   const { provider } = useProviderContext()
@@ -109,8 +102,11 @@ function UserOperationConfirmation(props: {
       })
     }
   ]
-  const { markERC4337TransactionSent, markERC4337TransactionRejected } =
-    useAction()
+  const {
+    getERC4337TransactionType,
+    markERC4337TransactionSent,
+    markERC4337TransactionRejected
+  } = useAction()
 
   /* Payment */
 
@@ -199,9 +195,13 @@ function UserOperationConfirmation(props: {
 
   useEffect(() => {
     async function setupUserOp() {
+      const transactionType = getERC4337TransactionType(
+        tx.networkId,
+        await sender.getEntryPoint()
+      )
       const execution = await sender.buildExecution(tx)
       const userOp =
-        tx.type === TransactionType.ERC4337V0_6
+        transactionType === TransactionType.ERC4337V0_6
           ? UserOperationV0_6.wrap(execution)
           : UserOperationV0_7.wrap(execution)
       await estimateGas(userOp)

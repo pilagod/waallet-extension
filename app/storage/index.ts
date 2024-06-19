@@ -7,12 +7,17 @@ import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { type UserOperation } from "~packages/bundler/userOperation"
+import { EntryPointVersion } from "~packages/bundler"
+import {
+  UserOperationV0_6,
+  UserOperationV0_7,
+  type UserOperation
+} from "~packages/bundler/userOperation"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import {
-  StateActor,
   TransactionStatus,
+  TransactionType,
   type ERC4337TransactionRejected,
   type ERC4337TransactionSent,
   type State,
@@ -28,26 +33,17 @@ const storageMessenger = new StorageMessenger()
 // TODO: Split as slices
 interface Storage {
   state: State
+
+  /* Account */
+
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
+
   switchAccount: (accountId: string) => Promise<void>
-  switchNetwork: (networkId: string) => Promise<void>
-  markERC4337TransactionRejected(
-    txId: string,
-    data: {
-      entryPoint: HexString
-      userOp: UserOperation
-    }
-  ): Promise<void>
-  markERC4337TransactionSent(
-    txId: string,
-    data: {
-      entryPoint: HexString
-      userOp: UserOperation
-      userOpHash: HexString
-    }
-  ): Promise<void>
+
   updateBalance: (accountId: string, balance: BigNumberish) => Promise<void>
+
   importToken: (accountId: string, token: Token) => Promise<void>
+
   updateToken: (
     accountId: string,
     tokenAddress: HexString,
@@ -56,7 +52,36 @@ interface Storage {
       symbol?: string
     }
   ) => Promise<void>
+
   removeToken: (accountId: string, tokenAddress: HexString) => Promise<void>
+
+  /* Network */
+
+  switchNetwork: (networkId: string) => Promise<void>
+
+  /* Transaction - ERC4337*/
+
+  getERC4337TransactionType: (
+    networkId: string,
+    entryPoint: HexString
+  ) => TransactionType
+
+  markERC4337TransactionRejected(
+    txId: string,
+    data: {
+      entryPoint: HexString
+      userOp: UserOperation
+    }
+  ): Promise<void>
+
+  markERC4337TransactionSent(
+    txId: string,
+    data: {
+      entryPoint: HexString
+      userOp: UserOperation
+      userOpHash: HexString
+    }
+  ): Promise<void>
 }
 
 // @dev: This background middleware sends state first into background storage.
@@ -101,67 +126,6 @@ export const useStorage = create<Storage>()(
           state.network[state.networkActive].accountActive = accountId
         })
       },
-
-      /* Network */
-
-      switchNetwork: async (networkId: string) => {
-        await set(({ state }) => {
-          if (!state.network[networkId]) {
-            throw new Error(`Unknown network: ${networkId}`)
-          }
-          state.networkActive = networkId
-        })
-      },
-
-      /* Transaction */
-
-      markERC4337TransactionRejected: async (txId, data) => {
-        await set(({ state }) => {
-          const v = new StateActor(state)
-          const tx = state.pendingTransaction[txId]
-          const txRejected: ERC4337TransactionRejected = {
-            id: tx.id,
-            type: v.getTransactionType(tx.networkId, data.entryPoint),
-            status: TransactionStatus.Rejected,
-            senderId: tx.senderId,
-            networkId: tx.networkId,
-            createdAt: tx.createdAt,
-            detail: {
-              entryPoint: data.entryPoint,
-              data: data.userOp.unwrap() as any
-            }
-          }
-          state.account[txRejected.senderId].transactionLog[txRejected.id] =
-            txRejected
-          delete state.pendingTransaction[tx.id]
-        })
-      },
-
-      markERC4337TransactionSent: async (txId, data) => {
-        await set(({ state }) => {
-          const v = new StateActor(state)
-          const tx = state.pendingTransaction[txId]
-          const txSent: ERC4337TransactionSent = {
-            id: tx.id,
-            type: v.getTransactionType(tx.networkId, data.entryPoint),
-            status: TransactionStatus.Sent,
-            senderId: tx.senderId,
-            networkId: tx.networkId,
-            createdAt: tx.createdAt,
-            detail: {
-              entryPoint: data.entryPoint,
-              data: data.userOp.unwrap() as any
-            },
-            receipt: {
-              userOpHash: data.userOpHash
-            }
-          }
-          state.account[txSent.senderId].transactionLog[txSent.id] = txSent
-          delete state.pendingTransaction[tx.id]
-        })
-      },
-
-      /* Token */
 
       updateBalance: async (accountId: string, balance: BigNumberish) => {
         await set(({ state }) => {
@@ -214,7 +178,74 @@ export const useStorage = create<Storage>()(
             token.symbol = update.symbol
           }
         })
+      },
+
+      /* Network */
+
+      switchNetwork: async (networkId: string) => {
+        await set(({ state }) => {
+          if (!state.network[networkId]) {
+            throw new Error(`Unknown network: ${networkId}`)
+          }
+          state.networkActive = networkId
+        })
+      },
+
+      /* Transaction */
+
+      getERC4337TransactionType(networkId: string, entryPoint: HexString) {
+        const network = this.state.network[networkId]
+        if (address.isEqual(entryPoint, network.entryPoint["v0.6"])) {
+          return TransactionType.ERC4337V0_6
+        }
+        return TransactionType.ERC4337V0_7
+      },
+
+      markERC4337TransactionRejected: async (txId, data) => {
+        await set(({ state, getERC4337TransactionType }) => {
+          const tx = state.pendingTransaction[txId]
+          const txRejected: ERC4337TransactionRejected = {
+            id: tx.id,
+            type: getERC4337TransactionType(tx.networkId, data.entryPoint),
+            status: TransactionStatus.Rejected,
+            senderId: tx.senderId,
+            networkId: tx.networkId,
+            createdAt: tx.createdAt,
+            detail: {
+              entryPoint: data.entryPoint,
+              data: data.userOp.unwrap() as any
+            }
+          }
+          state.account[txRejected.senderId].transactionLog[txRejected.id] =
+            txRejected
+          delete state.pendingTransaction[tx.id]
+        })
+      },
+
+      markERC4337TransactionSent: async (txId, data) => {
+        await set(({ state, getERC4337TransactionType }) => {
+          const tx = state.pendingTransaction[txId]
+          const txSent: ERC4337TransactionSent = {
+            id: tx.id,
+            type: getERC4337TransactionType(tx.networkId, data.entryPoint),
+            status: TransactionStatus.Sent,
+            senderId: tx.senderId,
+            networkId: tx.networkId,
+            createdAt: tx.createdAt,
+            detail: {
+              entryPoint: data.entryPoint,
+              data: data.userOp.unwrap() as any
+            },
+            receipt: {
+              userOpHash: data.userOpHash
+            }
+          }
+          state.account[txSent.senderId].transactionLog[txSent.id] = txSent
+          delete state.pendingTransaction[tx.id]
+        })
       }
+
+      /* Token */
     }),
     {
       async set(patches: Patch[]) {
@@ -244,12 +275,6 @@ export const useStorage = create<Storage>()(
 storageMessenger.get().then((state) => {
   useStorage.setStateLocally({ state })
 })
-
-/* Util */
-
-export function getStateActor() {
-  return new StateActor(useStorage.getState().state)
-}
 
 /* Custom Hooks */
 
