@@ -1,13 +1,12 @@
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser"
-import { isoBase64URL, isoUint8Array } from "@simplewebauthn/server/helpers"
-import { AbiCoder, getBytes, hashMessage } from "ethers"
+import { AbiCoder } from "ethers"
 import browser from "webextension-polyfill"
 
 import type {
   PasskeyOwner,
   PasskeyPublicKey
 } from "~packages/account/PasskeyAccount/passkeyOwner"
-import byte from "~packages/util/byte"
+import { Bytes } from "~packages/primitive"
 import { format } from "~packages/util/json"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
 import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
@@ -38,9 +37,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       sender?: browser.Runtime.MessageSender
     }
   ): Promise<string> {
-    const challengeB64Url = isoBase64URL.fromBuffer(
-      getBytes(hashMessage(byte.normalize(challenge)))
-    )
+    const challengeB64Url = Bytes.wrap(challenge).eip191().unwrap("base64url")
     const webAuthnAuthentication = await (this.isWebAuthnAvailable()
       ? this.authenticateInPlace(challengeB64Url)
       : this.authenticateInBackground(challengeB64Url, metadata))
@@ -62,9 +59,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       ],
       [
         false,
-        isoUint8Array.fromHex(
-          webAuthnAuthentication.authenticatorData.slice(2)
-        ),
+        Bytes.wrap(webAuthnAuthentication.authenticatorData),
         true,
         webAuthnAuthentication.clientDataJson,
         23,
