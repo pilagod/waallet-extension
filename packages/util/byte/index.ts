@@ -1,3 +1,6 @@
+/**
+ * @deprecated Use `Bytes` in `packages/primitive` instead.
+ */
 import type { BytesLike } from "~typing"
 
 function isHex(data: string) {
