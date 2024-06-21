@@ -1,6 +1,6 @@
 import { hashMessage, sha256 } from "ethers"
 
-import { Bytes } from "~packages/primitive"
+import { Bytes } from "./bytes"
 
 describe("bytes", () => {
   describe("wrap", () => {
