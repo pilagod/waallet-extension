@@ -1,5 +1,6 @@
-import { createHash } from "node:crypto"
-
+/**
+ * @deprecated Use `Bytes` in `packages/primitive` instead.
+ */
 import type { BytesLike } from "~typing"
 
 function isHex(data: string) {
@@ -20,8 +21,4 @@ function normalize(data: BytesLike) {
   return Buffer.from(data)
 }
 
-function sha256(data: BytesLike) {
-  return createHash("sha256").update(normalize(data)).digest()
-}
-
-export default { isHex, normalize, sha256 }
+export default { isHex, normalize }
