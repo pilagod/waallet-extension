@@ -1,7 +1,9 @@
-import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
+import {  faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { formatEther } from "ethers"
 import { useEffect, useState } from "react"
+import Down3 from "react:~assets/down3.svg"
+import EthereumLogo from "react:~assets/ethereumLogo.svg"
 
 import { useProviderContext } from "~app/context/provider"
 import {
@@ -22,12 +24,10 @@ import type { Account, Network } from "~storage/local"
 export function Navbar() {
   const shouldOnboard = useShouldOnboard()
   return (
-    <nav className="w-full grid grid-cols-5 justify-items-center py-4">
-      <div className="col-span-1">
+    <nav className="flex w-[Fill_(358px)] h-[Hug_(48px)] justify-between">
+      <div>{shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}</div>
+      <div>
         <NetworkSelector />
-      </div>
-      <div className="col-span-3">
-        {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
       </div>
     </nav>
   )
@@ -41,9 +41,11 @@ function NetworkSelector() {
     setIsNetworkSelectorModalOpened(!isNetworkSelectorModalOpened)
   return (
     <>
-      <div className="cursor-pointer" onClick={toggleNetworkSelectorModal}>
-        <span>{network.name}</span>
-        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+      <div
+        className="flex w-[Hug_(92px)] h-[Hug_(48px)] rounded-[99px] border-[1px] p-[12px_20px_12px_20px] gap-[12px] bg-[#ffffff] border-[1px_solid_#000000] duration-[0ms]"
+        onClick={toggleNetworkSelectorModal}>
+        <EthereumLogo className="w-[24px] h-[24px]" />
+        <Down3 className="w-[16px] h-[16px]" />
       </div>
       {isNetworkSelectorModalOpened && (
         <NetworkSelectorModal onModalClosed={toggleNetworkSelectorModal} />
@@ -126,9 +128,18 @@ function AccountSelector() {
     setIsAccountSelectorModalOpened(!isAccountSelectorModalOpened)
   return (
     <>
-      <div className="cursor-pointer" onClick={toggleAccountSelectorModal}>
-        <span>{address.ellipsize(account.address)}</span>
-        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+      <div
+        className="flex w-[Hug_(172px)] h-[Fixed_(48px)] rounded-[99px] border-[1px] p-[12px_20px_12px_20px] gap-[12px]"
+        onClick={toggleAccountSelectorModal}>
+        <div className="w-[Hug_(104px)] h-[Hug_(34px)]">
+          <div className="w-[104px] h-[19px] font-[Inter] font-[400] text-[16px] leading-[19.36px] text-[#000000]">
+            Alice's wallet
+          </div>
+          <div className="w-[77px] h-[15px] font-[Inter] font-[400] text-[12px] leading-[14.52px] text-[#989898]">
+            {address.ellipsize(account.address)}
+          </div>
+        </div>
+        <Down3 className="w-[16px] h-[16px]" />
       </div>
       {isAccountSelectorModalOpened && (
         <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />
