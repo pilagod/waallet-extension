@@ -88,7 +88,7 @@ interface Storage {
 // To apply new state, listen to background message in `sync` function and call `set` to update app state.
 export const useStorage = create<Storage>()(
   background(
-    (set) => ({
+    (set, get) => ({
       state: null,
 
       /* Account */
@@ -194,7 +194,7 @@ export const useStorage = create<Storage>()(
       /* Transaction */
 
       getERC4337TransactionType(networkId: string, entryPoint: HexString) {
-        const network = this.state.network[networkId]
+        const network = get().state.network[networkId]
         if (address.isEqual(entryPoint, network.entryPoint["v0.6"])) {
           return TransactionType.ERC4337V0_6
         }
