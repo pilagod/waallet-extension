@@ -42,6 +42,10 @@ export class Bytes extends Uint8Array {
         .replace(/\+/g, "-")
         .replace(/=+$/, "")
     }
-    return Buffer.from(this).toString(encoding)
+    const result = Buffer.from(this).toString(encoding)
+    if (encoding === "hex") {
+      return `0x${result}`
+    }
+    return result
   }
 }
