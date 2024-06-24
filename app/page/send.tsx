@@ -5,17 +5,37 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
-import { useAccount } from "~app/storage"
+import { useAccount, useTokens } from "~app/storage"
+import { getChainName, getErc20Contract } from "~packages/network/util"
+import address from "~packages/util/address"
+import number from "~packages/util/number"
+import { type Token } from "~storage/local"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
   const { provider } = useProviderContext()
   const account = useAccount()
-  const [txHash, setTxHash] = useState<HexString>("")
+
+  const nativeToken: Token = {
+    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+    symbol: `${getChainName(account.chainId)}ETH`,
+    decimals: 18,
+    balance: account.balance
+  }
+  const tokens = [nativeToken, ...useTokens()]
+
+  const [token, setToken] = useState<Token>(nativeToken)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
+
+  const handleAssetChange = async (event: ChangeEvent<HTMLSelectElement>) => {
+    const tokenAddress = event.target.value
+    console.log(`tokenAddress: ${tokenAddress}`)
+    const token = tokens.find((token) => token.address === tokenAddress)
+    setToken(token)
+  }
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -43,17 +63,35 @@ export function Send() {
 
   const handleSend = useCallback(async () => {
     const signer = await provider.getSigner()
-    const txResult = await signer.sendTransaction({
-      to: ethers.getAddress(txTo),
-      value: ethers.parseUnits(txValue.toString(), "ether")
-    })
-    // TODO: Need to avoid Popup closure
-    setTxHash(txResult.hash)
+    if (address.isEqual(token.address, nativeToken.address)) {
+      return sendNativeToken(signer, txTo, txValue)
+    }
+    return sendErc20Token(signer, txTo, txValue, token)
   }, [txTo, txValue])
 
   return (
     <NavbarLayout>
       <div className="text-base justify-center items-center h-auto">
+        <div className="flex">
+          <label className="col-span-1">Asset:</label>
+          <select
+            id="asset"
+            value={token.address}
+            className="col-span-4 border w-full outline-none border-gray-300"
+            onChange={handleAssetChange}>
+            {tokens.map((token) => {
+              const balance = number.formatUnitsToFixed(
+                token.balance,
+                token.decimals
+              )
+              return (
+                <option key={token.address} value={token.address}>
+                  {token.symbol}: {balance} {token.symbol}
+                </option>
+              )
+            })}
+          </select>
+        </div>
         <div className="flex">
           <label className="flex-1">To:</label>
           <input
@@ -91,13 +129,37 @@ export function Send() {
             Cancel
           </Link>
         </div>
-        {txHash && (
-          <div className="flex">
-            <label className="flex-1">TxHash:</label>
-            <span className="flex-1">{txHash}</span>
-          </div>
-        )}
       </div>
     </NavbarLayout>
   )
+}
+
+const sendNativeToken = async (
+  signer: ethers.JsonRpcSigner,
+  to: HexString,
+  value: BigNumberish
+) => {
+  return await signer.sendTransaction({
+    to: to,
+    value: ethers.parseUnits(value.toString(), "ether"),
+    data: "0x"
+  })
+}
+
+const sendErc20Token = async (
+  signer: ethers.JsonRpcSigner,
+  toAddress: HexString,
+  value: BigNumberish,
+  token: Token
+) => {
+  const erc20 = getErc20Contract(token.address, signer)
+  const data = erc20.interface.encodeFunctionData("transfer", [
+    toAddress,
+    ethers.parseUnits(value.toString(), token.decimals)
+  ])
+  return await signer.sendTransaction({
+    to: token.address,
+    value: 0,
+    data: data
+  })
 }

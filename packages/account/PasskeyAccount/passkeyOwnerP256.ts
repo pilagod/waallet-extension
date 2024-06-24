@@ -1,7 +1,7 @@
 import { p256 } from "@noble/curves/p256"
-import * as ethers from "ethers"
+import { AbiCoder } from "ethers"
 
-import byte from "~packages/util/byte"
+import { Bytes } from "~packages/primitive"
 import type { BytesLike } from "~typing"
 
 import type { PasskeyOwner } from "./passkeyOwner"
@@ -45,7 +45,7 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     if (s > p256.CURVE.n / 2n) {
       s = p256.CURVE.n - s
     }
-    const signature = ethers.AbiCoder.defaultAbiCoder().encode(
+    const signature = AbiCoder.defaultAbiCoder().encode(
       [
         "bool",
         "bytes",
@@ -58,7 +58,7 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
       ],
       [
         false,
-        Uint8Array.from(Buffer.from(authenticatorData, "hex")),
+        Bytes.wrap(authenticatorData),
         true,
         clientDataJson,
         clientDataJsonChallengeIndex,
@@ -73,11 +73,9 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
   private getMessage(challenge: BytesLike) {
     const authenticatorData = this.getAuthenticatorData()
     const clientDataJson = this.getClientDataJson(challenge)
-    const message = byte
-      .sha256(
-        `${authenticatorData}${byte.sha256(clientDataJson).toString("hex")}`
-      )
-      .toString("hex")
+    const message = Bytes.wrap(authenticatorData)
+      .concat(Bytes.wrap(clientDataJson).sha256())
+      .sha256()
     return {
       message,
       authenticatorData,
@@ -92,12 +90,12 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
   }
 
   private getClientDataJson(challenge: BytesLike) {
-    const clientJsonData = {
+    const clientDataJson = {
       type: "webauthn.get",
-      challenge: byte.normalize(challenge).toString("base64url"),
+      challenge: Bytes.wrap(challenge).eip191().unwrap("base64url"),
       origin: "https://webauthn.passwordless.id",
       crossOrigin: false
     }
-    return JSON.stringify(clientJsonData)
+    return JSON.stringify(clientDataJson)
   }
 }
