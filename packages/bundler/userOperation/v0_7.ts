@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 
 import { Execution } from "~packages/account"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -47,28 +48,16 @@ export class UserOperationV0_7 {
   public paymasterData: HexString = "0x"
   public signature: HexString = "0x"
 
-  public constructor(
-    data: Partial<UserOperationDataV0_7> & { initCode?: HexString }
-  ) {
+  public constructor(data: Partial<UserOperationDataV0_7>) {
     this.sender = data.sender
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
 
-    // TODO: A better way to tackle init code
-    if (data.initCode) {
-      this.setDeployment(data.initCode)
-    } else {
-      this.setDeployment(data)
-    }
+    this.setFactory(data)
     this.setGasFee(data)
     this.setGasLimit(data)
+    this.setPaymaster(data)
 
-    if (data.paymaster) {
-      this.paymaster = ethers.getAddress(data.paymaster)
-    }
-    if (data.paymasterData) {
-      this.paymasterData = data.paymasterData
-    }
     if (data.signature) {
       this.signature = data.signature
     }
@@ -106,6 +95,9 @@ export class UserOperationV0_7 {
     )
   }
 
+  /**
+   * @dev This data format is for bundler.
+   */
   public unwrap(): UserOperationDataV0_7 {
     return {
       sender: this.sender,
@@ -128,6 +120,23 @@ export class UserOperationV0_7 {
         paymaster: this.paymaster,
         paymasterData: this.paymasterData
       }),
+      signature: this.signature
+    }
+  }
+
+  /**
+   * @dev This data format is for Solidity contract.
+   */
+  public unwrapPacked() {
+    return {
+      sender: this.sender,
+      nonce: number.toHex(this.nonce),
+      initCode: this.getInitCode(),
+      callData: this.callData,
+      accountGasLimits: this.getAccountGasLimits(),
+      preVerificationGas: number.toHex(this.preVerificationGas),
+      gasFees: this.getGasFees(),
+      paymasterAndData: this.getPaymasterAndData(),
       signature: this.signature
     }
   }
@@ -173,31 +182,12 @@ export class UserOperationV0_7 {
     this.nonce = number.toBigInt(nonce)
   }
 
-  public setDeployment(initCode: HexString): void
-  public setDeployment(deployment: {
-    factory?: HexString
-    factoryData?: HexString
-  }): void
-  public setDeployment(
-    initCodeOrDeployment:
-      | HexString
-      | {
-          factory?: HexString
-          factoryData?: HexString
-        }
-  ) {
-    if (typeof initCodeOrDeployment !== "object") {
-      const initCode = initCodeOrDeployment
-      this.factory = ethers.dataSlice(initCode, 0, 20)
-      this.factoryData = ethers.dataSlice(initCode, 20)
-      return
+  public setFactory(data: { factory?: HexString; factoryData?: HexString }) {
+    if (data.factory) {
+      this.factory = ethers.getAddress(data.factory)
     }
-    const { factory, factoryData } = initCodeOrDeployment
-    if (factory) {
-      this.factory = ethers.getAddress(factory)
-    }
-    if (factoryData) {
-      this.factoryData = factoryData
+    if (data.factoryData) {
+      this.factoryData = data.factoryData
     }
   }
 
@@ -254,6 +244,18 @@ export class UserOperationV0_7 {
       this.paymasterPostOpGasLimit = number.toBigInt(
         data.paymasterVerificationGasLimit
       )
+    }
+  }
+
+  public setPaymaster(data: {
+    paymaster?: HexString
+    paymasterData?: HexString
+  }) {
+    if (data.paymaster) {
+      this.paymaster = address.normalize(data.paymaster)
+    }
+    if (data.paymasterData) {
+      this.paymasterData = data.paymasterData
     }
   }
 

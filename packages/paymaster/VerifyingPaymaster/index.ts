@@ -1,31 +1,29 @@
 import * as ethers from "ethers"
 
-import { UserOperationV0_6 } from "~packages/bundler/userOperation"
+import {
+  UserOperationV0_6,
+  UserOperationV0_7,
+  type UserOperation
+} from "~packages/bundler/userOperation"
 import { type ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
 import { ETH, Token } from "~packages/token"
 import type { HexString } from "~typing"
 
 export class VerifyingPaymaster implements Paymaster {
-  private paymaster: ethers.Contract
+  private address: HexString
   private owner: ethers.Wallet
   private intervalSecs: number
 
   public constructor(
-    runner: ContractRunner,
+    private runner: ContractRunner,
     option: {
       address: HexString
       ownerPrivateKey: HexString
       expirationSecs: number
     }
   ) {
-    this.paymaster = new ethers.Contract(
-      option.address,
-      [
-        `function getHash(${UserOperationV0_6.getSolidityStructType()} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
-      ],
-      runner
-    )
+    this.address = option.address
     this.owner = new ethers.Wallet(option.ownerPrivateKey)
     this.intervalSecs = option.expirationSecs
   }
@@ -38,7 +36,7 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   public async requestPaymasterAndData(
-    userOp: UserOperationV0_6,
+    userOp: UserOperation,
     forGasEstimation = false
   ) {
     const validAfter = 0
@@ -50,7 +48,7 @@ export class VerifyingPaymaster implements Paymaster {
       : await this.getSignature(userOp, validUntil, validAfter)
 
     return ethers.concat([
-      await this.paymaster.getAddress(),
+      this.address,
       ethers.AbiCoder.defaultAbiCoder().encode(
         ["uint48", "uint48"],
         [validUntil, validAfter]
@@ -60,15 +58,36 @@ export class VerifyingPaymaster implements Paymaster {
   }
 
   private async getSignature(
-    userOp: UserOperationV0_6,
+    userOp: UserOperation,
     validUntil: number,
     validAfter: number
   ) {
-    const hash = await this.paymaster.getHash(
-      userOp.unwrap(),
-      validUntil,
-      validAfter
-    )
+    const hash = await this.getHash(userOp, validUntil, validAfter)
     return this.owner.signMessage(ethers.getBytes(hash))
+  }
+
+  private getHash(
+    userOp: UserOperation,
+    validUntil: number,
+    validAfter: number
+  ) {
+    if (userOp instanceof UserOperationV0_6) {
+      const paymaster = new ethers.Contract(
+        this.address,
+        [
+          `function getHash(${UserOperationV0_6.getSolidityStructType()} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
+        ],
+        this.runner
+      )
+      return paymaster.getHash(userOp.unwrap(), validUntil, validAfter)
+    }
+    const paymaster = new ethers.Contract(
+      this.address,
+      [
+        `function getHash(${UserOperationV0_7.getSolidityStructType()} userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`
+      ],
+      this.runner
+    )
+    return paymaster.getHash(userOp.unwrapPacked(), validUntil, validAfter)
   }
 }

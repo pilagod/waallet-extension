@@ -1,10 +1,13 @@
-import { parseEther } from "ethers"
+import * as ethers from "ethers"
 
 import config from "~config/test"
 import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { UserOperationV0_7 } from "~packages/bundler/userOperation"
+import {
+  UserOperationV0_6,
+  UserOperationV0_7
+} from "~packages/bundler/userOperation"
 import { SingleNetworkManager } from "~packages/network/manager/single"
 import type { Paymaster } from "~packages/paymaster"
 import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
@@ -36,7 +39,7 @@ export class WaalletSuiteContext<T extends Account> {
     return (
       await config.wallet.operator.sendTransaction({
         to: await this.account.getAddress(),
-        value: balance ?? parseEther("1")
+        value: balance ?? ethers.parseEther("1")
       })
     ).wait()
   }
@@ -83,14 +86,19 @@ export function describeWaalletSuite<A extends Account, P extends Paymaster>(
             if (!option.usePaymaster) {
               return
             }
-            // TODO: Handle v0.7 paymaster
-            if (userOp instanceof UserOperationV0_7) {
+            const paymaster = await option.usePaymaster(ctx)
+            const paymasterAndData = await paymaster.requestPaymasterAndData(
+              userOp,
+              forGasEstimation
+            )
+            if (userOp instanceof UserOperationV0_6) {
+              userOp.setPaymasterAndData(paymasterAndData)
               return
             }
-            const paymaster = await option.usePaymaster(ctx)
-            userOp.setPaymasterAndData(
-              await paymaster.requestPaymasterAndData(userOp, forGasEstimation)
-            )
+            userOp.setPaymaster({
+              paymaster: ethers.dataSlice(paymasterAndData, 0, 20),
+              paymasterData: ethers.dataSlice(paymasterAndData, 20)
+            })
           }
         )
       )

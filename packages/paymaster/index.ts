@@ -1,4 +1,4 @@
-import { UserOperationV0_6 } from "~packages/bundler/userOperation"
+import { type UserOperation } from "~packages/bundler/userOperation"
 import { Token } from "~packages/token"
 import type { HexString } from "~typing"
 
@@ -18,7 +18,7 @@ export interface Paymaster {
    * @param forGasEstimation Default to `false`.
    */
   requestPaymasterAndData(
-    userOp: UserOperationV0_6,
+    userOp: UserOperation,
     forGasEstimation?: boolean
   ): Promise<HexString>
 }
