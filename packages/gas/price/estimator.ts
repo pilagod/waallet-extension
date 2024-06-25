@@ -8,7 +8,9 @@ export class GasPriceEstimator {
   ) {}
 
   public async estimate() {
-    const addBuffer = (n: bigint) => (n * 120n) / 100n
+    // Currently use rundler's fee logic.
+    // https://docs.alchemy.com/reference/bundler-api-fee-logic
+    const addBuffer = (n: bigint) => (n * 125n) / 100n
     const fee = await this.getFee()
     return {
       maxFeePerGas: addBuffer(fee.maxFeePerGas),
