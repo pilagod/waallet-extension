@@ -12,7 +12,9 @@ export enum WaalletRpcMethod {
   eth_estimateUserOperationGas = "eth_estimateUserOperationGas",
   eth_requestAccounts = "eth_requestAccounts",
   eth_sendTransaction = "eth_sendTransaction",
-  eth_sendUserOperation = "eth_sendUserOperation"
+  eth_sendUserOperation = "eth_sendUserOperation",
+
+  custom_estimateGasPrice = "custom_estimateGasPrice"
 }
 
 export type WaalletRequestArguments =
@@ -26,6 +28,7 @@ export type WaalletRequestArguments =
         | WaalletRpcMethod.eth_blockNumber
         | WaalletRpcMethod.eth_chainId
         | WaalletRpcMethod.eth_requestAccounts
+        | WaalletRpcMethod.custom_estimateGasPrice
     }
 
 export type EthEstimateGasArguments = {

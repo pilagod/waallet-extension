@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid"
 
 import type { AccountManager } from "~packages/account/manager"
 import type { UserOperation } from "~packages/bundler/userOperation"
+import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 import type { BigNumberish, HexString } from "~typing"
@@ -47,7 +48,8 @@ export class TransactionToUserOperationSender implements TransactionPool {
     if (tx.gasPrice) {
       userOp.setGasFee(tx.gasPrice)
     } else {
-      userOp.setGasFee(await this.estimateGasFee(node))
+      const gasPriceEstimator = new GasPriceEstimator(node, bundler)
+      userOp.setGasFee(await gasPriceEstimator.estimate())
     }
 
     const gas = await bundler.estimateUserOperationGas(userOp, entryPoint)
@@ -78,18 +80,5 @@ export class TransactionToUserOperationSender implements TransactionPool {
 
   public wait(txId: string) {
     return this.pool[txId]
-  }
-
-  private async estimateGasFee(node: NodeProvider): Promise<{
-    maxFeePerGas: BigNumberish
-    maxPriorityFeePerGas: BigNumberish
-  }> {
-    const fee = await node.getFeeData()
-    const gasPriceWithBuffer = (fee.gasPrice * 120n) / 100n
-    // TODO: maxFeePerGas and maxPriorityFeePerGas too low error
-    return {
-      maxFeePerGas: gasPriceWithBuffer,
-      maxPriorityFeePerGas: gasPriceWithBuffer
-    }
   }
 }

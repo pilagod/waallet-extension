@@ -151,8 +151,10 @@ describeWaalletSuite({
         await ctx.account.getEntryPoint()
       )
 
-      const { gasPrice } = await node.getFeeData()
-      userOp.setGasFee(gasPrice * 2n)
+      const gasFee = await ctx.provider.waallet.request({
+        method: WaalletRpcMethod.custom_estimateGasPrice
+      })
+      userOp.setGasFee(gasFee)
 
       const entryPoint = await ctx.account.getEntryPoint()
       userOp.setGasLimit(
