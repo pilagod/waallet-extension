@@ -135,28 +135,22 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
     }
   }
 
-  // TODO: Put it into a dedicated module
-  const estimateGasFee = async () => {
-    const fee = await provider.getFeeData()
-    const maxFeePerGasBuffer = (fee.gasPrice * 120n) / 100n
-    const maxPriorityFeePerGasBuffer = (fee.gasPrice * 120n) / 100n
-    return {
-      maxFeePerGas: maxFeePerGasBuffer,
-      maxPriorityFeePerGas: maxPriorityFeePerGasBuffer
-    }
-  }
-
   const estimateGas = async (userOp: UserOperationV0_6) => {
-    userOp.setPaymasterAndData(
+    const paymasterAndData =
       await paymentOption.paymaster.requestPaymasterAndData(userOp, true)
+    userOp.setPaymasterAndData(paymasterAndData)
+
+    const gasFee = await provider.send(
+      WaalletRpcMethod.custom_estimateGasPrice,
+      []
     )
-    userOp.setGasFee(await estimateGasFee())
-    userOp.setGasLimit(
-      await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
-        userOp.unwrap(),
-        await senderAccount.getEntryPoint()
-      ])
+    userOp.setGasFee(gasFee)
+
+    const gasLimit = await provider.send(
+      WaalletRpcMethod.eth_estimateUserOperationGas,
+      [userOp.unwrap(), await senderAccount.getEntryPoint()]
     )
+    userOp.setGasLimit(gasLimit)
   }
 
   useEffect(() => {
