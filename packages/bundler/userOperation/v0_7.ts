@@ -261,6 +261,8 @@ export class UserOperationV0_7 {
 
   public setPaymasterAndData(paymasterAndData: HexString) {
     if (ethers.dataLength(paymasterAndData) < 20) {
+      this.paymaster = null
+      this.paymasterData = "0x"
       return
     }
     this.paymaster = ethers.dataSlice(paymasterAndData, 0, 20)
