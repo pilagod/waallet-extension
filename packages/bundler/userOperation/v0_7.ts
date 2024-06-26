@@ -242,7 +242,7 @@ export class UserOperationV0_7 {
     }
     if (data.paymasterPostOpGasLimit) {
       this.paymasterPostOpGasLimit = number.toBigInt(
-        data.paymasterVerificationGasLimit
+        data.paymasterPostOpGasLimit
       )
     }
   }
