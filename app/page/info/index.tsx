@@ -1,5 +1,7 @@
 import { useState } from "react"
 import Down from "react:~assets/down.svg"
+import Rectangle1 from "react:~assets/rectangle1.svg"
+import Rectangle3 from "react:~assets/rectangle3.svg"
 import Up from "react:~assets/up.svg"
 import { Link } from "wouter"
 
@@ -30,7 +32,7 @@ export function Info() {
   return (
     <>
       {/* Frame 6 */}
-      <div className="m-[20px_0px_24px_0px]">
+      <div className="w-[390px] m-[20px_0px_24px_0px]">
         <Navbar />
         {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
       </div>
@@ -72,7 +74,7 @@ export function AccountInfo() {
   const account = useAccount()
 
   const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
-    InfoNavigation.Activity
+    InfoNavigation.Tokens
   )
 
   const handleInfoNaviChange = (page: InfoNavigation) => {
@@ -114,24 +116,43 @@ export function AccountInfo() {
         </div>
       </div>
 
-      {/* Display the navigation bar of the Info page */}
+      <Rectangle1 className="w-[390px] h-[1px]" />
+      {/* Token and Activity list */}
       <div>
-        <nav className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
-          <button
-            className="col-span-1 cursor-pointer"
-            onClick={() => handleInfoNaviChange(InfoNavigation.Activity)}>
-            {InfoNavigation.Activity}
-          </button>
-          <button
-            className="col-span-3 cursor-pointer"
-            onClick={() => handleInfoNaviChange(InfoNavigation.Tokens)}>
-            {InfoNavigation.Tokens}
-          </button>
+        {/* tab */}
+        <nav className="flex items-start">
+          {/* Frame 11 */}
+          <div className="flex flex-col items-center m-[0px_24px_8px_16px]">
+            {/* Token */}
+            <button
+              className={`font-[Inter] font-[400] text-[16px] ${
+                infoNavigation !== InfoNavigation.Tokens && "text-[#bbbbbb]"
+              }`}
+              onClick={() => handleInfoNaviChange(InfoNavigation.Tokens)}>
+              {InfoNavigation.Tokens}
+            </button>
+            {/* Rectangle 3 */}
+            {infoNavigation === InfoNavigation.Tokens && (
+              <Rectangle3 className="w-[20px] h-[2px]" />
+            )}
+          </div>
+
+          {/* Activity */}
+          <div className="flex flex-col items-center m-[0px_16px_14px_0px]">
+            <button
+              className={`font-[Inter] font-[400] text-[16px] ${
+                infoNavigation !== InfoNavigation.Activity && "text-[#bbbbbb]"
+              }`}
+              onClick={() => handleInfoNaviChange(InfoNavigation.Activity)}>
+              {InfoNavigation.Activity}
+            </button>
+            {infoNavigation === InfoNavigation.Activity && (
+              <Rectangle3 className="w-[20px] h-[2px]" />
+            )}
+          </div>
         </nav>
-        <div>
-          {infoNavigation === InfoNavigation.Activity && <Activity />}
-          {infoNavigation === InfoNavigation.Tokens && <Tokens />}
-        </div>
+        {infoNavigation === InfoNavigation.Tokens && <Tokens />}
+        {infoNavigation === InfoNavigation.Activity && <Activity />}
       </div>
     </>
   )
