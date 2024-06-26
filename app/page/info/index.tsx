@@ -28,10 +28,13 @@ export enum InfoNavigation {
 export function Info() {
   const shouldOnboard = useShouldOnboard()
   return (
-    <div className="w-[Fill_(390px)_px] h-[Hug_(221px)_px] p-[0px_16px_0px_16px] gap-[16px] opacity-[0px]">
-      <Navbar />
-      {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
-    </div>
+    <>
+      {/* Frame 6 */}
+      <div className="m-[20px_0px_24px_0px]">
+        <Navbar />
+        {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
+      </div>
+    </>
   )
 }
 
@@ -78,31 +81,34 @@ export function AccountInfo() {
 
   return (
     <>
-      {/* Display the Account balance */}
-      <div className="w-[Fill_(358px)] h-[Hug_(85px)] gap-[8px]">
-        <div className="w-[51px] h-[19px] font-[Inter] font-[400] text-[16px] leading-[19.36px] text-[#000000]">
+      {/* Blance */}
+      <div className="flex flex-col items-start m-[0px_16px_16px_16px]">
+        {/* Blance */}
+        <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_0px_8px_0px]">
           Balance
         </div>
-        <div className="w-[248px] h-[58px] font-[Inter] font-[400] text-[48px] leading-[58.09px] text-[#000000]">{`$${number.formatUnitsToFixed(
+        {/* (amount) */}
+        <div className="font-[Inter] font-[400] text-[48px] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
           account.balance,
-          18
+          18,
+          2
         )}`}</div>
       </div>
-
-      <div className="flex w-[Fill_(358px)] h-[Hug_(56px)] gap-[16px]">
-        {/* Show the send button for switching to the Send page */}
-        <div className="flex w-[Fill_(171px)] h-[Hug_(56px)] rounded-[99px] border-[1px] p-[16px] gap-[10px] bg-[#ffffff] border-[1px_solid_#000000] duration-[0ms]">
-          <Up className="w-[24px] h-[24px]" />
+      {/* action */}
+      <div className="flex justify-evenly m-[0px_0px_24px_0px]">
+        {/* Send */}
+        <div className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black">
+          <Up className="w-[24px] h-[24px] m-[16px_2.5px_16px_49px]" />
           <Link
-            className="w-[39px] h-[19px] font-[Inter] font-[400] text-[16px] leading-[19.36px] text-[#000000]"
+            className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_49px_18.5px_0px]"
             href={Path.Send}>
             Send
           </Link>
         </div>
-        {/* Show the receive button for switching to the QR code page */}
-        <div className="flex w-[Fill_(171px)] h-[Fixed_(56px)] rounded-[99px] border-[1px] p-[16px] gap-[10px] bg-[#ffffff] border-[1px_solid_#000000]">
-          <Down className="w-[24px] h-[24px]" />
-          <div className="w-[39px] h-[19px] font-[Inter] font-[400] text-[16px] leading-[19.36px] text-[#000000]">
+        {/* Receive */}
+        <div className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black">
+          <Down className="w-[24px] h-[24px] m-[16px_2.5px_16px_38.5px]" />
+          <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_38.5px_18.5px_0px]">
             Receive
           </div>
         </div>

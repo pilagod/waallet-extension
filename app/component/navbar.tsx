@@ -1,4 +1,4 @@
-import {  faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { formatEther } from "ethers"
 import { useEffect, useState } from "react"
@@ -24,12 +24,17 @@ import type { Account, Network } from "~storage/local"
 export function Navbar() {
   const shouldOnboard = useShouldOnboard()
   return (
-    <nav className="flex w-[Fill_(358px)] h-[Hug_(48px)] justify-between">
-      <div>{shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}</div>
-      <div>
-        <NetworkSelector />
-      </div>
-    </nav>
+    <>
+      {/* header */}
+      <nav className="flex items-center m-[0px_16px_16px_16px]">
+        <div>
+          {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
+        </div>
+        <div>
+          <NetworkSelector />
+        </div>
+      </nav>
+    </>
   )
 }
 
@@ -41,11 +46,14 @@ function NetworkSelector() {
     setIsNetworkSelectorModalOpened(!isNetworkSelectorModalOpened)
   return (
     <>
+      {/* Network */}
       <div
-        className="flex w-[Hug_(92px)] h-[Hug_(48px)] rounded-[99px] border-[1px] p-[12px_20px_12px_20px] gap-[12px] bg-[#ffffff] border-[1px_solid_#000000] duration-[0ms]"
+        className="h-[48px] flex items-center rounded-[99px] border-[1px] border-solid border-black"
         onClick={toggleNetworkSelectorModal}>
-        <EthereumLogo className="w-[24px] h-[24px]" />
-        <Down3 className="w-[16px] h-[16px]" />
+        {/* Ethereum-eth-logo */}
+        <EthereumLogo className="w-[24px] h-[24px] m-[12px_12px_12px_20px]" />
+        {/* 24-down 3 */}
+        <Down3 className="w-[16px] h-[16px] m-[16px_20px_16px_0px]" />
       </div>
       {isNetworkSelectorModalOpened && (
         <NetworkSelectorModal onModalClosed={toggleNetworkSelectorModal} />
@@ -128,18 +136,22 @@ function AccountSelector() {
     setIsAccountSelectorModalOpened(!isAccountSelectorModalOpened)
   return (
     <>
+      {/* account */}
       <div
-        className="flex w-[Hug_(172px)] h-[Fixed_(48px)] rounded-[99px] border-[1px] p-[12px_20px_12px_20px] gap-[12px]"
+        className="h-[48px] flex items-center rounded-[99px] border-[1px] border-solid border-black m-[0px_94px_0px_0px]"
         onClick={toggleAccountSelectorModal}>
-        <div className="w-[Hug_(104px)] h-[Hug_(34px)]">
-          <div className="w-[104px] h-[19px] font-[Inter] font-[400] text-[16px] leading-[19.36px] text-[#000000]">
-            Alice's wallet
+        {/* Frame 14 */}
+        <div className="flex flex-col justify-start m-[7px_12px_7px_20px]">
+          {/* (wallet name) */}
+          <div className="font-[Inter] font-[400] text-[16px] text-[#000000] whitespace-nowrap">
+            Jesse's wallet
           </div>
-          <div className="w-[77px] h-[15px] font-[Inter] font-[400] text-[12px] leading-[14.52px] text-[#989898]">
+          {/* (wallet address) */}
+          <div className="font-[Inter] font-[400] text-[12px] text-[#989898]">
             {address.ellipsize(account.address)}
           </div>
         </div>
-        <Down3 className="w-[16px] h-[16px]" />
+        <Down3 className="w-[16px] h-[16px] m-[0px_16px_0px_0px]" />
       </div>
       {isAccountSelectorModalOpened && (
         <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />
