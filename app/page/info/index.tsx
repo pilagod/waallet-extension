@@ -88,7 +88,7 @@ export function AccountInfo() {
           Balance
         </div>
         {/* (amount) */}
-        <div className="font-[Inter] font-[400] text-[48px] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
+        <div className="font-[Inter] font-[400] text-[48px] text-[#000000] whitespace-nowrap leading-[58.09px]">{`$ ${number.formatUnitsToFixed(
           account.balance,
           18,
           2
