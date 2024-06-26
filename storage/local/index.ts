@@ -23,6 +23,8 @@ export async function getLocalStorage() {
     const state = storage.get()
     const config = getConfig()
 
+    // TODO: Separate init process by environment
+
     // Load accounts into storage
     // TODO: Consider to write id into account
     const account = state.account ?? {}
@@ -50,7 +52,10 @@ export async function getLocalStorage() {
         .map(([id, ns]) => ({ id, ...ns }))
         .find((ns) => n.chainId === ns.chainId) ?? {
         id: uuidv4(),
-        accountActive: Object.entries(account)
+        accountActive: null
+      }
+      if (!targetNetwork.accountActive) {
+        targetNetwork.accountActive = Object.entries(account)
           .map(([id, a]) => ({ id, ...a }))
           .filter((a) => a.chainId === n.chainId)[0]?.id
       }
