@@ -185,6 +185,7 @@ function UserOperationConfirmation(props: {
       await paymentOption.paymaster.requestPaymasterAndData(userOp, true)
     )
     userOp.setGasFee(await estimateGasFee())
+    userOp.unsetGasLimit()
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
         userOp.unwrap(),

@@ -247,6 +247,14 @@ export class UserOperationV0_7 {
     }
   }
 
+  public unsetGasLimit() {
+    this.callGasLimit = 0n
+    this.verificationGasLimit = 0n
+    this.preVerificationGas = 0n
+    this.paymasterVerificationGasLimit = 0n
+    this.paymasterPostOpGasLimit = 0n
+  }
+
   public setPaymaster(data: {
     paymaster?: HexString
     paymasterData?: HexString
