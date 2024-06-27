@@ -99,21 +99,21 @@ export function AccountInfo() {
       {/* action */}
       <div className="flex justify-evenly m-[0px_0px_24px_0px]">
         {/* Send */}
-        <div className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black">
+        <Link
+          className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black"
+          href={Path.Send}>
           <Up className="w-[24px] h-[24px] m-[16px_2.5px_16px_49px]" />
-          <Link
-            className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_49px_18.5px_0px]"
-            href={Path.Send}>
+          <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_49px_18.5px_0px]">
             Send
-          </Link>
-        </div>
+          </div>
+        </Link>
         {/* Receive */}
-        <div className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black">
+        <button className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black">
           <Down className="w-[24px] h-[24px] m-[16px_2.5px_16px_38.5px]" />
           <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_38.5px_18.5px_0px]">
             Receive
           </div>
-        </div>
+        </button>
       </div>
 
       <Rectangle1 className="w-[390px] h-[1px]" />

@@ -47,14 +47,14 @@ function NetworkSelector() {
   return (
     <>
       {/* Network */}
-      <div
+      <button
         className="h-[48px] flex items-center rounded-[99px] border-[1px] border-solid border-black"
         onClick={toggleNetworkSelectorModal}>
         {/* Ethereum-eth-logo */}
         <EthereumLogo className="w-[24px] h-[24px] m-[12px_12px_12px_20px]" />
         {/* 24-down 3 */}
         <Down3 className="w-[16px] h-[16px] m-[16px_20px_16px_0px]" />
-      </div>
+      </button>
       {isNetworkSelectorModalOpened && (
         <NetworkSelectorModal onModalClosed={toggleNetworkSelectorModal} />
       )}
@@ -137,11 +137,11 @@ function AccountSelector() {
   return (
     <>
       {/* account */}
-      <div
+      <button
         className="h-[48px] flex items-center rounded-[99px] border-[1px] border-solid border-black m-[0px_94px_0px_0px]"
         onClick={toggleAccountSelectorModal}>
         {/* Frame 14 */}
-        <div className="flex flex-col justify-start m-[7px_12px_7px_20px]">
+        <div className="flex flex-col items-start m-[7px_12px_7px_20px]">
           {/* (wallet name) */}
           <div className="font-[Inter] font-[400] text-[16px] text-[#000000] whitespace-nowrap">
             Jesse's wallet
@@ -152,7 +152,7 @@ function AccountSelector() {
           </div>
         </div>
         <Down3 className="w-[16px] h-[16px] m-[0px_16px_0px_0px]" />
-      </div>
+      </button>
       {isAccountSelectorModalOpened && (
         <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />
       )}
