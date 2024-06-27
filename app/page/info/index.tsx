@@ -24,7 +24,7 @@ import number from "~packages/util/number"
 
 export enum InfoNavigation {
   Activity = "Activity",
-  Tokens = "Tokens"
+  Token = "Token"
 }
 
 export function Info() {
@@ -74,7 +74,7 @@ export function AccountInfo() {
   const account = useAccount()
 
   const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
-    InfoNavigation.Tokens
+    InfoNavigation.Token
   )
 
   const handleInfoNaviChange = (page: InfoNavigation) => {
@@ -126,13 +126,13 @@ export function AccountInfo() {
             {/* Token */}
             <button
               className={`font-[Inter] font-[400] text-[16px] ${
-                infoNavigation !== InfoNavigation.Tokens && "text-[#bbbbbb]"
+                infoNavigation !== InfoNavigation.Token && "text-[#bbbbbb]"
               }`}
-              onClick={() => handleInfoNaviChange(InfoNavigation.Tokens)}>
-              {InfoNavigation.Tokens}
+              onClick={() => handleInfoNaviChange(InfoNavigation.Token)}>
+              {InfoNavigation.Token}
             </button>
             {/* Rectangle 3 */}
-            {infoNavigation === InfoNavigation.Tokens && (
+            {infoNavigation === InfoNavigation.Token && (
               <Rectangle3 className="w-[20px] h-[2px]" />
             )}
           </div>
@@ -151,7 +151,7 @@ export function AccountInfo() {
             )}
           </div>
         </nav>
-        {infoNavigation === InfoNavigation.Tokens && <Tokens />}
+        {infoNavigation === InfoNavigation.Token && <Tokens />}
         {infoNavigation === InfoNavigation.Activity && <Activity />}
       </div>
     </>
