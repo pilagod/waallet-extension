@@ -41,42 +41,50 @@ export function Tokens() {
           {/* Ethereum-eth-logo */}
           <EthereumLogo className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
           {/* ETH */}
-          <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] whitespace-nowrap m-[23px_12px_23px_0px]">
-            {`${getChainName(account.chainId)}ETH`}{" "}
+          <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
+            {`${getChainName(account.chainId)}ETH`}
           </div>
           {/* Frame 2 */}
-          <div className="flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
+          <div className="w-[47px] flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
             <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
               {number.formatUnitsToFixed(account.balance, 18, 2)}
             </div>
             <div className="font-[Inter] font-[400] text-[12px] text-[#000000]">
-              $4237.5
+              $1.23
             </div>
           </div>
         </Link>
         {/* Token cell */}
-        <div className="flex item-center">
-          {tokens.map((token, index) => {
-            return (
-              <div key={index}>
-                <div
-                  className="col-span-3 cursor-pointer"
-                  onClick={() => openTokenInfoModal(token.address)}>
-                  <span>{token.symbol}</span>{" "}
-                  <span>
-                    {number.formatUnitsToFixed(token.balance, token.decimals)}
-                  </span>
-                </div>
-                {selectedTokenAddress && (
-                  <TokenInfoModal
-                    onModalClosed={closeTokenInfoModal}
-                    tokenAddress={selectedTokenAddress}
-                  />
-                )}
+        {tokens.map((token, index) => {
+          return (
+            <button
+              className="flex item-center"
+              onClick={() => openTokenInfoModal(token.address)}
+              key={index}>
+              {/* Ethereum-eth-logo */}
+              <EthereumLogo className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
+              {/* ETH */}
+              <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
+                {token.symbol}
               </div>
-            )
-          })}
-        </div>
+              {/* Frame 2 */}
+              <div className="w-[47px] flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
+                <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
+                  {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
+                </div>
+                <div className="font-[Inter] font-[400] text-[12px] text-[#000000]">
+                  $1000.00
+                </div>
+              </div>
+            </button>
+          )
+        })}
+        {selectedTokenAddress && (
+          <TokenInfoModal
+            onModalClosed={closeTokenInfoModal}
+            tokenAddress={selectedTokenAddress}
+          />
+        )}
         <div
           className="col-span-3 cursor-pointer"
           onClick={toggleTokenImportModal}>
