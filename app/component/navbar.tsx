@@ -17,7 +17,7 @@ import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import type { Account, Network } from "~storage/local"
+import type { Account, Network } from "~storage/local/state"
 
 export function Navbar() {
   const shouldOnboard = useShouldOnboard()

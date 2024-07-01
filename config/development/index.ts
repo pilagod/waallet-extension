@@ -32,9 +32,9 @@ export const config = {
       },
       accountFactory: {
         [AccountType.SimpleAccount]:
-          "0x983D1f4ddA8f48d38155DFf89c632AF5CD384d32",
+          "0x983D1f4ddA8f48d38155DFf89c632AF5CD384d32", // v0.6
         [AccountType.PasskeyAccount]:
-          "0x5A0b3668719722c16fE44f5A2C28c85B4Bbed606"
+          "0x5A0b3668719722c16fE44f5A2C28c85B4Bbed606" // v0.6
       }
     },
     {
@@ -49,9 +49,9 @@ export const config = {
       },
       accountFactory: {
         [AccountType.SimpleAccount]:
-          "0x2E983A1Ba5e8b38AAAeC4B440B9dDcFBf72E15d1",
+          "0xe569f1d8487239659C09b5cA1881320B5EbB0ab2", // v0.7
         [AccountType.PasskeyAccount]:
-          "0xBC9129Dc0487fc2E169941C75aABC539f208fb01"
+          "0xCba6b9A951749B8735C603e7fFC5151849248772" // v0.7
       }
     }
   ]

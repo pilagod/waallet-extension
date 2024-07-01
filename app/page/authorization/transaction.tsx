@@ -12,33 +12,79 @@ import {
   usePendingTransactions
 } from "~app/storage"
 import type { Account } from "~packages/account"
-import { UserOperationV0_6 } from "~packages/bundler/userOperation"
+import {
+  UserOperationV0_6,
+  UserOperationV0_7,
+  type UserOperation
+} from "~packages/bundler/userOperation"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import { ETH } from "~packages/token"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
-import type { TransactionPending } from "~storage/local"
 import { AccountStorageManager } from "~storage/local/manager"
+import {
+  TransactionType,
+  type Network,
+  type TransactionPending
+} from "~storage/local/state"
 
 type PaymentOption = {
   name: string
   paymaster: Paymaster
 }
 
-export function UserOperationAuthorization() {
+export function TransactionAuthorization() {
   const [, navigate] = useHashLocation()
   const pendingTxs = usePendingTransactions()
   if (pendingTxs.length === 0) {
     navigate(Path.Index)
     return
   }
-  return <UserOperationConfirmation pendingTx={pendingTxs[0]} />
+  // TODO: Should switch active network for each transaction
+  return <TransactionConfirmation tx={pendingTxs[0]} />
 }
 
-function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
-  const { pendingTx } = props
+function TransactionConfirmation(props: { tx: TransactionPending }) {
+  const { tx } = props
+
   const { provider } = useProviderContext()
+  const network = useNetwork(tx.networkId)
+  const sender = useAccount(tx.senderId)
+
+  const [senderAccount, setSenderAccount] = useState<Account>(null)
+
+  useEffect(() => {
+    async function setupSenderAccount() {
+      const account = await AccountStorageManager.wrap(provider, sender)
+      setSenderAccount(account)
+    }
+    setupSenderAccount()
+  }, [sender.id])
+
+  if (!senderAccount) {
+    return
+  }
+
+  return (
+    <UserOperationConfirmation
+      tx={tx}
+      sender={senderAccount}
+      network={network}
+    />
+  )
+}
+
+function UserOperationConfirmation(props: {
+  tx: TransactionPending
+  sender: Account
+  network: Network
+}) {
+  const { tx, sender, network } = props
+
+  const [, navigate] = useHashLocation()
+  const { provider } = useProviderContext()
+
   const paymentOptions: PaymentOption[] = [
     {
       name: "No Paymaster",
@@ -56,23 +102,11 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       })
     }
   ]
-  const [, navigate] = useHashLocation()
-  const { markERC4337v06TransactionSent, markERC4337v06TransactionRejected } =
-    useAction()
-  const network = useNetwork(pendingTx.networkId)
-  const sender = useAccount(pendingTx.senderId)
-
-  /* Account */
-
-  const [senderAccount, setSenderAccount] = useState<Account>(null)
-
-  useEffect(() => {
-    async function setupSenderAccount() {
-      const account = await AccountStorageManager.wrap(provider, sender)
-      setSenderAccount(account)
-    }
-    setupSenderAccount()
-  }, [sender.id])
+  const {
+    getERC4337TransactionType,
+    markERC4337TransactionSent,
+    markERC4337TransactionRejected
+  } = useAction()
 
   /* Payment */
 
@@ -87,20 +121,20 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
 
   /* User Operation */
 
-  const [userOp, setUserOp] = useClsState<UserOperationV0_6>(null)
+  const [userOp, setUserOp] = useClsState<UserOperation>(null)
   const [userOpResolving, setUserOpResolving] = useState(false)
   const [userOpEstimating, setUserOpEstimating] = useState(false)
 
   const sendUserOperation = async () => {
     setUserOpResolving(true)
     try {
-      const entryPoint = await senderAccount.getEntryPoint()
+      const entryPoint = await sender.getEntryPoint()
 
       userOp.setPaymasterAndData(
         await paymentOption.paymaster.requestPaymasterAndData(userOp)
       )
       userOp.setSignature(
-        await senderAccount.sign(userOp.hash(entryPoint, network.chainId))
+        await sender.sign(userOp.hash(entryPoint, network.chainId))
       )
       const userOpHash = await provider.send(
         WaalletRpcMethod.eth_sendUserOperation,
@@ -109,7 +143,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
       }
-      await markERC4337v06TransactionSent(pendingTx.id, {
+      await markERC4337TransactionSent(tx.id, {
         entryPoint,
         userOp,
         userOpHash
@@ -124,8 +158,8 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
   const rejectUserOperation = async () => {
     setUserOpResolving(true)
     try {
-      await markERC4337v06TransactionRejected(pendingTx.id, {
-        entryPoint: await senderAccount.getEntryPoint(),
+      await markERC4337TransactionRejected(tx.id, {
+        entryPoint: await sender.getEntryPoint(),
         userOp
       })
       navigate(Path.Index)
@@ -146,32 +180,36 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
     }
   }
 
-  const estimateGas = async (userOp: UserOperationV0_6) => {
+  const estimateGas = async (userOp: UserOperation) => {
     userOp.setPaymasterAndData(
       await paymentOption.paymaster.requestPaymasterAndData(userOp, true)
     )
     userOp.setGasFee(await estimateGasFee())
+    userOp.unsetGasLimit()
     userOp.setGasLimit(
       await provider.send(WaalletRpcMethod.eth_estimateUserOperationGas, [
         userOp.unwrap(),
-        await senderAccount.getEntryPoint()
+        await sender.getEntryPoint()
       ])
     )
   }
 
   useEffect(() => {
     async function setupUserOp() {
-      const userOp = UserOperationV0_6.wrap(
-        await senderAccount.buildExecution(pendingTx)
+      const transactionType = getERC4337TransactionType(
+        tx.networkId,
+        await sender.getEntryPoint()
       )
+      const execution = await sender.buildExecution(tx)
+      const userOp =
+        transactionType === TransactionType.ERC4337V0_6
+          ? UserOperationV0_6.wrap(execution)
+          : UserOperationV0_7.wrap(execution)
       await estimateGas(userOp)
       setUserOp(userOp)
     }
-    if (!senderAccount) {
-      return
-    }
     setupUserOp()
-  }, [senderAccount])
+  }, [])
 
   useEffect(() => {
     async function estimateUserOp() {
@@ -204,7 +242,7 @@ function UserOperationConfirmation(props: { pendingTx: TransactionPending }) {
     calculatePayment()
   }, [JSON.stringify(userOp?.unwrap())])
 
-  if (!senderAccount || !userOp) {
+  if (!userOp) {
     return <></>
   }
 
