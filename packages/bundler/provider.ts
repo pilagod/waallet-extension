@@ -51,6 +51,13 @@ export class BundlerProvider {
     return number.toBigInt(chainId)
   }
 
+  public async getMaxPriorityFeePerGas() {
+    const maxPriorityFeePerGas = await this.bundler.send<HexString>({
+      method: BundlerRpcMethod.rundler_maxPriorityFeePerGas
+    })
+    return number.toBigInt(maxPriorityFeePerGas)
+  }
+
   public async getSupportedEntryPoints(): Promise<HexString[]> {
     const entryPoints = await this.bundler.send<HexString[]>({
       method: BundlerRpcMethod.eth_supportedEntryPoints

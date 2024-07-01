@@ -1,4 +1,3 @@
-import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -144,8 +143,10 @@ describeWaalletSuite({
         await ctx.account.getEntryPoint()
       )
 
-      const { gasPrice } = await node.getFeeData()
-      userOp.setGasFee(gasPrice * 2n)
+      const gasFee = await ctx.provider.waallet.request({
+        method: WaalletRpcMethod.custom_estimateGasPrice
+      })
+      userOp.setGasFee(gasFee)
 
       const entryPoint = await ctx.account.getEntryPoint()
       userOp.setGasLimit(

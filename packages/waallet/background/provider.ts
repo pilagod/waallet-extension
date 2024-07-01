@@ -1,5 +1,6 @@
 import type { AccountManager } from "~packages/account/manager"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
+import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import address from "~packages/util/address"
@@ -40,7 +41,7 @@ export class WaalletBackgroundProvider {
 
   public async request<T>(args: WaalletRequestArguments): Promise<T> {
     console.log(args)
-    const { bundler, node } = this.networkManager.getActive()
+    const { node, bundler } = this.networkManager.getActive()
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
       case WaalletRpcMethod.eth_requestAccounts:
@@ -56,6 +57,8 @@ export class WaalletBackgroundProvider {
         return this.handleSendTransaction(args.params) as T
       case WaalletRpcMethod.eth_sendUserOperation:
         return this.handleSendUserOperation(args.params) as T
+      case WaalletRpcMethod.custom_estimateGasPrice:
+        return this.handleEstimateGasPrice() as T
       // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
       default:
         if (args.method in BundlerRpcMethod) {
@@ -98,6 +101,16 @@ export class WaalletBackgroundProvider {
       entryPoint
     )
     return number.toHex(callGasLimit)
+  }
+
+  private async handleEstimateGasPrice() {
+    const { node, bundler } = this.networkManager.getActive()
+    const gasPriceEstimator = new GasPriceEstimator(node, bundler)
+    const gasPrice = await gasPriceEstimator.estimate()
+    return {
+      maxFeePerGas: number.toHex(gasPrice.maxFeePerGas),
+      maxPriorityFeePerGas: number.toHex(gasPrice.maxPriorityFeePerGas)
+    }
   }
 
   private async handleEstimateUserOperationGas(

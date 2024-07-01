@@ -6,5 +6,7 @@ export enum BundlerRpcMethod {
   eth_sendUserOperation = "eth_sendUserOperation",
   eth_supportedEntryPoints = "eth_supportedEntryPoints",
 
+  rundler_maxPriorityFeePerGas = "rundler_maxPriorityFeePerGas",
+
   debug_bundler_sendBundleNow = "debug_bundler_sendBundleNow"
 }
