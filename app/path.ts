@@ -7,5 +7,5 @@ export enum Path {
   WebAuthnRegistration = "/webauthn/registration",
   WebAuthnDevtool = "/webauthn/devtool",
 
-  UserOperationAuthorization = "/authorization/user-operation"
+  TransactionAuthorization = "/authorization/transaction"
 }

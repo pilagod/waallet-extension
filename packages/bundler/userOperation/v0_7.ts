@@ -242,9 +242,17 @@ export class UserOperationV0_7 {
     }
     if (data.paymasterPostOpGasLimit) {
       this.paymasterPostOpGasLimit = number.toBigInt(
-        data.paymasterVerificationGasLimit
+        data.paymasterPostOpGasLimit
       )
     }
+  }
+
+  public unsetGasLimit() {
+    this.callGasLimit = 0n
+    this.verificationGasLimit = 0n
+    this.preVerificationGas = 0n
+    this.paymasterVerificationGasLimit = 0n
+    this.paymasterPostOpGasLimit = 0n
   }
 
   public setPaymaster(data: {
@@ -257,6 +265,16 @@ export class UserOperationV0_7 {
     if (data.paymasterData) {
       this.paymasterData = data.paymasterData
     }
+  }
+
+  public setPaymasterAndData(paymasterAndData: HexString) {
+    if (ethers.dataLength(paymasterAndData) < 20) {
+      this.paymaster = null
+      this.paymasterData = "0x"
+      return
+    }
+    this.paymaster = ethers.dataSlice(paymasterAndData, 0, 20)
+    this.paymasterData = ethers.dataSlice(paymasterAndData, 20)
   }
 
   public setSignature(signature: HexString) {
