@@ -1,8 +1,8 @@
 import { useState } from "react"
-import Down from "react:~assets/down.svg"
-import Rectangle1 from "react:~assets/rectangle1.svg"
-import Rectangle3 from "react:~assets/rectangle3.svg"
-import Up from "react:~assets/up.svg"
+import ArrowDown from "react:~assets/arrowDown.svg"
+import ArrowUp from "react:~assets/arrowUp.svg"
+import HorizontalRule from "react:~assets/horizontalRule.svg"
+import Underline from "react:~assets/underline.svg"
 import { Link } from "wouter"
 
 import { Navbar } from "~app/component/navbar"
@@ -102,21 +102,21 @@ export function AccountInfo() {
         <Link
           className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black"
           href={Path.Send}>
-          <Up className="w-[24px] h-[24px] m-[16px_2.5px_16px_49px]" />
+          <ArrowUp className="w-[24px] h-[24px] m-[16px_2.5px_16px_49px]" />
           <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_49px_18.5px_0px]">
             Send
           </div>
         </Link>
         {/* Receive */}
         <button className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black">
-          <Down className="w-[24px] h-[24px] m-[16px_2.5px_16px_38.5px]" />
+          <ArrowDown className="w-[24px] h-[24px] m-[16px_2.5px_16px_38.5px]" />
           <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_38.5px_18.5px_0px]">
             Receive
           </div>
         </button>
       </div>
 
-      <Rectangle1 className="w-[390px] h-[1px]" />
+      <HorizontalRule className="w-[390px] h-[1px]" />
       {/* Token and Activity list */}
       <div>
         {/* tab */}
@@ -133,7 +133,7 @@ export function AccountInfo() {
             </button>
             {/* Rectangle 3 */}
             {infoNavigation === InfoNavigation.Token && (
-              <Rectangle3 className="w-[20px] h-[2px]" />
+              <Underline className="w-[20px] h-[2px]" />
             )}
           </div>
 
@@ -147,7 +147,7 @@ export function AccountInfo() {
               {InfoNavigation.Activity}
             </button>
             {infoNavigation === InfoNavigation.Activity && (
-              <Rectangle3 className="w-[20px] h-[2px]" />
+              <Underline className="w-[20px] h-[2px]" />
             )}
           </div>
         </nav>

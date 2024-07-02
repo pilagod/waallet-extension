@@ -1,7 +1,7 @@
-import Close5 from "react:~assets/close5.svg"
-import SystemHelp from "react:~assets/systemHelp.svg"
-import Time from "react:~assets/time.svg"
-import UpRight from "react:~assets/upRight.svg"
+import ArrowUpRight from "react:~assets/arrowUpRight.svg"
+import CircleQuestion from "react:~assets/circleQuestion.svg"
+import Clock from "react:~assets/clock.svg"
+import OctagonXmark from "react:~assets/octagonXmark.svg"
 
 import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
 import { getChainName } from "~packages/network/util"
@@ -71,7 +71,7 @@ const UserOpHistoryItem: React.FC<{
             {/* Frame 9 txLog.status === TransactionStatus.Succeeded */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
               {/* 24-up right */}
-              <UpRight className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+              <ArrowUpRight className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
               {/* Send */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
                 Send
@@ -123,7 +123,7 @@ const UserOpHistoryItem: React.FC<{
             {/* Frame 9 txLog.status === TransactionStatus.Failed */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
               {/* 24-up right */}
-              <Close5 className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+              <OctagonXmark className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
               {/* Send */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
                 Failed
@@ -171,7 +171,7 @@ const UserOpHistoryItem: React.FC<{
             {/* Frame 9 */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
               {/* 24-up right */}
-              <Close5 className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+              <OctagonXmark className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
               {/* Send */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
                 {status}
@@ -207,7 +207,7 @@ const UserOpHistoryItem: React.FC<{
             {/* Frame 9 */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
               {/* 24-up right */}
-              <Time className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+              <Clock className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
               {/* Send */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
                 {status}
@@ -255,7 +255,7 @@ const UserOpHistoryItem: React.FC<{
           {/* Frame 9 */}
           <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
             {/* 24-up right */}
-            <SystemHelp className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+            <CircleQuestion className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
             {/* Send */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
               {status}

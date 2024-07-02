@@ -2,8 +2,8 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { formatEther } from "ethers"
 import { useEffect, useState } from "react"
-import Down3 from "react:~assets/down3.svg"
-import EthereumLogo from "react:~assets/ethereumLogo.svg"
+import ChevronDown from "react:~assets/chevronDown.svg"
+import Ethereum from "react:~assets/ethereum.svg"
 
 import { useProviderContext } from "~app/context/provider"
 import {
@@ -51,9 +51,9 @@ function NetworkSelector() {
         className="h-[48px] flex items-center rounded-[99px] border-[1px] border-solid border-black"
         onClick={toggleNetworkSelectorModal}>
         {/* Ethereum-eth-logo */}
-        <EthereumLogo className="w-[24px] h-[24px] m-[12px_12px_12px_20px]" />
+        <Ethereum className="w-[24px] h-[24px] m-[12px_12px_12px_20px]" />
         {/* 24-down 3 */}
-        <Down3 className="w-[16px] h-[16px] m-[16px_20px_16px_0px]" />
+        <ChevronDown className="w-[16px] h-[16px] m-[16px_20px_16px_0px]" />
       </button>
       {isNetworkSelectorModalOpened && (
         <NetworkSelectorModal onModalClosed={toggleNetworkSelectorModal} />
@@ -151,7 +151,7 @@ function AccountSelector() {
             {address.ellipsize(account.address)}
           </div>
         </div>
-        <Down3 className="w-[16px] h-[16px] m-[0px_16px_0px_0px]" />
+        <ChevronDown className="w-[16px] h-[16px] m-[0px_16px_0px_0px]" />
       </button>
       {isAccountSelectorModalOpened && (
         <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />

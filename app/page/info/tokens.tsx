@@ -2,7 +2,7 @@ import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getAddress, parseUnits, toNumber } from "ethers"
 import { useCallback, useState, type ChangeEvent } from "react"
-import EthereumLogo from "react:~assets/ethereumLogo.svg"
+import Ethereum from "react:~assets/ethereum.svg"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
@@ -39,7 +39,7 @@ export function Tokens() {
         {/* Token cell */}
         <Link className="flex items-center" href={Path.Send}>
           {/* Ethereum-eth-logo */}
-          <EthereumLogo className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
+          <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
           {/* ETH */}
           <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
             {`${getChainName(account.chainId)}ETH`}
@@ -62,7 +62,7 @@ export function Tokens() {
               onClick={() => openTokenInfoModal(token.address)}
               key={index}>
               {/* Ethereum-eth-logo */}
-              <EthereumLogo className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
+              <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
               {/* ETH */}
               <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
                 {token.symbol}
