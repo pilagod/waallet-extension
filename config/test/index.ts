@@ -20,7 +20,8 @@ const address = {
 
   EntryPointV0_7: "0x057ef64E23666F000b34aE31332854aCBd1c8544",
   SimpleAccountFactoryV0_7: "0x261D8c5e9742e6f7f1076Fa1F560894524e19cad",
-  SimpleAccountV0_7: "0xe569f1d8487239659C09b5cA1881320B5EbB0ab2"
+  SimpleAccountV0_7: "0xe569f1d8487239659C09b5cA1881320B5EbB0ab2",
+  VerifyingPaymasterV0_7: "0xcf27F781841484d5CF7e155b44954D7224caF1dD"
 }
 
 const provider = {
@@ -44,17 +45,6 @@ const wallet = {
 }
 
 const contract = {
-  entryPoint: new ethers.Contract(
-    address.EntryPointV0_6,
-    ["function balanceOf(address account) public view returns (uint256)"],
-    node
-  ),
-  simpleAccountFactory: new ethers.Contract(
-    address.SimpleAccountFactoryV0_6,
-    ["function getAddress(address owner, uint256 salt) view returns (address)"],
-    node
-  ),
-  simpleAccount: new ethers.Contract(address.SimpleAccountV0_6, [], node),
   counter: new ethers.Contract(
     address.Counter,
     [
@@ -63,9 +53,31 @@ const contract = {
     ],
     node
   ),
-  passkeyAccountFactory: new ethers.Contract(
+
+  /* v0.6 */
+
+  entryPointV0_6: new ethers.Contract(
+    address.EntryPointV0_6,
+    ["function balanceOf(address account) public view returns (uint256)"],
+    node
+  ),
+  simpleAccountFactoryV0_6: new ethers.Contract(
+    address.SimpleAccountFactoryV0_6,
+    ["function getAddress(address owner, uint256 salt) view returns (address)"],
+    node
+  ),
+  simpleAccountV0_6: new ethers.Contract(address.SimpleAccountV0_6, [], node),
+  passkeyAccountFactoryV0_6: new ethers.Contract(
     address.PasskeyAccountFactoryV0_6,
     [],
+    node
+  ),
+
+  /* v0.7 */
+
+  entryPointV0_7: new ethers.Contract(
+    address.EntryPointV0_7,
+    ["function balanceOf(address account) public view returns (uint256)"],
     node
   )
 }

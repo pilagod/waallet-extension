@@ -7,13 +7,13 @@ describe("bytes", () => {
     it("should wrap hex string", () => {
       const hex = "395a7a"
       const bytes = Bytes.wrap(hex)
-      expect(bytes.unwrap("hex")).toBe(hex)
+      expect(bytes.unwrap("hex")).toBe(`0x${hex}`)
     })
 
     it("should wrap hex string with 0x prefix", () => {
       const hex = "0x395a7a"
       const bytes = Bytes.wrap(hex)
-      expect(bytes.unwrap("hex")).toBe(hex.slice(2))
+      expect(bytes.unwrap("hex")).toBe(hex)
     })
 
     it("should wrap plain text", () => {
@@ -66,7 +66,7 @@ describe("bytes", () => {
       const result = Bytes.wrap(message).eip191()
       const expected = hashMessage(message)
 
-      expect(result.unwrap("hex")).toBe(expected.slice(2))
+      expect(result.unwrap("hex")).toBe(expected)
     })
 
     it("should compute sha256 hash", () => {
@@ -75,7 +75,7 @@ describe("bytes", () => {
       const result = Bytes.wrap(message).sha256()
       const expected = sha256(Buffer.from(message))
 
-      expect(result.unwrap("hex")).toBe(expected.slice(2))
+      expect(result.unwrap("hex")).toBe(expected)
     })
   })
 })

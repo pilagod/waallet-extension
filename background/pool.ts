@@ -5,7 +5,7 @@ import type {
   Transaction,
   TransactionPool
 } from "~packages/waallet/background/pool/transaction"
-import { TransactionStatus, type State } from "~storage/local"
+import { TransactionStatus, type State } from "~storage/local/state"
 
 export class TransactionStoragePool implements TransactionPool {
   public constructor(private storage: ObservableStorage<State>) {}

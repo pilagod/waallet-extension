@@ -6,7 +6,7 @@ import OctagonXmark from "react:~assets/octagonXmark.svg"
 import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
 import { getChainName } from "~packages/network/util"
 import address from "~packages/util/address"
-import { TransactionStatus, type TransactionLog } from "~storage/local"
+import { TransactionStatus, type TransactionLog } from "~storage/local/state"
 
 const explorerUrl = "https://jiffyscan.xyz/"
 

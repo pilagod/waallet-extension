@@ -169,6 +169,12 @@ export class UserOperationV0_6 {
     }
   }
 
+  public unsetGasLimit() {
+    this.callGasLimit = 0n
+    this.verificationGasLimit = 0n
+    this.preVerificationGas = 0n
+  }
+
   public setPaymasterAndData(paymasterAndData: HexString) {
     this.paymasterAndData = paymasterAndData
   }

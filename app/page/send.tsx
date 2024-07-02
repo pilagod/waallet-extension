@@ -8,7 +8,7 @@ import { useAccount, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import { type Token } from "~storage/local"
+import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
