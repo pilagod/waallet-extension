@@ -142,12 +142,17 @@ export class BundlerProvider {
       method: BundlerRpcMethod.eth_estimateUserOperationGas,
       params: [userOp.unwrap(), entryPoint]
     })
+    // Add 10% buffer to avoid over limit.
+    const addBuffer = (n: bigint) => (n * 110n) / 100n
+
     return {
       preVerificationGas: number.toBigInt(gasLimit.preVerificationGas),
-      verificationGasLimit: number.toBigInt(gasLimit.verificationGasLimit),
-      callGasLimit: number.toBigInt(gasLimit.callGasLimit),
-      paymasterVerificationGasLimit: number.toBigInt(
-        gasLimit.paymasterVerificationGasLimit ?? "0x0"
+      verificationGasLimit: addBuffer(
+        number.toBigInt(gasLimit.verificationGasLimit)
+      ),
+      callGasLimit: addBuffer(number.toBigInt(gasLimit.callGasLimit)),
+      paymasterVerificationGasLimit: addBuffer(
+        number.toBigInt(gasLimit.paymasterVerificationGasLimit ?? "0x0")
       )
     }
   }
