@@ -112,13 +112,13 @@ export class UserOperationV0_7 {
       preVerificationGas: number.toHex(this.preVerificationGas),
       maxFeePerGas: number.toHex(this.maxFeePerGas),
       maxPriorityFeePerGas: number.toHex(this.maxPriorityFeePerGas),
-      paymasterVerificationGasLimit: number.toHex(
-        this.paymasterVerificationGasLimit
-      ),
-      paymasterPostOpGasLimit: number.toHex(this.paymasterPostOpGasLimit),
       ...(this.paymaster && {
         paymaster: this.paymaster,
-        paymasterData: this.paymasterData
+        paymasterData: this.paymasterData,
+        paymasterVerificationGasLimit: number.toHex(
+          this.paymasterVerificationGasLimit
+        ),
+        paymasterPostOpGasLimit: number.toHex(this.paymasterPostOpGasLimit)
       }),
       signature: this.signature
     }

@@ -8,7 +8,7 @@ export class GasPriceEstimator {
   ) {}
 
   public async estimate() {
-    // Currently use rundler's fee logic.
+    // Add 25% buffer to avoid underpriced, based on Alchemy bundler fee logic.
     // https://docs.alchemy.com/reference/bundler-api-fee-logic
     const addBuffer = (n: bigint) => (n * 125n) / 100n
     const fee = await this.getFee()

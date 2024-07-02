@@ -6,7 +6,7 @@ declare namespace NodeJS {
 
     /* Network */
 
-    PLASMO_PUBLIC_SEPOLIA_ALCHEMY_API_KEY?: string
+    PLASMO_PUBLIC_ALCHEMY_API_KEY?: string
 
     /* Development Only */
 
