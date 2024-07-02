@@ -24,8 +24,8 @@ export const config = {
       chainId: 11155111,
       name: "Sepolia",
       active: accountChainId === 11155111,
-      nodeRpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_SEPOLIA_ALCHEMY_API_KEY}`,
-      bundlerRpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_SEPOLIA_ALCHEMY_API_KEY}`,
+      nodeRpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_ALCHEMY_API_KEY}`,
+      bundlerRpcUrl: `https://eth-sepolia.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_ALCHEMY_API_KEY}`,
       entryPoint: {
         [EntryPointVersion.V0_6]: "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
         [EntryPointVersion.V0_7]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
@@ -41,8 +41,8 @@ export const config = {
       chainId: 80002,
       name: "Polygon Amoy",
       active: accountChainId === 80002,
-      nodeRpcUrl: `https://polygon-amoy.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_SEPOLIA_ALCHEMY_API_KEY}`,
-      bundlerRpcUrl: `https://polygon-amoy.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_SEPOLIA_ALCHEMY_API_KEY}`,
+      nodeRpcUrl: `https://polygon-amoy.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_ALCHEMY_API_KEY}`,
+      bundlerRpcUrl: `https://polygon-amoy.g.alchemy.com/v2/${process.env.PLASMO_PUBLIC_ALCHEMY_API_KEY}`,
       entryPoint: {
         [EntryPointVersion.V0_6]: "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
         [EntryPointVersion.V0_7]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
