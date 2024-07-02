@@ -71,13 +71,13 @@ const UserOpHistoryItem: React.FC<{
             {/* Frame 9 txLog.status === TransactionStatus.Succeeded */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
               {/* 24-up right */}
-              <ArrowUpRight className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+              <ArrowUpRight className="w-[16px] h-[16px] mr-[8px]" />
               {/* Send */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 Send
               </div>
               {/* 1.2 */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 1.2
               </div>
               {/* ETH */}
@@ -123,13 +123,13 @@ const UserOpHistoryItem: React.FC<{
             {/* Frame 9 txLog.status === TransactionStatus.Failed */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
               {/* 24-up right */}
-              <OctagonXmark className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+              <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
               {/* Send */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 Failed
               </div>
               {/* 1.2 */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 1.2
               </div>
               {/* ETH */}
@@ -171,9 +171,9 @@ const UserOpHistoryItem: React.FC<{
             {/* Frame 9 */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
               {/* 24-up right */}
-              <OctagonXmark className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+              <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
               {/* Send */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 {status}
               </div>
             </div>
@@ -207,13 +207,13 @@ const UserOpHistoryItem: React.FC<{
             {/* Frame 9 */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
               {/* 24-up right */}
-              <Clock className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+              <Clock className="w-[16px] h-[16px] mr-[8px]" />
               {/* Send */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 {status}
               </div>
               {/* 1.2 */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 1.2
               </div>
               {/* ETH */}
@@ -255,13 +255,13 @@ const UserOpHistoryItem: React.FC<{
           {/* Frame 9 */}
           <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
             {/* 24-up right */}
-            <CircleQuestion className="w-[16px] h-[16px] m-[0px_8px_0px_0px]" />
+            <CircleQuestion className="w-[16px] h-[16px] mr-[8px]" />
             {/* Send */}
-            <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+            <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
               {status}
             </div>
             {/* 1.2 */}
-            <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_8px_0px_0px]">
+            <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
               1.2
             </div>
             {/* ETH */}

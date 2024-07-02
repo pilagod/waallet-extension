@@ -48,7 +48,7 @@ function NetworkSelector() {
     <>
       {/* Network */}
       <button
-        className="h-[48px] flex items-center rounded-[99px] border-[1px] border-solid border-black"
+        className="p-[4px_0px_4px_0px] flex items-center rounded-full border-[1px] border-solid border-black"
         onClick={toggleNetworkSelectorModal}>
         {/* Ethereum-eth-logo */}
         <Ethereum className="w-[24px] h-[24px] m-[12px_12px_12px_20px]" />
@@ -138,7 +138,7 @@ function AccountSelector() {
     <>
       {/* account */}
       <button
-        className="h-[48px] flex items-center rounded-[99px] border-[1px] border-solid border-black m-[0px_94px_0px_0px]"
+        className="flex items-center rounded-full border-[1px] border-solid border-black mr-[94px]"
         onClick={toggleAccountSelectorModal}>
         {/* Frame 14 */}
         <div className="flex flex-col items-start m-[7px_12px_7px_20px]">
@@ -151,7 +151,7 @@ function AccountSelector() {
             {address.ellipsize(account.address)}
           </div>
         </div>
-        <ChevronDown className="w-[16px] h-[16px] m-[0px_16px_0px_0px]" />
+        <ChevronDown className="w-[16px] h-[16px] mr-[16px]" />
       </button>
       {isAccountSelectorModalOpened && (
         <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />

@@ -35,7 +35,7 @@ export function Tokens() {
   return (
     <>
       {/* Token list */}
-      <div className="w-[390px] flex flex-col items-start">
+      <div className="w-full flex flex-col items-start">
         {/* Token cell */}
         <Link className="flex items-center" href={Path.Send}>
           {/* Ethereum-eth-logo */}

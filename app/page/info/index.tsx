@@ -86,7 +86,7 @@ export function AccountInfo() {
       {/* Blance */}
       <div className="flex flex-col items-start m-[0px_16px_16px_16px]">
         {/* Blance */}
-        <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[0px_0px_8px_0px]">
+        <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mb-[8px]">
           Balance
         </div>
         {/* (amount) */}
@@ -97,10 +97,10 @@ export function AccountInfo() {
         )}`}</div>
       </div>
       {/* action */}
-      <div className="flex justify-evenly m-[0px_0px_24px_0px]">
+      <div className="flex justify-evenly mb-[24px]">
         {/* Send */}
         <Link
-          className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black"
+          className="w-[171px] flex items-center rounded-full border-[1px] border-solid border-black"
           href={Path.Send}>
           <ArrowUp className="w-[24px] h-[24px] m-[16px_2.5px_16px_49px]" />
           <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_49px_18.5px_0px]">
@@ -108,7 +108,7 @@ export function AccountInfo() {
           </div>
         </Link>
         {/* Receive */}
-        <button className="w-[171px] flex items-center rounded-[99px] border-[1px] border-solid border-black">
+        <button className="w-[171px] flex items-center rounded-full border-[1px] border-solid border-black">
           <ArrowDown className="w-[24px] h-[24px] m-[16px_2.5px_16px_38.5px]" />
           <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_38.5px_18.5px_0px]">
             Receive
