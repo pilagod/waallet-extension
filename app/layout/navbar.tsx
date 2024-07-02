@@ -1,12 +1,9 @@
-import type { ReactNode } from "react"
-
 import { Navbar } from "~app/component/navbar"
 
-export function NavbarLayout(props: { children: ReactNode }) {
+export function NavbarLayout() {
   return (
     <>
       <Navbar />
-      {props.children}
     </>
   )
 }

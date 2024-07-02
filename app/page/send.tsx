@@ -3,7 +3,6 @@ import { useCallback, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
-import { NavbarLayout } from "~app/layout/navbar"
 import { Path } from "~app/path"
 import { useAccount, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
@@ -70,67 +69,65 @@ export function Send() {
   }, [txTo, txValue])
 
   return (
-    <NavbarLayout>
-      <div className="text-base justify-center items-center h-auto">
-        <div className="flex">
-          <label className="col-span-1">Asset:</label>
-          <select
-            id="asset"
-            value={token.address}
-            className="col-span-4 border w-full outline-none border-gray-300"
-            onChange={handleAssetChange}>
-            {tokens.map((token) => {
-              const balance = number.formatUnitsToFixed(
-                token.balance,
-                token.decimals
-              )
-              return (
-                <option key={token.address} value={token.address}>
-                  {token.symbol}: {balance} {token.symbol}
-                </option>
-              )
-            })}
-          </select>
-        </div>
-        <div className="flex">
-          <label className="flex-1">To:</label>
-          <input
-            type="text"
-            id="to"
-            value={`${txTo}`}
-            onChange={handleToChange}
-            list="suggestionTo"
-            className={`border w-96 outline-none ${
-              invalidTo ? "border-red-500" : "border-gray-300"
-            }`}></input>
-          <datalist id="suggestionTo">
-            <option value={account.address}></option>
-          </datalist>
-        </div>
-        <div className="flex">
-          <label className="flex-1">Amount:</label>
-          <input
-            type="text"
-            id="amount"
-            value={`${txValue}`}
-            onChange={handleAmountChange}
-            className={`border w-96 outline-none ${
-              invalidValue ? "border-red-500" : "border-gray-300"
-            }`}></input>
-        </div>
-        <div className="flex">
-          <button
-            onClick={handleSend}
-            disabled={invalidTo || invalidValue}
-            className="flex-1">
-            Send
-          </button>
-          <Link href={Path.Info} className="flex-1">
-            Cancel
-          </Link>
-        </div>
+    <div className="text-base justify-center items-center h-auto">
+      <div className="flex">
+        <label className="col-span-1">Asset:</label>
+        <select
+          id="asset"
+          value={token.address}
+          className="col-span-4 border w-full outline-none border-gray-300"
+          onChange={handleAssetChange}>
+          {tokens.map((token) => {
+            const balance = number.formatUnitsToFixed(
+              token.balance,
+              token.decimals
+            )
+            return (
+              <option key={token.address} value={token.address}>
+                {token.symbol}: {balance} {token.symbol}
+              </option>
+            )
+          })}
+        </select>
       </div>
-    </NavbarLayout>
+      <div className="flex">
+        <label className="flex-1">To:</label>
+        <input
+          type="text"
+          id="to"
+          value={`${txTo}`}
+          onChange={handleToChange}
+          list="suggestionTo"
+          className={`border w-96 outline-none ${
+            invalidTo ? "border-red-500" : "border-gray-300"
+          }`}></input>
+        <datalist id="suggestionTo">
+          <option value={account.address}></option>
+        </datalist>
+      </div>
+      <div className="flex">
+        <label className="flex-1">Amount:</label>
+        <input
+          type="text"
+          id="amount"
+          value={`${txValue}`}
+          onChange={handleAmountChange}
+          className={`border w-96 outline-none ${
+            invalidValue ? "border-red-500" : "border-gray-300"
+          }`}></input>
+      </div>
+      <div className="flex">
+        <button
+          onClick={handleSend}
+          disabled={invalidTo || invalidValue}
+          className="flex-1">
+          Send
+        </button>
+        <Link href={Path.Info} className="flex-1">
+          Cancel
+        </Link>
+      </div>
+    </div>
   )
 }
 

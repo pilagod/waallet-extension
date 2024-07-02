@@ -2,6 +2,7 @@ import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getAddress, parseUnits, toNumber } from "ethers"
 import { useCallback, useState, type ChangeEvent } from "react"
+import Ethereum from "react:~assets/ethereum.svg"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
@@ -32,46 +33,69 @@ export function Tokens() {
   }
 
   return (
-    <div>
-      <div className="flex-col justify-center items-center h-auto p-3 border-0 rounded-lg text-base">
-        Tokens:
-        <div>
-          <Link href={Path.Send}>
-            <span>{getChainName(account.chainId)}ETH </span>
-            <span>{number.formatUnitsToFixed(account.balance, 18)}</span>
-          </Link>
-        </div>
+    <>
+      {/* Token list */}
+      <div className="w-full flex flex-col items-start">
+        {/* Token cell */}
+        <Link className="flex items-center" href={Path.Send}>
+          {/* Ethereum-eth-logo */}
+          <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
+          {/* ETH */}
+          <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
+            {`${getChainName(account.chainId)}ETH`}
+          </div>
+          {/* Frame 2 */}
+          <div className="w-[47px] flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
+            <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
+              {number.formatUnitsToFixed(account.balance, 18, 2)}
+            </div>
+            <div className="font-[Inter] font-[400] text-[12px] text-[#000000]">
+              $1.23
+            </div>
+          </div>
+        </Link>
+        {/* Token cell */}
         {tokens.map((token, index) => {
           return (
-            <div key={index}>
-              <div
-                className="col-span-3 cursor-pointer"
-                onClick={() => openTokenInfoModal(token.address)}>
-                <span>{token.symbol}</span>{" "}
-                <span>
-                  {number.formatUnitsToFixed(token.balance, token.decimals)}
-                </span>
+            <button
+              className="flex item-center"
+              onClick={() => openTokenInfoModal(token.address)}
+              key={index}>
+              {/* Ethereum-eth-logo */}
+              <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
+              {/* ETH */}
+              <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
+                {token.symbol}
               </div>
-              {selectedTokenAddress && (
-                <TokenInfoModal
-                  onModalClosed={closeTokenInfoModal}
-                  tokenAddress={selectedTokenAddress}
-                />
-              )}
-            </div>
+              {/* Frame 2 */}
+              <div className="w-[47px] flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
+                <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
+                  {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
+                </div>
+                <div className="font-[Inter] font-[400] text-[12px] text-[#000000]">
+                  $1000.00
+                </div>
+              </div>
+            </button>
           )
         })}
+        {selectedTokenAddress && (
+          <TokenInfoModal
+            onModalClosed={closeTokenInfoModal}
+            tokenAddress={selectedTokenAddress}
+          />
+        )}
+        <div
+          className="col-span-3 cursor-pointer"
+          onClick={toggleTokenImportModal}>
+          <span>Import Tokens</span>
+          <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
+        </div>
+        {isTokenImportModalOpened && (
+          <TokenImportModal onModalClosed={toggleTokenImportModal} />
+        )}
       </div>
-      <div
-        className="col-span-3 cursor-pointer"
-        onClick={toggleTokenImportModal}>
-        <span>Import Tokens</span>
-        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-      </div>
-      {isTokenImportModalOpened && (
-        <TokenImportModal onModalClosed={toggleTokenImportModal} />
-      )}
-    </div>
+    </>
   )
 }
 
