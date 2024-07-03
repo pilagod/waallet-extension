@@ -32,7 +32,7 @@ export function Home() {
   return (
     <>
       {/* Home page */}
-      <div className="w-[390px] m-[20px_0px_24px_0px]">
+      <div className="w-[390px] mb-[24px] p-[24px_16px_24px_16px]">
         <Navbar />
         {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
       </div>
@@ -89,7 +89,7 @@ export function AccountInfo() {
         <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mb-[8px]">
           Balance
         </div>
-        <div className="font-[Inter] font-[400] text-[48px] text-[#000000] whitespace-nowrap leading-[58.09px]">{`$ ${number.formatUnitsToFixed(
+        <div className="leading-[58.09px] text-[48px] font-[Inter] font-[400] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
           account.balance,
           18,
           2

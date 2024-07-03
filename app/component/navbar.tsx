@@ -26,7 +26,7 @@ export function Navbar() {
   return (
     <>
       {/* Home page navbar */}
-      <nav className="flex items-center m-[0px_16px_16px_16px]">
+      <nav className="flex items-center justify-between mb-[16px]">
         <div>
           {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
         </div>
@@ -48,11 +48,12 @@ function NetworkSelector() {
     <>
       {/* Home page network selector button */}
       <button
-        className="p-[4px_0px_4px_0px] flex items-center rounded-full border-[1px] border-solid border-black"
+        className="p-[12px_20px_12px_20px] flex items-center justify-between rounded-full border-[1px] border-solid border-black"
         onClick={toggleNetworkSelectorModal}>
-        <Ethereum className="w-[24px] h-[24px] m-[12px_12px_12px_20px]" />
-        <ChevronDown className="w-[16px] h-[16px] m-[16px_20px_16px_0px]" />
+        <Ethereum className="w-[24px] h-[24px] mr-[12px]" />
+        <ChevronDown className="w-[16px] h-[16px]" />
       </button>
+      {/* Network selector modal */}
       {isNetworkSelectorModalOpened && (
         <NetworkSelectorModal onModalClosed={toggleNetworkSelectorModal} />
       )}
@@ -136,18 +137,19 @@ function AccountSelector() {
     <>
       {/* Home page account selector button */}
       <button
-        className="flex items-center rounded-full border-[1px] border-solid border-black mr-[94px]"
+        className="p-[7px_20px_7px_20px] flex items-center justify-between rounded-full border-[1px] border-solid border-black mr-[94px]"
         onClick={toggleAccountSelectorModal}>
-        <div className="flex flex-col items-start m-[7px_12px_7px_20px]">
-          <div className="font-[Inter] font-[400] text-[16px] text-[#000000] whitespace-nowrap">
+        <div className="mr-[12px] flex flex-col items-start">
+          <div className="leading-[19.36px] text-[16px] font-[Inter] font-[400] text-[#000000] whitespace-nowrap">
             Jesse's wallet
           </div>
-          <div className="font-[Inter] font-[400] text-[12px] text-[#989898]">
+          <div className="leading-[14.52px] text-[12px] font-[Inter] font-[400] text-[#989898]">
             {address.ellipsize(account.address)}
           </div>
         </div>
-        <ChevronDown className="w-[16px] h-[16px] mr-[16px]" />
+        <ChevronDown className="w-[16px] h-[16px]" />
       </button>
+      {/* Account selector modal */}
       {isAccountSelectorModalOpened && (
         <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />
       )}
