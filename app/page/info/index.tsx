@@ -1,7 +1,6 @@
 import { useState } from "react"
 import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
-import HorizontalRule from "react:~assets/horizontalRule.svg"
 import Underline from "react:~assets/underline.svg"
 import { Link } from "wouter"
 
@@ -32,10 +31,25 @@ export function Home() {
   return (
     <>
       {/* Home page */}
-      <div className="w-full mb-[24px] p-[24px_16px_24px_16px]">
+      <div className="w-full p-[24px_16px_0px_16px]">
         <Navbar />
-        {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
       </div>
+      {shouldOnboard ? (
+        <AccountCreation />
+      ) : (
+        <>
+          {/* Account info - top */}
+          <div className="w-full p-[0px_16px_0px_16px] mb-[24px]">
+            <AccountInfo />
+          </div>
+          {/* Divider */}
+          <div className="w-full border-[0.5px] border-solid border-black" />
+          {/* Account info - bottom */}
+          <div className="w-full p-[0px_16px_24px_16px] mt-[24px]">
+            <AccountTokenAndActivity />
+          </div>
+        </>
+      )}
     </>
   )
 }
@@ -69,17 +83,7 @@ function AccountCreation() {
 }
 
 export function AccountInfo() {
-  const explorerUrl = "https://jiffyscan.xyz/"
-
   const account = useAccount()
-
-  const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
-    InfoNavigation.Token
-  )
-
-  const handleInfoNaviChange = (page: InfoNavigation) => {
-    setInfoNavigation(page)
-  }
 
   return (
     <>
@@ -114,8 +118,20 @@ export function AccountInfo() {
           </div>
         </button>
       </div>
+    </>
+  )
+}
 
-      <HorizontalRule className="w-[390px] h-[1px]" />
+export function AccountTokenAndActivity() {
+  const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
+    InfoNavigation.Token
+  )
+
+  const handleInfoNaviChange = (page: InfoNavigation) => {
+    setInfoNavigation(page)
+  }
+  return (
+    <>
       {/* Home page token or activity bar and list */}
       <div>
         <nav className="flex items-start">
