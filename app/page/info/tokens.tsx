@@ -37,15 +37,15 @@ export function Tokens() {
       {/* Token list */}
       <div className="w-full flex flex-col items-start">
         {/* Token cell */}
-        <Link className="flex items-center" href={Path.Send}>
+        <Link className="w-full flex items-center" href={Path.Send}>
           {/* Ethereum-eth-logo */}
           <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
           {/* ETH */}
-          <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
+          <div className="flex-grow font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
             {`${getChainName(account.chainId)}ETH`}
           </div>
           {/* Frame 2 */}
-          <div className="w-[47px] flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
+          <div className="flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
             <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
               {number.formatUnitsToFixed(account.balance, 18, 2)}
             </div>
@@ -58,17 +58,17 @@ export function Tokens() {
         {tokens.map((token, index) => {
           return (
             <button
-              className="flex item-center"
+              className="w-full flex item-center"
               onClick={() => openTokenInfoModal(token.address)}
               key={index}>
               {/* Ethereum-eth-logo */}
               <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
               {/* ETH */}
-              <div className="w-[251px] font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
+              <div className="flex-grow font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
                 {token.symbol}
               </div>
               {/* Frame 2 */}
-              <div className="w-[47px] flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
+              <div className="flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
                 <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
                   {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
                 </div>
