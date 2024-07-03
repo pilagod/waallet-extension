@@ -8,7 +8,7 @@ import { Link } from "wouter"
 import { Navbar } from "~app/component/navbar"
 import { useProviderContext } from "~app/context/provider"
 import { Activity } from "~app/page/info/activity"
-import { Tokens } from "~app/page/info/tokens"
+import { Token } from "~app/page/info/token"
 import { Path } from "~app/path"
 import {
   useAccount,
@@ -27,7 +27,7 @@ export enum InfoNavigation {
   Token = "Token"
 }
 
-export function Info() {
+export function Home() {
   const shouldOnboard = useShouldOnboard()
   return (
     <>
@@ -151,7 +151,7 @@ export function AccountInfo() {
             )}
           </div>
         </nav>
-        {infoNavigation === InfoNavigation.Token && <Tokens />}
+        {infoNavigation === InfoNavigation.Token && <Token />}
         {infoNavigation === InfoNavigation.Activity && <Activity />}
       </div>
     </>

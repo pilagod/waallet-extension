@@ -13,7 +13,7 @@ import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
-export function Tokens() {
+export function Token() {
   const tokens = useTokens()
   const account = useAccount()
 

@@ -6,7 +6,7 @@ import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
 import { TransactionAuthorization } from "~app/page/authorization/transaction"
-import { Info } from "~app/page/info"
+import { Home } from "~app/page/info"
 import { Send } from "~app/page/send"
 import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
@@ -62,7 +62,7 @@ function PageRouter() {
   return (
     <Router hook={useHashLocation}>
       <Switch>
-        <Route path={Path.Info} component={Info} />
+        <Route path={Path.Info} component={Home} />
         <Route path={Path.Send} component={Send} />
 
         <Route
