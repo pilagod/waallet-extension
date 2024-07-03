@@ -32,7 +32,7 @@ export function Home() {
   return (
     <>
       {/* Home page */}
-      <div className="w-[390px] mb-[24px] p-[24px_16px_24px_16px]">
+      <div className="w-full mb-[24px] p-[24px_16px_24px_16px]">
         <Navbar />
         {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
       </div>
