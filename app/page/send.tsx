@@ -123,7 +123,7 @@ export function Send() {
           className="flex-1">
           Send
         </button>
-        <Link href={Path.Info} className="flex-1">
+        <Link href={Path.Home} className="flex-1">
           Cancel
         </Link>
       </div>

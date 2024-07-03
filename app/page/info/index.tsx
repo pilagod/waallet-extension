@@ -31,7 +31,7 @@ export function Home() {
   const shouldOnboard = useShouldOnboard()
   return (
     <>
-      {/* Frame 6 */}
+      {/* Home page */}
       <div className="w-[390px] m-[20px_0px_24px_0px]">
         <Navbar />
         {shouldOnboard ? <AccountCreation /> : <AccountInfo />}
@@ -83,22 +83,21 @@ export function AccountInfo() {
 
   return (
     <>
-      {/* Blance */}
+      {/* Home page blance status */}
       <div className="flex flex-col items-start m-[0px_16px_16px_16px]">
-        {/* Blance */}
+        {/* Home page Blance */}
         <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mb-[8px]">
           Balance
         </div>
-        {/* (amount) */}
         <div className="font-[Inter] font-[400] text-[48px] text-[#000000] whitespace-nowrap leading-[58.09px]">{`$ ${number.formatUnitsToFixed(
           account.balance,
           18,
           2
         )}`}</div>
       </div>
-      {/* action */}
+      {/* Home page action */}
       <div className="flex justify-evenly mb-[24px]">
-        {/* Send */}
+        {/* Home page send button */}
         <Link
           className="w-[171px] flex items-center rounded-full border-[1px] border-solid border-black"
           href={Path.Send}>
@@ -107,7 +106,7 @@ export function AccountInfo() {
             Send
           </div>
         </Link>
-        {/* Receive */}
+        {/* Home page receive button */}
         <button className="w-[171px] flex items-center rounded-full border-[1px] border-solid border-black">
           <ArrowDown className="w-[24px] h-[24px] m-[16px_2.5px_16px_38.5px]" />
           <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_38.5px_18.5px_0px]">
@@ -117,13 +116,11 @@ export function AccountInfo() {
       </div>
 
       <HorizontalRule className="w-[390px] h-[1px]" />
-      {/* Token and Activity list */}
+      {/* Home page token or activity bar and list */}
       <div>
-        {/* tab */}
         <nav className="flex items-start">
-          {/* Frame 11 */}
           <div className="flex flex-col items-center m-[0px_24px_8px_16px]">
-            {/* Token */}
+            {/* Home page token bar */}
             <button
               className={`font-[Inter] font-[400] text-[16px] ${
                 infoNavigation !== InfoNavigation.Token && "text-[#bbbbbb]"
@@ -131,13 +128,12 @@ export function AccountInfo() {
               onClick={() => handleInfoNaviChange(InfoNavigation.Token)}>
               {InfoNavigation.Token}
             </button>
-            {/* Rectangle 3 */}
             {infoNavigation === InfoNavigation.Token && (
               <Underline className="w-[20px] h-[2px]" />
             )}
           </div>
 
-          {/* Activity */}
+          {/* Home page activity bar */}
           <div className="flex flex-col items-center m-[0px_16px_14px_0px]">
             <button
               className={`font-[Inter] font-[400] text-[16px] ${
@@ -151,7 +147,9 @@ export function AccountInfo() {
             )}
           </div>
         </nav>
+        {/* Home page token list */}
         {infoNavigation === InfoNavigation.Token && <Token />}
+        {/* Home page activity list */}
         {infoNavigation === InfoNavigation.Activity && <Activity />}
       </div>
     </>

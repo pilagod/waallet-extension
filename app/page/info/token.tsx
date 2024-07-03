@@ -34,17 +34,17 @@ export function Token() {
 
   return (
     <>
-      {/* Token list */}
+      {/* Home page token list */}
       <div className="w-full flex flex-col items-start">
-        {/* Token cell */}
+        {/* Native token cell */}
         <Link className="w-full flex items-center" href={Path.Send}>
-          {/* Ethereum-eth-logo */}
+          {/* Native token image */}
           <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
-          {/* ETH */}
+          {/* Native token symbol */}
           <div className="flex-grow font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
             {`${getChainName(account.chainId)}ETH`}
           </div>
-          {/* Frame 2 */}
+          {/* Native token balance */}
           <div className="flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
             <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
               {number.formatUnitsToFixed(account.balance, 18, 2)}
@@ -61,13 +61,13 @@ export function Token() {
               className="w-full flex item-center"
               onClick={() => openTokenInfoModal(token.address)}
               key={index}>
-              {/* Ethereum-eth-logo */}
+              {/* Token image */}
               <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
-              {/* ETH */}
+              {/* Token symbol */}
               <div className="flex-grow font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
                 {token.symbol}
               </div>
-              {/* Frame 2 */}
+              {/* Token balance */}
               <div className="flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
                 <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
                   {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
@@ -79,18 +79,21 @@ export function Token() {
             </button>
           )
         })}
+        {/* Token information modal */}
         {selectedTokenAddress && (
           <TokenInfoModal
             onModalClosed={closeTokenInfoModal}
             tokenAddress={selectedTokenAddress}
           />
         )}
+        {/* Token importing button */}
         <div
           className="col-span-3 cursor-pointer"
           onClick={toggleTokenImportModal}>
           <span>Import Tokens</span>
           <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
         </div>
+        {/* Token importing modal */}
         {isTokenImportModalOpened && (
           <TokenImportModal onModalClosed={toggleTokenImportModal} />
         )}

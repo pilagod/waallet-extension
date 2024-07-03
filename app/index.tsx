@@ -36,6 +36,7 @@ export function App() {
   }
   return (
     <ProviderContextProvider>
+      {/* Waallet popup script page */}
       <div className="w-[390px] h-[700px]">
         <PageRouter />
       </div>
@@ -62,7 +63,7 @@ function PageRouter() {
   return (
     <Router hook={useHashLocation}>
       <Switch>
-        <Route path={Path.Info} component={Home} />
+        <Route path={Path.Home} component={Home} />
         <Route path={Path.Send} component={Send} />
 
         <Route
@@ -81,7 +82,7 @@ function PageRouter() {
         />
 
         <Route path="*">
-          <Redirect to={Path.Info} />
+          <Redirect to={Path.Home} />
         </Route>
       </Switch>
     </Router>

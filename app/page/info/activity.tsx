@@ -23,7 +23,7 @@ const TransactionHistory: React.FC<{
   const chainName = getChainName(chainId)
   return (
     <>
-      {/* Activity list */}
+      {/* Home page activity list bar */}
       <div className="w-[390px] flex flex-col items-start">
         {txLogs.length === 0 ? (
           <div></div>
@@ -61,44 +61,38 @@ const UserOpHistoryItem: React.FC<{
     const userOpHash = txLog.receipt.userOpHash
     return (
       <>
-        {/* Activity */}
+        {/* Transaction status is succeeded */}
         <a
           className="flex items-center"
           href={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}
           target="_blank">
-          {/* Frame 12 */}
           <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-            {/* Frame 9 txLog.status === TransactionStatus.Succeeded */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-              {/* 24-up right */}
+              {/* Status image */}
               <ArrowUpRight className="w-[16px] h-[16px] mr-[8px]" />
-              {/* Send */}
+              {/* Status */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 Send
               </div>
-              {/* 1.2 */}
+              {/* Balance */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 1.2
               </div>
-              {/* ETH */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 ETH
               </div>
             </div>
-            {/* to: */}
+            {/* To address */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#bbbbbb] whitespace-nowrap">
               to: 0x0000...00000
             </div>
           </div>
-          {/* Frame 16 */}
+          {/* Transaction time */}
           <div className="w-[81px] m-[14px_16px_14px_0px]">
-            {/* Frame 13 */}
             <div className="flex flex-col items-end">
-              {/* (Date) */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 {creationDate}
               </div>
-              {/* (Time) */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 {creationTime}
               </div>
@@ -113,44 +107,38 @@ const UserOpHistoryItem: React.FC<{
     const userOpHash = txLog.receipt.userOpHash
     return (
       <>
-        {/* Activity */}
+        {/* Transaction status is failed */}
         <a
           className="flex items-center"
           href={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}
           target="_blank">
-          {/* Frame 12 */}
           <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-            {/* Frame 9 txLog.status === TransactionStatus.Failed */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-              {/* 24-up right */}
+              {/* Status image */}
               <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
-              {/* Send */}
+              {/* Status */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 Failed
               </div>
-              {/* 1.2 */}
+              {/* Balance */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 1.2
               </div>
-              {/* ETH */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 ETH
               </div>
             </div>
-            {/* to: */}
+            {/* To address */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#bbbbbb] whitespace-nowrap">
               to: 0x0000...00000
             </div>
           </div>
-          {/* Frame 16 */}
+          {/* Transaction time */}
           <div className="w-[81px] m-[14px_16px_14px_0px]">
-            {/* Frame 13 */}
             <div className="flex flex-col items-end">
-              {/* (Date) */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 {creationDate}
               </div>
-              {/* (Time) */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 {creationTime}
               </div>
@@ -164,29 +152,24 @@ const UserOpHistoryItem: React.FC<{
   if (txLog.status === TransactionStatus.Rejected) {
     return (
       <>
-        {/* Activity */}
+        {/* Transaction status is rejected */}
         <div className="flex items-center">
-          {/* Frame 12 */}
           <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-            {/* Frame 9 */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-              {/* 24-up right */}
+              {/* Status image */}
               <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
-              {/* Send */}
+              {/* Status */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 {status}
               </div>
             </div>
           </div>
-          {/* Frame 16 */}
+          {/* Transaction time */}
           <div className="w-[81px] m-[14px_16px_14px_0px]">
-            {/* Frame 13 */}
             <div className="flex flex-col items-end">
-              {/* (Date) */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 {creationDate}
               </div>
-              {/* (Time) */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 {creationTime}
               </div>
@@ -200,41 +183,35 @@ const UserOpHistoryItem: React.FC<{
   if (txLog.status === TransactionStatus.Sent) {
     return (
       <>
-        {/* Activity */}
+        {/* Transaction status is sent */}
         <div className="flex items-center">
-          {/* Frame 12 */}
           <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-            {/* Frame 9 */}
             <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-              {/* 24-up right */}
+              {/* Status image */}
               <Clock className="w-[16px] h-[16px] mr-[8px]" />
-              {/* Send */}
+              {/* Status */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 {status}
               </div>
-              {/* 1.2 */}
+              {/* Balance */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
                 1.2
               </div>
-              {/* ETH */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 ETH
               </div>
             </div>
-            {/* to: */}
+            {/* To address */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#bbbbbb] whitespace-nowrap">
               to: 0x0000...00000
             </div>
           </div>
-          {/* Frame 16 */}
+          {/* Transaction time */}
           <div className="w-[81px] m-[14px_16px_14px_0px]">
-            {/* Frame 13 */}
             <div className="flex flex-col items-end">
-              {/* (Date) */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 {creationDate}
               </div>
-              {/* (Time) */}
               <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
                 {creationTime}
               </div>
@@ -245,44 +222,37 @@ const UserOpHistoryItem: React.FC<{
     )
   }
 
-  // Others' case
   return (
     <>
-      {/* Activity */}
+      {/* Others' transaction status case */}
       <div className="flex items-center">
-        {/* Frame 12 */}
         <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-          {/* Frame 9 */}
           <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-            {/* 24-up right */}
+            {/* Status image */}
             <CircleQuestion className="w-[16px] h-[16px] mr-[8px]" />
-            {/* Send */}
+            {/* Status */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
               {status}
             </div>
-            {/* 1.2 */}
+            {/* Balance */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
               1.2
             </div>
-            {/* ETH */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
               ETH
             </div>
           </div>
-          {/* to: */}
+          {/* To address */}
           <div className="font-[Inter] font-[400] text-[16px] text-[#bbbbbb] whitespace-nowrap">
             to: 0x0000...00000
           </div>
         </div>
-        {/* Frame 16 */}
+        {/* Transaction time */}
         <div className="w-[81px] m-[14px_16px_14px_0px]">
-          {/* Frame 13 */}
           <div className="flex flex-col items-end">
-            {/* (Date) */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
               {creationDate}
             </div>
-            {/* (Time) */}
             <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
               {creationTime}
             </div>

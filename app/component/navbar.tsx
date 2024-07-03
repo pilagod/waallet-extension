@@ -25,7 +25,7 @@ export function Navbar() {
   const shouldOnboard = useShouldOnboard()
   return (
     <>
-      {/* header */}
+      {/* Home page navbar */}
       <nav className="flex items-center m-[0px_16px_16px_16px]">
         <div>
           {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
@@ -46,13 +46,11 @@ function NetworkSelector() {
     setIsNetworkSelectorModalOpened(!isNetworkSelectorModalOpened)
   return (
     <>
-      {/* Network */}
+      {/* Home page network selector button */}
       <button
         className="p-[4px_0px_4px_0px] flex items-center rounded-full border-[1px] border-solid border-black"
         onClick={toggleNetworkSelectorModal}>
-        {/* Ethereum-eth-logo */}
         <Ethereum className="w-[24px] h-[24px] m-[12px_12px_12px_20px]" />
-        {/* 24-down 3 */}
         <ChevronDown className="w-[16px] h-[16px] m-[16px_20px_16px_0px]" />
       </button>
       {isNetworkSelectorModalOpened && (
@@ -136,17 +134,14 @@ function AccountSelector() {
     setIsAccountSelectorModalOpened(!isAccountSelectorModalOpened)
   return (
     <>
-      {/* account */}
+      {/* Home page account selector button */}
       <button
         className="flex items-center rounded-full border-[1px] border-solid border-black mr-[94px]"
         onClick={toggleAccountSelectorModal}>
-        {/* Frame 14 */}
         <div className="flex flex-col items-start m-[7px_12px_7px_20px]">
-          {/* (wallet name) */}
           <div className="font-[Inter] font-[400] text-[16px] text-[#000000] whitespace-nowrap">
             Jesse's wallet
           </div>
-          {/* (wallet address) */}
           <div className="font-[Inter] font-[400] text-[12px] text-[#989898]">
             {address.ellipsize(account.address)}
           </div>

@@ -1,6 +1,6 @@
 export enum Path {
   Index = "/",
-  Info = "/info",
+  Home = "/home",
   Send = "/send",
 
   WebAuthnAuthentication = "/webauthn/authentication",
