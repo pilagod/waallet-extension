@@ -6,6 +6,13 @@
   "engines": {
     "node": ">=18"
   },
+  "targets": {
+    "default": {
+      "engines": {
+        "browsers": "last 2 versions, not dead, > 0.2%"
+      }
+    }
+  },
   "scripts": {
     "dev": "plasmo dev --env .env.development",
     "build": "plasmo build",
