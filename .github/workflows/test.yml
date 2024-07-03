@@ -35,15 +35,11 @@ jobs:
 
       - name: Spin up testnet
         working-directory: "waallet-contract"
-        run: docker compose -f ./docker/testnet/docker-compose-node.yml up --build -d
-
-      - name: Wait for testnet initialized
-        run: sleep 10s
-        shell: bash
+        run: docker compose -p testnet -f ./docker/testnet/docker-compose-node.yml up --build -d
 
       - name: Set up testnet
         working-directory: "waallet-contract"
-        run: docker compose -f ./docker/testnet/docker-compose-node-setup.yml up --build
+        run: docker compose -p testnet-setup -f ./docker/testnet/docker-compose-node-setup.yml up --build
 
       - name: Run tests
         working-directory: "waallet-extension"
