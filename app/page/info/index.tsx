@@ -38,16 +38,12 @@ export function Home() {
         <AccountCreation />
       ) : (
         <>
-          {/* Account info - top */}
-          <div className="w-full p-[0px_16px_0px_16px] mb-[24px]">
-            <AccountInfo />
-          </div>
+          {/* Account info */}
+          <AccountInfo />
           {/* Divider */}
           <div className="w-full border-[0.5px] border-solid border-black" />
-          {/* Account info - bottom */}
-          <div className="w-full p-[0px_16px_24px_16px] mt-[24px]">
-            <AccountTokenAndActivity />
-          </div>
+          {/* Account navigation */}
+          <AccountNavigation />
         </>
       )}
     </>
@@ -86,7 +82,7 @@ export function AccountInfo() {
   const account = useAccount()
 
   return (
-    <>
+    <div className="w-full p-[0px_16px_0px_16px] mb-[24px]">
       {/* Home page blance status */}
       <div className="flex flex-col items-start m-[0px_16px_16px_16px]">
         {/* Home page Blance */}
@@ -118,11 +114,11 @@ export function AccountInfo() {
           </div>
         </button>
       </div>
-    </>
+    </div>
   )
 }
 
-export function AccountTokenAndActivity() {
+export function AccountNavigation() {
   const [infoNavigation, setInfoNavigation] = useState<InfoNavigation>(
     InfoNavigation.Token
   )
@@ -131,7 +127,7 @@ export function AccountTokenAndActivity() {
     setInfoNavigation(page)
   }
   return (
-    <>
+    <div className="w-full p-[0px_16px_24px_16px] mt-[24px]">
       {/* Home page token or activity bar and list */}
       <div>
         <nav className="flex items-start">
@@ -168,6 +164,6 @@ export function AccountTokenAndActivity() {
         {/* Home page activity list */}
         {infoNavigation === InfoNavigation.Activity && <Activity />}
       </div>
-    </>
+    </div>
   )
 }
