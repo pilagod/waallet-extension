@@ -37,19 +37,21 @@ export function Token() {
       {/* Home page token list */}
       <div className="w-full flex flex-col items-start">
         {/* Native token cell */}
-        <Link className="w-full flex items-center" href={Path.Send}>
+        <Link
+          className="w-full flex items-center p-[13.5px_0px_13.5px_0px]"
+          href={Path.Send}>
           {/* Native token image */}
-          <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
+          <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
           {/* Native token symbol */}
-          <div className="flex-grow font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
+          <div className="flex-grow leading-[24px] text-[20px] font-[Inter] font-[400] text-[#000000] text-left whitespace-nowrap">
             {`${getChainName(account.chainId)}ETH`}
           </div>
           {/* Native token balance */}
-          <div className="flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
-            <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
+          <div className="flex flex-col items-end">
+            <div className="mb-[4px] leading-[24.5px] text-[20px] font-[Inter] font-[600] text-[#000000]">
               {number.formatUnitsToFixed(account.balance, 18, 2)}
             </div>
-            <div className="font-[Inter] font-[400] text-[12px] text-[#000000]">
+            <div className="leading-[14.5px] text-[12px] font-[Inter] font-[400] text-[#000000]">
               $1.23
             </div>
           </div>
@@ -58,21 +60,21 @@ export function Token() {
         {tokens.map((token, index) => {
           return (
             <button
-              className="w-full flex item-center"
+              className="w-full flex item-center p-[13.5px_0px_13.5px_0px]"
               onClick={() => openTokenInfoModal(token.address)}
               key={index}>
               {/* Token image */}
-              <Ethereum className="w-[36px] h-[36px] m-[17px_12px_17px_16px]" />
+              <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
               {/* Token symbol */}
-              <div className="flex-grow font-[Inter] font-[400] text-[20px] text-[#000000] text-left whitespace-nowrap m-[23px_12px_23px_0px]">
+              <div className="flex-grow leading-[24px] text-[20px] font-[Inter] font-[400] text-[#000000] text-left whitespace-nowrap">
                 {token.symbol}
               </div>
               {/* Token balance */}
-              <div className="flex flex-col items-end m-[13.5px_16px_13.5px_0px]">
-                <div className="font-[Inter] font-[600] text-[20px] text-[#000000]">
+              <div className="flex flex-col items-end">
+                <div className="mb-[4px] leading-[24.5px] text-[20px] font-[Inter] font-[600] text-[#000000]">
                   {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
                 </div>
-                <div className="font-[Inter] font-[400] text-[12px] text-[#000000]">
+                <div className="leading-[14.5px] text-[12px] font-[Inter] font-[400] text-[#000000]">
                   $1000.00
                 </div>
               </div>
