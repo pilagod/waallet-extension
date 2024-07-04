@@ -86,7 +86,7 @@ export function AccountInfo() {
       {/* Home page blance status */}
       <div className="flex flex-col items-start m-[0px_16px_16px_16px]">
         {/* Home page Blance */}
-        <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mb-[8px]">
+        <div className="mb-[8px] leading-[19.36px] text-[16px] font-[Inter] font-[400] text-[#000000]">
           Balance
         </div>
         <div className="leading-[58.09px] text-[48px] font-[Inter] font-[400] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
@@ -96,20 +96,20 @@ export function AccountInfo() {
         )}`}</div>
       </div>
       {/* Home page action */}
-      <div className="flex justify-evenly mb-[24px]">
+      <div className="flex justify-between">
         {/* Home page send button */}
         <Link
-          className="w-[171px] flex items-center rounded-full border-[1px] border-solid border-black"
+          className="flex items-center p-[16px_49px_16px_49px] rounded-full border-[1px] border-solid border-black"
           href={Path.Send}>
-          <ArrowUp className="w-[24px] h-[24px] m-[16px_2.5px_16px_49px]" />
-          <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_49px_18.5px_0px]">
+          <ArrowUp className="w-[24px] h-[24px] mr-[10px]" />
+          <div className="leading-[19.36px] text-[16px] font-[Inter] font-[400] text-[#000000]">
             Send
           </div>
         </Link>
         {/* Home page receive button */}
-        <button className="w-[171px] flex items-center rounded-full border-[1px] border-solid border-black">
-          <ArrowDown className="w-[24px] h-[24px] m-[16px_2.5px_16px_38.5px]" />
-          <div className="font-[Inter] font-[400] text-[16px] text-[#000000] m-[18.5px_38.5px_18.5px_0px]">
+        <button className="flex items-center p-[16px_38.5px_16px_38.5px] rounded-full border-[1px] border-solid border-black">
+          <ArrowDown className="w-[24px] h-[24px] mr-[10px]" />
+          <div className="leading-[19.36px] text-[16px] font-[Inter] font-[400] text-[#000000]">
             Receive
           </div>
         </button>
