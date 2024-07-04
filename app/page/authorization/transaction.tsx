@@ -41,8 +41,37 @@ export function TransactionAuthorization() {
     navigate(Path.Index)
     return
   }
-  // TODO: Should switch active network for each transaction
-  return <TransactionConfirmation tx={pendingTxs[0]} />
+  const [tx] = pendingTxs
+  return (
+    <ProfileSwithcher accountId={tx.senderId} networkId={tx.networkId}>
+      <TransactionConfirmation tx={tx} />
+    </ProfileSwithcher>
+  )
+}
+
+function ProfileSwithcher(props: {
+  accountId: string
+  networkId: string
+  children: React.ReactNode
+}) {
+  const { accountId, networkId, children } = props
+
+  const { switchProfile } = useAction()
+
+  const [switchingProfile, setSwitchingProfile] = useState(false)
+
+  useEffect(() => {
+    setSwitchingProfile(true)
+    switchProfile({ accountId, networkId }).then(() => {
+      setSwitchingProfile(false)
+    })
+  }, [accountId, networkId])
+
+  if (switchingProfile) {
+    return
+  }
+
+  return children
 }
 
 function TransactionConfirmation(props: { tx: TransactionPending }) {
