@@ -111,7 +111,6 @@ function UserOperationConfirmation(props: {
 }) {
   const { tx, sender, network } = props
 
-  const [, navigate] = useHashLocation()
   const { provider } = useProviderContext()
 
   const paymentOptions: PaymentOption[] = [
@@ -172,6 +171,7 @@ function UserOperationConfirmation(props: {
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
       }
+      // TODO: Wrong nonce problem when confirming consecutive pending tx
       await markERC4337TransactionSent(tx.id, {
         entryPoint,
         userOp,
@@ -180,6 +180,7 @@ function UserOperationConfirmation(props: {
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)
+    } finally {
       setUserOpResolving(false)
     }
   }
@@ -191,9 +192,9 @@ function UserOperationConfirmation(props: {
         entryPoint: await sender.getEntryPoint(),
         userOp
       })
-      navigate(Path.Index)
     } catch (e) {
       console.error(e)
+    } finally {
       setUserOpResolving(false)
     }
   }
@@ -231,7 +232,7 @@ function UserOperationConfirmation(props: {
       setUserOp(userOp)
     }
     setupUserOp()
-  }, [])
+  }, [tx.id])
 
   useEffect(() => {
     async function estimateUserOp() {
@@ -265,7 +266,7 @@ function UserOperationConfirmation(props: {
   }, [JSON.stringify(userOp?.unwrap())])
 
   if (!userOp) {
-    return <></>
+    return
   }
 
   return (
