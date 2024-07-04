@@ -25,9 +25,18 @@ import { background } from "./middleware/background"
 
 const storageMessenger = new StorageMessenger()
 
+type Profile = {
+  accountId: string
+  networkId: string
+}
+
 // TODO: Split as slices
 interface Storage {
   state: State
+
+  /* Profile */
+
+  switchProfile: (profile: Profile) => Promise<void>
 
   /* Account */
 
@@ -85,6 +94,24 @@ export const useStorage = create<Storage>()(
   background(
     (set, get) => ({
       state: null,
+
+      /* Profile */
+
+      switchProfile: async (profile: Profile) => {
+        const { state } = get()
+        const networkId = state.networkActive
+        const accountId = state.network[networkId].accountActive
+        if (
+          accountId === profile.accountId &&
+          networkId === profile.networkId
+        ) {
+          return
+        }
+        await set(({ state }) => {
+          state.networkActive = profile.networkId
+          state.network[profile.networkId].accountActive = profile.accountId
+        })
+      },
 
       /* Account */
 
