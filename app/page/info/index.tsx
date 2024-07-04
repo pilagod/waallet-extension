@@ -83,12 +83,12 @@ export function AccountInfo() {
   return (
     <div className="w-full p-[0px_16px_0px_16px] mb-[24px]">
       {/* Home page blance status */}
-      <div className="flex flex-col items-start m-[0px_16px_16px_16px]">
+      <div className="flex flex-col items-start mb-[16px]">
         {/* Home page Blance */}
-        <div className="mb-[8px] leading-[19.36px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+        <div className="mb-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
           Balance
         </div>
-        <div className="leading-[58.09px] text-[48px] font-[Inter] font-[400] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
+        <div className="leading-[58px] text-[48px] font-[Inter] font-[400] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
           account.balance,
           18,
           2
