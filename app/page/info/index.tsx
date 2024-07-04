@@ -1,7 +1,6 @@
 import { useState } from "react"
 import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
-import Underline from "react:~assets/underline.svg"
 import { Link } from "wouter"
 
 import { Navbar } from "~app/component/navbar"
@@ -129,41 +128,39 @@ export function AccountNavigation() {
   return (
     <div className="w-full p-[0px_16px_24px_16px] mt-[24px]">
       {/* Home page token or activity bar and list */}
-      <div>
-        <nav className="flex items-start">
-          <div className="flex flex-col items-center m-[0px_24px_8px_16px]">
-            {/* Home page token bar */}
-            <button
-              className={`font-[Inter] font-[400] text-[16px] ${
-                infoNavigation !== InfoNavigation.Token && "text-[#bbbbbb]"
-              }`}
-              onClick={() => handleInfoNaviChange(InfoNavigation.Token)}>
-              {InfoNavigation.Token}
-            </button>
-            {infoNavigation === InfoNavigation.Token && (
-              <Underline className="w-[20px] h-[2px]" />
-            )}
-          </div>
+      <div className="flex items-start pb-[8px]">
+        <div className="flex flex-col items-center mr-[24px]">
+          {/* Home page token bar */}
+          <button
+            className={`mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] ${
+              infoNavigation !== InfoNavigation.Token && "text-[#bbbbbb]"
+            }`}
+            onClick={() => handleInfoNaviChange(InfoNavigation.Token)}>
+            {InfoNavigation.Token}
+          </button>
+          {infoNavigation === InfoNavigation.Token && (
+            <div className="p-[0px_10px_0px_10px] border-[1px] border-solid border-black" />
+          )}
+        </div>
 
-          {/* Home page activity bar */}
-          <div className="flex flex-col items-center m-[0px_16px_14px_0px]">
-            <button
-              className={`font-[Inter] font-[400] text-[16px] ${
-                infoNavigation !== InfoNavigation.Activity && "text-[#bbbbbb]"
-              }`}
-              onClick={() => handleInfoNaviChange(InfoNavigation.Activity)}>
-              {InfoNavigation.Activity}
-            </button>
-            {infoNavigation === InfoNavigation.Activity && (
-              <Underline className="w-[20px] h-[2px]" />
-            )}
-          </div>
-        </nav>
-        {/* Home page token list */}
-        {infoNavigation === InfoNavigation.Token && <Token />}
-        {/* Home page activity list */}
-        {infoNavigation === InfoNavigation.Activity && <Activity />}
+        {/* Home page activity bar */}
+        <div className="flex flex-col items-center">
+          <button
+            className={`mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] ${
+              infoNavigation !== InfoNavigation.Activity && "text-[#bbbbbb]"
+            }`}
+            onClick={() => handleInfoNaviChange(InfoNavigation.Activity)}>
+            {InfoNavigation.Activity}
+          </button>
+          {infoNavigation === InfoNavigation.Activity && (
+            <div className="p-[0px_10px_0px_10px] border-[1px] border-solid border-black" />
+          )}
+        </div>
       </div>
+      {/* Home page token list */}
+      {infoNavigation === InfoNavigation.Token && <Token />}
+      {/* Home page activity list */}
+      {infoNavigation === InfoNavigation.Activity && <Activity />}
     </div>
   )
 }
