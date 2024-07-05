@@ -59,16 +59,16 @@ function ProfileSwithcher(props: {
 
   const { switchProfile } = useAction()
 
-  const [switchingProfile, setSwitchingProfile] = useState(false)
+  const [profileSwitching, setProfileSwitching] = useState(false)
 
   useEffect(() => {
-    setSwitchingProfile(true)
+    setProfileSwitching(true)
     switchProfile({ accountId, networkId }).then(() => {
-      setSwitchingProfile(false)
+      setProfileSwitching(false)
     })
   }, [accountId, networkId])
 
-  if (switchingProfile) {
+  if (profileSwitching) {
     return
   }
 
