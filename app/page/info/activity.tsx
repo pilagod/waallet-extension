@@ -24,7 +24,7 @@ const TransactionHistory: React.FC<{
   return (
     <>
       {/* Home page activity list bar */}
-      <div className="w-[390px] flex flex-col items-start">
+      <div className="w-full flex flex-col items-start">
         {txLogs.length === 0 ? (
           <div></div>
         ) : (
@@ -60,205 +60,186 @@ const UserOpHistoryItem: React.FC<{
   if (txLog.status === TransactionStatus.Succeeded) {
     const userOpHash = txLog.receipt.userOpHash
     return (
-      <>
-        {/* Transaction status is succeeded */}
-        <a
-          className="flex items-center"
-          href={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}
-          target="_blank">
-          <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-            <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-              {/* Status image */}
-              <ArrowUpRight className="w-[16px] h-[16px] mr-[8px]" />
-              {/* Status */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
-                Send
-              </div>
-              {/* Balance */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
-                1.2
-              </div>
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                ETH
-              </div>
+      <a
+        className="w-full flex items-center p-[14px_0px_14px_0px]"
+        href={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}
+        target="_blank">
+        {/* Status and to address */}
+        <div className="flex-grow flex flex-col items-start">
+          {/* Status and token amount */}
+          <div className="flex items-center mb-[4px]">
+            <ArrowUpRight className="w-[16px] h-[16px] mr-[8px]" />
+            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              Send
             </div>
-            {/* To address */}
-            <div className="font-[Inter] font-[400] text-[16px] text-[#bbbbbb] whitespace-nowrap">
-              to: 0x0000...00000
+            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              1.2
+            </div>
+            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              ETH
             </div>
           </div>
-          {/* Transaction time */}
-          <div className="w-[81px] m-[14px_16px_14px_0px]">
-            <div className="flex flex-col items-end">
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                {creationDate}
-              </div>
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                {creationTime}
-              </div>
+          {/* To address */}
+          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#bbbbbb] whitespace-nowrap">
+            to: 0x0000...00000
+          </div>
+        </div>
+        {/* Transaction time */}
+        <div>
+          <div className="flex flex-col items-end">
+            <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              {creationDate}
+            </div>
+            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              {creationTime}
             </div>
           </div>
-        </a>
-      </>
+        </div>
+      </a>
     )
   }
 
   if (txLog.status === TransactionStatus.Failed) {
     const userOpHash = txLog.receipt.userOpHash
     return (
-      <>
-        {/* Transaction status is failed */}
-        <a
-          className="flex items-center"
-          href={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}
-          target="_blank">
-          <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-            <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-              {/* Status image */}
-              <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
-              {/* Status */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
-                Failed
-              </div>
-              {/* Balance */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
-                1.2
-              </div>
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                ETH
-              </div>
+      <a
+        className="w-full flex items-center p-[14px_0px_14px_0px]"
+        href={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}
+        target="_blank">
+        {/* Status and to address */}
+        <div className="flex-grow flex flex-col items-start">
+          {/* Status and token amount */}
+          <div className="flex items-center mb-[4px]">
+            <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
+            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              Failed
             </div>
-            {/* To address */}
-            <div className="font-[Inter] font-[400] text-[16px] text-[#bbbbbb] whitespace-nowrap">
-              to: 0x0000...00000
+            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              1.2
+            </div>
+            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              ETH
             </div>
           </div>
-          {/* Transaction time */}
-          <div className="w-[81px] m-[14px_16px_14px_0px]">
-            <div className="flex flex-col items-end">
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                {creationDate}
-              </div>
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                {creationTime}
-              </div>
+          {/* To address */}
+          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#bbbbbb] whitespace-nowrap">
+            to: 0x0000...00000
+          </div>
+        </div>
+        {/* Transaction time */}
+        <div>
+          <div className="flex flex-col items-end">
+            <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              {creationDate}
+            </div>
+            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              {creationTime}
             </div>
           </div>
-        </a>
-      </>
+        </div>
+      </a>
     )
   }
 
   if (txLog.status === TransactionStatus.Rejected) {
     return (
-      <>
-        {/* Transaction status is rejected */}
-        <div className="flex items-center">
-          <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-            <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-              {/* Status image */}
-              <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
-              {/* Status */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
-                {status}
-              </div>
-            </div>
-          </div>
-          {/* Transaction time */}
-          <div className="w-[81px] m-[14px_16px_14px_0px]">
-            <div className="flex flex-col items-end">
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                {creationDate}
-              </div>
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                {creationTime}
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  if (txLog.status === TransactionStatus.Sent) {
-    return (
-      <>
-        {/* Transaction status is sent */}
-        <div className="flex items-center">
-          <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-            <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-              {/* Status image */}
-              <Clock className="w-[16px] h-[16px] mr-[8px]" />
-              {/* Status */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
-                {status}
-              </div>
-              {/* Balance */}
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
-                1.2
-              </div>
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                ETH
-              </div>
-            </div>
-            {/* To address */}
-            <div className="font-[Inter] font-[400] text-[16px] text-[#bbbbbb] whitespace-nowrap">
-              to: 0x0000...00000
-            </div>
-          </div>
-          {/* Transaction time */}
-          <div className="w-[81px] m-[14px_16px_14px_0px]">
-            <div className="flex flex-col items-end">
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                {creationDate}
-              </div>
-              <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-                {creationTime}
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  return (
-    <>
-      {/* Others' transaction status case */}
-      <div className="flex items-center">
-        <div className="flex flex-col items-start m-[14px_141px_14px_16px]">
-          <div className="w-[132px] flex items-center m-[0px_4px_4px_0px]">
-            {/* Status image */}
-            <CircleQuestion className="w-[16px] h-[16px] mr-[8px]" />
-            {/* Status */}
-            <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
+      <div className="w-full flex items-center p-[14px_0px_14px_0px]">
+        <div className="flex-grow flex flex-col items-start">
+          {/* Status and image */}
+          <div className="flex items-center">
+            <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
+            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
               {status}
             </div>
-            {/* Balance */}
-            <div className="font-[Inter] font-[400] text-[16px] text-[#000000] mr-[8px]">
-              1.2
-            </div>
-            <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
-              ETH
-            </div>
-          </div>
-          {/* To address */}
-          <div className="font-[Inter] font-[400] text-[16px] text-[#bbbbbb] whitespace-nowrap">
-            to: 0x0000...00000
           </div>
         </div>
         {/* Transaction time */}
-        <div className="w-[81px] m-[14px_16px_14px_0px]">
+        <div>
           <div className="flex flex-col items-end">
-            <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
+            <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
               {creationDate}
             </div>
-            <div className="font-[Inter] font-[400] text-[16px] text-[#000000]">
+            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
               {creationTime}
             </div>
           </div>
         </div>
       </div>
-    </>
+    )
+  }
+
+  if (txLog.status === TransactionStatus.Sent) {
+    return (
+      <div className="w-full flex items-center p-[14px_0px_14px_0px]">
+        {/* Status and to address */}
+        <div className="flex-grow flex flex-col items-start">
+          {/* Status and token amount */}
+          <div className="flex items-center mb-[4px]">
+            <Clock className="w-[16px] h-[16px] mr-[8px]" />
+            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              {status}
+            </div>
+            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              1.2
+            </div>
+            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              ETH
+            </div>
+          </div>
+          {/* To address */}
+          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#bbbbbb] whitespace-nowrap">
+            to: 0x0000...00000
+          </div>
+        </div>
+        {/* Transaction time */}
+        <div>
+          <div className="flex flex-col items-end">
+            <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              {creationDate}
+            </div>
+            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+              {creationTime}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Others' case
+  return (
+    <div className="w-full flex items-center p-[14px_0px_14px_0px]">
+      {/* Status and to address */}
+      <div className="flex-grow flex flex-col items-start">
+        {/* Status and token amount */}
+        <div className="flex items-center mb-[4px]">
+          <CircleQuestion className="w-[16px] h-[16px] mr-[8px]" />
+          <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            {status}
+          </div>
+          <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            1.2
+          </div>
+          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            ETH
+          </div>
+        </div>
+        {/* To address */}
+        <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#bbbbbb] whitespace-nowrap">
+          to: 0x0000...00000
+        </div>
+      </div>
+      {/* Transaction time */}
+      <div>
+        <div className="flex flex-col items-end">
+          <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            {creationDate}
+          </div>
+          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            {creationTime}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
