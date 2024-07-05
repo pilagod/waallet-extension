@@ -108,6 +108,14 @@ export const useStorage = create<Storage>()(
         ) {
           return
         }
+        if (
+          state.network[profile.networkId].chainId !==
+          state.account[profile.accountId].chainId
+        ) {
+          throw new Error(
+            `Account ${profile.accountId} doesn't exist in network ${profile.networkId}`
+          )
+        }
         await set(({ state }) => {
           state.networkActive = profile.networkId
           state.network[profile.networkId].accountActive = profile.accountId
