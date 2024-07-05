@@ -42,6 +42,7 @@ export function TransactionAuthorization() {
     return
   }
   const [tx] = pendingTxs
+
   return (
     <ProfileSwithcher accountId={tx.senderId} networkId={tx.networkId}>
       <TransactionConfirmation tx={tx} />
@@ -219,6 +220,7 @@ function UserOperationConfirmation(props: {
 
   useEffect(() => {
     async function setupUserOp() {
+      setUserOp(null)
       const transactionType = getERC4337TransactionType(
         tx.networkId,
         await sender.getEntryPoint()
