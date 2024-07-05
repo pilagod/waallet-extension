@@ -265,7 +265,7 @@ function UserOperationConfirmation(props: {
                 id={id}
                 name={o.name}
                 checked={isSelected}
-                disabled={paymentCalculating || isSelected}
+                disabled={paymentCalculating || isSelected || userOpEstimating}
                 onChange={() => setPaymentOption(o)}
               />
               <label htmlFor={id}>{o.name}</label>
