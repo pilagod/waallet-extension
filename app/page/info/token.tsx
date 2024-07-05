@@ -60,7 +60,7 @@ export function Token() {
         {tokens.map((token, index) => {
           return (
             <button
-              className="w-full flex item-center p-[13.5px_0px_13.5px_0px]"
+              className="w-full flex items-center p-[13.5px_0px_13.5px_0px]"
               onClick={() => openTokenInfoModal(token.address)}
               key={index}>
               {/* Token image */}
