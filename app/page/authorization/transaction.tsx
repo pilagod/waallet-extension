@@ -8,7 +8,12 @@ import { Button } from "~app/component/button"
 import { Header } from "~app/component/header"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
-import { useAccount, useNetwork, usePendingTransactions } from "~app/storage"
+import {
+  useAccount,
+  useAction,
+  useNetwork,
+  usePendingTransactions
+} from "~app/storage"
 import type { Account } from "~packages/account"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
@@ -32,8 +37,38 @@ export function TransactionAuthorization() {
     navigate(Path.Index)
     return
   }
-  // TODO: Should switch active network for each transaction
-  return <TransactionConfirmation tx={pendingTxs[0]} />
+  const [tx] = pendingTxs
+
+  return (
+    <ProfileSwithcher accountId={tx.senderId} networkId={tx.networkId}>
+      <TransactionConfirmation tx={tx} />
+    </ProfileSwithcher>
+  )
+}
+
+function ProfileSwithcher(props: {
+  accountId: string
+  networkId: string
+  children: React.ReactNode
+}) {
+  const { accountId, networkId, children } = props
+
+  const { switchProfile } = useAction()
+
+  const [profileSwitching, setProfileSwitching] = useState(false)
+
+  useEffect(() => {
+    setProfileSwitching(true)
+    switchProfile({ accountId, networkId }).then(() => {
+      setProfileSwitching(false)
+    })
+  }, [accountId, networkId])
+
+  if (profileSwitching) {
+    return
+  }
+
+  return children
 }
 
 function TransactionConfirmation(props: { tx: TransactionPending }) {
@@ -71,6 +106,8 @@ function UserOperationConfirmation(props: {
   sender: Account
   network: Network
 }) {
+  const { tx, sender, network } = props
+
   const { provider } = useProviderContext()
 
   const paymentOptions: PaymentOption[] = [
@@ -105,7 +142,7 @@ function UserOperationConfirmation(props: {
   const { payment, paymentCalculating } = usePayment({ userOp, paymentOption })
 
   if (!userOp) {
-    return <></>
+    return
   }
   return (
     <>
@@ -173,7 +210,7 @@ function UserOperationConfirmation(props: {
                 id={id}
                 name={o.name}
                 checked={isSelected}
-                disabled={paymentCalculating || isSelected}
+                disabled={paymentCalculating || isSelected || userOpEstimating}
                 onChange={() => setPaymentOption(o)}
               />
               <label htmlFor={id}>{o.name}</label>

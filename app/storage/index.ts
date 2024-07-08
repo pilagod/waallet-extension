@@ -29,6 +29,13 @@ const storageMessenger = new StorageMessenger()
 interface Storage {
   state: State
 
+  /* Profile */
+
+  switchProfile: (profile: {
+    accountId: string
+    networkId: string
+  }) => Promise<void>
+
   /* Account */
 
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
@@ -85,6 +92,35 @@ export const useStorage = create<Storage>()(
   background(
     (set, get) => ({
       state: null,
+
+      /* Profile */
+
+      switchProfile: async (profile: {
+        accountId: string
+        networkId: string
+      }) => {
+        const { state } = get()
+        const networkId = state.networkActive
+        const accountId = state.network[networkId].accountActive
+        if (
+          accountId === profile.accountId &&
+          networkId === profile.networkId
+        ) {
+          return
+        }
+        if (
+          state.network[profile.networkId].chainId !==
+          state.account[profile.accountId].chainId
+        ) {
+          throw new Error(
+            `Account ${profile.accountId} doesn't exist in network ${profile.networkId}`
+          )
+        }
+        await set(({ state }) => {
+          state.networkActive = profile.networkId
+          state.network[profile.networkId].accountActive = profile.accountId
+        })
+      },
 
       /* Account */
 
