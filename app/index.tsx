@@ -50,11 +50,10 @@ function PageRouter() {
     window.scrollTo(0, 0)
   }, [location])
 
-  const pendingTxs = usePendingTransactions()
-  if (
-    pendingTxs.length > 0 &&
-    !location.startsWith(Path.TransactionAuthorization)
-  ) {
+  const hasPendingTx = useStorage(
+    useShallow(({ state }) => Object.keys(state.pendingTransaction).length > 0)
+  )
+  if (hasPendingTx && !location.startsWith(Path.TransactionAuthorization)) {
     navigate(Path.TransactionAuthorization)
     return
   }
