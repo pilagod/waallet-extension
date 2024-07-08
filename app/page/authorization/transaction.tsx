@@ -1,7 +1,11 @@
 import * as ethers from "ethers"
 import { useEffect, useState } from "react"
+import Gas from "react:~assets/gas"
+import Wallet from "react:~assets/wallet"
 import { useHashLocation } from "wouter/use-hash-location"
 
+import { Button } from "~app/component/button"
+import { Header } from "~app/component/header"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { useAccount, useNetwork, usePendingTransactions } from "~app/storage"
@@ -103,22 +107,61 @@ function UserOperationConfirmation(props: {
   if (!userOp) {
     return <></>
   }
-
   return (
-    <div>
-      <div>
-        <h1>Transaction Detail</h1>
-        <div>
-          {Object.entries(userOp.unwrap()).map(([key, value], i) => {
-            return (
-              <div key={i}>
-                {key}: {`${value}`}
-              </div>
-            )
-          })}
+    <>
+      <Header title={"Send"} href={Path.Index}>
+        <div className="text-[48px]">1.2 ETH</div>
+      </Header>
+      <section className="py-[16px] text-[16px]">
+        <h2 className="py-[12px]">From</h2>
+        <div className="flex gap-[12px] items-center">
+          <Wallet />
+          <div className="w-[322px] py-[9.5px]">
+            <h3>Jesse's wallet</h3>
+            <h4 className="text-[#989898] ">{userOp.sender}</h4>
+          </div>
         </div>
+        <h2 className="py-[12px]">To</h2>
+        <div className="flex gap-[12px] items-center">
+          <Wallet />
+          <div className="py-[16px] w-[322px]">
+            <h3>{props.tx.to}</h3>
+          </div>
+        </div>
+      </section>
+      <div className="relative w-full">
+        <hr className="divider" />
       </div>
-      <div>
+      <section className="py-[16px] text-[16px]">
+        <h2 className="py-[8px]">Est. gas fee</h2>
+        <div className="flex gap-[12px] py-[16px]">
+          <Gas />
+          <p>
+            {userOpEstimating || paymentCalculating
+              ? "Estimating..."
+              : `${ethers.formatEther(
+                  userOp ? userOp.calculateGasFee() : 0n
+                )} ${ETH.symbol}`}
+          </p>
+          <p>= ~$ ? USD</p>
+        </div>
+      </section>
+
+      <div className="py-[22.5px] flex justify-between gap-[16px] text-[18px] font-semibold">
+        <Button
+          disabled={userOpResolving}
+          onClick={rejectUserOperation}
+          buttonText="Cancel"
+          className="white-button"
+        />
+        <Button
+          disabled={paymentCalculating || userOpEstimating || userOpResolving}
+          onClick={sendUserOperation}
+          buttonText="Send"
+          className="black-button"
+        />
+      </div>
+      {/* <div>
         <h1>Paymaster Option</h1>
         {paymentOptions.map((o, i) => {
           const id = i.toString()
@@ -137,17 +180,26 @@ function UserOperationConfirmation(props: {
             </div>
           )
         })}
-      </div>
-      <div>
+      </div> */}
+
+      {/* <div>
+        <div>
+          <h2>From: {userOp.sender}</h2>
+          <h2>To: {props.tx.to}</h2>
+        </div>
+        <div>
+          {Object.entries(userOp.unwrap()).map(([key, value], i) => {
+            return (
+              <div key={i}>
+                {key}: {`${value}`}
+              </div>
+            )
+          })}
+        </div>
+      </div> */}
+
+      {/* <div>
         <h1>Transaction Cost</h1>
-        <p>
-          Estimated gas fee:{" "}
-          {userOpEstimating || paymentCalculating
-            ? "Estimating..."
-            : `${ethers.formatEther(userOp ? userOp.calculateGasFee() : 0n)} ${
-                ETH.symbol
-              }`}
-        </p>
         <p>
           Expected to pay:{" "}
           {userOpEstimating || paymentCalculating
@@ -157,17 +209,7 @@ function UserOperationConfirmation(props: {
                 payment.token.decimals
               )} ${payment.token.symbol}`}
         </p>
-      </div>
-      <div className="mt-1">
-        <button
-          disabled={paymentCalculating || userOpEstimating || userOpResolving}
-          onClick={sendUserOperation}>
-          Send
-        </button>
-        <button disabled={userOpResolving} onClick={rejectUserOperation}>
-          Reject
-        </button>
-      </div>
-    </div>
+      </div> */}
+    </>
   )
 }
