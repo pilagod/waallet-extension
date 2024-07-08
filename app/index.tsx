@@ -36,7 +36,7 @@ export function App() {
   }
   return (
     <ProviderContextProvider>
-      <div className="w-[480px] h-[600px] break-all">
+      <div className="w-[480px] h-[600px] break-all px-[16px] pt-[20px]">
         <PageRouter />
       </div>
     </ProviderContextProvider>
