@@ -1,7 +1,9 @@
-import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { formatEther } from "ethers"
 import { useEffect, useState } from "react"
+import ChevronDown from "react:~assets/chevronDown.svg"
+import Ethereum from "react:~assets/ethereum.svg"
 
 import { useProviderContext } from "~app/context/provider"
 import {
@@ -22,14 +24,17 @@ import type { Account, Network } from "~storage/local/state"
 export function Navbar() {
   const shouldOnboard = useShouldOnboard()
   return (
-    <nav className="w-full grid grid-cols-5 justify-items-center py-4">
-      <div className="col-span-1">
-        <NetworkSelector />
-      </div>
-      <div className="col-span-3">
-        {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
-      </div>
-    </nav>
+    <>
+      {/* Home page navbar */}
+      <nav className="flex items-center justify-between mb-[16px]">
+        <div>
+          {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
+        </div>
+        <div>
+          <NetworkSelector />
+        </div>
+      </nav>
+    </>
   )
 }
 
@@ -41,10 +46,14 @@ function NetworkSelector() {
     setIsNetworkSelectorModalOpened(!isNetworkSelectorModalOpened)
   return (
     <>
-      <div className="cursor-pointer" onClick={toggleNetworkSelectorModal}>
-        <span>{network.name}</span>
-        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-      </div>
+      {/* Home page network selector button */}
+      <button
+        className="p-[12px_20px_12px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
+        onClick={toggleNetworkSelectorModal}>
+        <Ethereum className="w-[24px] h-[24px] mr-[12px]" />
+        <ChevronDown className="w-[16px] h-[16px]" />
+      </button>
+      {/* Network selector modal */}
       {isNetworkSelectorModalOpened && (
         <NetworkSelectorModal onModalClosed={toggleNetworkSelectorModal} />
       )}
@@ -126,10 +135,21 @@ function AccountSelector() {
     setIsAccountSelectorModalOpened(!isAccountSelectorModalOpened)
   return (
     <>
-      <div className="cursor-pointer" onClick={toggleAccountSelectorModal}>
-        <span>{address.ellipsize(account.address)}</span>
-        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-      </div>
+      {/* Home page account selector button */}
+      <button
+        className="p-[7px_20px_7px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
+        onClick={toggleAccountSelectorModal}>
+        <div className="mr-[12px] flex flex-col items-start">
+          <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
+            Jesse's wallet
+          </div>
+          <div className="leading-[14.6px] text-[12px] text-[#989898]">
+            {address.ellipsize(account.address)}
+          </div>
+        </div>
+        <ChevronDown className="w-[16px] h-[16px]" />
+      </button>
+      {/* Account selector modal */}
       {isAccountSelectorModalOpened && (
         <AccountSelectorModal onModalClosed={toggleAccountSelectorModal} />
       )}

@@ -6,7 +6,7 @@ import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
 import { TransactionAuthorization } from "~app/page/authorization/transaction"
-import { Info } from "~app/page/info"
+import { Home } from "~app/page/home"
 import { Send } from "~app/page/send"
 import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
@@ -36,7 +36,8 @@ export function App() {
   }
   return (
     <ProviderContextProvider>
-      <div className="w-[480px] h-[600px] break-all">
+      {/* Waallet popup script page */}
+      <div className="w-[390px] h-[700px]">
         <PageRouter />
       </div>
     </ProviderContextProvider>
@@ -61,7 +62,7 @@ function PageRouter() {
   return (
     <Router hook={useHashLocation}>
       <Switch>
-        <Route path={Path.Info} component={Info} />
+        <Route path={Path.Home} component={Home} />
         <Route path={Path.Send} component={Send} />
 
         <Route
@@ -80,7 +81,7 @@ function PageRouter() {
         />
 
         <Route path="*">
-          <Redirect to={Path.Info} />
+          <Redirect to={Path.Home} />
         </Route>
       </Switch>
     </Router>
