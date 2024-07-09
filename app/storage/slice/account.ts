@@ -10,12 +10,12 @@ import type { BackgroundStateCreator } from "../middleware/background"
 import type { StateSlice } from "./state"
 
 export interface AccountSlice {
-  /* Account Management */
+  /* Account */
 
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
   switchAccount: (accountId: string) => Promise<void>
 
-  /* Token Management */
+  /* Token */
 
   updateBalance: (accountId: string, balance: BigNumberish) => Promise<void>
   importToken: (accountId: string, token: Token) => Promise<void>
@@ -34,7 +34,7 @@ export const createAccountSlice: BackgroundStateCreator<
   StateSlice,
   AccountSlice
 > = (set) => ({
-  /* Account Management */
+  /* Account */
 
   createAccount: async (account: PasskeyAccount, networkId: string) => {
     const id = uuidV4()
@@ -70,7 +70,7 @@ export const createAccountSlice: BackgroundStateCreator<
     })
   },
 
-  /* Token Management */
+  /* Token */
 
   updateBalance: async (accountId: string, balance: BigNumberish) => {
     await set(({ state }) => {
