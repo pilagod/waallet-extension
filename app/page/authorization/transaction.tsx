@@ -5,6 +5,7 @@ import Wallet from "react:~assets/wallet"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Button } from "~app/component/button"
+import { Divider } from "~app/component/divider"
 import { Header } from "~app/component/header"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
@@ -166,9 +167,7 @@ function UserOperationConfirmation(props: {
           </div>
         </div>
       </section>
-      <div className="relative w-full">
-        <hr className="divider" />
-      </div>
+      <Divider />
       <section className="py-[16px] text-[16px]">
         <h2 className="py-[8px]">Est. gas fee</h2>
         <div className="flex gap-[12px] py-[16px]">

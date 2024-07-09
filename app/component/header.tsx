@@ -3,6 +3,8 @@ import { Link } from "wouter"
 
 import { Path } from "~app/path"
 
+import { Divider } from "./divider"
+
 type HeaderProps = {
   title: string
   children?: React.ReactNode
@@ -18,9 +20,7 @@ export const Header = (props: HeaderProps) => {
 
       <h1 className="text-[24px]">{title}</h1>
       {children}
-      <div className="relative w-full">
-        <hr className="divider" />
-      </div>
+      <Divider />
     </div>
   )
 }
