@@ -290,14 +290,14 @@ function UserOperationConfirmation(props: {
           <Wallet />
           <div className="w-[322px] py-[9.5px]">
             <h3>Jesse's wallet</h3>
-            <h4 className="text-[#989898] ">{userOp.sender}</h4>
+            <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
           </div>
         </div>
         <h2 className="py-[12px]">To</h2>
         <div className="flex gap-[12px] items-center">
           <Wallet />
           <div className="py-[16px] w-[322px]">
-            <h3>{props.tx.to}</h3>
+            <h3 className="break-words">{props.tx.to}</h3>
           </div>
         </div>
       </section>
