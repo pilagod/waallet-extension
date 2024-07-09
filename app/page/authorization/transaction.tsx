@@ -41,8 +41,38 @@ export function TransactionAuthorization() {
     navigate(Path.Index)
     return
   }
-  // TODO: Should switch active network for each transaction
-  return <TransactionConfirmation tx={pendingTxs[0]} />
+  const [tx] = pendingTxs
+
+  return (
+    <ProfileSwithcher accountId={tx.senderId} networkId={tx.networkId}>
+      <TransactionConfirmation tx={tx} />
+    </ProfileSwithcher>
+  )
+}
+
+function ProfileSwithcher(props: {
+  accountId: string
+  networkId: string
+  children: React.ReactNode
+}) {
+  const { accountId, networkId, children } = props
+
+  const { switchProfile } = useAction()
+
+  const [profileSwitching, setProfileSwitching] = useState(false)
+
+  useEffect(() => {
+    setProfileSwitching(true)
+    switchProfile({ accountId, networkId }).then(() => {
+      setProfileSwitching(false)
+    })
+  }, [accountId, networkId])
+
+  if (profileSwitching) {
+    return
+  }
+
+  return children
 }
 
 function TransactionConfirmation(props: { tx: TransactionPending }) {
@@ -82,7 +112,6 @@ function UserOperationConfirmation(props: {
 }) {
   const { tx, sender, network } = props
 
-  const [, navigate] = useHashLocation()
   const { provider } = useProviderContext()
 
   const paymentOptions: PaymentOption[] = [
@@ -143,6 +172,7 @@ function UserOperationConfirmation(props: {
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
       }
+      // TODO: Wrong nonce problem when confirming consecutive pending tx
       await markERC4337TransactionSent(tx.id, {
         entryPoint,
         userOp,
@@ -151,6 +181,7 @@ function UserOperationConfirmation(props: {
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)
+    } finally {
       setUserOpResolving(false)
     }
   }
@@ -162,9 +193,9 @@ function UserOperationConfirmation(props: {
         entryPoint: await sender.getEntryPoint(),
         userOp
       })
-      navigate(Path.Index)
     } catch (e) {
       console.error(e)
+    } finally {
       setUserOpResolving(false)
     }
   }
@@ -189,6 +220,7 @@ function UserOperationConfirmation(props: {
 
   useEffect(() => {
     async function setupUserOp() {
+      setUserOp(null)
       const transactionType = getERC4337TransactionType(
         tx.networkId,
         await sender.getEntryPoint()
@@ -202,7 +234,7 @@ function UserOperationConfirmation(props: {
       setUserOp(userOp)
     }
     setupUserOp()
-  }, [])
+  }, [tx.id])
 
   useEffect(() => {
     async function estimateUserOp() {
@@ -236,7 +268,7 @@ function UserOperationConfirmation(props: {
   }, [JSON.stringify(userOp?.unwrap())])
 
   if (!userOp) {
-    return <></>
+    return
   }
 
   return (
@@ -265,7 +297,7 @@ function UserOperationConfirmation(props: {
                 id={id}
                 name={o.name}
                 checked={isSelected}
-                disabled={paymentCalculating || isSelected}
+                disabled={paymentCalculating || isSelected || userOpEstimating}
                 onChange={() => setPaymentOption(o)}
               />
               <label htmlFor={id}>{o.name}</label>
