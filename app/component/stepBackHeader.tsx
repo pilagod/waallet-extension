@@ -5,13 +5,13 @@ import { Path } from "~app/path"
 
 import { Divider } from "./divider"
 
-type HeaderProps = {
+type StepBackHeaderProps = {
   title: string
   children?: React.ReactNode
   href: Path
 }
 //
-export const StepBackHeader = (props: HeaderProps) => {
+export const StepBackHeader = (props: StepBackHeaderProps) => {
   const { title, children, href } = props
   return (
     <div className="flex flex-col gap-[16px]">
