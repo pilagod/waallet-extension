@@ -6,7 +6,7 @@ import { useHashLocation } from "wouter/use-hash-location"
 
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
-import { Header } from "~app/component/header"
+import { StepBackBar } from "~app/component/stepBackBar"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import {
@@ -25,6 +25,7 @@ import { type Network, type TransactionPending } from "~storage/local/state"
 
 import { usePayment } from "./usePayment"
 import { useUserOperation } from "./useUserOperation"
+import { StepBackBar } from "~app/component/stepBackBar"
 
 export type PaymentOption = {
   name: string
@@ -147,9 +148,9 @@ function UserOperationConfirmation(props: {
   }
   return (
     <>
-      <Header title={"Send"} href={Path.Index}>
+      <StepBackBar title={"Send"} href={Path.Index}>
         <div className="text-[48px]">1.2 ETH</div>
-      </Header>
+      </StepBackBar>
       <section className="py-[16px] text-[16px]">
         <h2 className="py-[12px]">From</h2>
         <div className="flex gap-[12px] items-center">
