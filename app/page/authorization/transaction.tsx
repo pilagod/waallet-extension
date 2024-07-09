@@ -326,7 +326,7 @@ function UserOperationConfirmation(props: {
         <Button
           disabled={paymentCalculating || userOpEstimating || userOpResolving}
           onClick={sendUserOperation}
-          text="Send"
+          text="Confirm"
           variant="black"
         />
       </div>
