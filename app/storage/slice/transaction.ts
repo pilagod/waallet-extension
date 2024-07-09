@@ -52,15 +52,17 @@ export const createTransactionSlice: BackgroundStateCreator<
   /* Profile */
 
   switchProfile: async (profile: { accountId: string; networkId: string }) => {
-    const { state } = get()
-    const networkId = state.networkActive
-    const accountId = state.network[networkId].accountActive
-    if (accountId === profile.accountId && networkId === profile.networkId) {
+    const {
+      state: { account, network, networkActive }
+    } = get()
+    if (
+      networkActive === profile.networkId &&
+      network[networkActive].accountActive === profile.accountId
+    ) {
       return
     }
     if (
-      state.network[profile.networkId].chainId !==
-      state.account[profile.accountId].chainId
+      network[profile.networkId].chainId !== account[profile.accountId].chainId
     ) {
       throw new Error(
         `Account ${profile.accountId} doesn't exist in network ${profile.networkId}`
