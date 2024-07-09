@@ -4,15 +4,6 @@ import { create } from "zustand"
 import { useShallow } from "zustand/react/shallow"
 
 import { StorageAction } from "~background/messages/storage"
-import { type UserOperation } from "~packages/bundler/userOperation"
-import address from "~packages/util/address"
-import {
-  TransactionStatus,
-  TransactionType,
-  type ERC4337TransactionRejected,
-  type ERC4337TransactionSent
-} from "~storage/local/state"
-import type { HexString } from "~typing"
 
 import { StorageMessenger } from "./messenger"
 import { background } from "./middleware/background"
@@ -20,35 +11,20 @@ import { createAccountSlice, type AccountSlice } from "./slice/account"
 import { createNetworkSlice, type NetworkSlice } from "./slice/network"
 import { createProfileSlice, type ProfileSlice } from "./slice/profile"
 import { createStateSlice, type StateSlice } from "./slice/state"
+import {
+  createTransactionSlice,
+  type TransactionSlice
+} from "./slice/transaction"
 
 const storageMessenger = new StorageMessenger()
 
 // TODO: Split as slices
-interface Storage extends StateSlice, AccountSlice, NetworkSlice, ProfileSlice {
-  /* Transaction - ERC4337*/
-
-  getERC4337TransactionType: (
-    networkId: string,
-    entryPoint: HexString
-  ) => TransactionType
-
-  markERC4337TransactionRejected(
-    txId: string,
-    data: {
-      entryPoint: HexString
-      userOp: UserOperation
-    }
-  ): Promise<void>
-
-  markERC4337TransactionSent(
-    txId: string,
-    data: {
-      entryPoint: HexString
-      userOp: UserOperation
-      userOpHash: HexString
-    }
-  ): Promise<void>
-}
+interface Storage
+  extends StateSlice,
+    AccountSlice,
+    NetworkSlice,
+    ProfileSlice,
+    TransactionSlice {}
 
 // @dev: This background middleware sends state first into background storage.
 // To apply new state, listen to background message in `sync` function and call `set` to update app state.
@@ -59,62 +35,7 @@ export const useStorage = create<Storage>()(
       ...createAccountSlice(set, get, ...others),
       ...createNetworkSlice(set, get, ...others),
       ...createProfileSlice(set, get, ...others),
-
-      /* Transaction */
-
-      getERC4337TransactionType(networkId: string, entryPoint: HexString) {
-        const network = get().state.network[networkId]
-        if (address.isEqual(entryPoint, network.entryPoint["v0.6"])) {
-          return TransactionType.ERC4337V0_6
-        }
-        return TransactionType.ERC4337V0_7
-      },
-
-      markERC4337TransactionRejected: async (txId, data) => {
-        await set(({ state, getERC4337TransactionType }) => {
-          const tx = state.pendingTransaction[txId]
-          const txRejected: ERC4337TransactionRejected = {
-            id: tx.id,
-            type: getERC4337TransactionType(tx.networkId, data.entryPoint),
-            status: TransactionStatus.Rejected,
-            senderId: tx.senderId,
-            networkId: tx.networkId,
-            createdAt: tx.createdAt,
-            detail: {
-              entryPoint: data.entryPoint,
-              data: data.userOp.unwrap() as any
-            }
-          }
-          state.account[txRejected.senderId].transactionLog[txRejected.id] =
-            txRejected
-          delete state.pendingTransaction[tx.id]
-        })
-      },
-
-      markERC4337TransactionSent: async (txId, data) => {
-        await set(({ state, getERC4337TransactionType }) => {
-          const tx = state.pendingTransaction[txId]
-          const txSent: ERC4337TransactionSent = {
-            id: tx.id,
-            type: getERC4337TransactionType(tx.networkId, data.entryPoint),
-            status: TransactionStatus.Sent,
-            senderId: tx.senderId,
-            networkId: tx.networkId,
-            createdAt: tx.createdAt,
-            detail: {
-              entryPoint: data.entryPoint,
-              data: data.userOp.unwrap() as any
-            },
-            receipt: {
-              userOpHash: data.userOpHash
-            }
-          }
-          state.account[txSent.senderId].transactionLog[txSent.id] = txSent
-          delete state.pendingTransaction[tx.id]
-        })
-      }
-
-      /* Token */
+      ...createTransactionSlice(set, get, ...others)
     }),
     {
       async set(patches: Patch[]) {
