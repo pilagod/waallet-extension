@@ -85,10 +85,10 @@ export function AccountInfo() {
       {/* Home page blance status */}
       <div className="flex flex-col items-start mb-[16px]">
         {/* Home page Blance */}
-        <div className="mb-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+        <div className="mb-[8px] leading-[19px] text-[16px] text-[#000000]">
           Balance
         </div>
-        <div className="leading-[58px] text-[48px] font-[Inter] font-[400] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
+        <div className="leading-[58px] text-[48px] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
           account.balance,
           18,
           2
@@ -101,14 +101,14 @@ export function AccountInfo() {
           className="flex items-center p-[16px_49px_16px_49px] rounded-full border-[1px] border-solid border-black"
           href={Path.Send}>
           <ArrowUp className="w-[24px] h-[24px] mr-[10px]" />
-          <div className="leading-[19.36px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+          <div className="leading-[19.36px] text-[16px] text-[#000000]">
             Send
           </div>
         </Link>
         {/* Home page receive button */}
         <button className="flex items-center p-[16px_38.5px_16px_38.5px] rounded-full border-[1px] border-solid border-black">
           <ArrowDown className="w-[24px] h-[24px] mr-[10px]" />
-          <div className="leading-[19.36px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+          <div className="leading-[19.36px] text-[16px] text-[#000000]">
             Receive
           </div>
         </button>
@@ -132,7 +132,7 @@ export function AccountNavigation() {
         <div className="flex flex-col items-center mr-[24px]">
           {/* Home page token bar */}
           <button
-            className={`mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] ${
+            className={`mb-[4px] leading-[19px] text-[16px] ${
               infoNavigation !== InfoNavigation.Token && "text-[#bbbbbb]"
             }`}
             onClick={() => handleInfoNaviChange(InfoNavigation.Token)}>
@@ -146,7 +146,7 @@ export function AccountNavigation() {
         {/* Home page activity bar */}
         <div className="flex flex-col items-center">
           <button
-            className={`mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] ${
+            className={`mb-[4px] leading-[19px] text-[16px] ${
               infoNavigation !== InfoNavigation.Activity && "text-[#bbbbbb]"
             }`}
             onClick={() => handleInfoNaviChange(InfoNavigation.Activity)}>

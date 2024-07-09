@@ -69,28 +69,26 @@ const UserOpHistoryItem: React.FC<{
           {/* Status and token amount */}
           <div className="flex items-center mb-[4px]">
             <ArrowUpRight className="w-[16px] h-[16px] mr-[8px]" />
-            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
               Send
             </div>
-            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
               1.2
             </div>
-            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
-              ETH
-            </div>
+            <div className="leading-[19px] text-[16px] text-[#000000]">ETH</div>
           </div>
           {/* To address */}
-          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#bbbbbb] whitespace-nowrap">
+          <div className="leading-[19px] text-[16px] text-[#bbbbbb] whitespace-nowrap">
             to: 0x0000...00000
           </div>
         </div>
         {/* Transaction time */}
         <div>
           <div className="flex flex-col items-end">
-            <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mb-[4px] leading-[19px] text-[16px] text-[#000000]">
               {creationDate}
             </div>
-            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="leading-[19px] text-[16px] text-[#000000]">
               {creationTime}
             </div>
           </div>
@@ -111,28 +109,26 @@ const UserOpHistoryItem: React.FC<{
           {/* Status and token amount */}
           <div className="flex items-center mb-[4px]">
             <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
-            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
               Failed
             </div>
-            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
               1.2
             </div>
-            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
-              ETH
-            </div>
+            <div className="leading-[19px] text-[16px] text-[#000000]">ETH</div>
           </div>
           {/* To address */}
-          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#bbbbbb] whitespace-nowrap">
+          <div className="leading-[19px] text-[16px] text-[#bbbbbb] whitespace-nowrap">
             to: 0x0000...00000
           </div>
         </div>
         {/* Transaction time */}
         <div>
           <div className="flex flex-col items-end">
-            <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mb-[4px] leading-[19px] text-[16px] text-[#000000]">
               {creationDate}
             </div>
-            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="leading-[19px] text-[16px] text-[#000000]">
               {creationTime}
             </div>
           </div>
@@ -148,7 +144,7 @@ const UserOpHistoryItem: React.FC<{
           {/* Status and image */}
           <div className="flex items-center">
             <OctagonXmark className="w-[16px] h-[16px] mr-[8px]" />
-            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
               {status}
             </div>
           </div>
@@ -156,10 +152,10 @@ const UserOpHistoryItem: React.FC<{
         {/* Transaction time */}
         <div>
           <div className="flex flex-col items-end">
-            <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mb-[4px] leading-[19px] text-[16px] text-[#000000]">
               {creationDate}
             </div>
-            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="leading-[19px] text-[16px] text-[#000000]">
               {creationTime}
             </div>
           </div>
@@ -176,28 +172,26 @@ const UserOpHistoryItem: React.FC<{
           {/* Status and token amount */}
           <div className="flex items-center mb-[4px]">
             <Clock className="w-[16px] h-[16px] mr-[8px]" />
-            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
               {status}
             </div>
-            <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
               1.2
             </div>
-            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
-              ETH
-            </div>
+            <div className="leading-[19px] text-[16px] text-[#000000]">ETH</div>
           </div>
           {/* To address */}
-          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#bbbbbb] whitespace-nowrap">
+          <div className="leading-[19px] text-[16px] text-[#bbbbbb] whitespace-nowrap">
             to: 0x0000...00000
           </div>
         </div>
         {/* Transaction time */}
         <div>
           <div className="flex flex-col items-end">
-            <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="mb-[4px] leading-[19px] text-[16px] text-[#000000]">
               {creationDate}
             </div>
-            <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+            <div className="leading-[19px] text-[16px] text-[#000000]">
               {creationTime}
             </div>
           </div>
@@ -214,28 +208,26 @@ const UserOpHistoryItem: React.FC<{
         {/* Status and token amount */}
         <div className="flex items-center mb-[4px]">
           <CircleQuestion className="w-[16px] h-[16px] mr-[8px]" />
-          <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
             {status}
           </div>
-          <div className="mr-[8px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
             1.2
           </div>
-          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
-            ETH
-          </div>
+          <div className="leading-[19px] text-[16px] text-[#000000]">ETH</div>
         </div>
         {/* To address */}
-        <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#bbbbbb] whitespace-nowrap">
+        <div className="leading-[19px] text-[16px] text-[#bbbbbb] whitespace-nowrap">
           to: 0x0000...00000
         </div>
       </div>
       {/* Transaction time */}
       <div>
         <div className="flex flex-col items-end">
-          <div className="mb-[4px] leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+          <div className="mb-[4px] leading-[19px] text-[16px] text-[#000000]">
             {creationDate}
           </div>
-          <div className="leading-[19px] text-[16px] font-[Inter] font-[400] text-[#000000]">
+          <div className="leading-[19px] text-[16px] text-[#000000]">
             {creationTime}
           </div>
         </div>

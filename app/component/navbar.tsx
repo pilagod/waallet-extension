@@ -140,10 +140,10 @@ function AccountSelector() {
         className="p-[7px_20px_7px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
         onClick={toggleAccountSelectorModal}>
         <div className="mr-[12px] flex flex-col items-start">
-          <div className="leading-[19.4px] text-[16px] font-[Inter] font-[400] text-[#000000] whitespace-nowrap">
+          <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
             Jesse's wallet
           </div>
-          <div className="leading-[14.6px] text-[12px] font-[Inter] font-[400] text-[#989898]">
+          <div className="leading-[14.6px] text-[12px] text-[#989898]">
             {address.ellipsize(account.address)}
           </div>
         </div>

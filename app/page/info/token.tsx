@@ -43,15 +43,15 @@ export function Token() {
           {/* Native token image */}
           <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
           {/* Native token symbol */}
-          <div className="flex-grow leading-[24px] text-[20px] font-[Inter] font-[400] text-[#000000] text-left whitespace-nowrap">
+          <div className="flex-grow leading-[24px] text-[20px] text-[#000000] text-left whitespace-nowrap">
             {`${getChainName(account.chainId)}ETH`}
           </div>
           {/* Native token balance */}
           <div className="flex flex-col items-end">
-            <div className="mb-[4px] leading-[24.5px] text-[20px] font-[Inter] font-[600] text-[#000000]">
+            <div className="mb-[4px] leading-[24.5px] text-[20px] font-[600] text-[#000000]">
               {number.formatUnitsToFixed(account.balance, 18, 2)}
             </div>
-            <div className="leading-[14.5px] text-[12px] font-[Inter] font-[400] text-[#000000]">
+            <div className="leading-[14.5px] text-[12px] text-[#000000]">
               $1.23
             </div>
           </div>
@@ -66,15 +66,15 @@ export function Token() {
               {/* Token image */}
               <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
               {/* Token symbol */}
-              <div className="flex-grow leading-[24px] text-[20px] font-[Inter] font-[400] text-[#000000] text-left whitespace-nowrap">
+              <div className="flex-grow leading-[24px] text-[20px] text-[#000000] text-left whitespace-nowrap">
                 {token.symbol}
               </div>
               {/* Token balance */}
               <div className="flex flex-col items-end">
-                <div className="mb-[4px] leading-[24.5px] text-[20px] font-[Inter] font-[600] text-[#000000]">
+                <div className="mb-[4px] leading-[24.5px] text-[20px] font-[600] text-[#000000]">
                   {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
                 </div>
-                <div className="leading-[14.5px] text-[12px] font-[Inter] font-[400] text-[#000000]">
+                <div className="leading-[14.5px] text-[12px] text-[#000000]">
                   $1000.00
                 </div>
               </div>
