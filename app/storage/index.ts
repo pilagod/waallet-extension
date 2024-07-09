@@ -15,27 +15,19 @@ import {
   TransactionType,
   type ERC4337TransactionRejected,
   type ERC4337TransactionSent,
-  type State,
   type Token
 } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 import { StorageMessenger } from "./messenger"
 import { background } from "./middleware/background"
+import { createProfileSlice, type ProfileSlice } from "./slice/profile"
+import { createStateSlice, type StateSlice } from "./slice/state"
 
 const storageMessenger = new StorageMessenger()
 
 // TODO: Split as slices
-interface Storage {
-  state: State
-
-  /* Profile */
-
-  switchProfile: (profile: {
-    accountId: string
-    networkId: string
-  }) => Promise<void>
-
+interface Storage extends StateSlice, ProfileSlice {
   /* Account */
 
   createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
@@ -90,37 +82,9 @@ interface Storage {
 // To apply new state, listen to background message in `sync` function and call `set` to update app state.
 export const useStorage = create<Storage>()(
   background(
-    (set, get) => ({
-      state: null,
-
-      /* Profile */
-
-      switchProfile: async (profile: {
-        accountId: string
-        networkId: string
-      }) => {
-        const { state } = get()
-        const networkId = state.networkActive
-        const accountId = state.network[networkId].accountActive
-        if (
-          accountId === profile.accountId &&
-          networkId === profile.networkId
-        ) {
-          return
-        }
-        if (
-          state.network[profile.networkId].chainId !==
-          state.account[profile.accountId].chainId
-        ) {
-          throw new Error(
-            `Account ${profile.accountId} doesn't exist in network ${profile.networkId}`
-          )
-        }
-        await set(({ state }) => {
-          state.networkActive = profile.networkId
-          state.network[profile.networkId].accountActive = profile.accountId
-        })
-      },
+    (set, get, ...others) => ({
+      ...createStateSlice(set, get, ...others),
+      ...createProfileSlice(set, get, ...others),
 
       /* Account */
 
