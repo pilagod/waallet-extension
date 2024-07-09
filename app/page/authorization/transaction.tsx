@@ -179,7 +179,6 @@ function UserOperationConfirmation(props: {
                   userOp ? userOp.calculateGasFee() : 0n
                 )} ${ETH.symbol}`}
           </p>
-          <p>= ~$ ? USD</p>
         </div>
       </section>
 
@@ -197,55 +196,6 @@ function UserOperationConfirmation(props: {
           className="black-button"
         />
       </div>
-      {/* <div>
-        <h1>Paymaster Option</h1>
-        {paymentOptions.map((o, i) => {
-          const id = i.toString()
-          const isSelected = o.name === paymentOption.name
-          return (
-            <div key={i}>
-              <input
-                type="checkbox"
-                id={id}
-                name={o.name}
-                checked={isSelected}
-                disabled={paymentCalculating || isSelected || userOpEstimating}
-                onChange={() => setPaymentOption(o)}
-              />
-              <label htmlFor={id}>{o.name}</label>
-            </div>
-          )
-        })}
-      </div> */}
-
-      {/* <div>
-        <div>
-          <h2>From: {userOp.sender}</h2>
-          <h2>To: {props.tx.to}</h2>
-        </div>
-        <div>
-          {Object.entries(userOp.unwrap()).map(([key, value], i) => {
-            return (
-              <div key={i}>
-                {key}: {`${value}`}
-              </div>
-            )
-          })}
-        </div>
-      </div> */}
-
-      {/* <div>
-        <h1>Transaction Cost</h1>
-        <p>
-          Expected to pay:{" "}
-          {userOpEstimating || paymentCalculating
-            ? "Calculating..."
-            : `${ethers.formatUnits(
-                payment.tokenFee,
-                payment.token.decimals
-              )} ${payment.token.symbol}`}
-        </p>
-      </div> */}
-    </>
+      </>
   )
 }
