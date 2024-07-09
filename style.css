@@ -15,11 +15,3 @@
     font-family: Inter, system-ui, sans-serif
   }
 }
-
-.black-button {
-  @apply bg-black text-white font-bold border border-solid border-black p-[16px] rounded-full w-full;
-}
-
-.white-button {
-  @apply bg-white text-black font-bold border border-solid border-black p-[16px] rounded-full w-full;
-}

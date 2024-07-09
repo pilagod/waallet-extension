@@ -25,7 +25,6 @@ import { type Network, type TransactionPending } from "~storage/local/state"
 
 import { usePayment } from "./usePayment"
 import { useUserOperation } from "./useUserOperation"
-import { StepBackBar } from "~app/component/stepBackBar"
 
 export type PaymentOption = {
   name: string
@@ -188,15 +187,15 @@ function UserOperationConfirmation(props: {
           disabled={userOpResolving}
           onClick={rejectUserOperation}
           buttonText="Cancel"
-          className="white-button"
+          variant="white"
         />
         <Button
           disabled={paymentCalculating || userOpEstimating || userOpResolving}
           onClick={sendUserOperation}
           buttonText="Send"
-          className="black-button"
+          variant="black"
         />
       </div>
-      </>
+    </>
   )
 }
