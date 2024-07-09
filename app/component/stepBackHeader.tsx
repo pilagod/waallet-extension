@@ -1,21 +1,17 @@
-import ArrowLeft from "react:~assets/arrowLeft.svg";
-import { Link } from "wouter";
+import ArrowLeft from "react:~assets/arrowLeft.svg"
+import { Link } from "wouter"
 
+import { Path } from "~app/path"
 
-
-import { Path } from "~app/path";
-
-
-
-import { Divider } from "./divider";
-
+import { Divider } from "./divider"
 
 type HeaderProps = {
   title: string
   children?: React.ReactNode
   href: Path
 }
-export const StepBackBar = (props: HeaderProps) => {
+//
+export const StepBackHeader = (props: HeaderProps) => {
   const { title, children, href } = props
   return (
     <div className="flex flex-col gap-[16px]">

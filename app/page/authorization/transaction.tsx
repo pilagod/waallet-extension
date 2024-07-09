@@ -7,7 +7,7 @@ import { useHashLocation } from "wouter/use-hash-location"
 
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
-import { StepBackBar } from "~app/component/stepBackBar"
+import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import {
@@ -278,9 +278,9 @@ function UserOperationConfirmation(props: {
   }
   return (
     <>
-      <StepBackBar title={"Send"} href={Path.Index}>
+      <StepBackHeader title={"Send"} href={Path.Index}>
         <div className="text-[48px]">1.2 ETH</div>
-      </StepBackBar>
+      </StepBackHeader>
       <section className="py-[16px] text-[16px]">
         <h2 className="py-[12px]">From</h2>
         <div className="flex gap-[12px] items-center">
