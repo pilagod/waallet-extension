@@ -3,9 +3,9 @@ import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
 
-import { Navbar } from "~app/component/navbar"
 import { useProviderContext } from "~app/context/provider"
 import { Activity } from "~app/page/info/activity"
+import { Navbar } from "~app/page/info/navbar"
 import { Token } from "~app/page/info/token"
 import { Path } from "~app/path"
 import {
