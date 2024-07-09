@@ -9,7 +9,6 @@ import { StorageMessenger } from "./messenger"
 import { background } from "./middleware/background"
 import { createAccountSlice, type AccountSlice } from "./slice/account"
 import { createNetworkSlice, type NetworkSlice } from "./slice/network"
-import { createProfileSlice, type ProfileSlice } from "./slice/profile"
 import { createStateSlice, type StateSlice } from "./slice/state"
 import {
   createTransactionSlice,
@@ -22,7 +21,6 @@ interface Storage
   extends StateSlice,
     AccountSlice,
     NetworkSlice,
-    ProfileSlice,
     TransactionSlice {}
 
 // @dev: This background middleware sends state first into background storage.
@@ -33,7 +31,6 @@ export const useStorage = create<Storage>()(
       ...createStateSlice(...actions),
       ...createAccountSlice(...actions),
       ...createNetworkSlice(...actions),
-      ...createProfileSlice(...actions),
       ...createTransactionSlice(...actions)
     }),
     {
