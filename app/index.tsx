@@ -6,7 +6,7 @@ import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
 import { TransactionAuthorization } from "~app/page/authorization/transaction"
-import { Home } from "~app/page/info"
+import { Home } from "~app/page/home"
 import { Send } from "~app/page/send"
 import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"

@@ -4,9 +4,9 @@ import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
-import { Activity } from "~app/page/info/activity"
-import { Navbar } from "~app/page/info/navbar"
-import { Token } from "~app/page/info/token"
+import { Activity } from "~app/page/home/activity"
+import { Navbar } from "~app/page/home/navbar"
+import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
 import {
   useAccount,
