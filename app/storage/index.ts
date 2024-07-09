@@ -18,7 +18,6 @@ import {
 
 const storageMessenger = new StorageMessenger()
 
-// TODO: Split as slices
 interface Storage
   extends StateSlice,
     AccountSlice,
@@ -30,12 +29,12 @@ interface Storage
 // To apply new state, listen to background message in `sync` function and call `set` to update app state.
 export const useStorage = create<Storage>()(
   background(
-    (set, get, ...others) => ({
-      ...createStateSlice(set, get, ...others),
-      ...createAccountSlice(set, get, ...others),
-      ...createNetworkSlice(set, get, ...others),
-      ...createProfileSlice(set, get, ...others),
-      ...createTransactionSlice(set, get, ...others)
+    (...actions) => ({
+      ...createStateSlice(...actions),
+      ...createAccountSlice(...actions),
+      ...createNetworkSlice(...actions),
+      ...createProfileSlice(...actions),
+      ...createTransactionSlice(...actions)
     }),
     {
       async set(patches: Patch[]) {
