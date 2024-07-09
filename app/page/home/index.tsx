@@ -3,6 +3,7 @@ import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
 
+import { Divider } from "~app/component/divider"
 import { useProviderContext } from "~app/context/provider"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
@@ -37,11 +38,8 @@ export function Home() {
         <AccountCreation />
       ) : (
         <>
-          {/* Account info */}
           <AccountInfo />
-          {/* Divider */}
-          <div className="w-full border-[0.5px] border-solid border-black" />
-          {/* Account navigation */}
+          <Divider />
           <AccountNavigation />
         </>
       )}
