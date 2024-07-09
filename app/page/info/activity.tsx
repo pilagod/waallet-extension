@@ -25,16 +25,11 @@ const TransactionHistory: React.FC<{
     <>
       {/* Home page activity list bar */}
       <div className="w-full flex flex-col items-start">
-        {txLogs.length === 0 ? (
-          <div></div>
-        ) : (
-          // TODO: Render based on transaction log type
-          txLogs.map((txLog, i) => {
-            return (
-              <UserOpHistoryItem key={i} txLog={txLog} chainName={chainName} />
-            )
-          })
-        )}
+        {txLogs.map((txLog, i) => {
+          return (
+            <UserOpHistoryItem key={i} txLog={txLog} chainName={chainName} />
+          )
+        })}
       </div>
     </>
   )
