@@ -10,7 +10,6 @@ type StepBackHeaderProps = {
   children?: React.ReactNode
   href: Path
 }
-//
 export const StepBackHeader = (props: StepBackHeaderProps) => {
   const { title, children, href } = props
   return (
