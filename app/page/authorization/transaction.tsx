@@ -26,6 +26,7 @@ import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import { ETH } from "~packages/token"
+import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import { AccountStorageManager } from "~storage/local/manager"
 import {
@@ -279,7 +280,9 @@ function UserOperationConfirmation(props: {
   return (
     <>
       <StepBackHeader title={"Send"} href={Path.Index}>
-        <div className="text-[48px]">{tx.value} ETH</div>
+        <div className="text-[48px]">
+          {number.formatUnitsToFixed(tx.value, 18, 4)} ETH
+        </div>{" "}
       </StepBackHeader>
       <section className="py-[16px] text-[16px]">
         <h2 className="py-[12px]">From</h2>
