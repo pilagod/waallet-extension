@@ -30,10 +30,7 @@ export function Home() {
   const shouldOnboard = useShouldOnboard()
   return (
     <>
-      {/* Home page */}
-      <div className="w-full p-[24px_16px_0px_16px]">
-        <Navbar />
-      </div>
+      <Navbar />
       {shouldOnboard ? (
         <AccountCreation />
       ) : (
@@ -79,7 +76,7 @@ export function AccountInfo() {
   const account = useAccount()
 
   return (
-    <div className="w-full p-[0px_16px_0px_16px] mb-[24px]">
+    <div className="w-full pb-[24px]">
       {/* Home page blance status */}
       <div className="flex flex-col items-start mb-[16px]">
         {/* Home page Blance */}
@@ -124,7 +121,7 @@ export function AccountNavigation() {
     setInfoNavigation(page)
   }
   return (
-    <div className="w-full p-[0px_16px_24px_16px] mt-[24px]">
+    <div className="w-full pt-[24px]">
       {/* Home page token or activity bar and list */}
       <div className="flex items-start pb-[8px]">
         <div className="flex flex-col items-center mr-[24px]">
