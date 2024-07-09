@@ -317,13 +317,13 @@ function UserOperationConfirmation(props: {
         <Button
           disabled={userOpResolving}
           onClick={rejectUserOperation}
-          buttonText="Cancel"
+          text="Cancel"
           variant="white"
         />
         <Button
           disabled={paymentCalculating || userOpEstimating || userOpResolving}
           onClick={sendUserOperation}
-          buttonText="Send"
+          text="Send"
           variant="black"
         />
       </div>
