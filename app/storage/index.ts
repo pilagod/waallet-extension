@@ -17,17 +17,14 @@ import type { HexString } from "~typing"
 import { StorageMessenger } from "./messenger"
 import { background } from "./middleware/background"
 import { createAccountSlice, type AccountSlice } from "./slice/account"
+import { createNetworkSlice, type NetworkSlice } from "./slice/network"
 import { createProfileSlice, type ProfileSlice } from "./slice/profile"
 import { createStateSlice, type StateSlice } from "./slice/state"
 
 const storageMessenger = new StorageMessenger()
 
 // TODO: Split as slices
-interface Storage extends StateSlice, AccountSlice, ProfileSlice {
-  /* Network */
-
-  switchNetwork: (networkId: string) => Promise<void>
-
+interface Storage extends StateSlice, AccountSlice, NetworkSlice, ProfileSlice {
   /* Transaction - ERC4337*/
 
   getERC4337TransactionType: (
@@ -60,18 +57,8 @@ export const useStorage = create<Storage>()(
     (set, get, ...others) => ({
       ...createStateSlice(set, get, ...others),
       ...createAccountSlice(set, get, ...others),
+      ...createNetworkSlice(set, get, ...others),
       ...createProfileSlice(set, get, ...others),
-
-      /* Network */
-
-      switchNetwork: async (networkId: string) => {
-        await set(({ state }) => {
-          if (!state.network[networkId]) {
-            throw new Error(`Unknown network: ${networkId}`)
-          }
-          state.networkActive = networkId
-        })
-      },
 
       /* Transaction */
 
