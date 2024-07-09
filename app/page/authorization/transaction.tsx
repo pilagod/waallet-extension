@@ -279,7 +279,7 @@ function UserOperationConfirmation(props: {
   return (
     <>
       <StepBackHeader title={"Send"} href={Path.Index}>
-        <div className="text-[48px]">1.2 ETH</div>
+        <div className="text-[48px]">{tx.value} ETH</div>
       </StepBackHeader>
       <section className="py-[16px] text-[16px]">
         <h2 className="py-[12px]">From</h2>
