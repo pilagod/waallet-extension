@@ -4,14 +4,15 @@
 
 @layer base {
   @font-face {
-    font-family: 'Inter';
+    font-family: "Inter";
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url(/assets/font/Inter.ttf) format('truetype');
+    src: url(/assets/font/Inter.ttf) format("truetype");
   }
 
   body {
-    font-family: Inter, system-ui, sans-serif
+    font-family: Inter, system-ui, sans-serif;
+    line-height: 1.21;
   }
 }

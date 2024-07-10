@@ -1,8 +1,13 @@
 import * as ethers from "ethers"
 import { useEffect, useState } from "react"
+import Gas from "react:~assets/gas"
+import Wallet from "react:~assets/wallet"
 import { useClsState } from "use-cls-state"
 import { useHashLocation } from "wouter/use-hash-location"
 
+import { Button } from "~app/component/button"
+import { Divider } from "~app/component/divider"
+import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import {
@@ -21,6 +26,7 @@ import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import { ETH } from "~packages/token"
+import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import { AccountStorageManager } from "~storage/local/manager"
 import {
@@ -29,7 +35,7 @@ import {
   type TransactionPending
 } from "~storage/local/state"
 
-type PaymentOption = {
+export type PaymentOption = {
   name: string
   paymaster: Paymaster
 }
@@ -131,6 +137,7 @@ function UserOperationConfirmation(props: {
       })
     }
   ]
+
   const {
     getERC4337TransactionType,
     markERC4337TransactionSent,
@@ -270,71 +277,59 @@ function UserOperationConfirmation(props: {
   if (!userOp) {
     return
   }
-
   return (
-    <div>
-      <div>
-        <h1>Transaction Detail</h1>
-        <div>
-          {Object.entries(userOp.unwrap()).map(([key, value], i) => {
-            return (
-              <div key={i}>
-                {key}: {`${value}`}
-              </div>
-            )
-          })}
+    <>
+      <StepBackHeader title={"Send"} href={Path.Index}>
+        <div className="text-[48px]">
+          {number.formatUnitsToFixed(tx.value, 18, 4)} ETH
+        </div>{" "}
+      </StepBackHeader>
+      <section className="py-[16px] text-[16px]">
+        <h2 className="py-[12px]">From</h2>
+        <div className="flex gap-[12px] items-center">
+          <Wallet />
+          <div className="w-[322px] py-[9.5px]">
+            <h3>Jesse's wallet</h3>
+            <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
+          </div>
         </div>
-      </div>
-      <div>
-        <h1>Paymaster Option</h1>
-        {paymentOptions.map((o, i) => {
-          const id = i.toString()
-          const isSelected = o.name === paymentOption.name
-          return (
-            <div key={i}>
-              <input
-                type="checkbox"
-                id={id}
-                name={o.name}
-                checked={isSelected}
-                disabled={paymentCalculating || isSelected || userOpEstimating}
-                onChange={() => setPaymentOption(o)}
-              />
-              <label htmlFor={id}>{o.name}</label>
-            </div>
-          )
-        })}
-      </div>
-      <div>
-        <h1>Transaction Cost</h1>
-        <p>
-          Estimated gas fee:{" "}
-          {userOpEstimating || paymentCalculating
-            ? "Estimating..."
-            : `${ethers.formatEther(userOp ? userOp.calculateGasFee() : 0n)} ${
-                ETH.symbol
-              }`}
-        </p>
-        <p>
-          Expected to pay:{" "}
-          {userOpEstimating || paymentCalculating
-            ? "Calculating..."
-            : `${ethers.formatUnits(
-                payment.tokenFee,
-                payment.token.decimals
-              )} ${payment.token.symbol}`}
-        </p>
-      </div>
-      <div className="mt-1">
-        <button
+        <h2 className="py-[12px]">To</h2>
+        <div className="flex gap-[12px] items-center">
+          <Wallet />
+          <div className="py-[16px] w-[322px]">
+            <h3 className="break-words">{props.tx.to}</h3>
+          </div>
+        </div>
+      </section>
+      <Divider />
+      <section className="py-[16px] text-[16px]">
+        <h2 className="py-[8px]">Est. gas fee</h2>
+        <div className="flex gap-[12px] py-[16px]">
+          <Gas />
+          <p>
+            {userOpEstimating || paymentCalculating
+              ? "Estimating..."
+              : `${ethers.formatEther(
+                  userOp ? userOp.calculateGasFee() : 0n
+                )} ${ETH.symbol}`}
+          </p>
+        </div>
+      </section>
+
+      <div className="py-[22.5px] flex justify-between gap-[16px] text-[18px] font-semibold">
+        <Button
+          disabled={userOpResolving}
+          onClick={rejectUserOperation}
+          text="Cancel"
+          variant="white"
+        />
+        <Button
           disabled={paymentCalculating || userOpEstimating || userOpResolving}
-          onClick={sendUserOperation}>
-          Send
-        </button>
-        <button disabled={userOpResolving} onClick={rejectUserOperation}>
-          Reject
-        </button>
+          onClick={sendUserOperation}
+          text="Confirm"
+          variant="black"
+        />
       </div>
-    </div>
+    </>
   )
 }

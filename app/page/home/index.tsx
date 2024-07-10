@@ -3,6 +3,7 @@ import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
 
+import { Divider } from "~app/component/divider"
 import { useProviderContext } from "~app/context/provider"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
@@ -29,19 +30,13 @@ export function Home() {
   const shouldOnboard = useShouldOnboard()
   return (
     <>
-      {/* Home page */}
-      <div className="w-full p-[24px_16px_0px_16px]">
-        <Navbar />
-      </div>
+      <Navbar />
       {shouldOnboard ? (
         <AccountCreation />
       ) : (
         <>
-          {/* Account info */}
           <AccountInfo />
-          {/* Divider */}
-          <div className="w-full border-[0.5px] border-solid border-black" />
-          {/* Account navigation */}
+          <Divider />
           <AccountNavigation />
         </>
       )}
@@ -81,7 +76,7 @@ export function AccountInfo() {
   const account = useAccount()
 
   return (
-    <div className="w-full p-[0px_16px_0px_16px] mb-[24px]">
+    <div className="w-full pb-[24px]">
       {/* Home page blance status */}
       <div className="flex flex-col items-start mb-[16px]">
         {/* Home page Blance */}
@@ -126,7 +121,7 @@ export function AccountNavigation() {
     setInfoNavigation(page)
   }
   return (
-    <div className="w-full p-[0px_16px_24px_16px] mt-[24px]">
+    <div className="w-full pt-[24px]">
       {/* Home page token or activity bar and list */}
       <div className="flex items-start pb-[8px]">
         <div className="flex flex-col items-center mr-[24px]">

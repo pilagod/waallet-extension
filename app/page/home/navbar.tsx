@@ -26,7 +26,7 @@ export function Navbar() {
   return (
     <>
       {/* Home page navbar */}
-      <nav className="flex items-center justify-between mb-[16px]">
+      <nav className="flex items-center justify-between mb-[16px] mt-[4px]">
         <div>
           {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
         </div>

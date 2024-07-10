@@ -37,7 +37,7 @@ export function App() {
   return (
     <ProviderContextProvider>
       {/* Waallet popup script page */}
-      <div className="w-[390px] h-[700px]">
+      <div className="w-[390px] h-[700px] px-[16px] pt-[20px]">
         <PageRouter />
       </div>
     </ProviderContextProvider>
