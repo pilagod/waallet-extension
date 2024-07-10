@@ -1,5 +1,4 @@
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser"
-import { AbiCoder } from "ethers"
 import browser from "webextension-polyfill"
 
 import type {
@@ -10,6 +9,7 @@ import { Bytes } from "~packages/primitive"
 import { format } from "~packages/util/json"
 import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
 import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
+import type { WebAuthnAuthentication } from "~packages/webAuthn/typing"
 import type { B64UrlString, BytesLike } from "~typing"
 
 export class PasskeyOwnerWebAuthn implements PasskeyOwner {
@@ -36,7 +36,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
     metadata?: {
       sender?: browser.Runtime.MessageSender
     }
-  ): Promise<string> {
+  ): Promise<WebAuthnAuthentication> {
     const challengeB64Url = Bytes.wrap(challenge).eip191().unwrap("base64url")
     const webAuthnAuthentication = await (this.isWebAuthnAvailable()
       ? this.authenticateInPlace(challengeB64Url)
@@ -46,29 +46,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
         webAuthnAuthentication
       )}`
     )
-    const signature = AbiCoder.defaultAbiCoder().encode(
-      [
-        "bool",
-        "bytes",
-        "bool",
-        "string",
-        "uint256",
-        "uint256",
-        "uint256",
-        "uint256"
-      ],
-      [
-        false,
-        Bytes.wrap(webAuthnAuthentication.authenticatorData),
-        true,
-        webAuthnAuthentication.clientDataJson,
-        23,
-        1,
-        BigInt(webAuthnAuthentication.signature.r),
-        BigInt(webAuthnAuthentication.signature.s)
-      ]
-    )
-    return signature
+    return webAuthnAuthentication
   }
 
   private isWebAuthnAvailable(): boolean {

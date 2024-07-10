@@ -3,6 +3,7 @@ import * as ethers from "ethers"
 import { AccountType } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import type { ContractRunner } from "~packages/node"
+import { Bytes } from "~packages/primitive/bytes"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
@@ -100,7 +101,36 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   }
 
   public async sign(message: BytesLike, metadata?: any) {
-    return this.owner.sign(message, metadata)
+    const {
+      authenticatorData,
+      clientDataJson,
+      signature: { r, s }
+    } = await this.owner.sign(message, metadata)
+
+    const signature = ethers.AbiCoder.defaultAbiCoder().encode(
+      [
+        "bool",
+        "bytes",
+        "bool",
+        "string",
+        "uint256",
+        "uint256",
+        "uint256",
+        "uint256"
+      ],
+      [
+        false,
+        Bytes.wrap(authenticatorData),
+        true,
+        clientDataJson,
+        23, // clientDataJsonChallengeIndex
+        1, // clientDataJsonTypeIndex
+        r,
+        s
+      ]
+    )
+
+    return signature
   }
 
   protected async getCallData(call: Call): Promise<HexString> {
