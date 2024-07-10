@@ -4,11 +4,11 @@ import { listen } from "@plasmohq/messaging/message"
 
 import { format } from "~packages/util/json"
 import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
-import { ContentMethod } from "~packages/webAuthn/content/method"
 import {
   contentCreateWebAuthn,
   contentRequestWebAuthn
-} from "~packages/webAuthn/content/webAuthn"
+} from "~packages/webAuthn/content"
+import { ContentMethod } from "~packages/webAuthn/content/method"
 import type { B64UrlString } from "~typing"
 
 export const config: PlasmoCSConfig = {

@@ -12,7 +12,7 @@ import {
   requestWebAuthn,
   type WebAuthnAuthentication
 } from "~packages/webAuthn"
-import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
+import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background"
 import type { B64UrlString, BytesLike } from "~typing"
 
 export class PasskeyOwnerWebAuthn implements PasskeyOwner {
