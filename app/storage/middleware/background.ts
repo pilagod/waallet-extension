@@ -92,4 +92,10 @@ const backgroundImpl: BackgrounImpl = (initializer, storage) => {
   }
 }
 
+export type BackgroundStateCreator<T, U = T> = StateCreator<
+  T,
+  [["background", never]],
+  [],
+  U
+>
 export const background = backgroundImpl as unknown as Background
