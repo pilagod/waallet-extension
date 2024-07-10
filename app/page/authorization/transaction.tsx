@@ -137,6 +137,8 @@ function UserOperationConfirmation(props: {
       })
     }
   ]
+  // TODO: Select paymaster
+  const paymentOption = paymentOptions[0]
 
   const {
     getERC4337TransactionType,
@@ -146,9 +148,6 @@ function UserOperationConfirmation(props: {
 
   /* Payment */
 
-  const [paymentOption, setPaymentOption] = useState<PaymentOption>(
-    paymentOptions[0]
-  )
   const [payment, setPayment] = useState({
     token: ETH,
     tokenFee: 0n
@@ -254,7 +253,7 @@ function UserOperationConfirmation(props: {
       return
     }
     estimateUserOp()
-  }, [paymentOption])
+  }, [])
 
   useEffect(() => {
     async function calculatePayment() {
