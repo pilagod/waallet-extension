@@ -1,4 +1,4 @@
-import type { WebAuthnAuthentication } from "~packages/webAuthn/typing"
+import type { WebAuthnAuthentication } from "~packages/webAuthn"
 import type { B64UrlString, BytesLike, Nullable } from "~typing"
 
 export type PasskeyPublicKey = {

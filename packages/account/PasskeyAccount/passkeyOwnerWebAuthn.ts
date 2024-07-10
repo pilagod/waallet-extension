@@ -7,9 +7,12 @@ import type {
 } from "~packages/account/PasskeyAccount/passkeyOwner"
 import { Bytes } from "~packages/primitive"
 import { format } from "~packages/util/json"
-import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
+import {
+  createWebAuthn,
+  requestWebAuthn,
+  type WebAuthnAuthentication
+} from "~packages/webAuthn"
 import { requestWebAuthn as requestWebAuthnInBackground } from "~packages/webAuthn/background/webAuthn"
-import type { WebAuthnAuthentication } from "~packages/webAuthn/typing"
 import type { B64UrlString, BytesLike } from "~typing"
 
 export class PasskeyOwnerWebAuthn implements PasskeyOwner {

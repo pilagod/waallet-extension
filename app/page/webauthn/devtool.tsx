@@ -5,19 +5,20 @@ import { sendToContentScript } from "@plasmohq/messaging"
 
 import { format } from "~packages/util/json"
 import { objectFromUrlParams } from "~packages/util/url"
-import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
+import {
+  createWebAuthn,
+  requestWebAuthn,
+  type WebAuthnAuthentication,
+  type WebAuthnCreation,
+  type WebAuthnError,
+  type WebAuthnRegistration,
+  type WebAuthnRequest
+} from "~packages/webAuthn"
 import {
   ContentMethod,
   type ContentRequestArguments
 } from "~packages/webAuthn/content/method"
 import { PortName } from "~packages/webAuthn/tabs/port"
-import type {
-  WebAuthnAuthentication,
-  WebAuthnCreation,
-  WebAuthnError,
-  WebAuthnRegistration,
-  WebAuthnRequest
-} from "~packages/webAuthn/typing"
 
 export function WebAuthnDevtool() {
   const [webAuthnCreation, setWebAuthnCreation] = useState<WebAuthnCreation>()

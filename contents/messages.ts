@@ -3,15 +3,12 @@ import type { PlasmoCSConfig } from "plasmo"
 import { listen } from "@plasmohq/messaging/message"
 
 import { format } from "~packages/util/json"
+import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
 import { ContentMethod } from "~packages/webAuthn/content/method"
 import {
   contentCreateWebAuthn,
   contentRequestWebAuthn
 } from "~packages/webAuthn/content/webAuthn"
-import type {
-  WebAuthnCreation,
-  WebAuthnRequest
-} from "~packages/webAuthn/typing"
 import type { B64UrlString } from "~typing"
 
 export const config: PlasmoCSConfig = {
