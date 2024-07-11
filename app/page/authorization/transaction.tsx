@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 import { useEffect, useState } from "react"
 import Gas from "react:~assets/gas"
+import PassKey from "react:~assets/passkey"
 import Wallet from "react:~assets/wallet"
 import { useClsState } from "use-cls-state"
 import { useHashLocation } from "wouter/use-hash-location"
@@ -159,6 +160,7 @@ function UserOperationConfirmation(props: {
   const [userOp, setUserOp] = useClsState<UserOperation>(null)
   const [userOpResolving, setUserOpResolving] = useState(false)
   const [userOpEstimating, setUserOpEstimating] = useState(false)
+  const [isSigning, setIsSigning] = useState(false)
 
   const sendUserOperation = async () => {
     setUserOpResolving(true)
@@ -168,9 +170,21 @@ function UserOperationConfirmation(props: {
       userOp.setPaymasterAndData(
         await paymentOption.paymaster.requestPaymasterAndData(userOp)
       )
-      userOp.setSignature(
-        await sender.sign(userOp.hash(entryPoint, network.chainId))
-      )
+
+      // Sign user operation
+      try {
+        console.log("signing user operation...")
+        setIsSigning(true)
+        const signature = await sender.sign(
+          userOp.hash(entryPoint, network.chainId)
+        )
+        userOp.setSignature(signature)
+        setIsSigning(false)
+      } catch (signErr) {
+        setIsSigning(false)
+        console.log("signErr", signErr)
+      }
+
       const userOpHash = await provider.send(
         WaalletRpcMethod.eth_sendUserOperation,
         [userOp.unwrap(), entryPoint]
@@ -276,6 +290,18 @@ function UserOperationConfirmation(props: {
   if (!userOp) {
     return
   }
+
+  if (isSigning) {
+    return (
+      <div className="w-full h-full flex flex-col gap-[43px] items-center justify-center">
+        <PassKey />
+        <span className="text-[24px] text-center">
+          Use passkey to verify transaction
+        </span>
+      </div>
+    )
+  }
+
   return (
     <>
       <StepBackHeader title={"Send"} href={Path.Index}>
