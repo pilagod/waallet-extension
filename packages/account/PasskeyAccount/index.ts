@@ -67,6 +67,9 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
 
   private account: ethers.Contract
   private owner: PasskeyOwner
+  private static abi: string[] = [
+    "function execute(address dest, uint256 value, bytes calldata func)"
+  ]
 
   private constructor(
     runner: ContractRunner,
@@ -80,9 +83,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(option.address, [
-      "function execute(address dest, uint256 value, bytes calldata func)"
-    ])
+    this.account = new ethers.Contract(option.address, PasskeyAccount.abi)
     this.owner = option.owner
   }
 
@@ -101,6 +102,16 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
 
   public async sign(message: BytesLike, metadata?: any) {
     return this.owner.sign(message, metadata)
+  }
+
+  public static decodeCalldata(data: HexString): Call {
+    const methodId = data.slice(0, 10)
+    const accountIface = new ethers.Interface(PasskeyAccount.abi)
+    if (!accountIface.hasFunction(methodId)) {
+      throw new Error(`Unknown function selector: ${methodId}`)
+    }
+    const [dest, value, func] = accountIface.decodeFunctionData("execute", data)
+    return { to: dest, value, data: func }
   }
 
   protected async getCallData(call: Call): Promise<HexString> {
