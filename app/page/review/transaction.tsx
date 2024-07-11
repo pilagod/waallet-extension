@@ -1,5 +1,6 @@
 import * as ethers from "ethers"
 import { useEffect, useState } from "react"
+import Contract from "react:~assets/contract"
 import Gas from "react:~assets/gas"
 import PassKey from "react:~assets/passkey"
 import Wallet from "react:~assets/wallet"
@@ -10,13 +11,7 @@ import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
-import {
-  useAccount,
-  useAction,
-  useNetwork,
-  usePendingTransactions,
-  useStorage
-} from "~app/storage"
+import { useAccount, useAction, useNetwork, useStorage } from "~app/storage"
 import type { Account } from "~packages/account"
 import {
   UserOperationV0_6,
@@ -105,6 +100,8 @@ function UserOperationConfirmation(props: {
     markERC4337TransactionSent,
     markERC4337TransactionRejected
   } = useAction()
+
+  const isContract = tx.data !== "0x"
 
   /* Payment */
 
@@ -265,13 +262,17 @@ function UserOperationConfirmation(props: {
 
   return (
     <>
-      <StepBackHeader title={"Send"} href={Path.Index}>
+      <StepBackHeader
+        title={isContract ? "Interact with contract" : "Send"}
+        href={Path.Index}>
         <div className="text-[48px]">
           {number.formatUnitsToFixed(tx.value, 18, 4)} ETH
-        </div>{" "}
+        </div>
       </StepBackHeader>
       <section className="py-[16px] text-[16px]">
-        <h2 className="py-[12px]">From</h2>
+        <h2 className="py-[12px]">
+          {isContract ? "You are using the wallet" : "From"}
+        </h2>
         <div className="flex gap-[12px] items-center">
           <Wallet />
           <div className="w-[322px] py-[9.5px]">
@@ -279,11 +280,14 @@ function UserOperationConfirmation(props: {
             <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
           </div>
         </div>
-        <h2 className="py-[12px]">To</h2>
+        <h2 className="py-[12px]">{isContract ? "to interact with" : "To"}</h2>
         <div className="flex gap-[12px] items-center">
-          <Wallet />
+          {isContract ? <Contract /> : <Wallet />}
           <div className="py-[16px] w-[322px]">
-            <h3 className="break-words">{props.tx.to}</h3>
+            {isContract && <h3>Dapp Contract address</h3>}
+            <h3 className={`break-words ${isContract && "text-[#989898]"}`}>
+              {props.tx.to}
+            </h3>
           </div>
         </div>
       </section>
