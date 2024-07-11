@@ -1,3 +1,4 @@
+import type { ToastStatus } from "~app/component/toast"
 import { AccountType } from "~packages/account"
 import { EntryPointVersion } from "~packages/bundler"
 import type {
@@ -21,6 +22,10 @@ export type State = {
   }
   pendingTransaction: {
     [txId: string]: TransactionPending
+  }
+  toast: {
+    message: string | null
+    status: ToastStatus | null
   }
 }
 
