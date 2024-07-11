@@ -4,7 +4,6 @@ import Gas from "react:~assets/gas"
 import PassKey from "react:~assets/passkey"
 import Wallet from "react:~assets/wallet"
 import { useClsState } from "use-cls-state"
-import { useHashLocation } from "wouter/use-hash-location"
 
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
@@ -42,48 +41,7 @@ export type PaymentOption = {
   paymaster: Paymaster
 }
 
-export function TransactionAuthorization() {
-  const [, navigate] = useHashLocation()
-  const pendingTxs = usePendingTransactions()
-  if (pendingTxs.length === 0) {
-    navigate(Path.Index)
-    return
-  }
-  const [tx] = pendingTxs
-
-  return (
-    <ProfileSwithcher accountId={tx.senderId} networkId={tx.networkId}>
-      <TransactionConfirmation tx={tx} />
-    </ProfileSwithcher>
-  )
-}
-
-function ProfileSwithcher(props: {
-  accountId: string
-  networkId: string
-  children: React.ReactNode
-}) {
-  const { accountId, networkId, children } = props
-
-  const { switchProfile } = useAction()
-
-  const [profileSwitching, setProfileSwitching] = useState(false)
-
-  useEffect(() => {
-    setProfileSwitching(true)
-    switchProfile({ accountId, networkId }).then(() => {
-      setProfileSwitching(false)
-    })
-  }, [accountId, networkId])
-
-  if (profileSwitching) {
-    return
-  }
-
-  return children
-}
-
-function TransactionConfirmation(props: { tx: TransactionPending }) {
+export function TransactionConfirmation(props: { tx: TransactionPending }) {
   const { tx } = props
 
   const { provider } = useProviderContext()
