@@ -11,9 +11,9 @@ export const decodeExecuteParams = (
 ): Call => {
   switch (accountType) {
     case AccountType.SimpleAccount:
-      return SimpleAccount.decodeCalldata(calldata)
+      return SimpleAccount.decode(calldata)
     case AccountType.PasskeyAccount:
-      return PasskeyAccount.decodeCalldata(calldata)
+      return PasskeyAccount.decode(calldata)
     default:
       throw new Error(`Unknown account type`)
   }

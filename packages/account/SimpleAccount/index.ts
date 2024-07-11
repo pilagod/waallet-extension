@@ -75,13 +75,10 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     return this.owner.signMessage(ethers.getBytes(message))
   }
 
-  public static decodeCalldata(data: HexString): Call {
-    const methodId = data.slice(0, 10)
-    const accountIface = new ethers.Interface(SimpleAccount.abi)
-    if (!accountIface.hasFunction(methodId)) {
-      throw new Error(`Unknown function selector: ${methodId}`)
-    }
-    const [dest, value, func] = accountIface.decodeFunctionData("execute", data)
+  public static decode(calldata: HexString): Call {
+    const [dest, value, func] = new ethers.Interface(
+      SimpleAccount.abi
+    ).decodeFunctionData("execute", calldata)
     return { to: dest, value, data: func }
   }
 

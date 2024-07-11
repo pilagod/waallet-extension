@@ -104,13 +104,10 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     return this.owner.sign(message, metadata)
   }
 
-  public static decodeCalldata(data: HexString): Call {
-    const methodId = data.slice(0, 10)
-    const accountIface = new ethers.Interface(PasskeyAccount.abi)
-    if (!accountIface.hasFunction(methodId)) {
-      throw new Error(`Unknown function selector: ${methodId}`)
-    }
-    const [dest, value, func] = accountIface.decodeFunctionData("execute", data)
+  public static decode(calldata: HexString): Call {
+    const [dest, value, func] = new ethers.Interface(
+      PasskeyAccount.abi
+    ).decodeFunctionData("execute", calldata)
     return { to: dest, value, data: func }
   }
 
