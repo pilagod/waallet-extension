@@ -1,8 +1,8 @@
 import Failed from "react:~assets/failed.svg"
-import Submit from "react:~assets/submit.svg"
+import Sent from "react:~assets/sent.svg"
 import Success from "react:~assets/success.svg"
 
-export type ToastStatus = "success" | "failed" | "submit"
+export type ToastStatus = "success" | "failed" | "sent"
 
 type ToastProps = {
   status: ToastStatus
@@ -12,13 +12,13 @@ type ToastProps = {
 const statusIcon: Record<ToastStatus, JSX.Element> = {
   success: <Success />,
   failed: <Failed />,
-  submit: <Submit />
+  sent: <Sent />
 }
 
 const statusTextColor: Record<ToastStatus, string> = {
   success: "text-[#7FFF9C]",
   failed: "text-[#FF9393]",
-  submit: "text-[#7EE0FF]"
+  sent: "text-[#7EE0FF]"
 }
 export const Toast = (props: ToastProps) => {
   const { status, message } = props
