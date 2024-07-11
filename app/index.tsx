@@ -12,9 +12,11 @@ import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
 import { WebAuthnRegistration } from "~app/page/webauthn/registration"
 import { Path } from "~app/path"
-import { usePendingTransactions, useStorage } from "~app/storage"
+import { useStorage } from "~app/storage"
 
 import "~style.css"
+
+import { Toast } from "./component/toast"
 
 export function App() {
   useEffect(() => {
@@ -31,6 +33,20 @@ export function App() {
   const isStateInitialized = useStorage(
     useShallow((storage) => storage.state !== null)
   )
+
+  const toast = useStorage(useShallow((storage) => storage.state.toast))
+  const setToast = useStorage(useShallow((storage) => storage.setToast))
+  const showToast = toast && toast.message && toast.status
+
+  useEffect(() => {
+    if (toast && toast.message && toast.status) {
+      const timer = setTimeout(() => {
+        setToast(null, null)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [toast, setToast])
+
   if (!isStateInitialized) {
     return <></>
   }
@@ -38,6 +54,7 @@ export function App() {
     <ProviderContextProvider>
       {/* Waallet popup script page */}
       <div className="w-[390px] h-[700px] px-[16px] pt-[20px]">
+        {showToast && <Toast status={toast.status} message={toast.message} />}
         <PageRouter />
       </div>
     </ProviderContextProvider>
