@@ -57,6 +57,10 @@ export const createAccountSlice: BackgroundStateCreator<
       }
       // Set the new account as active
       network.accountActive = id
+      state.toast = {
+        message: "Wallet Created",
+        status: "success"
+      }
     })
   },
 
@@ -86,6 +90,10 @@ export const createAccountSlice: BackgroundStateCreator<
         decimals: token.decimals,
         balance: token.balance
       })
+      state.toast = {
+        message: "Token imported!",
+        status: "success"
+      }
     })
   },
 

@@ -15,7 +15,8 @@ import {
   useAccount,
   useAction,
   useNetwork,
-  usePendingTransactions
+  usePendingTransactions,
+  useStorage
 } from "~app/storage"
 import type { Account } from "~packages/account"
 import {
@@ -161,6 +162,7 @@ function UserOperationConfirmation(props: {
   const [userOpResolving, setUserOpResolving] = useState(false)
   const [userOpEstimating, setUserOpEstimating] = useState(false)
   const [isSigning, setIsSigning] = useState(false)
+  const { setToast } = useStorage()
 
   const sendUserOperation = async () => {
     setUserOpResolving(true)
@@ -183,6 +185,7 @@ function UserOperationConfirmation(props: {
       } catch (signErr) {
         setIsSigning(false)
         console.log("signErr", signErr)
+        setToast("Verify passkey failed.", "failed")
       }
 
       const userOpHash = await provider.send(
