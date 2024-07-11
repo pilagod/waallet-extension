@@ -8,7 +8,7 @@ import { getChainName } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { TransactionStatus, type TransactionLog } from "~storage/local/state"
-import type { HexString } from "~typing"
+import type { BigNumberish, HexString } from "~typing"
 
 const explorerUrl = "https://jiffyscan.xyz/"
 
@@ -85,15 +85,16 @@ const Log: React.FC<{
   calldata: HexString
   txStatus: TransactionStatus
 }> = ({ calldata, txStatus }) => {
-  const { chainId, tokens } = useAccount()
-  const { dest, value: nativeValue, func } = decodeExecuteParams(calldata)
+  const { chainId, tokens, type } = useAccount()
+
+  const { to, value: nativeValue, data } = decodeExecuteParams(type, calldata)
 
   let tokenName = `${getChainName(chainId).slice(0, 3)}ETH`
   let value = nativeValue
-  let toAddress = dest
+  let toAddress = to
 
   // Send ETH
-  if (func === "0x") {
+  if (data === "0x") {
     return (
       <TokenLog tokenName={tokenName} value={value} toAddress={toAddress}>
         <StatusMark txStatus={txStatus} />
@@ -103,9 +104,9 @@ const Log: React.FC<{
 
   // Interact with Dapp
   const inTokenList = tokens.some((token) => {
-    if (token.address === dest) {
+    if (address.isEqual(token.address, to)) {
       try {
-        const { to, value: tokenValue } = decodeTransferParams(func)
+        const { to, value: tokenValue } = decodeTransferParams(data)
 
         tokenName = token.symbol
         value = tokenValue
@@ -130,7 +131,7 @@ const Log: React.FC<{
 
 const TokenLog: React.FC<{
   tokenName: string
-  value: bigint
+  value: BigNumberish
   toAddress: HexString
   children?: React.ReactNode
 }> = ({ tokenName, value, toAddress, children }) => {

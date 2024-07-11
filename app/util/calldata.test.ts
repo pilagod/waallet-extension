@@ -7,8 +7,14 @@ import {
 } from "ethers"
 
 import { decodeExecuteParams, decodeTransferParams } from "~app/util/calldata"
+import { AccountType } from "~packages/account"
 
 describe("calldata", () => {
+  const accountAbi: string[] = [
+    "function transfer(address to, uint256 value) public returns (bool)"
+  ]
+  const accountType = AccountType.SimpleAccount
+
   const toAddress = getAddress(zeroPadValue("0x1234", 20))
   const tokenValue = 0.1
   const tokenDecimals = 18
@@ -16,9 +22,7 @@ describe("calldata", () => {
   const tokenAddress = getAddress(zeroPadValue("0x5678", 20))
   const etherValue = 0.0
 
-  const transferIface = new Interface([
-    "function transfer(address to, uint256 value) public returns (bool)"
-  ])
+  const transferIface = new Interface(accountAbi)
 
   const transferCalldata = transferIface.encodeFunctionData("transfer", [
     toAddress,
@@ -43,16 +47,19 @@ describe("calldata", () => {
   })
 
   it("should decode the execute calldata", () => {
-    const { dest, value, func } = decodeExecuteParams(executeCalldata)
+    const { to, value, data } = decodeExecuteParams(
+      accountType,
+      executeCalldata
+    )
 
-    expect(dest).toBe(tokenAddress)
+    expect(to).toBe(tokenAddress)
     expect(value).toBe(parseEther(etherValue.toString()))
-    expect(func).toBe(transferCalldata)
+    expect(data).toBe(transferCalldata)
   })
 
   it("should decode the transfer calldata from execute calldata", () => {
-    const { func } = decodeExecuteParams(executeCalldata)
-    const { to, value } = decodeTransferParams(func)
+    const { data } = decodeExecuteParams(accountType, executeCalldata)
+    const { to, value } = decodeTransferParams(data)
 
     expect(to).toBe(toAddress)
     expect(value).toBe(parseUnits(tokenValue.toString(), tokenDecimals))

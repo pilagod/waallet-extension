@@ -1,23 +1,22 @@
 import { Interface } from "ethers"
 
+import { AccountType, type Call } from "~packages/account"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
 import type { HexString } from "~typing"
 
-export type ExecuteParam = {
-  dest: HexString
-  value: bigint
-  func: HexString
-}
-
-export const decodeExecuteParams = (calldata: HexString): ExecuteParam => {
-  const executeAbi = [
-    "function execute(address dest, uint256 value, bytes func) external"
-  ]
-  const executeIface = new Interface(executeAbi)
-  const { dest, value, func } = executeIface.decodeFunctionData(
-    "execute",
-    calldata
-  )
-  return { dest, value, func }
+export const decodeExecuteParams = (
+  accountType: AccountType,
+  calldata: HexString
+): Call => {
+  switch (accountType) {
+    case AccountType.SimpleAccount:
+      return SimpleAccount.decodeCalldata(calldata)
+    case AccountType.PasskeyAccount:
+      return PasskeyAccount.decodeCalldata(calldata)
+    default:
+      throw new Error(`Unknown account type`)
+  }
 }
 
 export type TransferParam = {
@@ -29,7 +28,8 @@ export const decodeTransferParams = (calldata: HexString): TransferParam => {
   const transferAbi = [
     "function transfer(address to, uint256 value) public returns (bool)"
   ]
+  console.log(`[ttt] method id: ${calldata.slice(0, 10)}`)
   const transferIface = new Interface(transferAbi)
-  const { to, value } = transferIface.decodeFunctionData("transfer", calldata)
+  const [to, value] = transferIface.decodeFunctionData("transfer", calldata)
   return { to, value }
 }
