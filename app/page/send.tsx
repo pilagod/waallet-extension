@@ -5,7 +5,8 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { useAccount, useTokens } from "~app/storage"
-import { getChainName, getErc20Contract } from "~packages/network/util"
+import { getChainName } from "~packages/network/util"
+import { Token as TokenClass } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { type Token } from "~storage/local/state"
@@ -149,7 +150,7 @@ const sendErc20Token = async (
   value: BigNumberish,
   token: Token
 ) => {
-  const erc20 = getErc20Contract(token.address, signer)
+  const erc20 = TokenClass.contractCreation(token.address, signer)
   const data = erc20.interface.encodeFunctionData("transfer", [
     toAddress,
     ethers.parseUnits(value.toString(), token.decimals)
