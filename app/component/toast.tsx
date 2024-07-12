@@ -1,27 +1,36 @@
+import { useContext, useEffect } from "react"
 import Failed from "react:~assets/failed.svg"
-import Submit from "react:~assets/submit.svg"
+import Sent from "react:~assets/sent.svg"
 import Success from "react:~assets/success.svg"
 
-export type ToastStatus = "success" | "failed" | "submit"
-
-type ToastProps = {
-  status: ToastStatus
-  message: string
-}
+import { ToastContext, type ToastStatus } from "~app/context/toastContext"
 
 const statusIcon: Record<ToastStatus, JSX.Element> = {
   success: <Success />,
   failed: <Failed />,
-  submit: <Submit />
+  sent: <Sent />
 }
 
 const statusTextColor: Record<ToastStatus, string> = {
   success: "text-[#7FFF9C]",
   failed: "text-[#FF9393]",
-  submit: "text-[#7EE0FF]"
+  sent: "text-[#7EE0FF]"
 }
-export const Toast = (props: ToastProps) => {
-  const { status, message } = props
+export const Toast = () => {
+  const { toast, setToast } = useContext(ToastContext)
+  const { status, message } = toast
+
+  useEffect(() => {
+    if (toast && toast.message && toast.status) {
+      const timer = setTimeout(() => {
+        setToast(null, null)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [toast, setToast])
+
+  if (!status || !message) return
+
   return (
     <div className="absolute w-[358px] top-[32px] flex gap-[8px] items-center bg-black rounded-2xl p-[16px] shadow-[4px_8px_0px_0px_rgba(0,0,0,0.16)]">
       {statusIcon[status]}

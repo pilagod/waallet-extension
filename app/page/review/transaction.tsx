@@ -1,5 +1,5 @@
 import * as ethers from "ethers"
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import Contract from "react:~assets/contract"
 import Gas from "react:~assets/gas"
 import PassKey from "react:~assets/passkey"
@@ -10,8 +10,9 @@ import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useProviderContext } from "~app/context/provider"
+import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
-import { useAccount, useAction, useNetwork, useStorage } from "~app/storage"
+import { useAccount, useAction, useNetwork } from "~app/storage"
 import type { Account } from "~packages/account"
 import {
   UserOperationV0_6,
@@ -117,8 +118,7 @@ function UserOperationConfirmation(props: {
   const [userOpResolving, setUserOpResolving] = useState(false)
   const [userOpEstimating, setUserOpEstimating] = useState(false)
   const [isSigning, setIsSigning] = useState(false)
-  const { setToast } = useStorage()
-
+  const { setToast } = useContext(ToastContext)
   const sendUserOperation = async () => {
     setUserOpResolving(true)
     try {
@@ -151,11 +151,17 @@ function UserOperationConfirmation(props: {
         throw new Error("Fail to send user operation")
       }
       // TODO: Wrong nonce problem when confirming consecutive pending tx
-      await markERC4337TransactionSent(tx.id, {
-        entryPoint,
-        userOp,
-        userOpHash
-      })
+      try {
+        await markERC4337TransactionSent(tx.id, {
+          entryPoint,
+          userOp,
+          userOpHash
+        })
+        setToast("Transaction submitted.", "sent")
+      } catch (err) {
+        console.error(err)
+        setToast("Transaction failed!", "failed")
+      }
     } catch (e) {
       // TOOD: Show error on page
       console.error(e)

@@ -17,6 +17,7 @@ import { useStorage } from "~app/storage"
 import "~style.css"
 
 import { Toast } from "./component/toast"
+import { ToastProvider } from "./context/toastContext"
 
 export function App() {
   useEffect(() => {
@@ -34,29 +35,18 @@ export function App() {
     useShallow((storage) => storage.state !== null)
   )
 
-  const toast = useStorage(useShallow((storage) => storage.state.toast))
-  const setToast = useStorage(useShallow((storage) => storage.setToast))
-  const showToast = toast && toast.message && toast.status
-
-  useEffect(() => {
-    if (toast && toast.message && toast.status) {
-      const timer = setTimeout(() => {
-        setToast(null, null)
-      }, 2000)
-      return () => clearTimeout(timer)
-    }
-  }, [toast, setToast])
-
   if (!isStateInitialized) {
     return <></>
   }
   return (
     <ProviderContextProvider>
-      {/* Waallet popup script page */}
-      <div className="w-[390px] h-[700px] px-[16px] pt-[20px]">
-        {showToast && <Toast status={toast.status} message={toast.message} />}
-        <PageRouter />
-      </div>
+      <ToastProvider>
+        {/* Waallet popup script page */}
+        <div className="w-[390px] h-[700px] px-[16px] pt-[20px]">
+          <Toast />
+          <PageRouter />
+        </div>
+      </ToastProvider>
     </ProviderContextProvider>
   )
 }
