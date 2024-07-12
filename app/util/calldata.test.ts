@@ -6,7 +6,7 @@ import {
   zeroPadValue
 } from "ethers"
 
-import { decodeExecuteParams, decodeTransferParams } from "~app/util/calldata"
+import { decodeExecuteParams } from "~app/util/calldata"
 import { AccountType } from "~packages/account"
 
 describe("calldata", () => {
@@ -39,13 +39,6 @@ describe("calldata", () => {
     transferCalldata
   ])
 
-  it("should decode the token transfer calldata", () => {
-    const { to, value } = decodeTransferParams(transferCalldata)
-
-    expect(to).toBe(toAddress)
-    expect(value).toBe(parseUnits(tokenValue.toString(), tokenDecimals))
-  })
-
   it("should decode the execute calldata", () => {
     const { to, value, data } = decodeExecuteParams(
       accountType,
@@ -55,13 +48,5 @@ describe("calldata", () => {
     expect(to).toBe(tokenAddress)
     expect(value).toBe(parseEther(etherValue.toString()))
     expect(data).toBe(transferCalldata)
-  })
-
-  it("should decode the transfer calldata from execute calldata", () => {
-    const { data } = decodeExecuteParams(accountType, executeCalldata)
-    const { to, value } = decodeTransferParams(data)
-
-    expect(to).toBe(toAddress)
-    expect(value).toBe(parseUnits(tokenValue.toString(), tokenDecimals))
   })
 })

@@ -3,8 +3,9 @@ import ArrowUpRight from "react:~assets/arrowUpRight.svg"
 import CircleXmark from "react:~assets/circleXmark.svg"
 
 import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
-import { decodeExecuteParams, decodeTransferParams } from "~app/util/calldata"
+import { decodeExecuteParams } from "~app/util/calldata"
 import { getChainName } from "~packages/network/util"
+import { Token } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { TransactionStatus, type TransactionLog } from "~storage/local/state"
@@ -106,7 +107,7 @@ const Log: React.FC<{
   const inTokenList = tokens.some((token) => {
     if (address.isEqual(token.address, to)) {
       try {
-        const { to, value: tokenValue } = decodeTransferParams(data)
+        const { to, value: tokenValue } = Token.decodeTransferParam(data)
 
         tokenName = token.symbol
         value = tokenValue
