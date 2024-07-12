@@ -9,7 +9,7 @@ import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName } from "~packages/network/util"
-import { Token as TokenClass } from "~packages/token"
+import { TokenContract } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -298,13 +298,11 @@ function TokenSendModal({
   }
 
   const handleSend = useCallback(async () => {
-    const erc20 = TokenClass.contractCreation(token.address, provider)
-
     try {
-      const data = erc20.interface.encodeFunctionData("transfer", [
+      const data = TokenContract.encodeTransferData(
         inputTo,
         parseUnits(inputValue.toString(), token.decimals)
-      ])
+      )
 
       const signer = await provider.getSigner()
       const { hash } = await signer.sendTransaction({
@@ -419,11 +417,11 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       return
     }
 
-    const erc20 = TokenClass.contractCreation(inputTokenAddress, provider)
+    const erc20 = await TokenContract.init(inputTokenAddress, provider)
 
     try {
-      const symbol: string = await erc20.symbol()
-      const decimals: number = toNumber(await erc20.decimals())
+      const symbol: string = erc20.symbol
+      const decimals: number = toNumber(erc20.decimals)
       setInvalidTokenAddressMessage("")
       setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)
@@ -447,10 +445,8 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const onTokenImported = async () => {
     let balance: BigNumberish = 0
     try {
-      balance = await TokenClass.contractCreation(
-        tokenAddress,
-        provider
-      ).balanceOf(account.address)
+      const token = await TokenContract.init(tokenAddress, provider)
+      balance = await token.balanceOf(account.address)
     } catch (error) {
       console.warn(
         `[Popup][tokens] error occurred while getting balance: ${error}`

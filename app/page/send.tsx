@@ -6,7 +6,7 @@ import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { useAccount, useTokens } from "~app/storage"
 import { getChainName } from "~packages/network/util"
-import { Token as TokenClass } from "~packages/token"
+import { TokenContract } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { type Token } from "~storage/local/state"
@@ -150,11 +150,11 @@ const sendErc20Token = async (
   value: BigNumberish,
   token: Token
 ) => {
-  const erc20 = TokenClass.contractCreation(token.address, signer)
-  const data = erc20.interface.encodeFunctionData("transfer", [
+  const data = TokenContract.encodeTransferData(
     toAddress,
     ethers.parseUnits(value.toString(), token.decimals)
-  ])
+  )
+
   return await signer.sendTransaction({
     to: token.address,
     value: 0,
