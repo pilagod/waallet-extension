@@ -136,26 +136,22 @@ const TokenLog: React.FC<{
   children?: React.ReactNode
 }> = ({ tokenName, value, toAddress, children }) => {
   return (
-    <div className="w-full flex items-center p-[14px_0px_14px_0px]">
+    <div className="w-full flex items-center py-[14px]">
       {/* Status and to address */}
       <div className="flex-grow flex flex-col items-start">
         {/* Status and token amount */}
-        <div className="flex items-center mb-[4px]">
-          <ArrowUpRight className="w-[16px] h-[16px] mr-[8px]" />
-          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
-            Send
-          </div>
-          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
+        <div className="flex items-center mb-[4px] gap-[8px]">
+          <ArrowUpRight className="w-[16px] h-[16px]" />
+          <div className="text-[16px] text-[#000000]">Send</div>
+          <div className="text-[16px] text-[#000000]">
             {number.formatUnitsToFixed(value, 18, 2)}
           </div>
-          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
-            {tokenName}
-          </div>
+          <div className="text-[16px] text-[#000000]">{tokenName}</div>
           {/* Status mark */}
           {children}
         </div>
         {/* To address */}
-        <div className="leading-[19px] text-[16px] text-[#bbbbbb] whitespace-nowrap">
+        <div className="text-[16px] text-[#bbbbbb] whitespace-nowrap">
           to: {address.ellipsize(toAddress)}
         </div>
       </div>
@@ -168,20 +164,20 @@ const ContractLog: React.FC<{
   children?: React.ReactNode
 }> = ({ toAddress, children }) => {
   return (
-    <div className="w-full flex items-center p-[14px_0px_14px_0px]">
+    <div className="w-full flex items-center py-[14px]">
       {/* Status and to address */}
       <div className="flex-grow flex flex-col items-start">
         {/* Status and token amount */}
         <div className="flex items-center mb-[4px]">
           <ArrowRightArrowLeft className="w-[16px] h-[16px] mr-[8px]" />
-          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
+          <div className="mr-[8px] text-[16px] text-[#000000]">
             Interact with Dapp
           </div>
           {/* Status mark */}
           {children}
         </div>
         {/* To address */}
-        <div className="leading-[19px] text-[16px] text-[#bbbbbb] whitespace-nowrap">
+        <div className="text-[16px] text-[#bbbbbb] whitespace-nowrap">
           {address.ellipsize(toAddress)}
         </div>
       </div>
@@ -227,10 +223,8 @@ const TransactionTime: React.FC<{
 }> = ({ date, time }) => {
   return (
     <div className="flex flex-col items-end">
-      <div className="mb-[4px] leading-[19px] text-[16px] text-[#000000]">
-        {date}
-      </div>
-      <div className="leading-[19px] text-[16px] text-[#000000]">{time}</div>
+      <div className="mb-[4px] text-[16px] text-[#000000]">{date}</div>
+      <div className="text-[16px] text-[#000000]">{time}</div>
     </div>
   )
 }
