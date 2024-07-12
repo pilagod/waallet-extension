@@ -283,33 +283,47 @@ function UserOperationConfirmation(props: {
         </div>
       </StepBackHeader>
       <section className="py-[16px] text-[16px]">
-        <h2 className="py-[12px]">
-          {isContract ? "You are using the wallet" : "From"}
+        <h2
+          className={`${
+            isContract ? "py-[8px] text-[12px] text-[#989898]" : "py-[12px]"
+          }`}>
+          {isContract ? "You are using this wallet" : "From"}
         </h2>
         <div className="flex gap-[12px] items-center">
           <Wallet />
           <div className="w-[322px] py-[9.5px]">
-            <h3>Jesse's wallet</h3>
+            <h3 className="pb-[4px]">Jesse's wallet</h3>
             <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
           </div>
         </div>
-        <h2 className="py-[12px]">{isContract ? "to interact with" : "To"}</h2>
+        <h2
+          className={`${
+            isContract ? "py-[8px] text-[12px] text-[#989898]" : "py-[12px]"
+          }`}>
+          {isContract ? "to interact with" : "To"}
+        </h2>
         <div className="flex gap-[12px] items-center">
           {isContract ? <Contract /> : <Wallet />}
           <div className="py-[16px] w-[322px]">
-            {isContract && <h3>Contract address</h3>}
+            {isContract && <h3 className="pb-[4px]">Contract address</h3>}
             <h3 className={`break-words ${isContract && "text-[#989898]"}`}>
               {props.tx.to}
             </h3>
           </div>
         </div>
+        {isContract && (
+          <>
+            <h2 className="py-[8px] text-[12px] text-[#989898]">Call data</h2>
+            <div className="break-words">{tx.data}</div>
+          </>
+        )}
       </section>
       <Divider />
-      <section className="py-[16px] text-[16px]">
-        <h2 className="py-[8px]">Est. gas fee</h2>
+      <section className="py-[16px]">
+        <h2 className="py-[8px] text-[12px] text-[#989898]">Est. gas fee</h2>
         <div className="flex gap-[12px] py-[16px]">
           <Gas />
-          <p>
+          <p className="text-[20px]">
             {userOpEstimating || paymentCalculating
               ? "Estimating..."
               : `${ethers.formatEther(
