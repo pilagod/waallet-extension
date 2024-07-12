@@ -1,11 +1,12 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getAddress, parseUnits, toNumber } from "ethers"
-import { useCallback, useState, type ChangeEvent } from "react"
+import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import Ethereum from "react:~assets/ethereum.svg"
 import { Link } from "wouter"
 
 import { useProviderContext } from "~app/context/provider"
+import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
@@ -395,6 +396,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const [invalidTokenAddressMessage, setInvalidTokenAddressMessage] =
     useState<string>("")
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(true)
+  const { setToast } = useContext(ToastContext)
 
   const handleTokenAddressChange = async (
     event: ChangeEvent<HTMLInputElement>
@@ -461,6 +463,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       balance: number.toHex(balance)
     })
     onModalClosed()
+    setToast("Token imported!", "success")
   }
 
   return (

@@ -125,10 +125,6 @@ export const createTransactionSlice: BackgroundStateCreator<
       }
       state.account[txSent.senderId].transactionLog[txSent.id] = txSent
       delete state.pendingTransaction[tx.id]
-      state.toast = {
-        message: "Transaction submitted.",
-        status: "submit"
-      }
     })
   }
 })
