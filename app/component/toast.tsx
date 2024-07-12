@@ -27,7 +27,7 @@ export const Toast = () => {
       }, 2000)
       return () => clearTimeout(timer)
     }
-  }, [toast, setToast])
+  }, [toast])
 
   if (!status || !message) {
     return
