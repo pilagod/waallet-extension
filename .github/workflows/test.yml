@@ -30,6 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: "pilagod/waallet-contract"
+          ref: "fix-address"
           path: "waallet-contract"
           submodules: recursive
 
