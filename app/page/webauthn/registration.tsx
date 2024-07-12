@@ -2,13 +2,12 @@ import { useEffect } from "react"
 import { runtime } from "webextension-polyfill"
 
 import { objectFromUrlParams } from "~packages/util/url"
-import { createWebAuthn } from "~packages/webAuthn"
+import {
+  createWebAuthn,
+  type WebAuthnCreation,
+  type WebAuthnError
+} from "~packages/webAuthn"
 import { PortName } from "~packages/webAuthn/tabs/port"
-import type {
-  WebAuthnCreation,
-  WebAuthnError,
-  WebAuthnRegistration as WebAuthnRegistrationData
-} from "~packages/webAuthn/typing"
 
 export function WebAuthnRegistration() {
   useEffect(() => {

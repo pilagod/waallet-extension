@@ -2,10 +2,7 @@ import { EventEmitter } from "events"
 
 import { type BackgroundMessenger } from "~packages/messenger/background"
 import { format } from "~packages/util/json"
-import type {
-  WebAuthnCreation,
-  WebAuthnRequest
-} from "~packages/webAuthn/typing"
+import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
 
 import { WaalletMessage } from "../message"
 import { type WaalletRequestArguments } from "../rpc"

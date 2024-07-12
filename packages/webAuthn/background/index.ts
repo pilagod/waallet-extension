@@ -1,7 +1,6 @@
 import browser from "webextension-polyfill"
 
 import { format } from "~packages/util/json"
-import { PortName } from "~packages/webAuthn/tabs/port"
 import {
   isWebAuthnError,
   type WebAuthnAuthentication,
@@ -10,7 +9,8 @@ import {
   type WebAuthnParams,
   type WebAuthnRegistration,
   type WebAuthnRequest
-} from "~packages/webAuthn/typing"
+} from "~packages/webAuthn"
+import { PortName } from "~packages/webAuthn/tabs/port"
 
 export const createWebAuthn = async (webAuthnCreation?: WebAuthnCreation) => {
   const createWebAuthnParams = new URLSearchParams({
