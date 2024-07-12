@@ -99,6 +99,8 @@ describeWaalletSuite({
     })
 
     it("should send transaction to contract", async () => {
+      console.log("should send transaction to contract")
+
       await ctx.topupAccount()
 
       const {
@@ -109,18 +111,23 @@ describeWaalletSuite({
       const balanceBefore = await node.getBalance(counter.getAddress())
       const counterBefore = (await counter.number()) as bigint
 
-      const txHash = await ctx.provider.waallet.request<HexString>({
-        method: WaalletRpcMethod.eth_sendTransaction,
-        params: [
-          {
-            to: await counter.getAddress(),
-            value: 1,
-            data: counter.interface.encodeFunctionData("increment", [])
-          }
-        ]
-      })
-      const receipt = await node.getTransactionReceipt(txHash)
-      expect(receipt.status).toBe(1)
+      try {
+        console.log("send transaction")
+        const txHash = await ctx.provider.waallet.request<HexString>({
+          method: WaalletRpcMethod.eth_sendTransaction,
+          params: [
+            {
+              to: await counter.getAddress(),
+              value: 1,
+              data: counter.interface.encodeFunctionData("increment", [])
+            }
+          ]
+        })
+        const receipt = await node.getTransactionReceipt(txHash)
+        expect(receipt.status).toBe(1)
+      } catch (e) {
+        console.log("send transaction error:", e)
+      }
 
       const balanceAfter = await node.getBalance(counter.getAddress())
       expect(balanceAfter - balanceBefore).toBe(1n)

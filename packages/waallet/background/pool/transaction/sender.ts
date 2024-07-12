@@ -68,12 +68,17 @@ export class TransactionToUserOperationSender implements TransactionPool {
     if (!userOpHash) {
       throw new Error("Send user operation fail")
     }
+    console.log("user op hash:", userOpHash)
     const id = uuidv4()
 
-    this.pool[id] = new Promise(async (resolve) => {
-      const transactionHash = await bundler.wait(userOpHash)
-      resolve(transactionHash)
-    })
+    try {
+      this.pool[id] = new Promise(async (resolve) => {
+        const transactionHash = await bundler.wait(userOpHash)
+        resolve(transactionHash)
+      })
+    } catch (e) {
+      console.log("send error:", e)
+    }
 
     return id
   }
