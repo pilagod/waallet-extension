@@ -55,7 +55,10 @@ const UserOpHistoryItem: React.FC<{
   })
   const callData = txLog.detail.data.callData
 
-  if (txLog.status === TransactionStatus.Succeeded) {
+  if (
+    txLog.status === TransactionStatus.Succeeded ||
+    txLog.status === TransactionStatus.Reverted
+  ) {
     const userOpHash = txLog.receipt.userOpHash
     return (
       <a
@@ -89,6 +92,7 @@ const Log: React.FC<{
 
   const { to, value: nativeValue, data } = decodeExecuteParams(type, calldata)
 
+  // TODO: Could be better to add native token symbol into network config and storage
   let tokenName = `${getChainName(chainId).slice(0, 3)}ETH`
   let value = nativeValue
   let toAddress = to
@@ -96,9 +100,12 @@ const Log: React.FC<{
   // Send ETH
   if (data === "0x") {
     return (
-      <TokenLog tokenName={tokenName} value={value} toAddress={toAddress}>
-        <StatusMark txStatus={txStatus} />
-      </TokenLog>
+      <TokenLog
+        tokenName={tokenName}
+        value={value}
+        toAddress={toAddress}
+        txStatus={txStatus}
+      />
     )
   }
 
@@ -119,13 +126,14 @@ const Log: React.FC<{
   })
 
   return inTokenList ? (
-    <TokenLog tokenName={tokenName} value={value} toAddress={toAddress}>
-      <StatusMark txStatus={txStatus} />
-    </TokenLog>
+    <TokenLog
+      tokenName={tokenName}
+      value={value}
+      toAddress={toAddress}
+      txStatus={txStatus}
+    />
   ) : (
-    <ContractLog toAddress={toAddress}>
-      <StatusMark txStatus={txStatus} />
-    </ContractLog>
+    <ContractLog toAddress={toAddress} txStatus={txStatus} />
   )
 }
 
@@ -133,8 +141,8 @@ const TokenLog: React.FC<{
   tokenName: string
   value: BigNumberish
   toAddress: HexString
-  children?: React.ReactNode
-}> = ({ tokenName, value, toAddress, children }) => {
+  txStatus: TransactionStatus
+}> = ({ tokenName, value, toAddress, txStatus }) => {
   return (
     <div className="w-full flex items-center py-[14px]">
       {/* Status and to address */}
@@ -148,7 +156,7 @@ const TokenLog: React.FC<{
           </div>
           <div className="text-[16px] text-[#000000]">{tokenName}</div>
           {/* Status mark */}
-          {children}
+          <StatusMark txStatus={txStatus} />
         </div>
         {/* To address */}
         <div className="text-[16px] text-[#bbbbbb] whitespace-nowrap">
@@ -161,8 +169,8 @@ const TokenLog: React.FC<{
 
 const ContractLog: React.FC<{
   toAddress: HexString
-  children?: React.ReactNode
-}> = ({ toAddress, children }) => {
+  txStatus: TransactionStatus
+}> = ({ toAddress, txStatus }) => {
   return (
     <div className="w-full flex items-center py-[14px]">
       {/* Status and to address */}
@@ -174,7 +182,7 @@ const ContractLog: React.FC<{
             Interact with Dapp
           </div>
           {/* Status mark */}
-          {children}
+          <StatusMark txStatus={txStatus} />
         </div>
         {/* To address */}
         <div className="text-[16px] text-[#bbbbbb] whitespace-nowrap">
