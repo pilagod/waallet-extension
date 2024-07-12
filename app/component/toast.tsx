@@ -29,7 +29,9 @@ export const Toast = () => {
     }
   }, [toast, setToast])
 
-  if (!status || !message) return
+  if (!status || !message) {
+    return
+  }
 
   return (
     <div className="absolute w-[358px] top-[32px] flex gap-[8px] items-center bg-black rounded-2xl p-[16px] shadow-[4px_8px_0px_0px_rgba(0,0,0,0.16)]">
