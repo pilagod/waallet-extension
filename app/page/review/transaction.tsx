@@ -297,7 +297,7 @@ function UserOperationConfirmation(props: {
         <div className="flex gap-[12px] items-center">
           {isContract ? <Contract /> : <Wallet />}
           <div className="py-[16px] w-[322px]">
-            {isContract && <h3>Dapp Contract address</h3>}
+            {isContract && <h3>Contract address</h3>}
             <h3 className={`break-words ${isContract && "text-[#989898]"}`}>
               {props.tx.to}
             </h3>
