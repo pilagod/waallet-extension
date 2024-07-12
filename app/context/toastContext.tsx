@@ -1,10 +1,12 @@
 import { createContext, useState, type ReactNode } from "react"
 
+import type { Nullable } from "~typing"
+
 export type ToastStatus = "success" | "failed" | "sent"
 
 type Toast = {
-  message: string | null
-  status: ToastStatus | null
+  message: Nullable<string>
+  status: Nullable<ToastStatus>
 }
 
 type ToastContextType = {
@@ -12,7 +14,7 @@ type ToastContextType = {
   setToast: (message: string, status: ToastStatus) => void
 }
 
-export const ToastContext = createContext<ToastContextType | null>(null)
+export const ToastContext = createContext<Nullable<ToastContextType>>(null)
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [toast, setToastState] = useState<Toast>({
