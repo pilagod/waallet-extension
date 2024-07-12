@@ -1,7 +1,7 @@
 import { JsonRpcProvider } from "ethers"
 import browser from "webextension-polyfill"
 
-import { Token } from "~packages/token"
+import { getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
@@ -189,7 +189,7 @@ async function main() {
     // Update the balance of all tokens
     for (const t of tokens) {
       try {
-        const tokenBalance: bigint = await Token.contractCreation(
+        const tokenBalance: bigint = await getErc20Contract(
           t.address,
           provider
         ).balanceOf(accountAddress)

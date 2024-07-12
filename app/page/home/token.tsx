@@ -8,8 +8,7 @@ import { Link } from "wouter"
 import { useProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
-import { getChainName } from "~packages/network/util"
-import { Token as TokenClass } from "~packages/token"
+import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -298,7 +297,7 @@ function TokenSendModal({
   }
 
   const handleSend = useCallback(async () => {
-    const erc20 = TokenClass.contractCreation(token.address, provider)
+    const erc20 = getErc20Contract(token.address, provider)
 
     try {
       const data = erc20.interface.encodeFunctionData("transfer", [
@@ -419,7 +418,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       return
     }
 
-    const erc20 = TokenClass.contractCreation(inputTokenAddress, provider)
+    const erc20 = getErc20Contract(inputTokenAddress, provider)
 
     try {
       const symbol: string = await erc20.symbol()
@@ -447,10 +446,9 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const onTokenImported = async () => {
     let balance: BigNumberish = 0
     try {
-      balance = await TokenClass.contractCreation(
-        tokenAddress,
-        provider
-      ).balanceOf(account.address)
+      balance = await getErc20Contract(tokenAddress, provider).balanceOf(
+        account.address
+      )
     } catch (error) {
       console.warn(
         `[Popup][tokens] error occurred while getting balance: ${error}`
