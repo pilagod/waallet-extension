@@ -5,16 +5,19 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
-import { TransactionAuthorization } from "~app/page/authorization/transaction"
 import { Home } from "~app/page/home"
+import { Review } from "~app/page/review/"
 import { Send } from "~app/page/send"
 import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
 import { WebAuthnRegistration } from "~app/page/webauthn/registration"
 import { Path } from "~app/path"
-import { usePendingTransactions, useStorage } from "~app/storage"
+import { useStorage } from "~app/storage"
 
 import "~style.css"
+
+import { Toast } from "./component/toast"
+import { ToastProvider } from "./context/toastContext"
 
 export function App() {
   useEffect(() => {
@@ -31,15 +34,19 @@ export function App() {
   const isStateInitialized = useStorage(
     useShallow((storage) => storage.state !== null)
   )
+
   if (!isStateInitialized) {
     return <></>
   }
   return (
     <ProviderContextProvider>
-      {/* Waallet popup script page */}
-      <div className="w-[390px] h-[700px] px-[16px] pt-[20px]">
-        <PageRouter />
-      </div>
+      <ToastProvider>
+        {/* Waallet popup script page */}
+        <div className="w-[390px] h-[600px] px-[16px] pt-[20px]">
+          <Toast />
+          <PageRouter />
+        </div>
+      </ToastProvider>
     </ProviderContextProvider>
   )
 }
@@ -54,8 +61,8 @@ function PageRouter() {
   const hasPendingTx = useStorage(
     useShallow(({ state }) => Object.keys(state.pendingTransaction).length > 0)
   )
-  if (hasPendingTx && !location.startsWith(Path.TransactionAuthorization)) {
-    navigate(Path.TransactionAuthorization)
+  if (hasPendingTx && !location.startsWith(Path.Review)) {
+    navigate(Path.Review)
     return
   }
 
@@ -75,10 +82,7 @@ function PageRouter() {
         />
         <Route path={Path.WebAuthnDevtool} component={WebAuthnDevtool} />
 
-        <Route
-          path={Path.TransactionAuthorization}
-          component={TransactionAuthorization}
-        />
+        <Route path={Path.Review} component={Review} />
 
         <Route path="*">
           <Redirect to={Path.Home} />

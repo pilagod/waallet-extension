@@ -1,10 +1,11 @@
-import { useState } from "react"
+import { useContext, useState } from "react"
 import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
 
 import { Divider } from "~app/component/divider"
 import { useProviderContext } from "~app/context/provider"
+import { ToastContext } from "~app/context/toastContext"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
 import { Token } from "~app/page/home/token"
@@ -18,7 +19,6 @@ import {
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
-import { getChainName } from "~packages/network/util"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {
@@ -49,16 +49,23 @@ function AccountCreation() {
   const { createAccount } = useAction()
   const network = useNetwork()
 
+  const { setToast } = useContext(ToastContext)
+
   const onPasskeyAccountCreated = async () => {
-    if (!network.accountFactory[AccountType.PasskeyAccount]) {
-      throw new Error("Passkey account factory is not set")
+    try {
+      if (!network.accountFactory[AccountType.PasskeyAccount]) {
+        throw new Error("Passkey account factory is not set")
+      }
+      const account = await PasskeyAccount.initWithFactory(provider, {
+        owner: await PasskeyOwnerWebAuthn.register(),
+        salt: number.random(),
+        factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
+      })
+      await createAccount(account, network.id)
+      setToast("Wallet Created", "success")
+    } catch (error) {
+      setToast(error.message, "failed")
     }
-    const account = await PasskeyAccount.initWithFactory(provider, {
-      owner: await PasskeyOwnerWebAuthn.register(),
-      salt: number.random(),
-      factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
-    })
-    await createAccount(account, network.id)
   }
 
   return (

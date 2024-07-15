@@ -6,6 +6,6 @@ export interface StateSlice {
   state: State
 }
 
-export const createStateSlice: BackgroundStateCreator<StateSlice> = () => ({
+export const createStateSlice: BackgroundStateCreator<StateSlice> = (set) => ({
   state: null
 })
