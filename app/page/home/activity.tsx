@@ -93,48 +93,36 @@ const Log: React.FC<{
   const { to, value: nativeValue, data } = decodeExecuteParams(type, calldata)
 
   // TODO: Could be better to add native token symbol into network config and storage
-  let tokenName = `${getChainName(chainId).slice(0, 3)}ETH`
-  let value = nativeValue
-  let toAddress = to
-
-  // Send ETH
   if (data === "0x") {
     return (
       <TokenLog
-        tokenName={tokenName}
-        value={value}
-        toAddress={toAddress}
+        tokenName={`${getChainName(chainId).slice(0, 3)}ETH`}
+        value={nativeValue}
+        toAddress={to}
         txStatus={txStatus}
       />
     )
   }
 
-  // Interact with Dapp
-  const inTokenList = tokens.some((token) => {
-    if (address.isEqual(token.address, to)) {
-      try {
-        const { to, value: tokenValue } = decodeTransferParams(data)
+  const token = tokens.find((token) => address.isEqual(token.address, to))
 
-        tokenName = token.symbol
-        value = tokenValue
-        toAddress = to
-        return true
-      } catch (e) {
-        throw new Error(`Cannot decode token transfer: ${e}`)
-      }
-    }
-  })
+  if (!token) {
+    return <ContractLog toAddress={to} txStatus={txStatus} />
+  }
 
-  return inTokenList ? (
-    <TokenLog
-      tokenName={tokenName}
-      value={value}
-      toAddress={toAddress}
-      txStatus={txStatus}
-    />
-  ) : (
-    <ContractLog toAddress={toAddress} txStatus={txStatus} />
-  )
+  try {
+    const { to: tokenTo, value: tokenValue } = decodeTransferParams(data)
+    return (
+      <TokenLog
+        tokenName={token.symbol}
+        value={tokenValue}
+        toAddress={tokenTo}
+        txStatus={txStatus}
+      />
+    )
+  } catch (_) {
+    return <ContractLog toAddress={to} txStatus={txStatus} />
+  }
 }
 
 const TokenLog: React.FC<{
