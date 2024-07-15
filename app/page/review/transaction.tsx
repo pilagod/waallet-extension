@@ -102,14 +102,7 @@ function UserOperationConfirmation(props: {
     markERC4337TransactionRejected
   } = useAction()
 
-  const [isContract, setIsContract] = useState(false)
-  useEffect(() => {
-    const checkIsContract = async () => {
-      const code = await provider.getCode(tx.to)
-      setIsContract(tx.data !== "0x" || code !== "0x")
-    }
-    checkIsContract()
-  }, [tx, provider])
+  const isContract = tx.data !== "0x"
 
   /* Payment */
 
