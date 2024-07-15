@@ -33,7 +33,7 @@
     "@simplewebauthn/browser": "^8.3.4",
     "@simplewebauthn/server": "^8.3.5",
     "@ungap/structured-clone": "^1.2.0",
-    "ethers": "^6.8.1",
+    "ethers": "^6.13.1",
     "immer": "^10.0.4",
     "isomorphic-fetch": "^3.0.0",
     "json-bigint": "^1.0.0",
