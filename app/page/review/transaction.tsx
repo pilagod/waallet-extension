@@ -1,10 +1,10 @@
 import * as ethers from "ethers"
 import { useContext, useEffect, useState } from "react"
+import Contract from "react:~assets/contract"
 import Gas from "react:~assets/gas"
 import PassKey from "react:~assets/passkey"
 import Wallet from "react:~assets/wallet"
 import { useClsState } from "use-cls-state"
-import { useHashLocation } from "wouter/use-hash-location"
 
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
@@ -12,12 +12,7 @@ import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
-import {
-  useAccount,
-  useAction,
-  useNetwork,
-  usePendingTransactions
-} from "~app/storage"
+import { useAccount, useAction, useNetwork } from "~app/storage"
 import type { Account } from "~packages/account"
 import {
   UserOperationV0_6,
@@ -42,48 +37,7 @@ export type PaymentOption = {
   paymaster: Paymaster
 }
 
-export function TransactionAuthorization() {
-  const [, navigate] = useHashLocation()
-  const pendingTxs = usePendingTransactions()
-  if (pendingTxs.length === 0) {
-    navigate(Path.Index)
-    return
-  }
-  const [tx] = pendingTxs
-
-  return (
-    <ProfileSwithcher accountId={tx.senderId} networkId={tx.networkId}>
-      <TransactionConfirmation tx={tx} />
-    </ProfileSwithcher>
-  )
-}
-
-function ProfileSwithcher(props: {
-  accountId: string
-  networkId: string
-  children: React.ReactNode
-}) {
-  const { accountId, networkId, children } = props
-
-  const { switchProfile } = useAction()
-
-  const [profileSwitching, setProfileSwitching] = useState(false)
-
-  useEffect(() => {
-    setProfileSwitching(true)
-    switchProfile({ accountId, networkId }).then(() => {
-      setProfileSwitching(false)
-    })
-  }, [accountId, networkId])
-
-  if (profileSwitching) {
-    return
-  }
-
-  return children
-}
-
-function TransactionConfirmation(props: { tx: TransactionPending }) {
+export function TransactionConfirmation(props: { tx: TransactionPending }) {
   const { tx } = props
 
   const { provider } = useProviderContext()
@@ -147,6 +101,8 @@ function UserOperationConfirmation(props: {
     markERC4337TransactionSent,
     markERC4337TransactionRejected
   } = useAction()
+
+  const isContract = tx.data !== "0x"
 
   /* Payment */
 
@@ -312,34 +268,55 @@ function UserOperationConfirmation(props: {
 
   return (
     <>
-      <StepBackHeader title={"Send"} href={Path.Index}>
+      <StepBackHeader
+        title={isContract ? "Interact with contract" : "Send"}
+        href={Path.Index}>
         <div className="text-[48px]">
           {number.formatUnitsToFixed(tx.value, 18, 4)} ETH
-        </div>{" "}
+        </div>
       </StepBackHeader>
       <section className="py-[16px] text-[16px]">
-        <h2 className="py-[12px]">From</h2>
+        <h2
+          className={`${
+            isContract ? "py-[8px] text-[12px] text-[#989898]" : "py-[12px]"
+          }`}>
+          {isContract ? "You are using this wallet" : "From"}
+        </h2>
         <div className="flex gap-[12px] items-center">
           <Wallet />
           <div className="w-[322px] py-[9.5px]">
-            <h3>Jesse's wallet</h3>
+            <h3 className="pb-[4px]">Jesse's wallet</h3>
             <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
           </div>
         </div>
-        <h2 className="py-[12px]">To</h2>
+        <h2
+          className={`${
+            isContract ? "py-[8px] text-[12px] text-[#989898]" : "py-[12px]"
+          }`}>
+          {isContract ? "to interact with" : "To"}
+        </h2>
         <div className="flex gap-[12px] items-center">
-          <Wallet />
+          {isContract ? <Contract /> : <Wallet />}
           <div className="py-[16px] w-[322px]">
-            <h3 className="break-words">{props.tx.to}</h3>
+            {isContract && <h3 className="pb-[4px]">Contract address</h3>}
+            <h3 className={`break-words ${isContract && "text-[#989898]"}`}>
+              {props.tx.to}
+            </h3>
           </div>
         </div>
+        {isContract && (
+          <>
+            <h2 className="py-[8px] text-[12px] text-[#989898]">Call data</h2>
+            <div className="break-words">{tx.data}</div>
+          </>
+        )}
       </section>
       <Divider />
-      <section className="py-[16px] text-[16px]">
-        <h2 className="py-[8px]">Est. gas fee</h2>
+      <section className="py-[16px]">
+        <h2 className="py-[8px] text-[12px] text-[#989898]">Est. gas fee</h2>
         <div className="flex gap-[12px] py-[16px]">
           <Gas />
-          <p>
+          <p className="text-[20px]">
             {userOpEstimating || paymentCalculating
               ? "Estimating..."
               : `${ethers.formatEther(

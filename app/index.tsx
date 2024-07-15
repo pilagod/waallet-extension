@@ -5,8 +5,8 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
-import { TransactionAuthorization } from "~app/page/authorization/transaction"
 import { Home } from "~app/page/home"
+import { Review } from "~app/page/review/"
 import { Send } from "~app/page/send"
 import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
@@ -61,8 +61,8 @@ function PageRouter() {
   const hasPendingTx = useStorage(
     useShallow(({ state }) => Object.keys(state.pendingTransaction).length > 0)
   )
-  if (hasPendingTx && !location.startsWith(Path.TransactionAuthorization)) {
-    navigate(Path.TransactionAuthorization)
+  if (hasPendingTx && !location.startsWith(Path.Review)) {
+    navigate(Path.Review)
     return
   }
 
@@ -82,10 +82,7 @@ function PageRouter() {
         />
         <Route path={Path.WebAuthnDevtool} component={WebAuthnDevtool} />
 
-        <Route
-          path={Path.TransactionAuthorization}
-          component={TransactionAuthorization}
-        />
+        <Route path={Path.Review} component={Review} />
 
         <Route path="*">
           <Redirect to={Path.Home} />
