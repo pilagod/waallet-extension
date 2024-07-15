@@ -101,14 +101,18 @@ describeWaalletSuite({
     it("should send transaction to contract", async () => {
       console.log("should send transaction to contract")
 
+      console.log("topup account")
       await ctx.topupAccount()
+      console.log("topup account ended")
 
       const {
         contract: { counter },
         provider: { node }
       } = ctx
 
+      console.log("balance before")
       const balanceBefore = await node.getBalance(counter.getAddress())
+      console.log("counter before")
       const counterBefore = (await counter.number()) as bigint
 
       try {
