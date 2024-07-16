@@ -1,16 +1,12 @@
 import * as ethers from "ethers"
-import { useCallback, useContext, useState, type ChangeEvent } from "react"
-import { Link } from "wouter"
+import { useContext, useState, type ChangeEvent } from "react"
 
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
-import { useProviderContext } from "~app/context/provider"
 import { SendTokenContext } from "~app/context/sendTokenContext"
 import { Path } from "~app/path"
 import { useAccount } from "~app/storage"
-import { getErc20Contract } from "~packages/network/util"
-import address from "~packages/util/address"
 import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -133,11 +129,8 @@ const SendAmount = ({ amount, onChangeAmount }) => {
   )
 }
 // Select token -> Select address -> Send amount -> Review
-
 export function Send() {
-  const { provider } = useProviderContext()
-
-  const { tokens, tokenSelected, step } = useContext(SendTokenContext)
+  const { step } = useContext(SendTokenContext)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 
@@ -147,43 +140,5 @@ export function Send() {
     <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
   ]
 
-  const handleSend = useCallback(async () => {
-    const signer = await provider.getSigner()
-    if (address.isEqual(tokenSelected.address, tokens[0].address)) {
-      return sendNativeToken(signer, txTo, txValue)
-    }
-    return sendErc20Token(signer, txTo, txValue, tokenSelected)
-  }, [txTo, txValue])
-
   return stepsComponents[step]
-}
-
-const sendNativeToken = async (
-  signer: ethers.JsonRpcSigner,
-  to: HexString,
-  value: BigNumberish
-) => {
-  return await signer.sendTransaction({
-    to: to,
-    value: ethers.parseUnits(value.toString(), "ether"),
-    data: "0x"
-  })
-}
-
-const sendErc20Token = async (
-  signer: ethers.JsonRpcSigner,
-  toAddress: HexString,
-  value: BigNumberish,
-  token: Token
-) => {
-  const erc20 = getErc20Contract(token.address, signer)
-  const data = erc20.interface.encodeFunctionData("transfer", [
-    toAddress,
-    ethers.parseUnits(value.toString(), token.decimals)
-  ])
-  return await signer.sendTransaction({
-    to: token.address,
-    value: 0,
-    data: data
-  })
 }
