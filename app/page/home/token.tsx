@@ -1,37 +1,36 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getAddress, parseUnits, toNumber } from "ethers"
-import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import Ethereum from "react:~assets/ethereum.svg"
 import { Link } from "wouter"
+import { useContext, useState, type ChangeEvent } from "react"
 
 import { useProviderContext } from "~app/context/provider"
+import { SendTokenContext } from "~app/context/sendTokenContext"
 import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
+import type { Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Token() {
-  const tokens = useTokens()
-  const account = useAccount()
-
   const [isTokenImportModalOpened, setIsTokenImportModalOpened] =
     useState<boolean>(false)
-  const [selectedTokenAddress, setSelectedTokenAddress] =
-    useState<HexString>("")
 
   const toggleTokenImportModal = () => {
     setIsTokenImportModalOpened((prev) => !prev)
   }
-  const openTokenInfoModal = (tokenAddress: HexString) => {
-    setSelectedTokenAddress(tokenAddress)
+  const openTokenInfoModal = (token: Token) => {
+    setTokenSelected(token)
   }
   const closeTokenInfoModal = () => {
-    setSelectedTokenAddress("")
+    setTokenSelected(null)
   }
+  const { tokens, tokenSelected, setTokenSelected } =
+    useContext(SendTokenContext)
 
   return (
     <>
@@ -114,15 +113,12 @@ function TokenInfoModal({
 }) {
   const { updateToken, removeToken } = useAction()
   const account = useAccount()
-  const tokens = useTokens()
-  const token = tokens.find((token) =>
-    address.isEqual(token.address, tokenAddress)
-  )
+  const { tokenSelected, setStep } = useContext(SendTokenContext)
 
   const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
-  const tokenExplorerUrl = `${explorerUrl}token/${token.address}?a=${account.address}`
+  const tokenExplorerUrl = `${explorerUrl}token/${tokenSelected.address}?a=${account.address}`
 
-  const [tokenSymbol, setTokenSymbol] = useState<string>(token.symbol)
+  const [tokenSymbol, setTokenSymbol] = useState<string>(tokenSelected.symbol)
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
   const [isViewExplorerVisible, setIsViewExplorerVisible] = useState(false)
   const [isTokenSendModalOpened, setIsTokenSendModalOpened] =
@@ -140,7 +136,7 @@ function TokenInfoModal({
 
   const handleUpdate = async () => {
     await updateToken(account.id, tokenAddress, {
-      balance: token.balance,
+      balance: tokenSelected.balance,
       symbol: tokenSymbol
     })
     onModalClosed()
@@ -172,7 +168,7 @@ function TokenInfoModal({
           </button>
         </div>
         <div>
-          <span>{token.symbol}</span>
+          <span>{tokenSelected.symbol}</span>
           <button onClick={toggleViewExplorerVisibility} className="ml-2">
             ...
           </button>
@@ -186,9 +182,12 @@ function TokenInfoModal({
         </div>
         <div className="text-center">
           <span>
-            {number.formatUnitsToFixed(token.balance, token.decimals)}
+            {number.formatUnitsToFixed(
+              tokenSelected.balance,
+              tokenSelected.decimals
+            )}
           </span>
-          <span>{token.symbol}</span>
+          <span>{tokenSelected.symbol}</span>
         </div>
         <div>
           <label htmlFor="tokenAddress">Token Address:</label>
@@ -218,7 +217,7 @@ function TokenInfoModal({
             className="border w-96 outline-none border-gray-300"
             type="text"
             id="tokenDecimals"
-            value={token.decimals}
+            value={tokenSelected.decimals}
             disabled={true}
           />
         </div>

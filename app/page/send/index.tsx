@@ -1,14 +1,14 @@
 import * as ethers from "ethers"
-import { useCallback, useState, type ChangeEvent } from "react"
+import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useProviderContext } from "~app/context/provider"
+import { SendTokenContext } from "~app/context/sendTokenContext"
 import { Path } from "~app/path"
-import { useAccount, useTokens } from "~app/storage"
-import { getChainName, getErc20Contract } from "~packages/network/util"
+import { useAccount } from "~app/storage"
+import { getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
-import number from "~packages/util/number"
 import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -111,18 +111,10 @@ const SendAmount = ({ amount, onChangeAmount }) => {
 
 export function Send() {
   const { provider } = useProviderContext()
-  const account = useAccount()
-  const nativeToken: Token = {
-    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-    symbol: `${getChainName(account.chainId)}ETH`,
-    decimals: 18,
-    balance: account.balance
-  }
-  const tokens = [nativeToken, ...useTokens()]
-  const [token, setToken] = useState<Token>(tokens[0])
+
+  const { tokens, tokenSelected, step, setStep } = useContext(SendTokenContext)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
-  const [step, setStep] = useState<number>(0)
 
   const stepsComponents = [
     <SelectToken key="step1" tokens={tokens} onSelectToken={setToken} />,
