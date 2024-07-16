@@ -8,15 +8,22 @@ import { Divider } from "./divider"
 type StepBackHeaderProps = {
   title: string
   children?: React.ReactNode
-  href: Path
+  href?: Path
+  handleOnClick?: () => void
 }
 export const StepBackHeader = (props: StepBackHeaderProps) => {
-  const { title, children, href } = props
+  const { title, children, href, handleOnClick } = props
   return (
     <div className="flex flex-col gap-[16px]">
-      <Link href={href}>
-        <ArrowLeft />
-      </Link>
+      {handleOnClick ? (
+        <button onClick={handleOnClick}>
+          <ArrowLeft />
+        </button>
+      ) : (
+        <Link href={href}>
+          <ArrowLeft />
+        </Link>
+      )}
 
       <h1 className="text-[24px]">{title}</h1>
       {children}
