@@ -40,11 +40,6 @@ const SelectToken = ({ tokens, onSelectToken }) => {
           )
         })}
       </select>
-      {/* <button
-        // onClick={setStep(step+1)}
-        className="flex-1">
-        Next
-      </button> */}
     </div>
   )
 }
