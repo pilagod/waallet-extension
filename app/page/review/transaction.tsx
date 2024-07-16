@@ -9,7 +9,7 @@ import { useClsState } from "use-cls-state"
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
-import { useProviderContext } from "~app/context/provider"
+import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useNetwork } from "~app/storage"
@@ -40,7 +40,7 @@ export type PaymentOption = {
 export function TransactionConfirmation(props: { tx: TransactionPending }) {
   const { tx } = props
 
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const network = useNetwork(tx.networkId)
   const sender = useAccount(tx.senderId)
 
@@ -74,7 +74,7 @@ function UserOperationConfirmation(props: {
 }) {
   const { tx, sender, network } = props
 
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
 
   const paymentOptions: PaymentOption[] = [
     {
