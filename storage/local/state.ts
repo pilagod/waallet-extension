@@ -45,6 +45,7 @@ export type Network = {
 export type Account = SimpleAccount | PasskeyAccount
 
 export type AccountMeta<T> = {
+  id: string
   transactionLog: {
     [txId: string]: TransactionLog
   }

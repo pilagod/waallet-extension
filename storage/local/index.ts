@@ -26,13 +26,15 @@ export async function getLocalStorage() {
     // Load accounts into storage
     // TODO: Consider to write id into account
     const account = state.account ?? {}
+    // Patch id for accounts
+    Object.entries(account).forEach(([id, a]) => {
+      a.id = id
+    })
     config.accounts.forEach((a) => {
-      const targetAccount = Object.entries(account)
-        .map(([id, as]) => ({ id, ...as }))
-        .find(
-          (as) =>
-            a.chainId === as.chainId && address.isEqual(a.address, as.address)
-        ) ?? { id: uuidv4(), transactionLog: {}, balance: "0x00", tokens: [] }
+      const targetAccount = Object.values(account).find(
+        (as) =>
+          a.chainId === as.chainId && address.isEqual(a.address, as.address)
+      ) ?? { id: uuidv4(), transactionLog: {}, balance: "0x00", tokens: [] }
       Object.assign(account, {
         [targetAccount.id]: {
           ...targetAccount,
