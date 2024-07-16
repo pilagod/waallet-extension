@@ -28,7 +28,6 @@ export const decodeTransferParams = (calldata: HexString): TransferParam => {
   const transferAbi = [
     "function transfer(address to, uint256 value) public returns (bool)"
   ]
-  console.log(`[ttt] method id: ${calldata.slice(0, 10)}`)
   const transferIface = new Interface(transferAbi)
   const [to, value] = transferIface.decodeFunctionData("transfer", calldata)
   return { to, value }
