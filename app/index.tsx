@@ -17,6 +17,7 @@ import { useStorage } from "~app/storage"
 import "~style.css"
 
 import { Toast } from "./component/toast"
+import { SendTokenContext, SendTokenProvider } from "./context/sendTokenContext"
 import { ToastProvider } from "./context/toastContext"
 
 export function App() {
@@ -41,11 +42,13 @@ export function App() {
   return (
     <ProviderContextProvider>
       <ToastProvider>
-        {/* Waallet popup script page */}
-        <div className="w-[390px] h-[600px] px-[16px] pt-[20px]">
-          <Toast />
-          <PageRouter />
-        </div>
+        <SendTokenProvider>
+          {/* Waallet popup script page */}
+          <div className="w-[390px] h-[600px] px-[16px] pt-[20px]">
+            <Toast />
+            <PageRouter />
+          </div>
+        </SendTokenProvider>
       </ToastProvider>
     </ProviderContextProvider>
   )
