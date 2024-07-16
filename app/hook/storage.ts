@@ -5,96 +5,65 @@ import { useStorage } from "~app/storage"
 export { useStorage } from "~app/storage"
 
 export const useAction = () => {
-  return useStorage(
-    useShallow(({ state, ...action }) => {
-      return action
-    })
-  )
+  return useStorage(({ state, ...action }) => {
+    return action
+  })
 }
 
 export const useNetwork = (id?: string) => {
-  return useStorage(
-    useShallow(({ state }) => {
-      const networkId = id ?? state.networkActive
-      return {
-        id: networkId,
-        ...state.network[networkId]
-      }
-    })
-  )
+  return useStorage(({ state }) => {
+    return state.network[id ?? state.networkActive]
+  })
 }
 
 export const useNetworks = () => {
-  return useStorage(
-    useShallow(({ state }) => {
-      return Object.entries(state.network).map(([id, n]) => ({
-        id,
-        ...n
-      }))
-    })
-  )
-}
-
-export const useShouldOnboard = () => {
-  return useStorage(
-    useShallow(({ state }) => {
-      const network = useNetwork()
-      return (
-        Object.values(state.account).filter(
-          (a) => a.chainId === network.chainId
-        ).length === 0
-      )
-    })
-  )
+  return useStorage(({ state }) => {
+    return Object.values(state.network)
+  })
 }
 
 export const useAccount = (id?: string) => {
+  const network = useNetwork()
+  return useStorage(({ state }) => {
+    return state.account[id ?? network.accountActive]
+  })
+}
+
+export const useAccountCount = (networkId?: string) => {
+  const network = useNetwork(networkId)
   return useStorage(
     useShallow(({ state }) => {
-      const network = useNetwork()
-      const accountId = id ?? network.accountActive
-      return {
-        id: accountId,
-        ...state.account[accountId]
-      }
+      return Object.values(state.account).filter(
+        (a) => a.chainId === network.chainId
+      ).length
     })
   )
 }
 
 export const useAccounts = () => {
-  return useStorage(
-    useShallow(({ state }) => {
-      const network = useNetwork()
-      return Object.entries(state.account)
-        .filter(([_, a]) => a.chainId === network.chainId)
-        .map(([id, a]) => {
-          return { id, ...a }
-        })
-    })
-  )
+  const network = useNetwork()
+  return useStorage(({ state }) => {
+    return Object.values(state.account).filter(
+      (a) => a.chainId === network.chainId
+    )
+  })
 }
 
 export const useTransactionLogs = (accountId: string) => {
-  return useStorage(
-    useShallow(({ state }) => {
-      return Object.values(state.account[accountId].transactionLog)
-    })
-  )
+  return useStorage(({ state }) => {
+    return Object.values(state.account[accountId].transactionLog)
+  })
 }
 
 export const usePendingTransactions = () => {
-  return useStorage(
-    useShallow(({ state }) => {
-      return Object.values(state.pendingTransaction)
-    })
-  )
+  return useStorage(({ state }) => {
+    return Object.values(state.pendingTransaction)
+  })
 }
 
 export const useTokens = (accountId?: string) => {
-  return useStorage(
-    useShallow(({ state }) => {
-      const account = useAccount(accountId)
-      return state.account[account.id].tokens
-    })
-  )
+  const account = useAccount(accountId)
+  return useStorage(({ state }) => {
+    return state.account[account.id].tokens
+  })
 }
