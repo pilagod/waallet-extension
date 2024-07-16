@@ -14,15 +14,16 @@ import address from "~packages/util/address"
 import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
-const SelectToken = ({ tokens, onSelectToken }) => {
-  const handleAssetChange = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const tokenAddress = event.target.value
-    console.log(`tokenAddress: ${tokenAddress}`)
-    const token = tokens.find((token) => token.address === tokenAddress)
-    onSelectToken(token)
+const SelectToken = () => {
+  const { tokens, setTokenSelected, step, setStep } =
+    useContext(SendTokenContext)
+  const handleOnSelectToken = (token: Token) => {
+    setTokenSelected(token)
+    setStep(step + 1)
   }
-
   return (
+    <>
+      <StepBackHeader title="Select Token" href={Path.Index} />
       <TokenList>
         {tokens.map((token, index) => (
           <TokenItem
@@ -32,12 +33,14 @@ const SelectToken = ({ tokens, onSelectToken }) => {
           />
         ))}
       </TokenList>
+    </>
   )
 }
 
 const SelectAddress = ({ to, onChangeTo }) => {
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const account = useAccount()
+  const { setTokenSelected, step, setStep } = useContext(SendTokenContext)
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -51,21 +54,37 @@ const SelectAddress = ({ to, onChangeTo }) => {
     }
   }
   return (
-    <div className="flex">
-      <label className="flex-1">To:</label>
-      <input
-        type="text"
-        id="to"
-        value={`${to}`}
-        onChange={handleToChange}
-        list="suggestionTo"
-        className={`border w-96 outline-none ${
-          invalidTo ? "border-red-500" : "border-gray-300"
-        }`}></input>
-      <datalist id="suggestionTo">
-        <option value={account.address}></option>
-      </datalist>
-    </div>
+    <>
+      <StepBackHeader
+        title="Select Address"
+        handleOnClick={() => {
+          setTokenSelected(null)
+          setStep(step - 1)
+        }}
+      />
+      <div className="flex">
+        <label className="flex-1">To:</label>
+        <input
+          type="text"
+          id="to"
+          value={`${to}`}
+          onChange={handleToChange}
+          list="suggestionTo"
+          className={`border w-96 outline-none ${
+            invalidTo ? "border-red-500" : "border-gray-300"
+          }`}></input>
+        <datalist id="suggestionTo">
+          <option value={account.address}></option>
+        </datalist>
+      </div>
+      <button
+        onClick={() => {
+          setStep(step + 1)
+        }}
+        className="flex-1">
+        Next
+      </button>
+    </>
   )
 }
 
@@ -85,17 +104,32 @@ const SendAmount = ({ amount, onChangeAmount }) => {
   }
 
   return (
-    <div className="flex">
-      <label className="flex-1">Amount:</label>
-      <input
-        type="text"
-        id="amount"
-        value={`${amount}`}
-        onChange={handleAmountChange}
-        className={`border w-96 outline-none ${
-          invalidValue ? "border-red-500" : "border-gray-300"
-        }`}></input>
-    </div>
+    <>
+      <StepBackHeader
+        title="Send Amount"
+        handleOnClick={() => {
+          //TODO
+        }}
+      />
+      <div className="flex">
+        <label className="flex-1">Amount:</label>
+        <input
+          type="text"
+          id="amount"
+          value={`${amount}`}
+          onChange={handleAmountChange}
+          className={`border w-96 outline-none ${
+            invalidValue ? "border-red-500" : "border-gray-300"
+          }`}></input>
+      </div>
+      <button
+        onClick={() => {
+          //TODO
+        }}
+        className="flex-1">
+        Next
+      </button>
+    </>
   )
 }
 // Select token -> Select address -> Send amount -> Review
@@ -103,66 +137,25 @@ const SendAmount = ({ amount, onChangeAmount }) => {
 export function Send() {
   const { provider } = useProviderContext()
 
-  const { tokens, tokenSelected, step, setStep } = useContext(SendTokenContext)
+  const { tokens, tokenSelected, step } = useContext(SendTokenContext)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 
   const stepsComponents = [
-    <SelectToken key="step1" tokens={tokens} onSelectToken={setToken} />,
+    <SelectToken key="step1" />,
     <SelectAddress key="step2" to={txTo} onChangeTo={setTxTo} />,
     <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
   ]
-  const stepsTitle = ["Select Token", "Select Address", "Send Amount"]
-
-  const handlePrevStep = useCallback(() => {
-    if (step > 0) {
-      setStep(step - 1)
-    }
-  }, [step])
-
-  const handleNextStep = useCallback(() => {
-    if (step < 2) {
-      setStep(step + 1)
-    }
-  }, [step])
 
   const handleSend = useCallback(async () => {
     const signer = await provider.getSigner()
-    if (address.isEqual(token.address, nativeToken.address)) {
+    if (address.isEqual(tokenSelected.address, tokens[0].address)) {
       return sendNativeToken(signer, txTo, txValue)
     }
-    return sendErc20Token(signer, txTo, txValue, token)
+    return sendErc20Token(signer, txTo, txValue, tokenSelected)
   }, [txTo, txValue])
 
-  return (
-    <>
-      {step === 0 ? (
-        <StepBackHeader title={stepsTitle[0]} href={Path.Index} />
-      ) : (
-        <StepBackHeader
-          title={stepsTitle[step]}
-          handleOnClick={handlePrevStep}
-        />
-      )}
-      {stepsComponents[step]}
-      <div className="flex">
-        {step < 2 ? (
-          <button onClick={handleNextStep} className="flex-1">
-            Next
-          </button>
-        ) : (
-          <>
-            <Link href={Path.Home} className="flex-1">
-              Cancel
-            </Link>
-            <button onClick={handleSend} className="flex-1">
-              Send
-            </button>
-          </>
-        )}
-      </div>
-    </>
-  )
+  return stepsComponents[step]
 }
 
 const sendNativeToken = async (
