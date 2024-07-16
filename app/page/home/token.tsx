@@ -1,10 +1,11 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getAddress, parseUnits, toNumber } from "ethers"
-import Ethereum from "react:~assets/ethereum.svg"
 import { Link } from "wouter"
 import { useContext, useState, type ChangeEvent } from "react"
 
+import { TokenItem } from "~app/component/tokenItem"
+import { TokenList } from "~app/component/tokenList"
 import { useProviderContext } from "~app/context/provider"
 import { SendTokenContext } from "~app/context/sendTokenContext"
 import { ToastContext } from "~app/context/toastContext"
@@ -33,74 +34,33 @@ export function Token() {
     useContext(SendTokenContext)
 
   return (
-    <>
-      {/* Home page token list */}
-      <div className="w-full flex flex-col items-start">
-        {/* Native token cell */}
-        <Link
-          className="w-full flex items-center p-[13.5px_0px_13.5px_0px]"
-          href={Path.Send}>
-          {/* Native token image */}
-          <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
-          {/* Native token symbol */}
-          <div className="flex-grow leading-[24px] text-[20px] text-[#000000] text-left whitespace-nowrap">
-            {`${getChainName(account.chainId)}ETH`}
-          </div>
-          {/* Native token balance */}
-          <div className="flex flex-col items-end">
-            <div className="mb-[4px] leading-[24.5px] text-[20px] font-[600] text-[#000000]">
-              {number.formatUnitsToFixed(account.balance, 18, 2)}
-            </div>
-            <div className="leading-[14.5px] text-[12px] text-[#000000]">
-              $1.23
-            </div>
-          </div>
-        </Link>
-        {/* Token cell */}
-        {tokens.map((token, index) => {
-          return (
-            <button
-              className="w-full flex items-center p-[13.5px_0px_13.5px_0px]"
-              onClick={() => openTokenInfoModal(token.address)}
-              key={index}>
-              {/* Token image */}
-              <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
-              {/* Token symbol */}
-              <div className="flex-grow leading-[24px] text-[20px] text-[#000000] text-left whitespace-nowrap">
-                {token.symbol}
-              </div>
-              {/* Token balance */}
-              <div className="flex flex-col items-end">
-                <div className="mb-[4px] leading-[24.5px] text-[20px] font-[600] text-[#000000]">
-                  {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
-                </div>
-                <div className="leading-[14.5px] text-[12px] text-[#000000]">
-                  $1000.00
-                </div>
-              </div>
-            </button>
-          )
-        })}
-        {/* Token information modal */}
-        {selectedTokenAddress && (
-          <TokenInfoModal
-            onModalClosed={closeTokenInfoModal}
-            tokenAddress={selectedTokenAddress}
-          />
-        )}
-        {/* Token importing button */}
-        <div
-          className="col-span-3 cursor-pointer"
-          onClick={toggleTokenImportModal}>
-          <span>Import Tokens</span>
-          <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-        </div>
-        {/* Token importing modal */}
-        {isTokenImportModalOpened && (
-          <TokenImportModal onModalClosed={toggleTokenImportModal} />
-        )}
+    <TokenList>
+      {tokens.map((token, index) => (
+        <TokenItem
+          token={token}
+          key={index}
+          onClick={() => openTokenInfoModal(token)}
+        />
+      ))}
+      {/* Token information modal */}
+      {tokenSelected && (
+        <TokenInfoModal
+          onModalClosed={closeTokenInfoModal}
+          tokenAddress={tokenSelected.address}
+        />
+      )}
+      {/* Token importing button */}
+      <div
+        className="col-span-3 cursor-pointer"
+        onClick={toggleTokenImportModal}>
+        <span>Import Tokens</span>
+        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
       </div>
-    </>
+      {/* Token importing modal */}
+      {isTokenImportModalOpened && (
+        <TokenImportModal onModalClosed={toggleTokenImportModal} />
+      )}
+    </TokenList>
   )
 }
 

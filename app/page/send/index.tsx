@@ -3,6 +3,8 @@ import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
 import { StepBackHeader } from "~app/component/stepBackHeader"
+import { TokenItem } from "~app/component/tokenItem"
+import { TokenList } from "~app/component/tokenList"
 import { useProviderContext } from "~app/context/provider"
 import { SendTokenContext } from "~app/context/sendTokenContext"
 import { Path } from "~app/path"
@@ -21,26 +23,15 @@ const SelectToken = ({ tokens, onSelectToken }) => {
   }
 
   return (
-    <div className="flex">
-      <label className="col-span-1">Asset:</label>
-      <select
-        id="asset"
-        value={tokens[0].address}
-        className="col-span-4 border w-full outline-none border-gray-300"
-        onChange={handleAssetChange}>
-        {tokens.map((token) => {
-          const balance = number.formatUnitsToFixed(
-            token.balance,
-            token.decimals
-          )
-          return (
-            <option key={token.address} value={token.address}>
-              {token.symbol}: {balance} {token.symbol}
-            </option>
-          )
-        })}
-      </select>
-    </div>
+      <TokenList>
+        {tokens.map((token, index) => (
+          <TokenItem
+            key={index}
+            token={token}
+            onClick={() => handleOnSelectToken(token)}
+          />
+        ))}
+      </TokenList>
   )
 }
 
