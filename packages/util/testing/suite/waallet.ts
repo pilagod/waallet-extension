@@ -10,6 +10,7 @@ import {
 } from "~packages/bundler/userOperation"
 import { SingleNetworkManager } from "~packages/network/manager/single"
 import type { Paymaster } from "~packages/paymaster"
+import json from "~packages/util/json"
 import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 import type { BigNumberish } from "~typing"
@@ -36,6 +37,11 @@ export class WaalletSuiteContext<T extends Account> {
 
   public async topupAccount(balance?: BigNumberish) {
     // TODO: Use default paymaster to accelerate
+    const tx = await config.wallet.operator.populateTransaction({
+      to: await this.account.getAddress(),
+      value: balance ?? ethers.parseEther("1")
+    })
+    console.log("operator populate topup account:", json.stringify(tx))
     return (
       await config.wallet.operator.sendTransaction({
         to: await this.account.getAddress(),
