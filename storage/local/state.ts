@@ -27,6 +27,7 @@ export type State = {
 /* Netowork */
 
 export type Network = {
+  id: string
   chainId: number
   name: string
   nodeRpcUrl: string

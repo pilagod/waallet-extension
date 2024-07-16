@@ -34,7 +34,12 @@ export async function getLocalStorage() {
       const targetAccount = Object.values(account).find(
         (as) =>
           a.chainId === as.chainId && address.isEqual(a.address, as.address)
-      ) ?? { id: uuidv4(), transactionLog: {}, balance: "0x00", tokens: [] }
+      ) ?? {
+        id: uuidv4(),
+        transactionLog: {},
+        balance: "0x00",
+        tokens: []
+      }
       Object.assign(account, {
         [targetAccount.id]: {
           ...targetAccount,
@@ -46,11 +51,15 @@ export async function getLocalStorage() {
     // Load networks into storage
     // TODO: Consider to write id into network
     const network = state.network ?? {}
+    // Patch id for networks
+    Object.entries(network).forEach(([id, n]) => {
+      n.id = id
+    })
     let networkActive = state.networkActive
     config.networks.forEach((n) => {
-      const targetNetwork = Object.entries(network)
-        .map(([id, ns]) => ({ id, ...ns }))
-        .find((ns) => n.chainId === ns.chainId) ?? {
+      const targetNetwork = Object.values(network).find(
+        (ns) => n.chainId === ns.chainId
+      ) ?? {
         id: uuidv4(),
         accountActive: null
       }
