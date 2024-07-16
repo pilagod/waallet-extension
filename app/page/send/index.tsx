@@ -12,53 +12,12 @@ import number from "~packages/util/number"
 import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
-// Select token -> Select address -> Send amount -> Review
-export function Send() {
-  // need to store: the token, to address, and amount
-  const { provider } = useProviderContext()
-  //   const handleSend = useCallback(async () => {
-  //     const signer = await provider.getSigner()
-  //     if (address.isEqual(token.address, nativeToken.address)) {
-  //       return sendNativeToken(signer, txTo, txValue)
-  //     }
-  //     return sendErc20Token(signer, txTo, txValue, token)
-  //   }, [txTo, txValue])
-
-  return (
-    <>
-      <StepBackHeader title="Send" href={Path.Index}></StepBackHeader>
-      {/* <SelectToken /> */}
-      <div className="flex">
-        <button
-          //   onClick={handleSend}
-          //   disabled={invalidTo || invalidValue}
-          className="flex-1">
-          Send
-        </button>
-        <Link href={Path.Home} className="flex-1">
-          Cancel
-        </Link>
-      </div>
-    </>
-  )
-}
-
-const SelectToken = () => {
-  const account = useAccount()
-  const nativeToken: Token = {
-    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-    symbol: `${getChainName(account.chainId)}ETH`,
-    decimals: 18,
-    balance: account.balance
-  }
-
-  const [token, setToken] = useState<Token>(nativeToken)
-  const tokens = [nativeToken, ...useTokens()]
+const SelectToken = ({ tokens, onSelectToken }) => {
   const handleAssetChange = async (event: ChangeEvent<HTMLSelectElement>) => {
     const tokenAddress = event.target.value
     console.log(`tokenAddress: ${tokenAddress}`)
     const token = tokens.find((token) => token.address === tokenAddress)
-    setToken(token)
+    onSelectToken(token)
   }
 
   return (
@@ -66,7 +25,7 @@ const SelectToken = () => {
       <label className="col-span-1">Asset:</label>
       <select
         id="asset"
-        value={token.address}
+        value={tokens[0].address}
         className="col-span-4 border w-full outline-none border-gray-300"
         onChange={handleAssetChange}>
         {tokens.map((token) => {
@@ -81,18 +40,22 @@ const SelectToken = () => {
           )
         })}
       </select>
+      {/* <button
+        // onClick={setStep(step+1)}
+        className="flex-1">
+        Next
+      </button> */}
     </div>
   )
 }
 
-const SelectAddress = () => {
-  const [txTo, setTxTo] = useState<HexString>("")
+const SelectAddress = ({ to, onChangeTo }) => {
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const account = useAccount()
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
-    setTxTo(value)
+    onChangeTo(value)
     try {
       console.log(`${ethers.getAddress(value)}`)
       setInvalidTo(false)
@@ -107,7 +70,7 @@ const SelectAddress = () => {
       <input
         type="text"
         id="to"
-        value={`${txTo}`}
+        value={`${to}`}
         onChange={handleToChange}
         list="suggestionTo"
         className={`border w-96 outline-none ${
@@ -120,13 +83,12 @@ const SelectAddress = () => {
   )
 }
 
-const SendAmount = () => {
-  const [txValue, setTxValue] = useState<BigNumberish>("0")
+const SendAmount = ({ amount, onChangeAmount }) => {
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
-    setTxValue(value)
+    onChangeAmount(value)
     try {
       console.log(`${ethers.parseUnits(value, "ether")}`)
       setInvalidValue(false)
@@ -142,12 +104,86 @@ const SendAmount = () => {
       <input
         type="text"
         id="amount"
-        value={`${txValue}`}
+        value={`${amount}`}
         onChange={handleAmountChange}
         className={`border w-96 outline-none ${
           invalidValue ? "border-red-500" : "border-gray-300"
         }`}></input>
     </div>
+  )
+}
+// Select token -> Select address -> Send amount -> Review
+
+export function Send() {
+  const { provider } = useProviderContext()
+  const account = useAccount()
+  const nativeToken: Token = {
+    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+    symbol: `${getChainName(account.chainId)}ETH`,
+    decimals: 18,
+    balance: account.balance
+  }
+  const tokens = [nativeToken, ...useTokens()]
+  const [token, setToken] = useState<Token>(tokens[0])
+  const [txTo, setTxTo] = useState<HexString>("")
+  const [txValue, setTxValue] = useState<BigNumberish>("0")
+  const [step, setStep] = useState<number>(0)
+
+  const stepsComponents = [
+    <SelectToken key="step1" tokens={tokens} onSelectToken={setToken} />,
+    <SelectAddress key="step2" to={txTo} onChangeTo={setTxTo} />,
+    <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
+  ]
+  const stepsTitle = ["Select Token", "Select Address", "Send Amount"]
+
+  const handlePrevStep = useCallback(() => {
+    if (step > 0) {
+      setStep(step - 1)
+    }
+  }, [step])
+
+  const handleNextStep = useCallback(() => {
+    if (step < 2) {
+      setStep(step + 1)
+    }
+  }, [step])
+
+  const handleSend = useCallback(async () => {
+    const signer = await provider.getSigner()
+    if (address.isEqual(token.address, nativeToken.address)) {
+      return sendNativeToken(signer, txTo, txValue)
+    }
+    return sendErc20Token(signer, txTo, txValue, token)
+  }, [txTo, txValue])
+
+  return (
+    <>
+      {step === 0 ? (
+        <StepBackHeader title={stepsTitle[0]} href={Path.Index} />
+      ) : (
+        <StepBackHeader
+          title={stepsTitle[step]}
+          handleOnClick={handlePrevStep}
+        />
+      )}
+      {stepsComponents[step]}
+      <div className="flex">
+        {step < 2 ? (
+          <button onClick={handleNextStep} className="flex-1">
+            Next
+          </button>
+        ) : (
+          <>
+            <Link href={Path.Home} className="flex-1">
+              Cancel
+            </Link>
+            <button onClick={handleSend} className="flex-1">
+              Send
+            </button>
+          </>
+        )}
+      </div>
+    </>
   )
 }
 
