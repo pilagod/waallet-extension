@@ -11,7 +11,7 @@ import { getChainName } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { TransactionStatus, type TransactionLog } from "~storage/local/state"
-import type { BigNumberish } from "~typing"
+import type { BigNumberish, HexString } from "~typing"
 
 const explorerUrl = "https://jiffyscan.xyz/"
 
@@ -41,6 +41,12 @@ const TransactionHistory: React.FC<{
   )
 }
 
+type TokenTransferInfo = {
+  symbol: string
+  value: BigNumberish
+  to: HexString
+}
+
 const UserOpHistoryItem: React.FC<{
   txLog: TransactionLog
   chainName: string
@@ -60,25 +66,25 @@ const UserOpHistoryItem: React.FC<{
   })
   const { to, value, data } = decodeExecuteParams(type, detail.data.callData)
 
-  const tokenData = {
-    tokenSymbol: `${chainName}ETH`,
-    tokenValue: value,
-    tokenTo: to
+  const tokenInfo: TokenTransferInfo = {
+    symbol: `${chainName}ETH`,
+    value,
+    to
   }
 
   // Check if the transaction "to" address is a stored token
-  const token = tokens.find((token) => address.isEqual(token.address, to))
+  const tokenStored = tokens.find((token) => address.isEqual(token.address, to))
 
   // If a token is found, consider it an ERC20 token transfer
-  if (token) {
+  if (tokenStored) {
     const { to: tokenTo, value: tokenValue } = decodeTransferParams(data)
-    tokenData.tokenSymbol = token.symbol
-    tokenData.tokenValue = tokenValue
-    tokenData.tokenTo = tokenTo
+    tokenInfo.symbol = tokenStored.symbol
+    tokenInfo.value = tokenValue
+    tokenInfo.to = tokenTo
   }
 
   // Check if it's a token send or contract interaction
-  const topicType = data === "0x" || token ? "send" : "contract"
+  const topicType = data === "0x" || tokenStored ? "send" : "contract"
 
   if (
     status === TransactionStatus.Succeeded ||
@@ -94,11 +100,7 @@ const UserOpHistoryItem: React.FC<{
           <Time date={creationDate} time={creationTime} link={link} />
         </div>
         {/* Activity Status element */}
-        <Status
-          status={status}
-          symbol={tokenData.tokenSymbol}
-          value={tokenData.tokenValue}
-        />
+        <Status status={status} tokenInfo={tokenInfo} />
       </div>
     )
   }
@@ -142,16 +144,16 @@ const topic: Record<TopicType, JSX.Element> = {
 
 const Status: React.FC<{
   status: TransactionStatus
-  symbol?: string
-  value?: BigNumberish
-}> = ({ status, symbol, value }) => {
-  if (symbol && value) {
+  tokenInfo?: TokenTransferInfo
+}> = ({ status, tokenInfo }) => {
+  if (tokenInfo) {
     switch (status) {
       case TransactionStatus.Succeeded:
         return (
           <div className="flex items-center">
             <div className="text-[16px] text-[#FF5151] whitespace-nowrap">
-              - {number.formatUnitsToFixed(value, 18, 4)} {symbol}
+              - {number.formatUnitsToFixed(tokenInfo.value, 18, 4)}{" "}
+              {tokenInfo.symbol}
             </div>
           </div>
         )
