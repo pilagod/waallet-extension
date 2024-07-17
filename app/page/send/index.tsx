@@ -8,9 +8,17 @@ import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { SendTokenContext } from "~app/context/sendTokenContext"
-import { useAccount } from "~app/storage"
 import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
+
+const isValidTo = (to: string) => {
+  try {
+    ethers.getAddress(to)
+    return true
+  } catch (error) {
+    return false
+  }
+}
 
 const SelectToken = () => {
   const { tokens, setTokenSelected, step, setStep } =
@@ -36,20 +44,13 @@ const SelectToken = () => {
 }
 
 const SelectAddress = ({ to, onChangeTo }) => {
-  const [invalidTo, setInvalidTo] = useState<boolean>(false)
-  const account = useAccount()
+  const [validTo, setValidTo] = useState<boolean>(false)
   const { setTokenSelected, step, setStep } = useContext(SendTokenContext)
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     onChangeTo(value)
-    try {
-      console.log(`${ethers.getAddress(value)}`)
-      setInvalidTo(false)
-    } catch (error) {
-      console.log(`Invalid to`)
-      setInvalidTo(true)
-    }
+    setValidTo(isValidTo(value))
   }
   return (
     <>
@@ -74,10 +75,10 @@ const SelectAddress = ({ to, onChangeTo }) => {
         <div>
           <button
             onClick={() => {
-              if (isValidTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")) {
-                onChangeTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")
-                setInvalidTo(false)
-              }
+              onChangeTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")
+              setValidTo(
+                isValidTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")
+              )
             }}>
             <AccountItem
               address={"0x094e5164f1730eaef2f57015aef7e6c3e266c773"}
@@ -88,7 +89,7 @@ const SelectAddress = ({ to, onChangeTo }) => {
       <Divider />
       <Button
         text="Next"
-        disabled={invalidTo}
+        disabled={!validTo}
         onClick={() => {
           setStep(step + 1)
         }}
