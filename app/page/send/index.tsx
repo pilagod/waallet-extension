@@ -1,9 +1,9 @@
 import * as ethers from "ethers"
-import { useCallback, useState, type ChangeEvent } from "react"
+import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
 import { StepBackHeader } from "~app/component/stepBackHeader"
-import { useProviderContext } from "~app/context/provider"
+import { ProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { useAccount, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
@@ -110,7 +110,7 @@ const SendAmount = ({ amount, onChangeAmount }) => {
 // Select token -> Select address -> Send amount -> Review
 
 export function Send() {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const account = useAccount()
   const nativeToken: Token = {
     address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
@@ -154,7 +154,7 @@ export function Send() {
   return (
     <>
       {step === 0 ? (
-        <StepBackHeader title={stepsTitle[0]} href={Path.Index} />
+        <StepBackHeader title={stepsTitle[0]} />
       ) : (
         <StepBackHeader title={stepsTitle[step]} onStepBack={handlePrevStep} />
       )}
