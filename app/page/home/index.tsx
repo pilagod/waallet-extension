@@ -4,7 +4,7 @@ import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
 
 import { Divider } from "~app/component/divider"
-import { useProviderContext } from "~app/context/provider"
+import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
@@ -45,7 +45,7 @@ export function Home() {
 }
 
 function AccountCreation() {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const { createAccount } = useAction()
   const network = useNetwork()
 

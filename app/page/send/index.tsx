@@ -53,7 +53,7 @@ const SelectAddress = ({ to, onChangeTo }) => {
     <>
       <StepBackHeader
         title="Select Address"
-        handleOnClick={() => {
+        onStepBack={() => {
           setTokenSelected(null)
           setStep(step - 1)
         }}
@@ -103,7 +103,7 @@ const SendAmount = ({ amount, onChangeAmount }) => {
     <>
       <StepBackHeader
         title="Send Amount"
-        handleOnClick={() => {
+        onStepBack={() => {
           //TODO
         }}
       />

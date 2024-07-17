@@ -9,18 +9,18 @@ type StepBackHeaderProps = {
   title: string
   children?: React.ReactNode
   href?: Path
-  handleOnClick?: () => void
+  onStepBack?: () => void
 }
 export const StepBackHeader = (props: StepBackHeaderProps) => {
-  const { title, children, href, handleOnClick } = props
+  const { title, children, href, onStepBack } = props
   return (
     <div className="flex flex-col gap-[16px]">
-      {handleOnClick ? (
-        <button onClick={handleOnClick}>
+      {onStepBack ? (
+        <button onClick={onStepBack}>
           <ArrowLeft />
         </button>
       ) : (
-        <Link href={href}>
+        <Link href={href ?? Path.Index}>
           <ArrowLeft />
         </Link>
       )}

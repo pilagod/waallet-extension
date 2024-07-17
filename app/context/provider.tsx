@@ -1,5 +1,5 @@
 import * as ethers from "ethers"
-import { createContext, useContext, type ReactNode } from "react"
+import { createContext, type ReactNode } from "react"
 
 import { BackgroundDirectMessenger } from "~packages/messenger/background/direct"
 import { WaalletContentProvider } from "~packages/waallet/content/provider"
@@ -23,8 +23,4 @@ export function ProviderContextProvider({ children }: { children: ReactNode }) {
       {children}
     </ProviderContext.Provider>
   )
-}
-
-export const useProviderContext = () => {
-  return useContext(ProviderContext)
 }

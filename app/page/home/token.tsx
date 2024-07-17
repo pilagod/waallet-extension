@@ -204,7 +204,7 @@ function TokenInfoModal({
 }
 
 function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const { importToken } = useAction()
   const tokens = useTokens()
   const account = useAccount()
