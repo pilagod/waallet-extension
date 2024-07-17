@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import { Execution } from "~packages/account"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -35,7 +35,7 @@ export class UserOperationV0_6 {
     return new UserOperationV0_6({ ...intent })
   }
 
-  public sender: HexString
+  public sender: Address
   public nonce: bigint
   public initCode: HexString
   public callData: HexString
@@ -48,7 +48,7 @@ export class UserOperationV0_6 {
   public signature: HexString = "0x"
 
   public constructor(data: Partial<UserOperationDataV0_6>) {
-    this.sender = data.sender
+    this.sender = Address.wrap(data.sender)
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
 
@@ -83,7 +83,7 @@ export class UserOperationV0_6 {
         "bytes32"
       ],
       [
-        this.sender,
+        this.sender.unwrap(),
         this.nonce,
         ethers.keccak256(this.initCode),
         ethers.keccak256(this.callData),
@@ -105,7 +105,7 @@ export class UserOperationV0_6 {
 
   public unwrap(): UserOperationDataV0_6 {
     return {
-      sender: this.sender,
+      sender: this.sender.unwrap(),
       nonce: number.toHex(this.nonce),
       initCode: this.initCode,
       callData: this.callData,
@@ -206,7 +206,7 @@ export class UserOperationV0_6 {
     return !!(this.maxFeePerGas && this.maxPriorityFeePerGas)
   }
 
-  public isSender(accountAddress: HexString) {
-    return address.isEqual(this.sender, accountAddress)
+  public isSender(address: HexString) {
+    return this.sender.isEqual(address)
   }
 }
