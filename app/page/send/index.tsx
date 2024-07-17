@@ -100,8 +100,9 @@ const SelectAddress = ({ to, onChangeTo }) => {
   )
 }
 
-const SendAmount = ({ amount, onChangeAmount }) => {
+const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
+  const { step, setStep } = useContext(SendTokenContext)
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -120,7 +121,8 @@ const SendAmount = ({ amount, onChangeAmount }) => {
       <StepBackHeader
         title="Send Amount"
         onStepBack={() => {
-          //TODO
+          setTxTo("")
+          setStep(step - 1)
         }}
       />
       <div className="flex">
@@ -153,7 +155,12 @@ export function Send() {
   const stepsComponents = [
     <SelectToken key="step1" />,
     <SelectAddress key="step2" to={txTo} onChangeTo={setTxTo} />,
-    <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
+    <SendAmount
+      key="step3"
+      amount={txValue}
+      setTxTo={setTxTo}
+      onChangeAmount={setTxValue}
+    />
   ]
 
   return stepsComponents[step]
