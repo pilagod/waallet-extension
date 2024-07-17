@@ -1,6 +1,9 @@
+import ArrowDownLeft from "react:~assets/arrowDownLeft.svg"
 import ArrowRightArrowLeft from "react:~assets/arrowRightArrowLeft.svg"
 import ArrowUpRight from "react:~assets/arrowUpRight.svg"
+import ArrowUpRightFromSquare from "react:~assets/arrowUpRightFromSquare.svg"
 import CircleXmark from "react:~assets/circleXmark.svg"
+import Clock from "react:~assets/clock.svg"
 
 import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
 import { decodeExecuteParams } from "~app/util/calldata"
@@ -13,6 +16,7 @@ import type { BigNumberish, HexString } from "~typing"
 
 const explorerUrl = "https://jiffyscan.xyz/"
 
+// Activity = Topic + Time + Status elements
 export function Activity() {
   const account = useAccount()
   const txLogs = useTransactionLogs(account.id)
@@ -38,11 +42,18 @@ const TransactionHistory: React.FC<{
   )
 }
 
+type TokenTransferInfo = {
+  symbol: string
+  value: BigNumberish
+  to: HexString
+}
+
 const UserOpHistoryItem: React.FC<{
   txLog: TransactionLog
   chainName: string
 }> = ({ txLog, chainName }) => {
-  const { createdAt, status } = txLog
+  const { tokens, type } = useAccount()
+  const { createdAt, status, detail } = txLog
   const creationDate = new Date(createdAt * 1000).toLocaleDateString("zh-TW", {
     year: "numeric",
     month: "numeric",
@@ -54,185 +65,151 @@ const UserOpHistoryItem: React.FC<{
     second: "numeric",
     hour12: false
   })
-  const callData = txLog.detail.data.callData
+  const { to, value, data } = decodeExecuteParams(type, detail.data.callData)
 
-  if (txLog.status === TransactionStatus.Succeeded) {
-    const userOpHash = txLog.receipt.userOpHash
+  const tokenInfo: TokenTransferInfo = {
+    symbol: `${chainName}ETH`,
+    value,
+    to
+  }
+
+  // Check if the transaction "to" address is a stored token
+  const tokenStored = tokens.find((token) => address.isEqual(token.address, to))
+
+  // If a token is found, consider it an ERC20 token transfer
+  if (tokenStored) {
+    const { to: tokenTo, value: tokenValue } =
+      TokenContract.decodeTransferParam(data)
+    tokenInfo.symbol = tokenStored.symbol
+    tokenInfo.value = tokenValue
+    tokenInfo.to = tokenTo
+  }
+
+  // Check if it's a token send or contract interaction
+  const topicType = data === "0x" || tokenStored ? "send" : "contract"
+
+  if (
+    status === TransactionStatus.Succeeded ||
+    status === TransactionStatus.Reverted
+  ) {
+    const link = `${explorerUrl}userOpHash/${txLog.receipt.userOpHash}?network=${chainName}`
     return (
-      <a
-        className="w-full flex items-center"
-        href={`${explorerUrl}userOpHash/${userOpHash}?network=${chainName}`}
-        target="_blank">
-        {/* Status and to address */}
-        <Log calldata={callData} txStatus={txLog.status} />
-        {/* Transaction time */}
-        <TransactionTime time={creationTime} date={creationDate} />
-      </a>
+      <div className="w-full flex items-center py-[13px] justify-between">
+        <div className="flex flex-col items-start gap-[8px]">
+          {/* Activity Topic element */}
+          {topic[topicType]}
+          {/* Activity Time element */}
+          <Time date={creationDate} time={creationTime} link={link} />
+        </div>
+        {/* Activity Status element */}
+        <Status status={status} tokenInfo={tokenInfo} />
+      </div>
     )
   }
 
   // Others' case
   return (
-    <div className="w-full flex items-center">
-      {/* Status and to address */}
-      <Log calldata={callData} txStatus={txLog.status} />
-      {/* Transaction time */}
-      <TransactionTime time={creationTime} date={creationDate} />
+    <div className="w-full flex items-center py-[13px] justify-between">
+      <div className="flex flex-col items-start gap-[8px]">
+        {/* Activity Topic element */}
+        {topic[topicType]}
+        {/* Activity Time element */}
+        <Time date={creationDate} time={creationTime} />
+      </div>
+      {/* Activity Status element */}
+      <Status status={status} />
     </div>
   )
 }
 
-const Log: React.FC<{
-  calldata: HexString
-  txStatus: TransactionStatus
-}> = ({ calldata, txStatus }) => {
-  const { chainId, tokens, type } = useAccount()
+type TopicType = "send" | "contract" | "receive"
 
-  const { to, value: nativeValue, data } = decodeExecuteParams(type, calldata)
+const TopicTemplate: React.FC<{
+  Icon: React.ComponentType<{ className?: string }>
+  topic: string
+}> = ({ Icon, topic }) => {
+  return (
+    <div className="flex items-center">
+      <Icon className="w-[16px] h-[16px] mr-[8px]" />
+      <div className="text-[16px] text-[#000000]">{topic}</div>
+    </div>
+  )
+}
 
-  let tokenName = `${getChainName(chainId).slice(0, 3)}ETH`
-  let value = nativeValue
-  let toAddress = to
+const topic: Record<TopicType, JSX.Element> = {
+  send: <TopicTemplate Icon={ArrowUpRight} topic="Send" />,
+  contract: (
+    <TopicTemplate Icon={ArrowRightArrowLeft} topic="Contract interaction" />
+  ),
+  receive: <TopicTemplate Icon={ArrowDownLeft} topic="Receive" />
+}
 
-  // Send ETH
-  if (data === "0x") {
-    return (
-      <TokenLog tokenName={tokenName} value={value} toAddress={toAddress}>
-        <StatusMark txStatus={txStatus} />
-      </TokenLog>
-    )
-  }
+const Status: React.FC<{
+  status: TransactionStatus
+  tokenInfo?: TokenTransferInfo
+}> = ({ status, tokenInfo }) => {
+  if (tokenInfo) {
+    switch (status) {
+      case TransactionStatus.Succeeded:
+        return (
+          <div className="flex items-center">
+            <div className="text-[16px] text-[#FF5151] whitespace-nowrap">
+              - {number.formatUnitsToFixed(tokenInfo.value, 18, 4)}{" "}
+              {tokenInfo.symbol}
+            </div>
+          </div>
+        )
+      // TODO: Handle receive case
 
-  // Interact with Dapp
-  const inTokenList = tokens.some((token) => {
-    if (address.isEqual(token.address, to)) {
-      try {
-        const { to, value: tokenValue } =
-          TokenContract.decodeTransferParam(data)
-
-        tokenName = token.symbol
-        value = tokenValue
-        toAddress = to
-        return true
-      } catch (e) {
-        throw new Error(`Cannot decode token transfer: ${e}`)
-      }
+      default:
+        break
     }
-  })
-
-  return inTokenList ? (
-    <TokenLog tokenName={tokenName} value={value} toAddress={toAddress}>
-      <StatusMark txStatus={txStatus} />
-    </TokenLog>
-  ) : (
-    <ContractLog toAddress={toAddress}>
-      <StatusMark txStatus={txStatus} />
-    </ContractLog>
-  )
-}
-
-const TokenLog: React.FC<{
-  tokenName: string
-  value: BigNumberish
-  toAddress: HexString
-  children?: React.ReactNode
-}> = ({ tokenName, value, toAddress, children }) => {
-  return (
-    <div className="w-full flex items-center p-[14px_0px_14px_0px]">
-      {/* Status and to address */}
-      <div className="flex-grow flex flex-col items-start">
-        {/* Status and token amount */}
-        <div className="flex items-center mb-[4px]">
-          <ArrowUpRight className="w-[16px] h-[16px] mr-[8px]" />
-          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
-            Send
-          </div>
-          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
-            {number.formatUnitsToFixed(value, 18, 2)}
-          </div>
-          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
-            {tokenName}
-          </div>
-          {/* Status mark */}
-          {children}
-        </div>
-        {/* To address */}
-        <div className="leading-[19px] text-[16px] text-[#bbbbbb] whitespace-nowrap">
-          to: {address.ellipsize(toAddress)}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const ContractLog: React.FC<{
-  toAddress: HexString
-  children?: React.ReactNode
-}> = ({ toAddress, children }) => {
-  return (
-    <div className="w-full flex items-center p-[14px_0px_14px_0px]">
-      {/* Status and to address */}
-      <div className="flex-grow flex flex-col items-start">
-        {/* Status and token amount */}
-        <div className="flex items-center mb-[4px]">
-          <ArrowRightArrowLeft className="w-[16px] h-[16px] mr-[8px]" />
-          <div className="mr-[8px] leading-[19px] text-[16px] text-[#000000]">
-            Interact with Dapp
-          </div>
-          {/* Status mark */}
-          {children}
-        </div>
-        {/* To address */}
-        <div className="leading-[19px] text-[16px] text-[#bbbbbb] whitespace-nowrap">
-          {address.ellipsize(toAddress)}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const StatusMark: React.FC<{
-  txStatus: TransactionStatus
-}> = ({ txStatus }) => {
-  if (
-    txStatus === TransactionStatus.Sent ||
-    txStatus === TransactionStatus.Pending
-  ) {
-    return (
-      <div className="p-[4px_8px_4px_8px] rounded-[4px] bg-[#F5F5F5]">
-        <div className="text-[12px] font-[500] text-[#989898]">
-          Processing...
-        </div>
-      </div>
-    )
   }
 
-  if (
-    txStatus === TransactionStatus.Failed ||
-    txStatus === TransactionStatus.Reverted
-  ) {
-    return (
-      <div className="flex items-center p-[4px_8px_4px_8px] rounded-[4px] bg-[#000000]">
-        <CircleXmark className="w-[12px] h-[12px] mr-[4px]" />
-        <div className="text-[12px] font-[500] text-[#FF9393]">Failed</div>
-      </div>
-    )
-  }
+  switch (status) {
+    case TransactionStatus.Failed:
+    case TransactionStatus.Reverted:
+      return (
+        <div className="flex items-center">
+          <CircleXmark className="w-[14px] h-[14px] mr-[4px]" />
+          <div className="text-[16px] text-[#FF5151]">Failed</div>
+        </div>
+      )
 
-  // Succeeded and others' case
-  return <></>
+    case TransactionStatus.Sent:
+    case TransactionStatus.Pending:
+      return (
+        <div className="flex items-center">
+          <Clock className="w-[14px] h-[14px] mr-[4px]" />
+          <div className="text-[16px] text-[#466BFF]">Processing...</div>
+        </div>
+      )
+    default:
+      return <></>
+  }
 }
 
-const TransactionTime: React.FC<{
+const Time: React.FC<{
   date: string
   time: string
-}> = ({ date, time }) => {
+  link?: string
+}> = ({ date, time, link }) => {
+  if (link) {
+    return (
+      <a className="flex items-center" href={link} target="_blank">
+        <div className="text-[14px] text-[#989898] mr-[4px]">
+          {date} {time}
+        </div>
+        <ArrowUpRightFromSquare className="w-[14px] h-[14px]" />
+      </a>
+    )
+  }
+
   return (
-    <div className="flex flex-col items-end">
-      <div className="mb-[4px] leading-[19px] text-[16px] text-[#000000]">
-        {date}
+    <div className="flex items-center">
+      <div className="text-[14px] text-[#989898]">
+        {date} {time}
       </div>
-      <div className="leading-[19px] text-[16px] text-[#000000]">{time}</div>
     </div>
   )
 }
