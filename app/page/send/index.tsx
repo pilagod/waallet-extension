@@ -156,10 +156,7 @@ export function Send() {
       {step === 0 ? (
         <StepBackHeader title={stepsTitle[0]} href={Path.Index} />
       ) : (
-        <StepBackHeader
-          title={stepsTitle[step]}
-          handleOnClick={handlePrevStep}
-        />
+        <StepBackHeader title={stepsTitle[step]} onStepBack={handlePrevStep} />
       )}
       {stepsComponents[step]}
       <div className="flex">
