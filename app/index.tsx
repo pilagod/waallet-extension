@@ -6,6 +6,7 @@ import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
 import { Home } from "~app/page/home"
+import { Receive } from "~app/page/receive"
 import { Review } from "~app/page/review/"
 import { Send } from "~app/page/send"
 import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
@@ -71,6 +72,7 @@ function PageRouter() {
       <Switch>
         <Route path={Path.Home} component={Home} />
         <Route path={Path.Send} component={Send} />
+        <Route path={Path.Receive} component={Receive} />
 
         <Route
           path={Path.WebAuthnRegistration}
