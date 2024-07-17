@@ -8,7 +8,7 @@ import { useProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import {
   useAccount,
-  useAccountCount,
+  useAccounts,
   useAction,
   useNetwork
 } from "~app/hook/storage"
@@ -27,7 +27,7 @@ export enum InfoNavigation {
 }
 
 export function Home() {
-  const hasNoAccount = useAccountCount() === 0
+  const hasNoAccount = useAccounts().length === 0
   return (
     <>
       <Navbar />

@@ -8,7 +8,6 @@ import Ethereum from "react:~assets/ethereum.svg"
 import { useProviderContext } from "~app/context/provider"
 import {
   useAccount,
-  useAccountCount,
   useAccounts,
   useAction,
   useNetwork,
@@ -22,7 +21,7 @@ import number from "~packages/util/number"
 import type { Account, Network } from "~storage/local/state"
 
 export function Navbar() {
-  const hasNoAccount = useAccountCount() === 0
+  const hasNoAccount = useAccounts().length === 0
   return (
     <>
       {/* Home page navbar */}

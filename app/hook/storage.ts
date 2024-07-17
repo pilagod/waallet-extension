@@ -29,17 +29,6 @@ export const useAccount = (id?: string) => {
   })
 }
 
-export const useAccountCount = (networkId?: string) => {
-  const network = useNetwork(networkId)
-  return useStorage(
-    useShallow(({ state }) => {
-      return Object.values(state.account).filter(
-        (a) => a.chainId === network.chainId
-      ).length
-    })
-  )
-}
-
 export const useAccounts = () => {
   const network = useNetwork()
   return useStorage(({ state }) => {
