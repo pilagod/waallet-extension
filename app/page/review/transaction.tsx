@@ -6,6 +6,7 @@ import PassKey from "react:~assets/passkey"
 import Wallet from "react:~assets/wallet"
 import { useClsState } from "use-cls-state"
 
+import { AccountItem } from "~app/component/accountItem"
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
@@ -292,15 +293,17 @@ function UserOperationConfirmation(props: {
           }`}>
           {isContract ? "to interact with" : "To"}
         </h2>
-        <div className="flex gap-[12px] items-center">
-          {isContract ? <Contract /> : <Wallet />}
-          <div className="py-[16px] w-[322px]">
-            {isContract && <h3 className="pb-[4px]">Contract address</h3>}
-            <h3 className={`break-words ${isContract && "text-[#989898]"}`}>
-              {props.tx.to}
-            </h3>
+        {isContract ? (
+          <div className="flex gap-[12px] items-center">
+            <Contract />
+            <div className="py-[16px] w-[322px]">
+              <h3 className="pb-[4px]">Contract address</h3>
+              <h3 className="break-words text-[#989898]">{props.tx.to}</h3>
+            </div>
           </div>
-        </div>
+        ) : (
+          <AccountItem address={tx.to} />
+        )}
         {isContract && (
           <>
             <h2 className="py-[8px] text-[12px] text-[#989898]">Call data</h2>
