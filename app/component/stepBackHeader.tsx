@@ -20,7 +20,7 @@ export const StepBackHeader = (props: StepBackHeaderProps) => {
           <ArrowLeft />
         </button>
       ) : (
-        <Link href={href}>
+        <Link href={href ?? Path.Index}>
           <ArrowLeft />
         </Link>
       )}
