@@ -268,9 +268,7 @@ function UserOperationConfirmation(props: {
 
   return (
     <>
-      <StepBackHeader
-        title={isContract ? "Interact with contract" : "Send"}
-        href={Path.Index}>
+      <StepBackHeader title={isContract ? "Interact with contract" : "Send"}>
         <div className="text-[48px]">
           {number.formatUnitsToFixed(tx.value, 18, 4)} ETH
         </div>

@@ -19,7 +19,7 @@ const SelectToken = () => {
   }
   return (
     <>
-      <StepBackHeader title="Select Token" href={Path.Index} />
+      <StepBackHeader title="Select Token" />
       <TokenList className="pt-[16px]">
         {tokens.map((token, index) => (
           <TokenItem
