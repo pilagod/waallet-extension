@@ -6,7 +6,7 @@ import { useHashLocation } from "wouter/use-hash-location"
 
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
-import { useProviderContext } from "~app/context/provider"
+import { ProviderContext } from "~app/context/provider"
 import { SendTokenContext } from "~app/context/sendTokenContext"
 import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
