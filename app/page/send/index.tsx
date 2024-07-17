@@ -2,6 +2,8 @@ import * as ethers from "ethers"
 import { useContext, useState, type ChangeEvent } from "react"
 
 import { AccountItem } from "~app/component/accountItem"
+import { Button } from "~app/component/button"
+import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
@@ -56,33 +58,43 @@ const SelectAddress = ({ to, onChangeTo }) => {
         onStepBack={() => {
           setTokenSelected(null)
           setStep(step - 1)
-        }}
-      />
-      <div className="flex">
-        <label className="flex-1">To:</label>
+        }}>
         <input
           type="text"
           id="to"
-          value={`${to}`}
+          value={to}
           onChange={handleToChange}
-          list="suggestionTo"
-          className={`border w-96 outline-none ${
-            invalidTo ? "border-red-500" : "border-gray-300"
-          }`}></input>
-        <datalist id="suggestionTo">
-          <option value={account.address}></option>
-        </datalist>
+          className="width-full border-solid border-black border-[2px] rounded-[16px] p-[16px] text-[16px]"
+          placeholder="Enter address"
+          required
+        />
+      </StepBackHeader>
+      <div className="flex flex-col py-[24px] h-[311px]">
+        <h2 className="text-[16px]">Transaction History</h2>
+        <div>
+          <button
+            onClick={() => {
+              if (isValidTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")) {
+                onChangeTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")
+                setInvalidTo(false)
+              }
+            }}>
             <AccountItem
               address={"0x094e5164f1730eaef2f57015aef7e6c3e266c773"}
             />
+          </button>
+        </div>
       </div>
-      <button
+      <Divider />
+      <Button
+        text="Next"
+        disabled={invalidTo}
         onClick={() => {
           setStep(step + 1)
         }}
-        className="flex-1">
-        Next
-      </button>
+        variant="black"
+        className="my-[22.5px] text-[16px]"
+      />
     </>
   )
 }
