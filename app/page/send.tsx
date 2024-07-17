@@ -1,8 +1,8 @@
 import * as ethers from "ethers"
-import { useCallback, useState, type ChangeEvent } from "react"
+import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { Link } from "wouter"
 
-import { useProviderContext } from "~app/context/provider"
+import { ProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { useAccount, useTokens } from "~app/storage"
 import { getChainName, getErc20Contract } from "~packages/network/util"
@@ -12,7 +12,7 @@ import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 export function Send() {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const account = useAccount()
 
   const nativeToken: Token = {

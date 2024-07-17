@@ -24,7 +24,3 @@ export function ProviderContextProvider({ children }: { children: ReactNode }) {
     </ProviderContext.Provider>
   )
 }
-
-export const useProviderContext = () => {
-  return useContext(ProviderContext)
-}
