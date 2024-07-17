@@ -1,3 +1,13 @@
-export const TokenList = ({ children }: { children: React.ReactNode }) => {
-  return <div className="w-full flex flex-col items-start">{children}</div>
+export const TokenList = ({
+  children,
+  className
+}: {
+  children: React.ReactNode
+  className?: string
+}) => {
+  return (
+    <div className={`w-full flex flex-col items-start ${className}`}>
+      {children}
+    </div>
+  )
 }
