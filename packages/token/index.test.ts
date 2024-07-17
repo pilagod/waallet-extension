@@ -1,32 +1,27 @@
 import { Contract, getAddress, parseUnits, zeroPadValue } from "ethers"
 
-import config from "~config/test"
 import { TokenContract } from "~packages/token"
 import number from "~packages/util/number"
+import { WaalletSuiteContext } from "~packages/util/testing/suite/waallet"
+
+const ctx = new WaalletSuiteContext()
+const {
+  address: { TestToken },
+  wallet: { operator }
+} = ctx
+
+const mintableToken = new Contract(
+  TestToken,
+  ["function mint(address to, uint256 value)"],
+  operator
+)
 
 describe("Token contract", () => {
-  let token: TokenContract
-  let mintableToken: Contract
-
-  const fromAddress = getAddress(zeroPadValue("0x1234", 20))
-  const toAddress = getAddress(zeroPadValue("0x5678", 20))
-  const tokenValue = 0.1
-  const tokenDecimals = 18
-
-  beforeAll(async () => {
-    token = await TokenContract.init(
-      config.address.TestToken,
-      config.provider.node
-    )
-
-    mintableToken = new Contract(
-      config.address.TestToken,
-      ["function mint(address to, uint256 value)"],
-      config.wallet.operator
-    )
-  })
-
   it("should encode and decode the token transfer calldata", () => {
+    const toAddress = getAddress(zeroPadValue("0x5678", 20))
+    const tokenValue = 0.1
+    const tokenDecimals = 18
+
     const transferCalldata = TokenContract.encodeTransferData(
       toAddress,
       parseUnits(tokenValue.toString(), tokenDecimals)
@@ -39,6 +34,11 @@ describe("Token contract", () => {
   })
 
   it("should encode and decode the token transfer from calldata", () => {
+    const fromAddress = getAddress(zeroPadValue("0x1234", 20))
+    const toAddress = getAddress(zeroPadValue("0x5678", 20))
+    const tokenValue = 0.1
+    const tokenDecimals = 18
+
     const transferFromCalldata = TokenContract.encodeTransferFromData(
       fromAddress,
       toAddress,
@@ -54,10 +54,17 @@ describe("Token contract", () => {
   })
 
   it("should get balance", async () => {
-    const amount = parseUnits("100", token.decimals)
-    const balanceBefore = number.toBigInt(await token.balanceOf(fromAddress))
+    const fromAddress = getAddress(zeroPadValue("0x1234", 20))
+    const tokenContract = await TokenContract.init(TestToken, operator)
+    const amount = parseUnits("100", tokenContract.decimals)
+
+    const balanceBefore = number.toBigInt(
+      await tokenContract.balanceOf(fromAddress)
+    )
     await mintableToken.mint(fromAddress, amount)
-    const balanceAfter = number.toBigInt(await token.balanceOf(fromAddress))
+    const balanceAfter = number.toBigInt(
+      await tokenContract.balanceOf(fromAddress)
+    )
 
     expect(balanceAfter - balanceBefore).toBe(amount)
   })
