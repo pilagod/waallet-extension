@@ -11,7 +11,6 @@ import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
-import { Path } from "~app/path"
 import { useAccount, useAction, useNetwork } from "~app/storage"
 import type { Account } from "~packages/account"
 import {
