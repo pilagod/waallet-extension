@@ -12,7 +12,7 @@ export const TokenItem = ({
 }) => {
   return (
     <button className="w-full" onClick={onClick}>
-      <div className="flex items-center py-[13.5px]">
+      <div className="flex items-center py-[17px]">
         <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
         <div className="flex-grow text-[20px] text-[#000000] text-left whitespace-nowrap">
           {token.symbol}
