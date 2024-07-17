@@ -72,6 +72,7 @@ const SelectAddress = ({ to, onChangeTo }) => {
       </StepBackHeader>
       <div className="flex flex-col py-[24px] h-[311px]">
         <h2 className="text-[16px]">Transaction History</h2>
+        {/* TODO: Replace with actual transaction history */}
         <div>
           <button
             onClick={() => {
