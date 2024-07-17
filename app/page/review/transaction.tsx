@@ -286,7 +286,9 @@ function UserOperationConfirmation(props: {
           <Wallet />
           <div className="w-[322px] py-[9.5px]">
             <h3 className="pb-[4px]">Jesse's wallet</h3>
-            <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
+            <h4 className="text-[#989898] break-words">
+              {userOp.sender.unwrap()}
+            </h4>
           </div>
         </div>
         <h2
