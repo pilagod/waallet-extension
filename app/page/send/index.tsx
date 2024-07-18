@@ -97,7 +97,7 @@ const SelectAddress = ({ setTokenSelected, setTxTo }) => {
   )
 }
 
-const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
+const SendAmount = ({ tokenSelected, amount, setTxTo, onChangeAmount }) => {
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -120,24 +120,37 @@ const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
           setTxTo("")
         }}
       />
-      <div className="flex">
-        <label className="flex-1">Amount:</label>
+      <div className="flex flex-col items-center justify-center h-[270px] py-[16px] gap-[8px]">
         <input
           type="text"
           id="amount"
-          value={`${amount}`}
+          value={amount}
           onChange={handleAmountChange}
-          className={`border w-96 outline-none ${
+          className={`text-center text-[64px] focus:outline-none ${
             invalidValue ? "border-red-500" : "border-gray-300"
-          }`}></input>
+          }`}
+        />
+        <div className="text-[24px]">ETH</div>
       </div>
-      <button
-        onClick={() => {
-          //TODO
-        }}
-        className="flex-1">
-        Next
-      </button>
+      <Divider />
+      <div>
+        <h2 className="text-[16px] py-[12px]">Balance</h2>
+        <div className="flex items-center gap-[16px]">
+          <TokenItem token={tokenSelected} onClick={() => {}} />
+          <button className="text-[16px] p-[8px_20px] border border-solid border-black h-[35px] rounded-[99px] ">
+            Max
+          </button>
+        </div>
+        <Button
+          text="Next"
+          className="text-[16px] mt-[65px] mb-[22.5px]"
+          onClick={() => {
+            //TODO
+          }}
+          variant="black"
+          disabled={invalidValue}
+        />
+      </div>
     </>
   )
 }
@@ -175,6 +188,7 @@ export function Send() {
   return (
     <SendAmount
       key="step3"
+      tokenSelected={tokenSelected}
       setTxTo={setTxTo}
       amount={txValue}
       onChangeAmount={setTxValue}
