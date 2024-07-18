@@ -1,7 +1,7 @@
 export enum Path {
   Index = "/",
   Home = "/home",
-  Send = "/send",
+  Send = "/send/:tokenAddress",
 
   WebAuthnAuthentication = "/webauthn/authentication",
   WebAuthnRegistration = "/webauthn/registration",

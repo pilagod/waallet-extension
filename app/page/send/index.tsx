@@ -1,5 +1,7 @@
 import * as ethers from "ethers"
-import { useContext, useState, type ChangeEvent } from "react"
+import { useState, type ChangeEvent } from "react"
+import { useRoute } from "wouter"
+import { navigate } from "wouter/use-hash-location"
 
 import { AccountItem } from "~app/component/accountItem"
 import { Button } from "~app/component/button"
@@ -7,9 +9,10 @@ import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
-import { SendTokenContext } from "~app/context/sendTokenContext"
+import { Path } from "~app/path"
+import { getUserTokens } from "~app/util/getUserTokens"
 import { type Token } from "~storage/local/state"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, HexString, Nullable } from "~typing"
 
 const isValidTo = (to: string) => {
   try {
@@ -20,13 +23,8 @@ const isValidTo = (to: string) => {
   }
 }
 
-const SelectToken = () => {
-  const { tokens, setTokenSelected, step, setStep } =
-    useContext(SendTokenContext)
-  const handleOnSelectToken = (token: Token) => {
-    setTokenSelected(token)
-    setStep(step + 1)
-  }
+const SelectToken = ({ setTokenSelected }) => {
+  const tokens = getUserTokens()
   return (
     <>
       <StepBackHeader title="Select Token" />
@@ -35,7 +33,10 @@ const SelectToken = () => {
           <TokenItem
             key={index}
             token={token}
-            onClick={() => handleOnSelectToken(token)}
+            onClick={() => {
+              setTokenSelected(token)
+              navigate(`/send/${token.address}`)
+            }}
           />
         ))}
       </TokenList>
@@ -43,9 +44,8 @@ const SelectToken = () => {
   )
 }
 
-const SelectAddress = ({ to, onChangeTo }) => {
+const SelectAddress = ({ to, setTokenSelected, onChangeTo }) => {
   const [validTo, setValidTo] = useState<boolean>(false)
-  const { setTokenSelected, step, setStep } = useContext(SendTokenContext)
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -58,7 +58,7 @@ const SelectAddress = ({ to, onChangeTo }) => {
         title="Select Address"
         onStepBack={() => {
           setTokenSelected(null)
-          setStep(step - 1)
+          navigate("/send/0x")
         }}>
         <input
           type="text"
@@ -92,7 +92,7 @@ const SelectAddress = ({ to, onChangeTo }) => {
         text="Next"
         disabled={!validTo}
         onClick={() => {
-          setStep(step + 1)
+          //TODO
         }}
         variant="black"
         className="my-[22.5px] text-[16px]"
@@ -103,7 +103,6 @@ const SelectAddress = ({ to, onChangeTo }) => {
 
 const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
-  const { step, setStep } = useContext(SendTokenContext)
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -123,7 +122,6 @@ const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
         title="Send Amount"
         onStepBack={() => {
           setTxTo("")
-          setStep(step - 1)
         }}
       />
       <div className="flex">
@@ -149,20 +147,42 @@ const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
 }
 // Select token -> Select address -> Send amount -> Review
 export function Send() {
-  const { step } = useContext(SendTokenContext)
+  const [, params] = useRoute<{
+    tokenAddress: string
+  }>(Path.Send)
+  const tokens = getUserTokens()
+  const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 
-  const stepsComponents = [
-    <SelectToken key="step1" />,
-    <SelectAddress key="step2" to={txTo} onChangeTo={setTxTo} />,
+  if (tokenSelected === null && params.tokenAddress) {
+    const token = tokens.find((token) => token.address === params.tokenAddress)
+    if (token) {
+      setTokenSelected(token)
+    }
+  }
+
+  if (!tokenSelected) {
+    return <SelectToken key="step1" setTokenSelected={setTokenSelected} />
+  }
+
+  if (!txTo) {
+    return (
+      <SelectAddress
+        key="step2"
+        to={txTo}
+        setTokenSelected={setTokenSelected}
+        onChangeTo={setTxTo}
+      />
+    )
+  }
+
+  return (
     <SendAmount
       key="step3"
-      amount={txValue}
       setTxTo={setTxTo}
+      amount={txValue}
       onChangeAmount={setTxValue}
     />
-  ]
-
-  return stepsComponents[step]
+  )
 }
