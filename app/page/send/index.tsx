@@ -22,10 +22,7 @@ const SelectToken = ({ setTokenSelected }) => {
           <TokenItem
             key={index}
             token={token}
-            onClick={() => {
-              setTokenSelected(token)
-              navigate(`/send/${token.address}`)
-            }}
+            onClick={() => setTokenSelected(token)}
           />
         ))}
       </TokenList>
