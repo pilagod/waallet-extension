@@ -24,9 +24,7 @@ export const Receive = () => {
 
   return (
     <>
-      <StepBackHeader
-        title={"Jesse's wallet"}
-        href={Path.Index}></StepBackHeader>
+      <StepBackHeader title={"Jesse's wallet"} href={Path.Index} />
       <div className="flex items-center justify-center my-[24px] py-[24px]">
         <QrCode address={address} />
       </div>
