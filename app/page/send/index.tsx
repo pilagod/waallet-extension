@@ -39,21 +39,19 @@ const SelectToken = ({ setTokenSelected }) => {
       <StepBackHeader title="Select Token" />
       <TokenList className="pt-[16px]">
         {tokens.map((token, index) => (
-          <TokenItem
+          <button
+            className="w-full"
             key={index}
-            token={token}
-            onClick={() => {
-              setTokenSelected(token)
-              navigate(`/send/${token.address}`)
-            }}
-          />
+            onClick={() => setTokenSelected(token)}>
+            <TokenItem token={token} />
+          </button>
         ))}
       </TokenList>
     </>
   )
 }
 
-const SelectAddress = ({ setTokenSelected, setTxTo }) => {
+const SelectAddress = ({ onStepBack, setTxTo }) => {
   const [inputTo, setInputTo] = useState<HexString>("")
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -62,12 +60,7 @@ const SelectAddress = ({ setTokenSelected, setTxTo }) => {
   }
   return (
     <>
-      <StepBackHeader
-        title="Select Address"
-        onStepBack={() => {
-          setTokenSelected(null)
-          navigate("/send/0x")
-        }}>
+      <StepBackHeader title="Select Address" onStepBack={onStepBack}>
         <input
           type="text"
           id="to"
@@ -106,7 +99,7 @@ const SelectAddress = ({ setTokenSelected, setTxTo }) => {
   )
 }
 
-const SendAmount = ({ tokenSelected, setTxTo, setTxValue }) => {
+const SendAmount = ({ tokenSelected, onStepBack, setTxValue }) => {
   const [inputAmount, setInputAmount] = useState<string>("0")
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -116,12 +109,7 @@ const SendAmount = ({ tokenSelected, setTxTo, setTxValue }) => {
 
   return (
     <>
-      <StepBackHeader
-        title="Send Amount"
-        onStepBack={() => {
-          setTxTo("")
-        }}
-      />
+      <StepBackHeader title="Send Amount" onStepBack={onStepBack} />
       <div className="flex flex-col items-center justify-center h-[270px] py-[16px] gap-[8px]">
         <input
           type="text"
@@ -136,7 +124,7 @@ const SendAmount = ({ tokenSelected, setTxTo, setTxValue }) => {
       <div>
         <h2 className="text-[16px] py-[12px]">Balance</h2>
         <div className="flex items-center gap-[16px]">
-          <TokenItem token={tokenSelected} onClick={() => {}} />
+          <TokenItem token={tokenSelected} />
           <button className="text-[16px] p-[8px_20px] border border-solid border-black h-[35px] rounded-[99px] ">
             Max
           </button>
@@ -158,13 +146,13 @@ const SendAmount = ({ tokenSelected, setTxTo, setTxValue }) => {
 export function Send() {
   const [, params] = useRoute<{
     tokenAddress: string
-  }>(Path.Send)
+  }>(`${Path.Send}/:tokenAddress`)
   const tokens = getUserTokens()
   const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 
-  if (tokenSelected === null && params.tokenAddress) {
+  if (tokenSelected === null && params?.tokenAddress) {
     const token = tokens.find((token) => token.address === params.tokenAddress)
     if (token) {
       setTokenSelected(token)
@@ -179,7 +167,10 @@ export function Send() {
     return (
       <SelectAddress
         key="step2"
-        setTokenSelected={setTokenSelected}
+        onStepBack={() => {
+          setTokenSelected(null)
+          navigate(Path.Send)
+        }}
         setTxTo={setTxTo}
       />
     )
@@ -188,8 +179,10 @@ export function Send() {
   return (
     <SendAmount
       key="step3"
+      onStepBack={() => {
+        setTxTo("")
+      }}
       tokenSelected={tokenSelected}
-      setTxTo={setTxTo}
       setTxValue={setTxValue}
     />
   )

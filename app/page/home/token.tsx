@@ -37,11 +37,12 @@ export function Token() {
   return (
     <TokenList>
       {tokens.map((token, index) => (
-        <TokenItem
-          token={token}
+        <button
+          className="w-full"
           key={index}
-          onClick={() => openTokenInfoModal(token)}
-        />
+          onClick={() => openTokenInfoModal(token)}>
+          <TokenItem token={token} />
+        </button>
       ))}
       {/* Token information modal */}
       {tokenSelected && (
@@ -111,7 +112,7 @@ function TokenInfoModal({
   const [, navigate] = useHashLocation()
 
   const handleSend = () => {
-    navigate(`/send/${tokenSelected.address}`)
+    navigate(`${Path.Send}/${tokenSelected.address}`)
   }
 
   return (
