@@ -10,15 +10,18 @@ import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
+import { getUserTokens } from "~app/util/getUserTokens"
 import { getChainName, getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { Token } from "~storage/local/state"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, HexString, Nullable } from "~typing"
 
 export function Token() {
   const [isTokenImportModalOpened, setIsTokenImportModalOpened] =
     useState<boolean>(false)
+
+  const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
 
   const toggleTokenImportModal = () => {
     setIsTokenImportModalOpened((prev) => !prev)
@@ -29,6 +32,7 @@ export function Token() {
   const closeTokenInfoModal = () => {
     setTokenSelected(null)
   }
+  const tokens = getUserTokens()
 
   return (
     <TokenList>
@@ -43,7 +47,7 @@ export function Token() {
       {tokenSelected && (
         <TokenInfoModal
           onModalClosed={closeTokenInfoModal}
-          tokenAddress={tokenSelected.address}
+          tokenSelected={tokenSelected}
         />
       )}
       {/* Token importing button */}
@@ -63,10 +67,10 @@ export function Token() {
 
 function TokenInfoModal({
   onModalClosed,
-  tokenAddress
+  tokenSelected
 }: {
   onModalClosed: () => void
-  tokenAddress: HexString
+  tokenSelected: Token
 }) {
   const { updateToken, removeToken } = useAction()
   const account = useAccount()
@@ -89,7 +93,7 @@ function TokenInfoModal({
   }
 
   const handleUpdate = async () => {
-    await updateToken(account.id, tokenAddress, {
+    await updateToken(account.id, tokenSelected.address, {
       balance: tokenSelected.balance,
       symbol: tokenSymbol
     })
@@ -97,7 +101,7 @@ function TokenInfoModal({
   }
 
   const handleRemove = async () => {
-    await removeToken(account.id, tokenAddress)
+    await removeToken(account.id, tokenSelected.address)
     onModalClosed()
   }
 
@@ -107,8 +111,7 @@ function TokenInfoModal({
   const [, navigate] = useHashLocation()
 
   const handleSend = () => {
-    setStep(1)
-    navigate(Path.Send)
+    navigate(`/send/${tokenSelected.address}`)
   }
 
   return (
@@ -151,7 +154,7 @@ function TokenInfoModal({
             className="border w-96 outline-none border-gray-300"
             type="text"
             id="tokenAddress"
-            value={tokenAddress}
+            value={tokenSelected.address}
             disabled={true}
           />
         </div>

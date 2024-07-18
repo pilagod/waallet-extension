@@ -1,18 +1,19 @@
 import * as ethers from "ethers"
+import { useState, type ChangeEvent } from "react"
+import { useRoute } from "wouter"
+import { navigate } from "wouter/use-hash-location"
 
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { Path } from "~app/path"
 import { useAccount } from "~app/storage"
+import { getUserTokens } from "~app/util/getUserTokens"
 import { type Token } from "~storage/local/state"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, HexString, Nullable } from "~typing"
 
-const SelectToken = () => {
-  const handleOnSelectToken = (token: Token) => {
-    setTokenSelected(token)
-    setStep(step + 1)
-  }
+const SelectToken = ({ setTokenSelected }) => {
+  const tokens = getUserTokens()
   return (
     <>
       <StepBackHeader title="Select Token" />
@@ -21,7 +22,10 @@ const SelectToken = () => {
           <TokenItem
             key={index}
             token={token}
-            onClick={() => handleOnSelectToken(token)}
+            onClick={() => {
+              setTokenSelected(token)
+              navigate(`/send/${token.address}`)
+            }}
           />
         ))}
       </TokenList>
@@ -29,7 +33,7 @@ const SelectToken = () => {
   )
 }
 
-const SelectAddress = ({ to, onChangeTo }) => {
+const SelectAddress = ({ to, setTokenSelected, onChangeTo }) => {
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const account = useAccount()
 
@@ -50,7 +54,7 @@ const SelectAddress = ({ to, onChangeTo }) => {
         title="Select Address"
         onStepBack={() => {
           setTokenSelected(null)
-          setStep(step - 1)
+          navigate("/send/0x")
         }}
       />
       <div className="flex">
@@ -70,7 +74,7 @@ const SelectAddress = ({ to, onChangeTo }) => {
       </div>
       <button
         onClick={() => {
-          setStep(step + 1)
+          //TODO
         }}
         className="flex-1">
         Next
@@ -125,6 +129,11 @@ const SendAmount = ({ amount, onChangeAmount }) => {
 }
 // Select token -> Select address -> Send amount -> Review
 export function Send() {
+  const [, params] = useRoute<{
+    tokenAddress: string
+  }>(Path.Send)
+  const tokens = getUserTokens()
+  const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 
@@ -133,6 +142,12 @@ export function Send() {
     <SelectAddress key="step2" to={txTo} onChangeTo={setTxTo} />,
     <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
   ]
+  if (tokenSelected === null && params.tokenAddress) {
+    const token = tokens.find((token) => token.address === params.tokenAddress)
+    if (token) {
+      setTokenSelected(token)
+    }
+  }
 
   return stepsComponents[step]
 }
