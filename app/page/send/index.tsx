@@ -19,11 +19,12 @@ const SelectToken = ({ setTokenSelected }) => {
       <StepBackHeader title="Select Token" />
       <TokenList className="pt-[16px]">
         {tokens.map((token, index) => (
-          <TokenItem
+          <button
+            className="w-full"
             key={index}
-            token={token}
-            onClick={() => setTokenSelected(token)}
-          />
+            onClick={() => setTokenSelected(token)}>
+            <TokenItem token={token} />
+          </button>
         ))}
       </TokenList>
     </>
