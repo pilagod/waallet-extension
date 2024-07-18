@@ -21,8 +21,6 @@ export const TokenItem = ({
           <div className="mb-[4px] text-[20px] font-[600] text-[#000000]">
             {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
           </div>
-          {/* // TODO: add price oracle */}
-          <div className="text-[12px] text-[#000000]">$1.23</div>
         </div>
       </div>
     </button>
