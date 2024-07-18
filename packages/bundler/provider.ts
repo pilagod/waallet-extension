@@ -149,7 +149,7 @@ export class BundlerProvider {
       paymasterVerificationGasLimit: HexString
     }>({
       method: BundlerRpcMethod.eth_estimateUserOperationGas,
-      params: [userOp.unwrap(), entryPoint.unwrap()]
+      params: [userOp, entryPoint]
     })
     // Add 10% buffer to avoid over limit.
     const addBuffer = (n: bigint) => (n * 110n) / 100n
@@ -172,7 +172,7 @@ export class BundlerProvider {
   ): Promise<HexString> {
     const userOpHash = await this.bundler.send<HexString>({
       method: BundlerRpcMethod.eth_sendUserOperation,
-      params: [userOp.unwrap(), entryPoint.unwrap()]
+      params: [userOp, entryPoint]
     })
     if (this.mode === BundlerMode.Manual) {
       await this.debugSendBundleNow()

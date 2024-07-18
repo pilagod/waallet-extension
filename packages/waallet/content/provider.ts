@@ -1,6 +1,7 @@
 import { EventEmitter } from "events"
 
 import { type BackgroundMessenger } from "~packages/messenger/background"
+import { unwrap } from "~packages/primitive"
 import { format } from "~packages/util/json"
 import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
 
@@ -14,12 +15,7 @@ export class WaalletContentProvider extends EventEmitter {
 
   public async request<T>(args: WaalletRequestArguments): Promise<T> {
     if ("params" in args) {
-      ;(args.params as any[]) = args.params.map((p: any) => {
-        if (p["unwrap"] instanceof Function) {
-          return p.unwrap()
-        }
-        return p
-      })
+      ;(args.params as any[]) = args.params.map(unwrap)
     }
     const res = await this.backgroundMessenger.send({
       name: WaalletMessage.JsonRpcRequest,
