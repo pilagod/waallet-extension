@@ -30,14 +30,12 @@ const SelectToken = ({ setTokenSelected }) => {
       <StepBackHeader title="Select Token" />
       <TokenList className="pt-[16px]">
         {tokens.map((token, index) => (
-          <TokenItem
+          <button
+            className="w-full"
             key={index}
-            token={token}
-            onClick={() => {
-              setTokenSelected(token)
-              navigate(`/send/${token.address}`)
-            }}
-          />
+            onClick={() => setTokenSelected(token)}>
+            <TokenItem token={token} />
+          </button>
         ))}
       </TokenList>
     </>
@@ -57,7 +55,7 @@ const SelectAddress = ({ setTokenSelected, setTxTo }) => {
         title="Select Address"
         onStepBack={() => {
           setTokenSelected(null)
-          navigate("/send/0x")
+          navigate(Path.Send)
         }}>
         <input
           type="text"
@@ -145,13 +143,13 @@ const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
 export function Send() {
   const [, params] = useRoute<{
     tokenAddress: string
-  }>(Path.Send)
+  }>(`${Path.Send}/:tokenAddress`)
   const tokens = getUserTokens()
   const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 
-  if (tokenSelected === null && params.tokenAddress) {
+  if (tokenSelected === null && params?.tokenAddress) {
     const token = tokens.find((token) => token.address === params.tokenAddress)
     if (token) {
       setTokenSelected(token)
