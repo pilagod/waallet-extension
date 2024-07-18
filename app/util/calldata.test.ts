@@ -9,20 +9,19 @@ import {
 import { decodeExecuteParams, decodeTransferParams } from "~app/util/calldata"
 import { AccountType } from "~packages/account"
 
-const accountAbi: string[] = [
+const transferIface = new Interface([
   "function transfer(address to, uint256 value) public returns (bool)"
-]
-const executeAbi: string[] = [
+])
+
+const executeIface = new Interface([
   "function execute(address dest, uint256 value, bytes func) external"
-]
+])
 
 describe("calldata", () => {
   it("should decode the token transfer calldata", () => {
     const toAddress = getAddress(zeroPadValue("0x1234", 20))
     const tokenValue = 0.1
     const tokenDecimals = 18
-
-    const transferIface = new Interface(accountAbi)
 
     const transferCalldata = transferIface.encodeFunctionData("transfer", [
       toAddress,
@@ -42,8 +41,6 @@ describe("calldata", () => {
     const tokenValue = 0.1
     const tokenDecimals = 18
 
-    const transferIface = new Interface(accountAbi)
-    const executeIface = new Interface(executeAbi)
     const accountType = AccountType.SimpleAccount
 
     const transferCalldata = transferIface.encodeFunctionData("transfer", [
@@ -73,8 +70,6 @@ describe("calldata", () => {
     const tokenValue = 0.1
     const tokenDecimals = 18
 
-    const transferIface = new Interface(accountAbi)
-    const executeIface = new Interface(executeAbi)
     const accountType = AccountType.SimpleAccount
 
     const transferCalldata = transferIface.encodeFunctionData("transfer", [
