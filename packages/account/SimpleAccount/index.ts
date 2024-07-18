@@ -43,7 +43,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       salt: option.salt
     })
     return new SimpleAccount(runner, {
-      address: await factory.getAddress(),
+      address: (await factory.getAddress()).unwrap(),
       owner,
       factory
     })

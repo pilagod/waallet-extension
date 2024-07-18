@@ -42,7 +42,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       salt: option.salt
     })
     return new PasskeyAccount(runner, {
-      address: await factory.getAddress(),
+      address: (await factory.getAddress()).unwrap(),
       owner: option.owner,
       factory
     })
@@ -94,7 +94,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       credentialId: this.owner.getCredentialId(),
       publicKey: this.owner.getPublicKey(),
       ...(this.factory && {
-        factoryAddress: this.factory.address,
+        factoryAddress: this.factory.address.unwrap(),
         salt: this.factory.salt
       })
     }

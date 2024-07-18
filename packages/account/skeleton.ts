@@ -60,7 +60,8 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   public async getEntryPoint(): Promise<HexString> {
     if (!(await this.isDeployed())) {
-      return this.mustGetFactory().getEntryPoint()
+      const entryPoint = await this.mustGetFactory().getEntryPoint()
+      return entryPoint.unwrap()
     }
     const account = new ethers.Contract(
       this.address,
