@@ -77,10 +77,15 @@ const UserOpHistoryItem: React.FC<{
 
   // If a token is found, consider it an ERC20 token transfer
   if (tokenStored) {
-    const { to: tokenTo, value: tokenValue } = decodeTransferParams(data)
-    tokenInfo.symbol = tokenStored.symbol
-    tokenInfo.value = tokenValue
-    tokenInfo.to = tokenTo
+    try {
+      const { to: tokenTo, value: tokenValue } = decodeTransferParams(data)
+      tokenInfo.symbol = tokenStored.symbol
+      tokenInfo.value = tokenValue
+      tokenInfo.to = tokenTo
+      // TODO: Handling non-transfer actions
+    } catch (e) {
+      console.warn(`[app] Account doing non-transfer actions: ${e.message}`)
+    }
   }
 
   // Check if it's a token send or contract interaction
