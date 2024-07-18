@@ -146,7 +146,7 @@ function UserOperationConfirmation(props: {
 
       const userOpHash = await provider.send(
         WaalletRpcMethod.eth_sendUserOperation,
-        [userOp.unwrap(), entryPoint.unwrap()]
+        [userOp, entryPoint]
       )
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
@@ -198,7 +198,7 @@ function UserOperationConfirmation(props: {
 
     const gasLimit = await provider.send(
       WaalletRpcMethod.eth_estimateUserOperationGas,
-      [userOp.unwrap(), (await sender.getEntryPoint()).unwrap()]
+      [userOp, await sender.getEntryPoint()]
     )
     userOp.setGasLimit(gasLimit)
   }

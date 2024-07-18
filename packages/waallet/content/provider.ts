@@ -13,6 +13,14 @@ export class WaalletContentProvider extends EventEmitter {
   }
 
   public async request<T>(args: WaalletRequestArguments): Promise<T> {
+    if ("params" in args) {
+      ;(args.params as any[]) = args.params.map((p: any) => {
+        if (p["unwrap"] instanceof Function) {
+          return p.unwrap()
+        }
+        return p
+      })
+    }
     const res = await this.backgroundMessenger.send({
       name: WaalletMessage.JsonRpcRequest,
       body: args
