@@ -1,2 +1,2 @@
-export { Address } from "./address"
-export { Bytes } from "./bytes"
+export * from "./address"
+export * from "./bytes"

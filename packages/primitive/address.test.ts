@@ -42,6 +42,13 @@ describe("Address", () => {
 
       expect(a.isEqual(address)).toBe(true)
     })
+
+    it("should be able to wrap Address", () => {
+      const a1 = Address.wrap(address)
+      const a2 = Address.wrap(a1)
+
+      expect(a1.isEqual(a2)).toBe(true)
+    })
   })
 
   describe("unwrap", () => {

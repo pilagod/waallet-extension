@@ -2,8 +2,13 @@ import { getAddress } from "ethers"
 
 import type { HexString } from "~typing"
 
+export type AddressLike = Address | HexString
+
 export class Address {
-  public static wrap(address: HexString) {
+  public static wrap(address: AddressLike) {
+    if (address instanceof Address) {
+      return new Address(address.unwrap())
+    }
     return new Address(getAddress(address))
   }
 

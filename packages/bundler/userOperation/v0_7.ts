@@ -1,7 +1,7 @@
 import * as ethers from "ethers"
 
 import { Execution } from "~packages/account"
-import { Address } from "~packages/primitive"
+import { Address, type AddressLike } from "~packages/primitive"
 import { Type } from "~packages/transformer"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
@@ -52,7 +52,15 @@ export class UserOperationV0_7 {
   public paymasterData: HexString = "0x"
   public signature: HexString = "0x"
 
-  public constructor(data: Partial<UserOperationDataV0_7>) {
+  public constructor(
+    data: Partial<
+      Omit<UserOperationDataV0_7, "sender" | "factory" | "paymaster">
+    > & {
+      sender?: AddressLike
+      factory?: AddressLike
+      paymaster?: AddressLike
+    }
+  ) {
     this.sender = Address.wrap(data.sender)
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
@@ -186,7 +194,7 @@ export class UserOperationV0_7 {
     this.nonce = number.toBigInt(nonce)
   }
 
-  public setFactory(data: { factory?: HexString; factoryData?: HexString }) {
+  public setFactory(data: { factory?: AddressLike; factoryData?: HexString }) {
     if (data.factory) {
       this.factory = Address.wrap(data.factory)
     }
@@ -260,7 +268,7 @@ export class UserOperationV0_7 {
   }
 
   public setPaymaster(data: {
-    paymaster?: HexString
+    paymaster?: AddressLike
     paymasterData?: HexString
   }) {
     if (data.paymaster) {
