@@ -211,8 +211,4 @@ export class UserOperationV0_6 {
   public isGasFeeEstimated() {
     return !!(this.maxFeePerGas && this.maxPriorityFeePerGas)
   }
-
-  public isSender(address: HexString) {
-    return this.sender.isEqual(address)
-  }
 }

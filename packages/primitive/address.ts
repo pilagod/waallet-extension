@@ -21,7 +21,7 @@ export class Address {
     )}`
   }
 
-  public isEqual(address: Address | HexString) {
+  public isEqual(address: AddressLike) {
     if (address instanceof Address) {
       return this.address === address.unwrap()
     }
