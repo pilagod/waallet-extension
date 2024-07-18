@@ -6,16 +6,16 @@ import { Link } from "wouter"
 import { Divider } from "~app/component/divider"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
+import {
+  useAccount,
+  useAccounts,
+  useAction,
+  useNetwork
+} from "~app/hook/storage"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
 import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
-import {
-  useAccount,
-  useAction,
-  useNetwork,
-  useShouldOnboard
-} from "~app/storage"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
@@ -27,11 +27,11 @@ export enum InfoNavigation {
 }
 
 export function Home() {
-  const shouldOnboard = useShouldOnboard()
+  const hasNoAccount = useAccounts().length === 0
   return (
     <>
       <Navbar />
-      {shouldOnboard ? (
+      {hasNoAccount ? (
         <AccountCreation />
       ) : (
         <>
