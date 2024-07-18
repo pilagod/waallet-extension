@@ -165,45 +165,36 @@ const Status: React.FC<{
   status: TransactionStatus
   tokenInfo?: TokenTransferInfo
 }> = ({ status, tokenInfo }) => {
-  if (tokenInfo) {
-    switch (status) {
-      case TransactionStatus.Succeeded:
-        return (
-          <div className="flex items-center">
-            <div className="text-[16px] text-[#FF5151] whitespace-nowrap">
-              - {number.formatUnitsToFixed(tokenInfo.value, 18, 4)}{" "}
-              {tokenInfo.symbol}
-            </div>
-          </div>
-        )
-      // TODO: Handle receive case
-
-      default:
-        break
-    }
-  }
-
-  switch (status) {
-    case TransactionStatus.Failed:
-    case TransactionStatus.Reverted:
-      return (
-        <div className="flex items-center">
-          <CircleXmark className="w-[14px] h-[14px] mr-[4px]" />
-          <div className="text-[16px] text-[#FF5151]">Failed</div>
+  if (tokenInfo && status === TransactionStatus.Succeeded) {
+    return (
+      <div className="flex items-center">
+        <div className="text-[16px] text-[#FF5151] whitespace-nowrap">
+          - {number.formatUnitsToFixed(tokenInfo.value, 18, 4)}{" "}
+          {tokenInfo.symbol}
         </div>
-      )
-
-    case TransactionStatus.Sent:
-    case TransactionStatus.Pending:
-      return (
-        <div className="flex items-center">
-          <Clock className="w-[14px] h-[14px] mr-[4px]" />
-          <div className="text-[16px] text-[#466BFF]">Processing...</div>
-        </div>
-      )
-    default:
-      return <></>
+      </div>
+    )
   }
+  // TODO: Handle receive case
+
+  const isFailed =
+    status === TransactionStatus.Failed || status === TransactionStatus.Reverted
+
+  return (
+    <div className="flex items-center">
+      {isFailed ? (
+        <CircleXmark className="w-[14px] h-[14px] mr-[4px]" />
+      ) : (
+        <Clock className="w-[14px] h-[14px] mr-[4px]" />
+      )}
+      <div
+        className={`text-[16px] ${
+          isFailed ? "text-[#FF5151]" : "text-[#466BFF]"
+        }`}>
+        {isFailed ? "Failed" : "Processing..."}
+      </div>
+    </div>
+  )
 }
 
 const Time: React.FC<{
