@@ -2,6 +2,7 @@ import * as ethers from "ethers"
 
 import { Execution } from "~packages/account"
 import { Address } from "~packages/primitive"
+import { Type } from "~packages/transformer"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -35,6 +36,7 @@ export class UserOperationV0_6 {
     return new UserOperationV0_6({ ...intent })
   }
 
+  @Type(() => Address)
   public sender: Address
   public nonce: bigint
   public initCode: HexString

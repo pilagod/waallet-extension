@@ -1,7 +1,8 @@
 import * as ethers from "ethers"
 
 import { Execution } from "~packages/account"
-import { Address } from "~packages/primitive/address"
+import { Address } from "~packages/primitive"
+import { Type } from "~packages/transformer"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -32,9 +33,11 @@ export class UserOperationV0_7 {
     return new UserOperationV0_7({ ...intent })
   }
 
+  @Type(() => Address)
   public sender: Address
   public nonce: bigint
   public callData: HexString
+  @Type(() => Address)
   public factory?: Address
   public factoryData: HexString = "0x"
   public callGasLimit: bigint = 0n
@@ -44,6 +47,7 @@ export class UserOperationV0_7 {
   public maxPriorityFeePerGas: bigint = 0n
   public paymasterVerificationGasLimit: bigint = 0n
   public paymasterPostOpGasLimit: bigint = 0n
+  @Type(() => Address)
   public paymaster?: Address
   public paymasterData: HexString = "0x"
   public signature: HexString = "0x"
