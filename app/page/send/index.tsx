@@ -44,13 +44,12 @@ const SelectToken = ({ setTokenSelected }) => {
   )
 }
 
-const SelectAddress = ({ to, setTokenSelected, onChangeTo }) => {
-  const [validTo, setValidTo] = useState<boolean>(false)
+const SelectAddress = ({ setTokenSelected, setTxTo }) => {
+  const [inputTo, setInputTo] = useState<HexString>("")
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
-    onChangeTo(value)
-    setValidTo(isValidTo(value))
+    setInputTo(value)
   }
   return (
     <>
@@ -63,7 +62,7 @@ const SelectAddress = ({ to, setTokenSelected, onChangeTo }) => {
         <input
           type="text"
           id="to"
-          value={to}
+          value={inputTo}
           onChange={handleToChange}
           className="width-full border-solid border-black border-[2px] rounded-[16px] p-[16px] text-[16px]"
           placeholder="Enter address"
@@ -76,10 +75,7 @@ const SelectAddress = ({ to, setTokenSelected, onChangeTo }) => {
         <div>
           <button
             onClick={() => {
-              onChangeTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")
-              setValidTo(
-                isValidTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")
-              )
+              setInputTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")
             }}>
             <AccountItem
               address={"0x094e5164f1730eaef2f57015aef7e6c3e266c773"}
@@ -90,9 +86,9 @@ const SelectAddress = ({ to, setTokenSelected, onChangeTo }) => {
       <Divider />
       <Button
         text="Next"
-        disabled={!validTo}
+        disabled={!isValidTo(inputTo)}
         onClick={() => {
-          //TODO
+          setTxTo(inputTo)
         }}
         variant="black"
         className="my-[22.5px] text-[16px]"
@@ -170,9 +166,8 @@ export function Send() {
     return (
       <SelectAddress
         key="step2"
-        to={txTo}
         setTokenSelected={setTokenSelected}
-        onChangeTo={setTxTo}
+        setTxTo={setTxTo}
       />
     )
   }
