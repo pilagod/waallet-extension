@@ -22,7 +22,6 @@ import {
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
-import { Address } from "~packages/primitive"
 import { ETH } from "~packages/token"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -134,7 +133,7 @@ function UserOperationConfirmation(props: {
         console.log("signing user operation...")
         setIsSigning(true)
         const signature = await sender.sign(
-          userOp.hash(Address.wrap(entryPoint), network.chainId)
+          userOp.hash(entryPoint, network.chainId)
         )
         userOp.setSignature(signature)
         setIsSigning(false)

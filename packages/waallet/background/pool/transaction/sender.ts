@@ -30,7 +30,7 @@ export class TransactionToUserOperationSender implements TransactionPool {
     const { account } = await this.accountManager.get(senderId)
     const { chainId, node, bundler } = this.networkManager.get(networkId)
 
-    const entryPoint = Address.wrap(await account.getEntryPoint())
+    const entryPoint = await account.getEntryPoint()
     const isSupportedByBundler = await bundler.isSupportedEntryPoint(entryPoint)
     if (!isSupportedByBundler) {
       throw new Error(`Cannot support this version of EntryPoint ${entryPoint}`)
@@ -62,9 +62,7 @@ export class TransactionToUserOperationSender implements TransactionPool {
       await this.usePaymaster(userOp, false)
     }
 
-    userOp.setSignature(
-      await account.sign(userOp.hash(Address.wrap(entryPoint), chainId))
-    )
+    userOp.setSignature(await account.sign(userOp.hash(entryPoint, chainId)))
 
     const userOpHash = await bundler.sendUserOperation(userOp, entryPoint)
     if (!userOpHash) {
