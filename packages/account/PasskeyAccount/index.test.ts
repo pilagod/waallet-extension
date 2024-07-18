@@ -13,19 +13,20 @@ describeAccountSuite({
     return PasskeyAccount.initWithFactory(cfg.provider.node, {
       owner,
       salt: number.random(),
-      factoryAddress: cfg.address.PasskeyAccountFactoryV0_6
+      factory: cfg.address.PasskeyAccountFactoryV0_6
     })
   },
   suite: (ctx) => {
     describe("init", () => {
       it("should init with existing passkey account", async () => {
         await ctx.topupAccount()
+
         // Use `initCode`` to deploy account
         await ctx.provider.waallet.request({
           method: WaalletRpcMethod.eth_sendTransaction,
           params: [
             {
-              to: await ctx.account.getAddress()
+              to: (await ctx.account.getAddress()).unwrap()
             }
           ]
         })
@@ -38,7 +39,9 @@ describeAccountSuite({
           address: await ctx.account.getAddress(),
           owner
         })
-        expect(await account.getAddress()).toBe(await ctx.account.getAddress())
+        expect(
+          (await account.getAddress()).isEqual(await ctx.account.getAddress())
+        ).toBe(true)
 
         const credentialId = await PasskeyAccount.getCredentialId(
           node,

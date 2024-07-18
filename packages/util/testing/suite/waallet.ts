@@ -4,10 +4,7 @@ import config from "~config/test"
 import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import {
-  UserOperationV0_6,
-  UserOperationV0_7
-} from "~packages/bundler/userOperation"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import { SingleNetworkManager } from "~packages/network/manager/single"
 import type { Paymaster } from "~packages/paymaster"
 import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
@@ -38,7 +35,7 @@ export class WaalletSuiteContext<T extends Account> {
     // TODO: Use default paymaster to accelerate
     return (
       await config.wallet.operator.sendTransaction({
-        to: await this.account.getAddress(),
+        to: (await this.account.getAddress()).unwrap(),
         value: balance ?? ethers.parseEther("1")
       })
     ).wait()

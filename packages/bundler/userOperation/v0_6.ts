@@ -30,7 +30,10 @@ export class UserOperationV0_6 {
       const { factory, factoryData, ...data } = intent
       return new UserOperationV0_6({
         ...data,
-        initCode: ethers.concat([factory ?? "0x", factoryData ?? "0x"])
+        initCode: ethers.concat([
+          factory?.unwrap() ?? "0x",
+          factoryData ?? "0x"
+        ])
       })
     }
     return new UserOperationV0_6({ ...intent })

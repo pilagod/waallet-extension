@@ -21,7 +21,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
           method: WaalletRpcMethod.eth_accounts
         })
         expect(accounts.length).toBeGreaterThan(0)
-        expect(accounts[0]).toBe(await ctx.account.getAddress())
+        expect(accounts[0]).toBe((await ctx.account.getAddress()).unwrap())
       })
 
       it("should request accounts", async () => {
@@ -29,7 +29,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
           method: WaalletRpcMethod.eth_requestAccounts
         })
         expect(accounts.length).toBeGreaterThan(0)
-        expect(accounts[0]).toBe(await ctx.account.getAddress())
+        expect(accounts[0]).toBe((await ctx.account.getAddress()).unwrap())
       })
 
       it("should estimate gas", async () => {

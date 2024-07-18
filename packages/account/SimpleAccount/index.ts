@@ -3,6 +3,7 @@ import * as ethers from "ethers"
 import type { Call } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import { type ContractRunner } from "~packages/node"
+import { type AddressLike } from "~packages/primitive"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
@@ -14,7 +15,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   public static async init(
     runner: ContractRunner,
     option: {
-      address: string
+      address: AddressLike
       ownerPrivateKey: string
     }
   ) {
@@ -32,18 +33,18 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     runner: ContractRunner,
     option: {
       ownerPrivateKey: string
-      factoryAddress: string
+      factory: AddressLike
       salt: BigNumberish
     }
   ) {
     const owner = new ethers.Wallet(option.ownerPrivateKey)
     const factory = new SimpleAccountFactory(runner, {
-      address: option.factoryAddress,
+      address: option.factory,
       owner: owner.address,
       salt: option.salt
     })
     return new SimpleAccount(runner, {
-      address: (await factory.getAddress()).unwrap(),
+      address: await factory.getAddress(),
       owner,
       factory
     })
@@ -55,7 +56,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   private constructor(
     runner: ContractRunner,
     option: {
-      address: HexString
+      address: AddressLike
       owner: ethers.Wallet
       factory?: SimpleAccountFactory
     }
@@ -64,7 +65,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(option.address, [
+    this.account = new ethers.Contract(this.address.unwrap(), [
       "function execute(address dest, uint256 value, bytes calldata func)"
     ])
     this.owner = option.owner

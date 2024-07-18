@@ -3,6 +3,7 @@ import * as ethers from "ethers"
 import { AccountType } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import type { ContractRunner } from "~packages/node"
+import { Address, type AddressLike } from "~packages/primitive"
 import { Bytes } from "~packages/primitive/bytes"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
@@ -17,7 +18,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   public static async init(
     runner: ContractRunner,
     option: {
-      address: HexString
+      address: AddressLike
       owner: PasskeyOwner
     }
   ) {
@@ -32,17 +33,17 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     option: {
       owner: PasskeyOwner
       salt: BigNumberish
-      factoryAddress: string
+      factory: AddressLike
     }
   ) {
     const factory = new PasskeyAccountFactory(runner, {
-      address: option.factoryAddress,
+      address: option.factory,
       credentialId: option.owner.getCredentialId(),
       publicKey: option.owner.getPublicKey(),
       salt: option.salt
     })
     return new PasskeyAccount(runner, {
-      address: (await factory.getAddress()).unwrap(),
+      address: await factory.getAddress(),
       owner: option.owner,
       factory
     })
@@ -53,10 +54,10 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
    */
   public static async getCredentialId(
     runner: ContractRunner,
-    address: HexString
+    address: AddressLike
   ) {
     const account = new ethers.Contract(
-      address,
+      Address.wrap(address).unwrap(),
       [
         "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)"
       ],
@@ -72,7 +73,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   private constructor(
     runner: ContractRunner,
     option: {
-      address: HexString
+      address: AddressLike
       owner: PasskeyOwner
       factory?: PasskeyAccountFactory
     }
@@ -81,7 +82,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(option.address, [
+    this.account = new ethers.Contract(this.address.unwrap(), [
       "function execute(address dest, uint256 value, bytes calldata func)"
     ])
     this.owner = option.owner
@@ -90,7 +91,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   public dump() {
     return {
       type: AccountType.PasskeyAccount as AccountType.PasskeyAccount,
-      address: this.address,
+      address: this.address.unwrap(),
       credentialId: this.owner.getCredentialId(),
       publicKey: this.owner.getPublicKey(),
       ...(this.factory && {

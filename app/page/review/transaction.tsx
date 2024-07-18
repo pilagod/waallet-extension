@@ -146,7 +146,7 @@ function UserOperationConfirmation(props: {
 
       const userOpHash = await provider.send(
         WaalletRpcMethod.eth_sendUserOperation,
-        [userOp.unwrap(), entryPoint]
+        [userOp.unwrap(), entryPoint.unwrap()]
       )
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
@@ -154,7 +154,7 @@ function UserOperationConfirmation(props: {
       // TODO: Wrong nonce problem when confirming consecutive pending tx
       try {
         await markERC4337TransactionSent(tx.id, {
-          entryPoint,
+          entryPoint: entryPoint.unwrap(),
           userOp,
           userOpHash
         })
@@ -175,7 +175,7 @@ function UserOperationConfirmation(props: {
     setUserOpResolving(true)
     try {
       await markERC4337TransactionRejected(tx.id, {
-        entryPoint: await sender.getEntryPoint(),
+        entryPoint: (await sender.getEntryPoint()).unwrap(),
         userOp
       })
     } catch (e) {
@@ -198,7 +198,7 @@ function UserOperationConfirmation(props: {
 
     const gasLimit = await provider.send(
       WaalletRpcMethod.eth_estimateUserOperationGas,
-      [userOp.unwrap(), await sender.getEntryPoint()]
+      [userOp.unwrap(), (await sender.getEntryPoint()).unwrap()]
     )
     userOp.setGasLimit(gasLimit)
   }
@@ -208,7 +208,7 @@ function UserOperationConfirmation(props: {
       setUserOp(null)
       const transactionType = getERC4337TransactionType(
         tx.networkId,
-        await sender.getEntryPoint()
+        (await sender.getEntryPoint()).unwrap()
       )
       const execution = await sender.buildExecution(tx)
       const userOp =

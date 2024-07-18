@@ -11,7 +11,7 @@ describeWaalletSuite({
   useAccount: (cfg) => {
     return SimpleAccount.initWithFactory(cfg.provider.node, {
       ownerPrivateKey: cfg.wallet.operator.privateKey,
-      factoryAddress: cfg.address.SimpleAccountFactoryV0_7,
+      factory: cfg.address.SimpleAccountFactoryV0_7,
       salt: number.random()
     })
   },
@@ -81,7 +81,7 @@ describeWaalletSuite({
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
         }),
-        Address.wrap(await ctx.account.getEntryPoint())
+        await ctx.account.getEntryPoint()
       )
       // Use custom nonce which doesn't match the one on chain
       userOp.setNonce(userOp.nonce + 1n)
@@ -93,7 +93,10 @@ describeWaalletSuite({
           callGasLimit: HexString
         }>({
           method: WaalletRpcMethod.eth_estimateUserOperationGas,
-          params: [userOp.unwrap(), await ctx.account.getEntryPoint()]
+          params: [
+            userOp.unwrap(),
+            (await ctx.account.getEntryPoint()).unwrap()
+          ]
         })
 
       await expect(useInvalidNonce()).rejects.toThrow()
@@ -149,7 +152,7 @@ describeWaalletSuite({
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
         }),
-        Address.wrap(await ctx.account.getEntryPoint())
+        await ctx.account.getEntryPoint()
       )
 
       const gasFee = await ctx.provider.waallet.request({
@@ -159,17 +162,17 @@ describeWaalletSuite({
 
       const entryPoint = await ctx.account.getEntryPoint()
       userOp.setGasLimit(
-        await bundler.estimateUserOperationGas(userOp, Address.wrap(entryPoint))
+        await bundler.estimateUserOperationGas(userOp, entryPoint)
       )
 
       const chainId = await bundler.getChainId()
       userOp.setSignature(
-        await ctx.account.sign(userOp.hash(Address.wrap(entryPoint), chainId))
+        await ctx.account.sign(userOp.hash(entryPoint, chainId))
       )
 
       const userOpHash = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_sendUserOperation,
-        params: [userOp.unwrap(), entryPoint]
+        params: [userOp.unwrap(), entryPoint.unwrap()]
       })
       await bundler.wait(userOpHash)
 

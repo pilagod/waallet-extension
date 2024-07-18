@@ -38,7 +38,7 @@ export class AccountStorageManager implements AccountManager {
             }
           ),
           salt: number.toBigInt(account.salt),
-          factoryAddress: account.factoryAddress
+          factory: account.factoryAddress
         })
       default:
         throw new Error(`Unknown account ${account}`)

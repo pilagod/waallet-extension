@@ -45,9 +45,11 @@ export class WaalletBackgroundProvider {
     const { node, bundler } = this.networkManager.getActive()
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
-      case WaalletRpcMethod.eth_requestAccounts:
+      case WaalletRpcMethod.eth_requestAccounts: {
         const { account } = await this.accountManager.getActive()
-        return [await account.getAddress()] as T
+        const address = await account.getAddress()
+        return [address.unwrap()] as T
+      }
       case WaalletRpcMethod.eth_chainId:
         return number.toHex(await bundler.getChainId()) as T
       case WaalletRpcMethod.eth_estimateGas:
@@ -78,11 +80,11 @@ export class WaalletBackgroundProvider {
       return
     }
     const { account } = await this.accountManager.getActive()
-    if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
+    if (tx.from && !(await account.getAddress()).isEqual(tx.from)) {
       throw new Error("Address `from` doesn't match connected account")
     }
     const { bundler } = this.networkManager.getActive()
-    const entryPoint = Address.wrap(await account.getEntryPoint())
+    const entryPoint = await account.getEntryPoint()
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
@@ -154,11 +156,11 @@ export class WaalletBackgroundProvider {
 
     const { id: networkId, bundler } = this.networkManager.getActive()
     const { id: accountId, account } = await this.accountManager.getActive()
-    if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
+    if (tx.from && !(await account.getAddress()).isEqual(tx.from)) {
       throw new Error("Address `from` doesn't match connected account")
     }
 
-    const entryPoint = Address.wrap(await account.getEntryPoint())
+    const entryPoint = await account.getEntryPoint()
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
