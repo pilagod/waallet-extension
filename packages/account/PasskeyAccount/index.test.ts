@@ -26,7 +26,7 @@ describeAccountSuite({
           method: WaalletRpcMethod.eth_sendTransaction,
           params: [
             {
-              to: (await ctx.account.getAddress()).unwrap()
+              to: ctx.account.getAddress().unwrap()
             }
           ]
         })
@@ -36,16 +36,16 @@ describeAccountSuite({
         } = ctx
 
         const account = await PasskeyAccount.init(node, {
-          address: await ctx.account.getAddress(),
+          address: ctx.account.getAddress(),
           owner
         })
-        expect(
-          (await account.getAddress()).isEqual(await ctx.account.getAddress())
-        ).toBe(true)
+        expect(account.getAddress().isEqual(ctx.account.getAddress())).toBe(
+          true
+        )
 
         const credentialId = await PasskeyAccount.getCredentialId(
           node,
-          await account.getAddress()
+          account.getAddress()
         )
         expect(credentialId).toBe(owner.getCredentialId())
       })

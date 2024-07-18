@@ -29,7 +29,7 @@ describeWaalletSuite({
       } = ctx
 
       const accountBalanceBefore = await node.getBalance(
-        (await ctx.account.getAddress()).unwrap()
+        ctx.account.getAddress().unwrap()
       )
       const paymasterDepositBalanceBefore = await entryPointV0_7.balanceOf(
         ctx.address.VerifyingPaymasterV0_7
@@ -39,14 +39,14 @@ describeWaalletSuite({
         method: WaalletRpcMethod.eth_sendTransaction,
         params: [
           {
-            to: (await ctx.account.getAddress()).unwrap(),
+            to: ctx.account.getAddress().unwrap(),
             value: 0
           }
         ]
       })
 
       const accountBalanceAfter = await node.getBalance(
-        (await ctx.account.getAddress()).unwrap()
+        ctx.account.getAddress().unwrap()
       )
       expect(accountBalanceBefore).toBe(accountBalanceAfter)
 
