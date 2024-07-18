@@ -11,9 +11,8 @@ import {
   useAccounts,
   useAction,
   useNetwork,
-  useNetworks,
-  useShouldOnboard
-} from "~app/storage"
+  useNetworks
+} from "~app/hook/storage"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
@@ -22,13 +21,13 @@ import number from "~packages/util/number"
 import type { Account, Network } from "~storage/local/state"
 
 export function Navbar() {
-  const shouldOnboard = useShouldOnboard()
+  const hasNoAccount = useAccounts().length === 0
   return (
     <>
       {/* Home page navbar */}
       <nav className="flex items-center justify-between mb-[16px] mt-[4px]">
         <div>
-          {shouldOnboard ? <NullAccountSelector /> : <AccountSelector />}
+          {hasNoAccount ? <NullAccountSelector /> : <AccountSelector />}
         </div>
         <div>
           <NetworkSelector />
@@ -160,7 +159,6 @@ function AccountSelectorModal(props: { onModalClosed: () => void }) {
   const { provider } = useContext(ProviderContext)
   const { createAccount, switchAccount } = useAction()
   const network = useNetwork()
-  const account = useAccount()
   const accounts = useAccounts()
 
   const onPasskeyAccountCreated = async () => {
@@ -197,7 +195,7 @@ function AccountSelectorModal(props: { onModalClosed: () => void }) {
           <AccountPreview
             key={i}
             account={a}
-            active={account.id === a.id}
+            active={network.accountActive === a.id}
             onAccountSelected={() => onAccountSelected(a.id)}
           />
         ))}
