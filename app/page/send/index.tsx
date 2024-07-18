@@ -1,18 +1,14 @@
 import * as ethers from "ethers"
-import { useContext, useState, type ChangeEvent } from "react"
 
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
-import { SendTokenContext } from "~app/context/sendTokenContext"
 import { Path } from "~app/path"
 import { useAccount } from "~app/storage"
 import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 const SelectToken = () => {
-  const { tokens, setTokenSelected, step, setStep } =
-    useContext(SendTokenContext)
   const handleOnSelectToken = (token: Token) => {
     setTokenSelected(token)
     setStep(step + 1)
@@ -36,7 +32,6 @@ const SelectToken = () => {
 const SelectAddress = ({ to, onChangeTo }) => {
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const account = useAccount()
-  const { setTokenSelected, step, setStep } = useContext(SendTokenContext)
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -130,7 +125,6 @@ const SendAmount = ({ amount, onChangeAmount }) => {
 }
 // Select token -> Select address -> Send amount -> Review
 export function Send() {
-  const { step } = useContext(SendTokenContext)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 

@@ -7,7 +7,6 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
-import { SendTokenContext } from "~app/context/sendTokenContext"
 import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
@@ -30,8 +29,6 @@ export function Token() {
   const closeTokenInfoModal = () => {
     setTokenSelected(null)
   }
-  const { tokens, tokenSelected, setTokenSelected } =
-    useContext(SendTokenContext)
 
   return (
     <TokenList>
@@ -73,7 +70,6 @@ function TokenInfoModal({
 }) {
   const { updateToken, removeToken } = useAction()
   const account = useAccount()
-  const { tokenSelected, setStep } = useContext(SendTokenContext)
 
   const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
   const tokenExplorerUrl = `${explorerUrl}token/${tokenSelected.address}?a=${account.address}`
