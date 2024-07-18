@@ -42,7 +42,7 @@ const SelectToken = ({ setTokenSelected }) => {
   )
 }
 
-const SelectAddress = ({ setTokenSelected, setTxTo }) => {
+const SelectAddress = ({ onStepBack, setTxTo }) => {
   const [inputTo, setInputTo] = useState<HexString>("")
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -51,12 +51,7 @@ const SelectAddress = ({ setTokenSelected, setTxTo }) => {
   }
   return (
     <>
-      <StepBackHeader
-        title="Select Address"
-        onStepBack={() => {
-          setTokenSelected(null)
-          navigate(Path.Send)
-        }}>
+      <StepBackHeader title="Select Address" onStepBack={onStepBack}>
         <input
           type="text"
           id="to"
@@ -95,7 +90,7 @@ const SelectAddress = ({ setTokenSelected, setTxTo }) => {
   )
 }
 
-const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
+const SendAmount = ({ amount, onStepBack, onChangeAmount }) => {
   const [invalidValue, setInvalidValue] = useState<boolean>(false)
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -112,12 +107,7 @@ const SendAmount = ({ amount, setTxTo, onChangeAmount }) => {
 
   return (
     <>
-      <StepBackHeader
-        title="Send Amount"
-        onStepBack={() => {
-          setTxTo("")
-        }}
-      />
+      <StepBackHeader title="Send Amount" onStepBack={onStepBack} />
       <div className="flex">
         <label className="flex-1">Amount:</label>
         <input
@@ -164,7 +154,10 @@ export function Send() {
     return (
       <SelectAddress
         key="step2"
-        setTokenSelected={setTokenSelected}
+        onStepBack={() => {
+          setTokenSelected(null)
+          navigate(Path.Send)
+        }}
         setTxTo={setTxTo}
       />
     )
@@ -173,7 +166,9 @@ export function Send() {
   return (
     <SendAmount
       key="step3"
-      setTxTo={setTxTo}
+      onStepBack={() => {
+        setTxTo("")
+      }}
       amount={txValue}
       onChangeAmount={setTxValue}
     />
