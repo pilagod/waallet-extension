@@ -23,6 +23,15 @@ const isValidTo = (to: string) => {
   }
 }
 
+const isValidValue = (value: string) => {
+  try {
+    ethers.parseUnits(value, "ether")
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 const SelectToken = ({ setTokenSelected }) => {
   const tokens = getUserTokens()
   return (
@@ -97,19 +106,12 @@ const SelectAddress = ({ setTokenSelected, setTxTo }) => {
   )
 }
 
-const SendAmount = ({ tokenSelected, amount, setTxTo, onChangeAmount }) => {
-  const [invalidValue, setInvalidValue] = useState<boolean>(false)
+const SendAmount = ({ tokenSelected, setTxTo, setTxValue }) => {
+  const [inputAmount, setInputAmount] = useState<string>("0")
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
-    onChangeAmount(value)
-    try {
-      console.log(`${ethers.parseUnits(value, "ether")}`)
-      setInvalidValue(false)
-    } catch (error) {
-      console.log(`Invalid value`)
-      setInvalidValue(true)
-    }
+    setInputAmount(value)
   }
 
   return (
@@ -124,11 +126,9 @@ const SendAmount = ({ tokenSelected, amount, setTxTo, onChangeAmount }) => {
         <input
           type="text"
           id="amount"
-          value={amount}
+          value={inputAmount}
           onChange={handleAmountChange}
-          className={`text-center text-[64px] focus:outline-none ${
-            invalidValue ? "border-red-500" : "border-gray-300"
-          }`}
+          className="text-center text-[64px] focus:outline-none"
         />
         <div className="text-[24px]">ETH</div>
       </div>
@@ -145,10 +145,10 @@ const SendAmount = ({ tokenSelected, amount, setTxTo, onChangeAmount }) => {
           text="Next"
           className="text-[16px] mt-[65px] mb-[22.5px]"
           onClick={() => {
-            //TODO
+            setTxValue(inputAmount)
           }}
           variant="black"
-          disabled={invalidValue}
+          disabled={!isValidValue(inputAmount)}
         />
       </div>
     </>
@@ -190,8 +190,7 @@ export function Send() {
       key="step3"
       tokenSelected={tokenSelected}
       setTxTo={setTxTo}
-      amount={txValue}
-      onChangeAmount={setTxValue}
+      setTxValue={setTxValue}
     />
   )
 }
