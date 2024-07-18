@@ -89,7 +89,10 @@ const UserOpHistoryItem: React.FC<{
   }
 
   // Check if it's a token send or contract interaction
-  const topicType = data === "0x" || tokenStored ? "send" : "contract"
+  const topicType =
+    data === "0x" || tokenStored
+      ? TopicStatus.Send
+      : TopicStatus.ContractInteraction
 
   if (
     status === TransactionStatus.Succeeded ||
@@ -100,7 +103,7 @@ const UserOpHistoryItem: React.FC<{
       <div className="w-full flex items-center py-[13px] justify-between">
         <div className="flex flex-col items-start gap-[8px]">
           {/* Activity Topic element */}
-          {topic[topicType]}
+          {topics[topicType]}
           {/* Activity Time element */}
           <Time date={creationDate} time={creationTime} link={link} />
         </div>
@@ -115,7 +118,7 @@ const UserOpHistoryItem: React.FC<{
     <div className="w-full flex items-center py-[13px] justify-between">
       <div className="flex flex-col items-start gap-[8px]">
         {/* Activity Topic element */}
-        {topic[topicType]}
+        {topics[topicType]}
         {/* Activity Time element */}
         <Time date={creationDate} time={creationTime} />
       </div>
@@ -125,11 +128,15 @@ const UserOpHistoryItem: React.FC<{
   )
 }
 
-type TopicType = "send" | "contract" | "receive"
+enum TopicStatus {
+  Send = "Send",
+  ContractInteraction = "Contract interaction",
+  Receive = "Receive"
+}
 
 const TopicTemplate: React.FC<{
   Icon: React.ComponentType<{ className?: string }>
-  topic: string
+  topic: TopicStatus
 }> = ({ Icon, topic }) => {
   return (
     <div className="flex items-center">
@@ -139,12 +146,19 @@ const TopicTemplate: React.FC<{
   )
 }
 
-const topic: Record<TopicType, JSX.Element> = {
-  send: <TopicTemplate Icon={ArrowUpRight} topic="Send" />,
-  contract: (
-    <TopicTemplate Icon={ArrowRightArrowLeft} topic="Contract interaction" />
+const topics: Record<TopicStatus, JSX.Element> = {
+  [TopicStatus.Send]: (
+    <TopicTemplate Icon={ArrowUpRight} topic={TopicStatus.Send} />
   ),
-  receive: <TopicTemplate Icon={ArrowDownLeft} topic="Receive" />
+  [TopicStatus.ContractInteraction]: (
+    <TopicTemplate
+      Icon={ArrowRightArrowLeft}
+      topic={TopicStatus.ContractInteraction}
+    />
+  ),
+  [TopicStatus.Receive]: (
+    <TopicTemplate Icon={ArrowDownLeft} topic={TopicStatus.Receive} />
+  )
 }
 
 const Status: React.FC<{
