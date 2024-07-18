@@ -1,3 +1,4 @@
+import { Address } from "~packages/primitive"
 import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -155,7 +156,7 @@ describeWaalletSuite({
 
       const chainId = await bundler.getChainId()
       userOp.setSignature(
-        await ctx.account.sign(userOp.hash(entryPoint, chainId))
+        await ctx.account.sign(userOp.hash(Address.wrap(entryPoint), chainId))
       )
 
       const userOpHash = await ctx.provider.waallet.request<HexString>({

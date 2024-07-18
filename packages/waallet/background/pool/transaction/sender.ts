@@ -4,8 +4,8 @@ import type { AccountManager } from "~packages/account/manager"
 import type { UserOperation } from "~packages/bundler/userOperation"
 import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
-import { NodeProvider } from "~packages/node/provider"
-import type { BigNumberish, HexString } from "~typing"
+import { Address } from "~packages/primitive"
+import type { HexString } from "~typing"
 
 import type { Transaction, TransactionPool } from "./index"
 
@@ -62,7 +62,9 @@ export class TransactionToUserOperationSender implements TransactionPool {
       await this.usePaymaster(userOp, false)
     }
 
-    userOp.setSignature(await account.sign(userOp.hash(entryPoint, chainId)))
+    userOp.setSignature(
+      await account.sign(userOp.hash(Address.wrap(entryPoint), chainId))
+    )
 
     const userOpHash = await bundler.sendUserOperation(userOp, entryPoint)
     if (!userOpHash) {

@@ -75,7 +75,7 @@ export class UserOperationV0_7 {
     }
   }
 
-  public hash(entryPoint: HexString, chainId: BigNumberish) {
+  public hash(entryPoint: Address, chainId: BigNumberish) {
     const abiCoder = ethers.AbiCoder.defaultAbiCoder()
     const userOpPacked = abiCoder.encode(
       [
@@ -102,7 +102,7 @@ export class UserOperationV0_7 {
     return ethers.keccak256(
       abiCoder.encode(
         ["bytes32", "address", "uint256"],
-        [ethers.keccak256(userOpPacked), entryPoint, chainId]
+        [ethers.keccak256(userOpPacked), entryPoint.unwrap(), chainId]
       )
     )
   }

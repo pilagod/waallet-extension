@@ -1,4 +1,5 @@
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import { Address } from "~packages/primitive"
 import byte from "~packages/util/byte"
 import number from "~packages/util/number"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
@@ -163,7 +164,7 @@ describeWaalletSuite({
 
       const chainId = await bundler.getChainId()
       userOp.setSignature(
-        await ctx.account.sign(userOp.hash(entryPoint, chainId))
+        await ctx.account.sign(userOp.hash(Address.wrap(entryPoint), chainId))
       )
 
       const userOpHash = await ctx.provider.waallet.request<HexString>({
