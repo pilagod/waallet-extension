@@ -137,11 +137,6 @@ export function Send() {
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 
-  const stepsComponents = [
-    <SelectToken key="step1" />,
-    <SelectAddress key="step2" to={txTo} onChangeTo={setTxTo} />,
-    <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
-  ]
   if (tokenSelected === null && params.tokenAddress) {
     const token = tokens.find((token) => token.address === params.tokenAddress)
     if (token) {
@@ -149,5 +144,20 @@ export function Send() {
     }
   }
 
-  return stepsComponents[step]
+  if (!tokenSelected) {
+    return <SelectToken key="step1" setTokenSelected={setTokenSelected} />
+  }
+
+  if (!txTo) {
+    return (
+      <SelectAddress
+        key="step2"
+        to={txTo}
+        setTokenSelected={setTokenSelected}
+        onChangeTo={setTxTo}
+      />
+    )
+  }
+
+  return <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
 }
