@@ -111,7 +111,7 @@ function TokenInfoModal({
   const [, navigate] = useHashLocation()
 
   const handleSend = () => {
-    navigate(`/send/${tokenSelected.address}`)
+    navigate(`${Path.Send}/${tokenSelected.address}`)
   }
 
   return (

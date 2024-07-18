@@ -51,7 +51,7 @@ const SelectAddress = ({ to, setTokenSelected, onChangeTo }) => {
         title="Select Address"
         onStepBack={() => {
           setTokenSelected(null)
-          navigate("/send/0x")
+          navigate(Path.Send)
         }}
       />
       <div className="flex">
@@ -128,13 +128,13 @@ const SendAmount = ({ amount, onChangeAmount }) => {
 export function Send() {
   const [, params] = useRoute<{
     tokenAddress: string
-  }>(Path.Send)
+  }>(`${Path.Send}/:tokenAddress`)
   const tokens = getUserTokens()
   const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
 
-  if (tokenSelected === null && params.tokenAddress) {
+  if (tokenSelected === null && params?.tokenAddress) {
     const token = tokens.find((token) => token.address === params.tokenAddress)
     if (token) {
       setTokenSelected(token)
