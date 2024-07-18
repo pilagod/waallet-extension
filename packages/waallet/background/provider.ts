@@ -2,6 +2,7 @@ import type { AccountManager } from "~packages/account/manager"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
+import { Address } from "~packages/primitive"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
@@ -81,7 +82,7 @@ export class WaalletBackgroundProvider {
       throw new Error("Address `from` doesn't match connected account")
     }
     const { bundler } = this.networkManager.getActive()
-    const entryPoint = await account.getEntryPoint()
+    const entryPoint = Address.wrap(await account.getEntryPoint())
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
@@ -121,7 +122,8 @@ export class WaalletBackgroundProvider {
     callGasLimit: HexString
     paymasterVerificationGasLimit: HexString
   }> {
-    const [userOp, entryPoint] = params
+    const [userOp, entryPointAddress] = params
+    const entryPoint = Address.wrap(entryPointAddress)
     const { bundler } = this.networkManager.getActive()
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
@@ -156,7 +158,7 @@ export class WaalletBackgroundProvider {
       throw new Error("Address `from` doesn't match connected account")
     }
 
-    const entryPoint = await account.getEntryPoint()
+    const entryPoint = Address.wrap(await account.getEntryPoint())
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
@@ -178,7 +180,8 @@ export class WaalletBackgroundProvider {
   private async handleSendUserOperation(
     params: EthSendUserOperationArguments["params"]
   ): Promise<HexString> {
-    const [userOp, entryPoint] = params
+    const [userOp, entryPointAddress] = params
+    const entryPoint = Address.wrap(entryPointAddress)
     const { bundler } = this.networkManager.getActive()
     return bundler.sendUserOperation(
       bundler.deriveUserOperation(userOp, entryPoint),

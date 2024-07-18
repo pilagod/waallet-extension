@@ -72,7 +72,7 @@ describeWaalletSuite({
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
         }),
-        await ctx.account.getEntryPoint()
+        Address.wrap(await ctx.account.getEntryPoint())
       )
 
       // Use custom nonce which doesn't match the one on chain
@@ -141,7 +141,7 @@ describeWaalletSuite({
           value: 1,
           data: counter.interface.encodeFunctionData("increment", [])
         }),
-        await ctx.account.getEntryPoint()
+        Address.wrap(await ctx.account.getEntryPoint())
       )
 
       const gasFee = await ctx.provider.waallet.request({
@@ -151,7 +151,7 @@ describeWaalletSuite({
 
       const entryPoint = await ctx.account.getEntryPoint()
       userOp.setGasLimit(
-        await bundler.estimateUserOperationGas(userOp, entryPoint)
+        await bundler.estimateUserOperationGas(userOp, Address.wrap(entryPoint))
       )
 
       const chainId = await bundler.getChainId()
