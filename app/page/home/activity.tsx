@@ -168,7 +168,7 @@ const Status: React.FC<{
   if (tokenInfo && status === TransactionStatus.Succeeded) {
     return (
       <div className="flex items-center">
-        <div className="text-[16px] text-[#FF5151] whitespace-nowrap">
+        <div className="text-[16px] font-[600] text-[#FF5151] whitespace-nowrap">
           - {number.formatUnitsToFixed(tokenInfo.value, 18, 4)}{" "}
           {tokenInfo.symbol}
         </div>
@@ -188,7 +188,7 @@ const Status: React.FC<{
         <Clock className="w-[14px] h-[14px] mr-[4px]" />
       )}
       <div
-        className={`text-[16px] ${
+        className={`text-[16px] font-[500] ${
           isFailed ? "text-[#FF5151]" : "text-[#466BFF]"
         }`}>
         {isFailed ? "Failed" : "Processing..."}
