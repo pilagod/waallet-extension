@@ -3,10 +3,9 @@ import Copy from "react:~assets/copy.svg"
 import Wallet from "react:~assets/wallet.svg"
 
 import { Divider } from "~app/component/divider"
-import { QrCode } from "~app/component/qrcode"
+import { QrCode } from "~app/component/qrCode"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ToastContext } from "~app/context/toastContext"
-import { Path } from "~app/path"
 import { useAccount } from "~app/storage"
 
 export const Receive = () => {
@@ -26,7 +25,7 @@ export const Receive = () => {
     <>
       <StepBackHeader title={"Jesse's wallet"} />
       <div className="flex items-center justify-center my-[24px]">
-        <QrCode address={address} />
+        <QrCode address={address} size={200} />
       </div>
       <Divider />
 
