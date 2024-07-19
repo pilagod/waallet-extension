@@ -28,7 +28,7 @@ describeWaalletSuite({
         method: WaalletRpcMethod.eth_sendTransaction,
         params: [
           {
-            to: ctx.account.getAddress(),
+            to: await ctx.account.getAddress(),
             value: 0
           }
         ]

@@ -34,7 +34,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   /* public */
 
   public async buildExecution(call: Call) {
-    const sender = this.getAddress()
+    const sender = await this.getAddress()
     // Only nonce on chain can be used
     const nonce = await this.getNonce()
     // TODO: Split initCode in factory
@@ -54,7 +54,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     })
   }
 
-  public getAddress() {
+  public async getAddress() {
     return this.address
   }
 

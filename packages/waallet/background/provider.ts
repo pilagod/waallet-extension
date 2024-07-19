@@ -56,7 +56,7 @@ export class WaalletBackgroundProvider {
       case WaalletRpcMethod.eth_accounts:
       case WaalletRpcMethod.eth_requestAccounts: {
         const { account } = await this.accountManager.getActive()
-        return [account.getAddress().unwrap()]
+        return [(await account.getAddress()).unwrap()]
       }
       case WaalletRpcMethod.eth_chainId:
         return number.toHex(await bundler.getChainId())
@@ -88,7 +88,7 @@ export class WaalletBackgroundProvider {
       return
     }
     const { account } = await this.accountManager.getActive()
-    if (tx.from && !account.getAddress().isEqual(tx.from)) {
+    if (tx.from && !(await account.getAddress()).isEqual(tx.from)) {
       throw new Error("Address `from` doesn't match connected account")
     }
     const { bundler } = this.networkManager.getActive()
@@ -164,7 +164,7 @@ export class WaalletBackgroundProvider {
 
     const { id: networkId, bundler } = this.networkManager.getActive()
     const { id: accountId, account } = await this.accountManager.getActive()
-    if (tx.from && !account.getAddress().isEqual(tx.from)) {
+    if (tx.from && !(await account.getAddress()).isEqual(tx.from)) {
       throw new Error("Address `from` doesn't match connected account")
     }
 

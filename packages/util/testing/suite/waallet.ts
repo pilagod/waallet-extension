@@ -35,7 +35,7 @@ export class WaalletSuiteContext<T extends Account> {
     // TODO: Use default paymaster to accelerate
     return (
       await config.wallet.operator.sendTransaction({
-        to: this.account.getAddress(),
+        to: await this.account.getAddress(),
         value: balance ?? ethers.parseEther("1")
       })
     ).wait()

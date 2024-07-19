@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from "uuid"
 
 import type { Account } from "~packages/account"
 import { type AddressLike } from "~packages/primitive"
-import type { HexString } from "~typing"
 
 import type { AccountManager } from "./index"
 
@@ -28,7 +27,7 @@ export class SingleAccountManager implements AccountManager {
   }
 
   public async getByAddress(address: AddressLike) {
-    if (!this.account.getAddress().isEqual(address)) {
+    if (!(await this.account.getAddress()).isEqual(address)) {
       throw new Error(`Account ${address} is not found`)
     }
     return this.getActive()
