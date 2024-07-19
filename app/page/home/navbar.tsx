@@ -1,11 +1,11 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { formatEther } from "ethers"
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import ChevronDown from "react:~assets/chevronDown.svg"
 import Ethereum from "react:~assets/ethereum.svg"
 
-import { useProviderContext } from "~app/context/provider"
+import { ProviderContext } from "~app/context/provider"
 import {
   useAccount,
   useAccounts,
@@ -156,7 +156,7 @@ function AccountSelector() {
 }
 
 function AccountSelectorModal(props: { onModalClosed: () => void }) {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const { createAccount, switchAccount } = useAction()
   const network = useNetwork()
   const accounts = useAccounts()
@@ -216,7 +216,7 @@ function AccountPreview(props: {
   active: boolean
   onAccountSelected: () => void
 }) {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const [balance, setBalance] = useState<bigint>(null)
   useEffect(() => {
     async function getBalance() {

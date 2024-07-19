@@ -9,6 +9,9 @@ import type { BigNumberish, BytesLike, HexString } from "~typing"
 import { SimpleAccountFactory } from "./factory"
 
 export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
+  private static abi = [
+    "function execute(address dest, uint256 value, bytes calldata func)"
+  ]
   /**
    * Use when account is already deployed
    */
@@ -50,6 +53,13 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     })
   }
 
+  public static decode(calldata: HexString): Call {
+    const [dest, value, func] = new ethers.Interface(
+      SimpleAccount.abi
+    ).decodeFunctionData("execute", calldata)
+    return { to: dest, value, data: func }
+  }
+
   private account: ethers.Contract
   private owner: ethers.Wallet
 
@@ -65,9 +75,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(this.address, [
-      "function execute(address dest, uint256 value, bytes calldata func)"
-    ])
+    this.account = new ethers.Contract(this.address, SimpleAccount.abi)
     this.owner = option.owner
   }
 

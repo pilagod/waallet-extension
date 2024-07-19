@@ -14,3 +14,5 @@ export const ETH = new Token(
   "ETH",
   18
 )
+
+// TODO: Decoding or encoding token calldata here

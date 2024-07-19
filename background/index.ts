@@ -175,6 +175,8 @@ async function main() {
 
     const provider = new JsonRpcProvider(node.url)
 
+    // TODO: Need to obtain the 'from' address for transferring native token and ERC20 tokens
+
     // Update the balance of native token
     const nativeBalance: bigint = await provider.getBalance(accountAddress)
 

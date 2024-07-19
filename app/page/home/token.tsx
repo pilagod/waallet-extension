@@ -5,7 +5,7 @@ import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import Ethereum from "react:~assets/ethereum.svg"
 import { Link } from "wouter"
 
-import { useProviderContext } from "~app/context/provider"
+import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
@@ -257,7 +257,7 @@ function TokenSendModal({
   onModalClosed: () => void
   tokenAddress: HexString
 }) {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const account = useAccount()
   const tokens = useTokens()
   const token = tokens.find((token) =>
@@ -385,7 +385,7 @@ function TokenSendModal({
   )
 }
 function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const { importToken } = useAction()
   const tokens = useTokens()
   const account = useAccount()

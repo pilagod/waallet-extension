@@ -12,6 +12,10 @@ import { PasskeyAccountFactory } from "./factory"
 import type { PasskeyOwner } from "./passkeyOwner"
 
 export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
+  private static abi = [
+    "function execute(address dest, uint256 value, bytes calldata func)"
+  ]
+
   /**
    * Use when account is already deployed
    */
@@ -67,6 +71,13 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     return credId as string
   }
 
+  public static decode(calldata: HexString): Call {
+    const [dest, value, func] = new ethers.Interface(
+      PasskeyAccount.abi
+    ).decodeFunctionData("execute", calldata)
+    return { to: dest, value, data: func }
+  }
+
   private account: ethers.Contract
   private owner: PasskeyOwner
 
@@ -82,9 +93,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(this.address, [
-      "function execute(address dest, uint256 value, bytes calldata func)"
-    ])
+    this.account = new ethers.Contract(this.address, PasskeyAccount.abi)
     this.owner = option.owner
   }
 
