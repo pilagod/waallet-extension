@@ -133,9 +133,19 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
   )
 }
 
-const SendAmount = ({ tokenSelected, onStepBack, setTxValue }) => {
+const SendAmount = ({
+  txInfo,
+  onStepBack
+}: {
+  txInfo: {
+    token: Token
+    txTo: HexString
+  }
+  onStepBack: () => void
+}) => {
   const [inputAmount, setInputAmount] = useState<string>("0")
   const { provider } = useContext(ProviderContext)
+  const { token, txTo } = txInfo
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -207,7 +217,6 @@ export function Send() {
   const tokens = getUserTokens()
   const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
   const [txTo, setTxTo] = useState<HexString>("")
-  const [txValue, setTxValue] = useState<BigNumberish>("0")
 
   if (tokenSelected === null && params?.tokenAddress) {
     const token = tokens.find((token) => token.address === params.tokenAddress)
@@ -239,8 +248,7 @@ export function Send() {
       onStepBack={() => {
         setTxTo("")
       }}
-      tokenSelected={tokenSelected}
-      setTxValue={setTxValue}
+      txInfo={{ token: tokenSelected, txTo }}
     />
   )
 }
