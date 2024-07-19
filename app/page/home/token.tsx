@@ -1,11 +1,12 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { getAddress, parseUnits, toNumber } from "ethers"
-import { useCallback, useState, type ChangeEvent } from "react"
+import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import Ethereum from "react:~assets/ethereum.svg"
 import { Link } from "wouter"
 
-import { useProviderContext } from "~app/context/provider"
+import { ProviderContext } from "~app/context/provider"
+import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName } from "~packages/network/util"
@@ -257,7 +258,7 @@ function TokenSendModal({
   onModalClosed: () => void
   tokenAddress: HexString
 }) {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const account = useAccount()
   const tokens = useTokens()
   const token = tokens.find((token) =>
@@ -383,7 +384,7 @@ function TokenSendModal({
   )
 }
 function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
-  const { provider } = useProviderContext()
+  const { provider } = useContext(ProviderContext)
   const { importToken } = useAction()
   const tokens = useTokens()
   const account = useAccount()
@@ -394,6 +395,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const [invalidTokenAddressMessage, setInvalidTokenAddressMessage] =
     useState<string>("")
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(true)
+  const { setToast } = useContext(ToastContext)
 
   const handleTokenAddressChange = async (
     event: ChangeEvent<HTMLInputElement>
@@ -459,6 +461,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       balance: number.toHex(balance)
     })
     onModalClosed()
+    setToast("Token imported!", "success")
   }
 
   return (

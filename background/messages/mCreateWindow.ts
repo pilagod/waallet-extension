@@ -1,11 +1,8 @@
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 import { format } from "~packages/util/json"
-import { testWebAuthn } from "~packages/webAuthn/background/webAuthn"
-import type {
-  WebAuthnCreation,
-  WebAuthnRequest
-} from "~packages/webAuthn/typing"
+import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
+import { testWebAuthn } from "~packages/webAuthn/background"
 
 export type RequestBody = {
   creation?: WebAuthnCreation

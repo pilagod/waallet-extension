@@ -1,5 +1,4 @@
 import { p256 } from "@noble/curves/p256"
-import { AbiCoder } from "ethers"
 
 import { Bytes } from "~packages/primitive"
 import type { BytesLike } from "~typing"
@@ -33,41 +32,19 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
   }
 
   public async sign(challenge: BytesLike) {
-    const {
-      message,
-      authenticatorData,
-      clientDataJson,
-      clientDataJsonChallengeIndex,
-      clientDataJsonTypeIndex
-    } = this.getMessage(challenge)
+    const { message, authenticatorData, clientDataJson } =
+      this.getMessage(challenge)
 
     let { r, s } = p256.sign(message, this.privateKey)
     if (s > p256.CURVE.n / 2n) {
       s = p256.CURVE.n - s
     }
-    const signature = AbiCoder.defaultAbiCoder().encode(
-      [
-        "bool",
-        "bytes",
-        "bool",
-        "string",
-        "uint256",
-        "uint256",
-        "uint256",
-        "uint256"
-      ],
-      [
-        false,
-        Bytes.wrap(authenticatorData),
-        true,
-        clientDataJson,
-        clientDataJsonChallengeIndex,
-        clientDataJsonTypeIndex,
-        r,
-        s
-      ]
-    )
-    return signature
+
+    return {
+      authenticatorData,
+      clientDataJson,
+      signature: { r, s }
+    }
   }
 
   private getMessage(challenge: BytesLike) {
@@ -79,9 +56,7 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
     return {
       message,
       authenticatorData,
-      clientDataJson,
-      clientDataJsonChallengeIndex: 23,
-      clientDataJsonTypeIndex: 1
+      clientDataJson
     }
   }
 

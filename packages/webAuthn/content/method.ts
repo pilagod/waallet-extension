@@ -1,7 +1,4 @@
-import type {
-  WebAuthnCreation,
-  WebAuthnRequest
-} from "~packages/webAuthn/typing"
+import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
 
 export enum ContentMethod {
   content_createWebAuthn = "content_createWebAuthn",

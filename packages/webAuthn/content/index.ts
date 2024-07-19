@@ -1,15 +1,16 @@
-import { runtime, type Runtime } from "webextension-polyfill"
+import { runtime } from "webextension-polyfill"
 
 import { format } from "~packages/util/json"
-import { createWebAuthn, requestWebAuthn } from "~packages/webAuthn"
+import {
+  createWebAuthn,
+  requestWebAuthn,
+  type WebAuthnAuthentication,
+  type WebAuthnCreation,
+  type WebAuthnError,
+  type WebAuthnRegistration,
+  type WebAuthnRequest
+} from "~packages/webAuthn"
 import { PortName } from "~packages/webAuthn/tabs/port"
-import type {
-  WebAuthnAuthentication,
-  WebAuthnCreation,
-  WebAuthnError,
-  WebAuthnRegistration,
-  WebAuthnRequest
-} from "~packages/webAuthn/typing"
 
 export const contentCreateWebAuthn = async (
   params?: WebAuthnCreation

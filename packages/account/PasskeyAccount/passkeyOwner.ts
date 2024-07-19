@@ -1,4 +1,5 @@
-import type { B64UrlString, BytesLike, HexString, Nullable } from "~typing"
+import type { WebAuthnAuthentication } from "~packages/webAuthn"
+import type { B64UrlString, BytesLike, Nullable } from "~typing"
 
 export type PasskeyPublicKey = {
   x: bigint
@@ -8,5 +9,5 @@ export type PasskeyPublicKey = {
 export interface PasskeyOwner {
   getCredentialId(): B64UrlString
   getPublicKey(): Nullable<PasskeyPublicKey>
-  sign(challenge: BytesLike, metadata?: any): Promise<HexString>
+  sign(challenge: BytesLike, metadata?: any): Promise<WebAuthnAuthentication>
 }

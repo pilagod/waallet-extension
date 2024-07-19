@@ -19,13 +19,16 @@ import type {
   UserVerificationRequirement
 } from "@simplewebauthn/types"
 
+import type { B64UrlString } from "~typing"
+
 import type {
   WebAuthnAuthentication,
   WebAuthnCreation,
   WebAuthnRegistration,
   WebAuthnRequest
-} from "~packages/webAuthn/typing"
-import type { B64UrlString } from "~typing"
+} from "./typing"
+
+export * from "./typing"
 
 export const createWebAuthn = async (
   params?: WebAuthnCreation
