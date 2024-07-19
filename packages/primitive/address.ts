@@ -33,8 +33,9 @@ export class Address {
     return this.unwrap()
   }
 
-  public getBalance(node: NodeProvider) {
-    return node.getBalance(this.unwrap())
+  public async isContract(node: NodeProvider) {
+    const code = await node.getCode(this.unwrap())
+    return code !== "0x"
   }
 
   public isEqual(address: AddressLike) {
@@ -42,11 +43,6 @@ export class Address {
       return this.address === address.unwrap()
     }
     return this.address === getAddress(address)
-  }
-
-  public async isContract(node: NodeProvider) {
-    const code = await node.getCode(this.unwrap())
-    return code !== "0x"
   }
 
   public unwrap() {

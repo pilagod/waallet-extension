@@ -1,5 +1,7 @@
 import { getAddress, isAddress } from "ethers"
 
+import config from "~config/test"
+
 import { Address } from "./address"
 
 describe("Address", () => {
@@ -18,6 +20,21 @@ describe("Address", () => {
 
       expect(checksum.startsWith(prefix)).toBe(true)
       expect(checksum.endsWith(suffix)).toBe(true)
+    })
+  })
+
+  describe("isContract", () => {
+    it("should identify address with code", async () => {
+      const counterAddress = Address.wrap(
+        await config.contract.counter.getAddress()
+      )
+      expect(await counterAddress.isContract(config.provider.node)).toBe(true)
+    })
+
+    it("should identify address without code", async () => {
+      const operatorAddress = Address.wrap(config.wallet.operator.address)
+
+      expect(await operatorAddress.isContract(config.provider.node)).toBe(false)
     })
   })
 

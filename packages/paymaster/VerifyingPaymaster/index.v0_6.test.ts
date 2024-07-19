@@ -22,7 +22,6 @@ describeWaalletSuite({
       const accountBalanceBefore = await node.getBalance(
         await ctx.account.getAddress()
       )
-
       const paymasterDepositBalanceBefore = await entryPointV0_6.balanceOf(
         ctx.address.VerifyingPaymasterV0_6
       )

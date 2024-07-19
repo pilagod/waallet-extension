@@ -58,10 +58,6 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.address
   }
 
-  public getBalance() {
-    return this.address.getBalance(this.runner.provider)
-  }
-
   public async getEntryPoint() {
     if (!(await this.isDeployed())) {
       return this.mustGetFactory().getEntryPoint()

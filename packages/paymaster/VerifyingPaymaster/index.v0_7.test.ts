@@ -24,11 +24,13 @@ describeWaalletSuite({
   suite: (ctx) => {
     it("should pay for account", async () => {
       const {
-        contract: { entryPointV0_7 }
+        contract: { entryPointV0_7 },
+        provider: { node }
       } = ctx
 
-      const accountBalanceBefore = await ctx.account.getBalance()
-
+      const accountBalanceBefore = await node.getBalance(
+        await ctx.account.getAddress()
+      )
       const paymasterDepositBalanceBefore = await entryPointV0_7.balanceOf(
         ctx.address.VerifyingPaymasterV0_7
       )
@@ -43,7 +45,9 @@ describeWaalletSuite({
         ]
       })
 
-      const accountBalanceAfter = await ctx.account.getBalance()
+      const accountBalanceAfter = await node.getBalance(
+        await ctx.account.getAddress()
+      )
       expect(accountBalanceBefore).toBe(accountBalanceAfter)
 
       const paymasterDepositBalanceAfter = await entryPointV0_7.balanceOf(
