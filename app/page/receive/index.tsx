@@ -25,7 +25,7 @@ export const Receive = () => {
   return (
     <>
       <StepBackHeader title={"Jesse's wallet"} />
-      <div className="flex items-center justify-center my-[24px] py-[24px]">
+      <div className="flex items-center justify-center my-[24px]">
         <QrCode address={address} />
       </div>
       <Divider />
@@ -48,7 +48,6 @@ export const Receive = () => {
           </div>
         </button>
       </div>
-      <Divider />
     </>
   )
 }
