@@ -26,6 +26,13 @@ export class Address {
     )}`
   }
 
+  /**
+   * @dev Implement `ethers.Addressable` interface
+   */
+  public async getAddress(): Promise<string> {
+    return this.unwrap()
+  }
+
   public getBalance(node: NodeProvider) {
     return node.getBalance(this.unwrap())
   }

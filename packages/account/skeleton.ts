@@ -67,7 +67,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       return this.mustGetFactory().getEntryPoint()
     }
     const account = new ethers.Contract(
-      this.address.unwrap(),
+      this.address,
       [
         "function entryPoint() view returns (address)",
         "function getEntryPoint() view returns (address)"
@@ -90,13 +90,13 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       return 0n
     }
     const entryPoint = new ethers.Contract(
-      (await this.getEntryPoint()).unwrap(),
+      await this.getEntryPoint(),
       [
         "function getNonce(address sender, uint192 key) view returns (uint256 nonce)"
       ],
       this.runner
     )
-    return entryPoint.getNonce(this.address.unwrap(), 0)
+    return entryPoint.getNonce(this.address, 0)
   }
 
   public async isDeployed(): Promise<boolean> {

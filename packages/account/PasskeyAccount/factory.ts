@@ -26,7 +26,7 @@ export class PasskeyAccountFactory implements AccountFactory {
   ) {
     this.address = Address.wrap(option.address)
     this.factory = new ethers.Contract(
-      this.address.unwrap(),
+      this.address,
       [
         "function getAddress(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt) view returns (address)",
         "function createAccount(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt)",

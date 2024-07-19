@@ -57,7 +57,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     address: AddressLike
   ) {
     const account = new ethers.Contract(
-      Address.wrap(address).unwrap(),
+      Address.wrap(address),
       [
         "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)"
       ],
@@ -82,7 +82,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(this.address.unwrap(), [
+    this.account = new ethers.Contract(this.address, [
       "function execute(address dest, uint256 value, bytes calldata func)"
     ])
     this.owner = option.owner

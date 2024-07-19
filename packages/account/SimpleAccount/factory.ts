@@ -22,7 +22,7 @@ export class SimpleAccountFactory implements AccountFactory {
   ) {
     this.address = Address.wrap(option.address)
     this.factory = new ethers.Contract(
-      this.address.unwrap(),
+      this.address,
       [
         "function getAddress(address owner, uint256 salt) view returns (address)",
         "function createAccount(address owner,uint256 salt)",

@@ -65,7 +65,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(this.address.unwrap(), [
+    this.account = new ethers.Contract(this.address, [
       "function execute(address dest, uint256 value, bytes calldata func)"
     ])
     this.owner = option.owner
