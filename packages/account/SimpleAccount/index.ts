@@ -51,6 +51,9 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
 
   private account: ethers.Contract
   private owner: ethers.Wallet
+  private static abi: string[] = [
+    "function execute(address dest, uint256 value, bytes calldata func)"
+  ]
 
   private constructor(
     runner: ContractRunner,
@@ -64,14 +67,19 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(option.address, [
-      "function execute(address dest, uint256 value, bytes calldata func)"
-    ])
+    this.account = new ethers.Contract(option.address, SimpleAccount.abi)
     this.owner = option.owner
   }
 
   public async sign(message: BytesLike) {
     return this.owner.signMessage(ethers.getBytes(message))
+  }
+
+  public static decode(calldata: HexString): Call {
+    const [dest, value, func] = new ethers.Interface(
+      SimpleAccount.abi
+    ).decodeFunctionData("execute", calldata)
+    return { to: dest, value, data: func }
   }
 
   protected async getCallData(call: Call): Promise<HexString> {

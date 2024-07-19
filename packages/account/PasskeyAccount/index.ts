@@ -68,6 +68,9 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
 
   private account: ethers.Contract
   private owner: PasskeyOwner
+  private static abi: string[] = [
+    "function execute(address dest, uint256 value, bytes calldata func)"
+  ]
 
   private constructor(
     runner: ContractRunner,
@@ -81,9 +84,7 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(option.address, [
-      "function execute(address dest, uint256 value, bytes calldata func)"
-    ])
+    this.account = new ethers.Contract(option.address, PasskeyAccount.abi)
     this.owner = option.owner
   }
 
@@ -131,6 +132,13 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     )
 
     return signature
+  }
+
+  public static decode(calldata: HexString): Call {
+    const [dest, value, func] = new ethers.Interface(
+      PasskeyAccount.abi
+    ).decodeFunctionData("execute", calldata)
+    return { to: dest, value, data: func }
   }
 
   protected async getCallData(call: Call): Promise<HexString> {
