@@ -17,7 +17,7 @@ export const Receive = () => {
       await navigator.clipboard.writeText(address)
       setToast("Copy address to clipboard.", "success")
     } catch (e) {
-      new Error(`Failed to copy text: ${e.message}`)
+      setToast("Copy address to clipboard.", "failed")
     }
   }
 
@@ -39,7 +39,7 @@ export const Receive = () => {
         </div>
         {/* Copy button */}
         <button
-          className="flex items-center p-[16px_104.5px_16px_104.5px] my-[22.5px] rounded-full border-[1px] border-solid border-black bg-black"
+          className="w-full flex items-center justify-center py-[16px] my-[22.5px] rounded-full border-[1px] border-solid border-black bg-black"
           onClick={handleCopy}>
           <Copy className="w-[24px] h-[24px] mr-[8px]" />
           <div className="text-[18px] text-[#FFFFFF] whitespace-nowrap">
