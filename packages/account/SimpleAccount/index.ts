@@ -3,7 +3,7 @@ import * as ethers from "ethers"
 import type { Call } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import { type ContractRunner } from "~packages/node"
-import { type AddressLike } from "~packages/primitive"
+import { Address, type AddressLike } from "~packages/primitive"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
@@ -53,11 +53,15 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     })
   }
 
-  public static decode(calldata: HexString): Call {
+  public static decode(calldata: HexString) {
     const [dest, value, func] = new ethers.Interface(
       SimpleAccount.abi
     ).decodeFunctionData("execute", calldata)
-    return { to: dest, value, data: func }
+    return {
+      to: Address.wrap(dest),
+      value: value as bigint,
+      data: func as HexString
+    }
   }
 
   private account: ethers.Contract

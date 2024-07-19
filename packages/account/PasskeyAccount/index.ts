@@ -71,11 +71,15 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     return credId as string
   }
 
-  public static decode(calldata: HexString): Call {
+  public static decode(calldata: HexString) {
     const [dest, value, func] = new ethers.Interface(
       PasskeyAccount.abi
     ).decodeFunctionData("execute", calldata)
-    return { to: dest, value, data: func }
+    return {
+      to: Address.wrap(dest),
+      value: value as bigint,
+      data: func as HexString
+    }
   }
 
   private account: ethers.Contract

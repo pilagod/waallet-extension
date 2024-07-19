@@ -1,34 +1,29 @@
 import { Interface } from "ethers"
 
-import { AccountType, type Call } from "~packages/account"
+import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
 import type { HexString } from "~typing"
 
 export const decodeExecuteParams = (
   accountType: AccountType,
-  calldata: HexString
-): Call => {
+  callData: HexString
+) => {
   switch (accountType) {
     case AccountType.SimpleAccount:
-      return SimpleAccount.decode(calldata)
+      return SimpleAccount.decode(callData)
     case AccountType.PasskeyAccount:
-      return PasskeyAccount.decode(calldata)
+      return PasskeyAccount.decode(callData)
     default:
       throw new Error(`Unknown account type`)
   }
 }
 
-export type TransferParam = {
-  to: HexString
-  value: bigint
-}
-
-export const decodeTransferParams = (calldata: HexString): TransferParam => {
+export const decodeTransferParams = (callData: HexString) => {
   const transferAbi = [
     "function transfer(address to, uint256 value) public returns (bool)"
   ]
   const transferIface = new Interface(transferAbi)
-  const [to, value] = transferIface.decodeFunctionData("transfer", calldata)
-  return { to, value }
+  const [to, value] = transferIface.decodeFunctionData("transfer", callData)
+  return { to: to as HexString, value: value as bigint }
 }
