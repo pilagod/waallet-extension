@@ -19,9 +19,8 @@ describeWaalletSuite({
         provider: { node }
       } = ctx
 
-      const accountBalanceBefore = await node.getBalance(
-        ctx.account.getAddress().unwrap()
-      )
+      const accountBalanceBefore = await ctx.account.getBalance()
+
       const paymasterDepositBalanceBefore = await entryPointV0_6.balanceOf(
         ctx.address.VerifyingPaymasterV0_6
       )
@@ -36,9 +35,7 @@ describeWaalletSuite({
         ]
       })
 
-      const accountBalanceAfter = await node.getBalance(
-        ctx.account.getAddress().unwrap()
-      )
+      const accountBalanceAfter = await ctx.account.getBalance()
       expect(accountBalanceBefore).toBe(accountBalanceAfter)
 
       const paymasterDepositBalanceAfter = await entryPointV0_6.balanceOf(

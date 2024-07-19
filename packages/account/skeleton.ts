@@ -58,6 +58,10 @@ export abstract class AccountSkeleton<T extends AccountFactory>
     return this.address
   }
 
+  public getBalance() {
+    return this.address.getBalance(this.runner.provider)
+  }
+
   public async getEntryPoint() {
     if (!(await this.isDeployed())) {
       return this.mustGetFactory().getEntryPoint()
@@ -96,9 +100,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   }
 
   public async isDeployed(): Promise<boolean> {
-    // TODO: Cache it
-    const code = await this.runner.provider.getCode(this.address.unwrap())
-    return code !== "0x"
+    return this.address.isContract(this.runner.provider)
   }
 
   /* protected */

@@ -2,6 +2,11 @@ import { getAddress } from "ethers"
 
 import type { HexString } from "~typing"
 
+interface NodeProvider {
+  getBalance(address: HexString): Promise<bigint>
+  getCode(address: HexString): Promise<HexString>
+}
+
 export type AddressLike = Address | HexString
 
 export class Address {
@@ -21,11 +26,20 @@ export class Address {
     )}`
   }
 
+  public getBalance(node: NodeProvider) {
+    return node.getBalance(this.unwrap())
+  }
+
   public isEqual(address: AddressLike) {
     if (address instanceof Address) {
       return this.address === address.unwrap()
     }
     return this.address === getAddress(address)
+  }
+
+  public async isContract(node: NodeProvider) {
+    const code = await node.getCode(this.unwrap())
+    return code !== "0x"
   }
 
   public unwrap() {

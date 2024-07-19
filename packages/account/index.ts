@@ -45,6 +45,7 @@ export class Execution {
 export interface Account {
   buildExecution(call: Call): Promise<Execution>
   getAddress(): Address
+  getBalance(): Promise<bigint>
   getEntryPoint(): Promise<Address>
   getNonce(): Promise<bigint>
   isDeployed(): Promise<boolean>
