@@ -116,7 +116,7 @@ const SendAmount = ({ tokenSelected, onStepBack, setTxValue }) => {
           id="amount"
           value={inputAmount}
           onChange={handleAmountChange}
-          className="text-center text-[64px] focus:outline-none"
+          className="text-center text-[64px] focus:outline-none max-w-[390px]"
         />
         <div className="text-[24px]">ETH</div>
       </div>
@@ -124,8 +124,10 @@ const SendAmount = ({ tokenSelected, onStepBack, setTxValue }) => {
       <div>
         <h2 className="text-[16px] py-[12px]">Balance</h2>
         <div className="flex items-center gap-[16px]">
-          <TokenItem token={tokenSelected} />
           <button className="text-[16px] p-[8px_20px] border border-solid border-black h-[35px] rounded-[99px] ">
+          <div className="w-full">
+            <TokenItem token={token} />
+          </div>
             Max
           </button>
         </div>
