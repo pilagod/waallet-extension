@@ -23,10 +23,10 @@ const isValidTo = (to: string) => {
   }
 }
 
-const isValidValue = (value: string) => {
+const isValidValue = (value: string, decimals: number) => {
   try {
-    ethers.parseUnits(value, "ether")
-    return true
+    const amount = ethers.parseUnits(value, decimals)
+    return amount >= 0
   } catch (error) {
     return false
   }
@@ -138,7 +138,7 @@ const SendAmount = ({ tokenSelected, onStepBack, setTxValue }) => {
             setTxValue(inputAmount)
           }}
           variant="black"
-          disabled={!isValidValue(inputAmount)}
+          disabled={!isValidValue(inputAmount, token.decimals)}
         />
       </div>
     </>
