@@ -1,5 +1,5 @@
 import * as ethers from "ethers"
-import { useState, type ChangeEvent } from "react"
+import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { useRoute } from "wouter"
 import { navigate } from "wouter/use-hash-location"
 
@@ -9,8 +9,12 @@ import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
+import { ProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { getUserTokens } from "~app/util/getUserTokens"
+import { getErc20Contract } from "~packages/network/util"
+import address from "~packages/util/address"
+import number from "~packages/util/number"
 import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
@@ -30,6 +34,36 @@ const isValidValue = (value: string, decimals: number) => {
   } catch (error) {
     return false
   }
+}
+
+const sendNativeToken = async (
+  signer: ethers.JsonRpcSigner,
+  to: HexString,
+  value: BigNumberish
+) => {
+  return await signer.sendTransaction({
+    to: to,
+    value: ethers.parseUnits(value.toString(), "ether"),
+    data: "0x"
+  })
+}
+
+const sendErc20Token = async (
+  signer: ethers.JsonRpcSigner,
+  toAddress: HexString,
+  value: BigNumberish,
+  token: Token
+) => {
+  const erc20 = getErc20Contract(token.address, signer)
+  const data = erc20.interface.encodeFunctionData("transfer", [
+    toAddress,
+    ethers.parseUnits(value.toString(), token.decimals)
+  ])
+  return await signer.sendTransaction({
+    to: token.address,
+    value: 0,
+    data: data
+  })
 }
 
 const SelectToken = ({ setTokenSelected }) => {
@@ -101,11 +135,25 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
 
 const SendAmount = ({ tokenSelected, onStepBack, setTxValue }) => {
   const [inputAmount, setInputAmount] = useState<string>("0")
+  const { provider } = useContext(ProviderContext)
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     setInputAmount(value)
   }
+
+  const handleSend = useCallback(async () => {
+    const signer = await provider.getSigner()
+    if (
+      address.isEqual(
+        token.address,
+        "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+      )
+    ) {
+      return sendNativeToken(signer, txTo, inputAmount)
+    }
+    return sendErc20Token(signer, txTo, inputAmount, token)
+  }, [txTo, inputAmount])
 
   return (
     <>
@@ -143,9 +191,7 @@ const SendAmount = ({ tokenSelected, onStepBack, setTxValue }) => {
         <Button
           text="Next"
           className="text-[16px] mt-[65px] mb-[22.5px]"
-          onClick={() => {
-            setTxValue(inputAmount)
-          }}
+          onClick={handleSend}
           variant="black"
           disabled={!isValidValue(inputAmount, token.decimals)}
         />
