@@ -2,9 +2,8 @@ import type { AccountManager } from "~packages/account/manager"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
-import { Address } from "~packages/primitive"
+import { Address, unwrap } from "~packages/primitive"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
-import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
@@ -14,7 +13,8 @@ import {
   type EthEstimateUserOperationGasArguments,
   type EthSendTransactionArguments,
   type EthSendUserOperationArguments,
-  type WaalletRequestArguments
+  type WaalletRequestArguments,
+  type WaalletRequestArgumentsUnwrappable
 } from "../rpc"
 import { Transaction, type TransactionPool } from "./pool/transaction"
 
@@ -40,27 +40,36 @@ export class WaalletBackgroundProvider {
     return provider
   }
 
-  public async request<T>(args: WaalletRequestArguments): Promise<T> {
+  public async request<T>(
+    args: WaalletRequestArgumentsUnwrappable
+  ): Promise<T> {
+    if ("params" in args) {
+      ;(args.params as any[]) = args.params.map(unwrap)
+    }
+    return this.handleRequest(args as WaalletRequestArguments) as T
+  }
+
+  private async handleRequest(args: WaalletRequestArguments) {
     console.log(args)
     const { node, bundler } = this.networkManager.getActive()
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
       case WaalletRpcMethod.eth_requestAccounts: {
         const { account } = await this.accountManager.getActive()
-        return [account.getAddress().unwrap()] as T
+        return [account.getAddress().unwrap()]
       }
       case WaalletRpcMethod.eth_chainId:
-        return number.toHex(await bundler.getChainId()) as T
+        return number.toHex(await bundler.getChainId())
       case WaalletRpcMethod.eth_estimateGas:
-        return this.handleEstimateGas(args.params) as T
+        return this.handleEstimateGas(args.params)
       case WaalletRpcMethod.eth_estimateUserOperationGas:
-        return this.handleEstimateUserOperationGas(args.params) as T
+        return this.handleEstimateUserOperationGas(args.params)
       case WaalletRpcMethod.eth_sendTransaction:
-        return this.handleSendTransaction(args.params) as T
+        return this.handleSendTransaction(args.params)
       case WaalletRpcMethod.eth_sendUserOperation:
-        return this.handleSendUserOperation(args.params) as T
+        return this.handleSendUserOperation(args.params)
       case WaalletRpcMethod.custom_estimateGasPrice:
-        return this.handleEstimateGasPrice() as T
+        return this.handleEstimateGasPrice()
       // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
       default:
         if (args.method in BundlerRpcMethod) {

@@ -93,10 +93,7 @@ describeWaalletSuite({
           callGasLimit: HexString
         }>({
           method: WaalletRpcMethod.eth_estimateUserOperationGas,
-          params: [
-            userOp.unwrap(),
-            (await ctx.account.getEntryPoint()).unwrap()
-          ]
+          params: [userOp, await ctx.account.getEntryPoint()]
         })
 
       await expect(useInvalidNonce()).rejects.toThrow()
@@ -172,7 +169,7 @@ describeWaalletSuite({
 
       const userOpHash = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_sendUserOperation,
-        params: [userOp.unwrap(), entryPoint.unwrap()]
+        params: [userOp, entryPoint]
       })
       await bundler.wait(userOpHash)
 

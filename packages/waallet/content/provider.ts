@@ -6,20 +6,25 @@ import { format } from "~packages/util/json"
 import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
 
 import { WaalletMessage } from "../message"
-import { type WaalletRequestArguments } from "../rpc"
+import {
+  type WaalletRequestArguments,
+  type WaalletRequestArgumentsUnwrappable
+} from "../rpc"
 
 export class WaalletContentProvider extends EventEmitter {
   public constructor(private backgroundMessenger: BackgroundMessenger) {
     super()
   }
 
-  public async request<T>(args: WaalletRequestArguments): Promise<T> {
+  public async request<T>(
+    args: WaalletRequestArgumentsUnwrappable
+  ): Promise<T> {
     if ("params" in args) {
       ;(args.params as any[]) = args.params.map(unwrap)
     }
     const res = await this.backgroundMessenger.send({
       name: WaalletMessage.JsonRpcRequest,
-      body: args
+      body: args as WaalletRequestArguments
     })
     return res as T
   }

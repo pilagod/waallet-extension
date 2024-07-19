@@ -2,6 +2,7 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
+import type { UnwrappableMap } from "~packages/primitive"
 import type { BigNumberish, HexString, OptionalPick } from "~typing"
 
 export enum WaalletRpcMethod {
@@ -17,6 +18,12 @@ export enum WaalletRpcMethod {
   custom_estimateGasPrice = "custom_estimateGasPrice"
 }
 
+export type WaalletRequestArgumentsUnwrappable<
+  T extends WaalletRequestArguments = WaalletRequestArguments
+> = T extends { params: infer P }
+  ? Omit<T, "params"> & { params: UnwrappableMap<P> }
+  : T
+
 export type WaalletRequestArguments =
   | EthEstimateGasArguments
   | EthEstimateUserOperationGasArguments
@@ -31,18 +38,20 @@ export type WaalletRequestArguments =
         | WaalletRpcMethod.custom_estimateGasPrice
     }
 
+export type EthTransaction = {
+  from?: HexString
+  to?: HexString
+  gas?: BigNumberish
+  gasPrice?: BigNumberish
+  value?: BigNumberish
+  data?: HexString
+  input?: HexString
+  nonce?: BigNumberish
+}
+
 export type EthEstimateGasArguments = {
   method: WaalletRpcMethod.eth_estimateGas
-  params: [
-    {
-      from?: HexString
-      to?: HexString
-      gas?: BigNumberish
-      gasPrice?: BigNumberish
-      value?: BigNumberish
-      data?: HexString
-    }
-  ]
+  params: [EthTransaction]
 }
 
 export type EthEstimateUserOperationGasArguments = {
@@ -74,18 +83,7 @@ export type EthEstimateUserOperationGasArguments = {
 
 export type EthSendTransactionArguments = {
   method: WaalletRpcMethod.eth_sendTransaction
-  params: [
-    {
-      from?: HexString
-      to?: HexString
-      gas?: BigNumberish
-      gasPrice?: BigNumberish
-      value?: BigNumberish
-      input?: HexString
-      data?: HexString
-      nonce?: BigNumberish
-    }
-  ]
+  params: [EthTransaction]
 }
 
 /**
