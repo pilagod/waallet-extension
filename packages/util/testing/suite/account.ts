@@ -61,7 +61,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
           provider: { node }
         } = ctx
 
-        const balanceBefore = await node.getBalance(counter.getAddress())
+        const balanceBefore = await node.getBalance(counter)
         const counterBefore = (await counter.number()) as bigint
 
         await ctx.provider.waallet.request<HexString>({
@@ -75,7 +75,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
           ]
         })
 
-        const balanceAfter = await node.getBalance(counter.getAddress())
+        const balanceAfter = await node.getBalance(counter)
         expect(balanceAfter - balanceBefore).toBe(1n)
 
         const counterAfter = (await counter.number()) as bigint
