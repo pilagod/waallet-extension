@@ -2,7 +2,7 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
-import type { UnwrappableMap } from "~packages/primitive"
+import type { Unwraplify } from "~packages/primitive"
 import type { BigNumberish, HexString, OptionalPick } from "~typing"
 
 export enum WaalletRpcMethod {
@@ -21,7 +21,7 @@ export enum WaalletRpcMethod {
 export type WaalletRequestArgumentsUnwrappable<
   T extends WaalletRequestArguments = WaalletRequestArguments
 > = T extends { params: infer P }
-  ? Omit<T, "params"> & { params: UnwrappableMap<P> }
+  ? Omit<T, "params"> & { params: Unwraplify<P> }
   : T
 
 export type WaalletRequestArguments =

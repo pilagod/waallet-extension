@@ -15,8 +15,7 @@ describeWaalletSuite({
   suite: (ctx) => {
     it("should pay for account", async () => {
       const {
-        contract: { entryPointV0_6 },
-        provider: { node }
+        contract: { entryPointV0_6 }
       } = ctx
 
       const accountBalanceBefore = await ctx.account.getBalance()
@@ -29,7 +28,7 @@ describeWaalletSuite({
         method: WaalletRpcMethod.eth_sendTransaction,
         params: [
           {
-            to: ctx.account.getAddress().unwrap(),
+            to: ctx.account.getAddress(),
             value: 0
           }
         ]

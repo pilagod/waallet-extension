@@ -26,7 +26,7 @@ describeAccountSuite({
           method: WaalletRpcMethod.eth_sendTransaction,
           params: [
             {
-              to: ctx.account.getAddress().unwrap()
+              to: ctx.account.getAddress()
             }
           ]
         })

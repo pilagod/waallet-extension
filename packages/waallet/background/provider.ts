@@ -2,7 +2,7 @@ import type { AccountManager } from "~packages/account/manager"
 import { BundlerRpcMethod } from "~packages/bundler/rpc"
 import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
-import { Address, unwrap } from "~packages/primitive"
+import { Address, unwrapDeep } from "~packages/primitive"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
@@ -44,7 +44,7 @@ export class WaalletBackgroundProvider {
     args: WaalletRequestArgumentsUnwrappable
   ): Promise<T> {
     if ("params" in args) {
-      ;(args.params as any[]) = args.params.map(unwrap)
+      ;(args.params as any[]) = args.params.map(unwrapDeep)
     }
     return this.handleRequest(args as WaalletRequestArguments) as T
   }
