@@ -124,10 +124,19 @@ const SendAmount = ({ tokenSelected, onStepBack, setTxValue }) => {
       <div>
         <h2 className="text-[16px] py-[12px]">Balance</h2>
         <div className="flex items-center gap-[16px]">
-          <button className="text-[16px] p-[8px_20px] border border-solid border-black h-[35px] rounded-[99px] ">
           <div className="w-full">
             <TokenItem token={token} />
           </div>
+          <button
+            className="text-[16px] p-[8px_20px] border border-solid border-black h-[35px] rounded-[99px]"
+            onClick={() => {
+              const balance = number.formatUnitsToFixed(
+                token.balance,
+                token.decimals,
+                2
+              )
+              setInputAmount(balance)
+            }}>
             Max
           </button>
         </div>
