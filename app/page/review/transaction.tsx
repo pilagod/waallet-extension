@@ -2,16 +2,15 @@ import * as ethers from "ethers"
 import { useContext, useEffect, useState } from "react"
 import Contract from "react:~assets/contract"
 import Gas from "react:~assets/gas"
-import PassKey from "react:~assets/passkey"
 import Wallet from "react:~assets/wallet"
 import { useClsState } from "use-cls-state"
 
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
+import { PasskeyVerification } from "~app/component/passkeyVerification"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
-import { Path } from "~app/path"
 import { useAccount, useAction, useNetwork } from "~app/storage"
 import type { Account } from "~packages/account"
 import {
@@ -256,14 +255,7 @@ function UserOperationConfirmation(props: {
   }
 
   if (isSigning) {
-    return (
-      <div className="w-full h-full flex flex-col gap-[43px] items-center justify-center">
-        <PassKey />
-        <span className="text-[24px] text-center">
-          Use passkey to verify transaction
-        </span>
-      </div>
-    )
+    return <PasskeyVerification purpose="transaction" />
   }
 
   return (

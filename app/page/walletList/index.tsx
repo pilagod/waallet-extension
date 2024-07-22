@@ -1,7 +1,9 @@
+import { useState } from "react"
 import Plus from "react:~assets/plus"
 import Wallet from "react:~assets/wallet"
 
 import { Divider } from "~app/component/divider"
+import { PasskeyVerification } from "~app/component/passkeyVerification"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useAccounts } from "~app/hook/storage"
 import address from "~packages/util/address"
@@ -13,6 +15,13 @@ export function WalletList() {
   const totalBalance = accounts.reduce((b, a) => {
     return b + number.toBigInt(a.balance)
   }, 0n)
+  const [walletCreating, setWalletCreating] = useState(false)
+  const createWallet = () => {
+    setWalletCreating(true)
+  }
+  if (walletCreating) {
+    return <PasskeyVerification purpose="identity" />
+  }
   return (
     <>
       <StepBackHeader title="Wallet List" />
@@ -41,7 +50,9 @@ export function WalletList() {
 
       {/* Create New Wallet */}
       <section className="pt-[22.5px]">
-        <button className="w-full flex flex-row justify-center items-center py-[16px] border-[1px] border-solid border-black rounded-full">
+        <button
+          className="w-full flex flex-row justify-center items-center py-[16px] border-[1px] border-solid border-black rounded-full"
+          onClick={createWallet}>
           <span className="mr-[8px]">
             <Plus />
           </span>
