@@ -108,12 +108,14 @@ export function AccountInfo() {
           </div>
         </Link>
         {/* Home page receive button */}
-        <button className="flex items-center p-[16px_38.5px_16px_38.5px] rounded-full border-[1px] border-solid border-black">
+        <Link
+          className="flex items-center px-[38.5px] py-[16px] rounded-full border-[1px] border-solid border-black"
+          href={Path.Receive}>
           <ArrowDown className="w-[24px] h-[24px] mr-[10px]" />
           <div className="leading-[19.36px] text-[16px] text-[#000000]">
             Receive
           </div>
-        </button>
+        </Link>
       </div>
     </div>
   )

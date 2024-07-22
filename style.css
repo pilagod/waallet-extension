@@ -11,6 +11,10 @@
     src: url(/assets/font/Inter.ttf) format("truetype");
   }
 
+  * {
+    box-sizing: border-box;
+  }
+
   body {
     font-family: Inter, system-ui, sans-serif;
     line-height: 1.21;
