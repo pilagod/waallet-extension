@@ -204,7 +204,7 @@ const SendAmount = ({
         </div>
         <Button
           text="Next"
-          className="text-[16px] mt-[65px] mb-[22.5px]"
+          className="text-[16px] my-[22px]"
           onClick={handleSend}
           variant="black"
           disabled={!isValidValue(inputAmount, token.decimals)}
