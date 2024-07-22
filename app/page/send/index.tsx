@@ -1,5 +1,5 @@
 import * as ethers from "ethers"
-import { useState, type ChangeEvent } from "react"
+import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { useRoute } from "wouter"
 import { navigate } from "wouter/use-hash-location"
 
@@ -9,9 +9,13 @@ import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
+import { ProviderContext } from "~app/context/provider"
 import { useAccounts } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { getUserTokens } from "~app/util/getUserTokens"
+import { getErc20Contract } from "~packages/network/util"
+import address from "~packages/util/address"
+import number from "~packages/util/number"
 import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
@@ -22,6 +26,45 @@ const isValidTo = (to: string) => {
   } catch (error) {
     return false
   }
+}
+
+const isValidValue = (value: string, decimals: number) => {
+  try {
+    const amount = ethers.parseUnits(value, decimals)
+    return amount >= 0
+  } catch (error) {
+    return false
+  }
+}
+
+const sendNativeToken = async (
+  signer: ethers.JsonRpcSigner,
+  to: HexString,
+  value: BigNumberish
+) => {
+  return await signer.sendTransaction({
+    to: to,
+    value: ethers.parseUnits(value.toString(), "ether"),
+    data: "0x"
+  })
+}
+
+const sendErc20Token = async (
+  signer: ethers.JsonRpcSigner,
+  toAddress: HexString,
+  value: BigNumberish,
+  token: Token
+) => {
+  const erc20 = getErc20Contract(token.address, signer)
+  const data = erc20.interface.encodeFunctionData("transfer", [
+    toAddress,
+    ethers.parseUnits(value.toString(), token.decimals)
+  ])
+  return await signer.sendTransaction({
+    to: token.address,
+    value: 0,
+    data: data
+  })
 }
 
 const SelectToken = ({ setTokenSelected }) => {
@@ -94,42 +137,79 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
   )
 }
 
-const SendAmount = ({ amount, onStepBack, onChangeAmount }) => {
-  const [invalidValue, setInvalidValue] = useState<boolean>(false)
+const SendAmount = ({
+  txInfo,
+  onStepBack
+}: {
+  txInfo: {
+    token: Token
+    txTo: HexString
+  }
+  onStepBack: () => void
+}) => {
+  const [inputAmount, setInputAmount] = useState<string>("0")
+  const { provider } = useContext(ProviderContext)
+  const { token, txTo } = txInfo
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
-    onChangeAmount(value)
-    try {
-      console.log(`${ethers.parseUnits(value, "ether")}`)
-      setInvalidValue(false)
-    } catch (error) {
-      console.log(`Invalid value`)
-      setInvalidValue(true)
-    }
+    setInputAmount(value)
   }
+
+  const handleSend = useCallback(async () => {
+    const signer = await provider.getSigner()
+    if (
+      address.isEqual(
+        token.address,
+        "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+      )
+    ) {
+      return sendNativeToken(signer, txTo, inputAmount)
+    }
+    return sendErc20Token(signer, txTo, inputAmount, token)
+  }, [txTo, inputAmount])
 
   return (
     <>
       <StepBackHeader title="Send Amount" onStepBack={onStepBack} />
-      <div className="flex">
-        <label className="flex-1">Amount:</label>
+      <div className="flex flex-col items-center justify-center h-[270px] py-[16px] gap-[8px]">
         <input
           type="text"
           id="amount"
-          value={`${amount}`}
+          value={inputAmount}
           onChange={handleAmountChange}
-          className={`border w-96 outline-none ${
-            invalidValue ? "border-red-500" : "border-gray-300"
-          }`}></input>
+          className="text-center text-[64px] focus:outline-none max-w-[390px]"
+        />
+        <div className="text-[24px]">ETH</div>
       </div>
-      <button
-        onClick={() => {
-          //TODO
-        }}
-        className="flex-1">
-        Next
-      </button>
+      <Divider />
+      <div>
+        <h2 className="text-[16px] py-[12px]">Balance</h2>
+        <div className="flex items-center gap-[16px]">
+          <div className="w-full">
+            <TokenItem token={token} />
+          </div>
+          <button
+            className="text-[16px] p-[8px_20px] border border-solid border-black h-[35px] rounded-[99px]"
+            onClick={() => {
+              const balance = number.formatUnitsToFixed(
+                token.balance,
+                token.decimals,
+                2
+              )
+              setInputAmount(balance)
+            }}>
+            Max
+          </button>
+        </div>
+        <Button
+          text="Next"
+          className="text-[16px] my-[22px]"
+          onClick={handleSend}
+          variant="black"
+          disabled={!isValidValue(inputAmount, token.decimals)}
+        />
+      </div>
     </>
   )
 }
@@ -141,7 +221,6 @@ export function Send() {
   const tokens = getUserTokens()
   const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
   const [txTo, setTxTo] = useState<HexString>("")
-  const [txValue, setTxValue] = useState<BigNumberish>("0")
 
   if (tokenSelected === null && params?.tokenAddress) {
     const token = tokens.find((token) => token.address === params.tokenAddress)
@@ -173,8 +252,7 @@ export function Send() {
       onStepBack={() => {
         setTxTo("")
       }}
-      amount={txValue}
-      onChangeAmount={setTxValue}
+      txInfo={{ token: tokenSelected, txTo }}
     />
   )
 }
