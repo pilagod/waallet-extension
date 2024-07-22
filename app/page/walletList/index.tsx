@@ -3,8 +3,16 @@ import Wallet from "react:~assets/wallet"
 
 import { Divider } from "~app/component/divider"
 import { StepBackHeader } from "~app/component/stepBackHeader"
+import { useAccounts } from "~app/hook/storage"
+import address from "~packages/util/address"
+import number from "~packages/util/number"
+import type { HexString } from "~typing"
 
 export function WalletList() {
+  const accounts = useAccounts()
+  const totalBalance = accounts.reduce((b, a) => {
+    return b + number.toBigInt(a.balance)
+  }, 0n)
   return (
     <>
       <StepBackHeader title="Wallet List" />
@@ -12,25 +20,27 @@ export function WalletList() {
       {/* Total Balance */}
       <section className="py-[16px]">
         <div className="mb-[8px] text-[16px]">Total Balance</div>
-        <div className="text-[48px]">$ 13,986.45</div>
+        <div className="text-[48px]">
+          {number.formatUnitsToFixed(totalBalance, 18, 2)} ETH
+        </div>
       </section>
 
       {/* Wallet List */}
-      <section className="h-[264px] overflow-y-scroll">
-        <WalletItem />
-        <WalletItem />
-        <WalletItem />
-        <WalletItem />
-        <WalletItem />
-        <WalletItem />
-        <WalletItem />
-        <WalletItem />
+      <section className="h-[264px] overflow-x-hidden overflow-y-scroll">
+        {accounts.map((a) => {
+          return (
+            <WalletItem
+              address={a.address}
+              balance={number.toBigInt(a.balance)}
+            />
+          )
+        })}
       </section>
 
       <Divider />
 
       {/* Create New Wallet */}
-      <section className="mt-[22.5px]">
+      <section className="pt-[22.5px]">
         <button className="w-full flex flex-row justify-center items-center py-[16px] border-[1px] border-solid border-black rounded-full">
           <span className="mr-[8px]">
             <Plus />
@@ -42,17 +52,21 @@ export function WalletList() {
   )
 }
 
-function WalletItem() {
+function WalletItem(props: { address: HexString; balance: bigint }) {
+  // Effect of `min-w-0`:
+  // https://stackoverflow.com/questions/36230944/prevent-flex-items-from-overflowing-a-container
   return (
-    <div className="flex flex-row items-center py-[16px] text-[16px]">
+    <div className="flex flex-row items-center gap-[12px] py-[16px] text-[16px] cursor-pointer">
       <div className="basis-[24px]">
         <Wallet />
       </div>
-      <div className="grow mx-[12px]">
+      <div className="min-w-0 grow break-words">
         <div>Jesse’s wallet</div>
-        <div className="text-[12px]">0xd85...0cef1</div>
+        <div className="text-[12px]">{address.ellipsize(props.address)}</div>
       </div>
-      <div className="basis-[80px]">$3,986.45</div>
+      <div className="min-w-0 basis-[120px] text-right">
+        {number.formatUnitsToFixed(props.balance, 18, 2)} ETH
+      </div>
     </div>
   )
 }
