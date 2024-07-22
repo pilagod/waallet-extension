@@ -7,6 +7,7 @@ import { Divider } from "~app/component/divider"
 import { PasskeyVerification } from "~app/component/passkeyVerification"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
+import { ToastContext } from "~app/context/toastContext"
 import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { AccountType } from "~packages/account"
@@ -19,6 +20,7 @@ import type { HexString } from "~typing"
 export function WalletList() {
   const [, navigate] = useHashLocation()
   const { provider } = useContext(ProviderContext)
+  const { setToast } = useContext(ToastContext)
   const { createAccount, switchAccount } = useAction()
 
   const network = useNetwork()
@@ -41,6 +43,7 @@ export function WalletList() {
         factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
       })
       await createAccount(account, network.id)
+      setToast("Wallet created!", "success")
       navigate(Path.Home)
     } catch (e) {
       console.error(e)
