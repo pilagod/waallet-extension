@@ -281,10 +281,14 @@ function UserOperationConfirmation(props: {
           {isContract ? "You are using this wallet" : "From"}
         </h2>
         <div className="flex gap-[12px] items-center">
-          <Wallet />
-          <div className="w-[322px] py-[9.5px]">
+          <div>
+            <Wallet />
+          </div>
+          <div className="w-full py-[9.5px]">
             <h3 className="pb-[4px]">Jesse's wallet</h3>
-            <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
+            <h4 className="text-[#989898] break-words pr-[36px]">
+              {userOp.sender}
+            </h4>
           </div>
         </div>
         <h2
@@ -295,10 +299,14 @@ function UserOperationConfirmation(props: {
         </h2>
         {isContract ? (
           <div className="flex gap-[12px] items-center">
-            <Contract />
-            <div className="py-[16px] w-[322px]">
+            <div>
+              <Contract />
+            </div>
+            <div className="py-[16px] w-full">
               <h3 className="pb-[4px]">Contract address</h3>
-              <h3 className="break-words text-[#989898]">{props.tx.to}</h3>
+              <h3 className="break-words text-[#989898] pr-[36px]">
+                {props.tx.to}
+              </h3>
             </div>
           </div>
         ) : (

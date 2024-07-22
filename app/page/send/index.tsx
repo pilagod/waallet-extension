@@ -10,6 +10,7 @@ import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
+import { useAccounts } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { getUserTokens } from "~app/util/getUserTokens"
 import { getErc20Contract } from "~packages/network/util"
@@ -87,6 +88,7 @@ const SelectToken = ({ setTokenSelected }) => {
 
 const SelectAddress = ({ onStepBack, setTxTo }) => {
   const [inputTo, setInputTo] = useState<HexString>("")
+  const accounts = useAccounts()
 
   const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -105,19 +107,21 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
           required
         />
       </StepBackHeader>
-      <div className="flex flex-col py-[24px] h-[311px]">
+      <div className="py-[24px] h-[311px]">
         <h2 className="text-[16px]">Transaction History</h2>
         {/* TODO: Replace with actual transaction history */}
-        <div>
-          <button
-            onClick={() => {
-              setInputTo("0x094e5164f1730eaef2f57015aef7e6c3e266c773")
-            }}>
-            <AccountItem
-              address={"0x094e5164f1730eaef2f57015aef7e6c3e266c773"}
-            />
-          </button>
-        </div>
+        {accounts.map((account, index) => {
+          return (
+            <button
+              className="w-full"
+              key={index}
+              onClick={() => {
+                setInputTo(account.address)
+              }}>
+              <AccountItem address={account.address} />
+            </button>
+          )
+        })}
       </div>
       <Divider />
       <Button
