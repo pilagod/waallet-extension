@@ -64,19 +64,19 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
           required
         />
       </StepBackHeader>
-      <div className="flex flex-col py-[24px] h-[311px]">
+      <div className="py-[24px] h-[311px]">
         <h2 className="text-[16px]">Transaction History</h2>
         {/* TODO: Replace with actual transaction history */}
         {accounts.map((account, index) => {
           return (
-            <div key={index}>
-              <button
-                onClick={() => {
-                  setInputTo(account.address)
-                }}>
-                <AccountItem address={account.address} />
-              </button>
-            </div>
+            <button
+              className="w-full"
+              key={index}
+              onClick={() => {
+                setInputTo(account.address)
+              }}>
+              <AccountItem address={account.address} />
+            </button>
           )
         })}
       </div>
