@@ -55,6 +55,7 @@ export function WalletList() {
     await switchAccount(accountId)
     navigate(Path.Home)
   }
+
   if (walletCreating) {
     return <PasskeyVerification purpose="identity" />
   }
@@ -72,12 +73,12 @@ export function WalletList() {
       </section>
 
       {/* Wallet List */}
-      <section className="h-[264px] overflow-x-hidden overflow-y-scroll">
+      <section className="w-[calc(100%+32px)] h-[264px] ml-[-16px] overflow-x-hidden overflow-y-scroll">
         {accounts.map((a, i) => {
           return (
             <div
               key={i}
-              className="cursor-pointer"
+              className="cursor-pointer hover:bg-[#F5F5F5]"
               onClick={() => selectWallet(a.id)}>
               <WalletItem
                 address={a.address}
@@ -109,7 +110,7 @@ function WalletItem(props: { address: HexString; balance: bigint }) {
   // Effect of `min-w-0`:
   // https://stackoverflow.com/questions/36230944/prevent-flex-items-from-overflowing-a-container
   return (
-    <div className="flex flex-row items-center gap-[12px] py-[16px] text-[16px]">
+    <div className="flex flex-row items-center gap-[12px] p-[16px] text-[16px]">
       <div className="basis-[24px]">
         <Wallet />
       </div>
