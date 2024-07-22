@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Plus from "react:~assets/plus"
 import Wallet from "react:~assets/wallet"
 import { useHashLocation } from "wouter/use-hash-location"
@@ -6,15 +6,22 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { Divider } from "~app/component/divider"
 import { PasskeyVerification } from "~app/component/passkeyVerification"
 import { StepBackHeader } from "~app/component/stepBackHeader"
-import { useAccounts, useAction } from "~app/hook/storage"
+import { ProviderContext } from "~app/context/provider"
+import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
+import { AccountType } from "~packages/account"
+import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
 export function WalletList() {
   const [, navigate] = useHashLocation()
-  const { switchAccount } = useAction()
+  const { provider } = useContext(ProviderContext)
+  const { createAccount, switchAccount } = useAction()
+
+  const network = useNetwork()
 
   const accounts = useAccounts()
   const totalBalance = accounts.reduce((b, a) => {
@@ -22,8 +29,24 @@ export function WalletList() {
   }, 0n)
 
   const [walletCreating, setWalletCreating] = useState(false)
-  const createWallet = () => {
+  const createWallet = async () => {
     setWalletCreating(true)
+    try {
+      if (!network.accountFactory[AccountType.PasskeyAccount]) {
+        throw new Error("Passkey account factory is not set")
+      }
+      const account = await PasskeyAccount.initWithFactory(provider, {
+        owner: await PasskeyOwnerWebAuthn.register(),
+        salt: number.random(),
+        factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
+      })
+      await createAccount(account, network.id)
+      navigate(Path.Home)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setWalletCreating(false)
+    }
   }
   const selectWallet = async (accountId: string) => {
     await switchAccount(accountId)
