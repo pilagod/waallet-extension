@@ -6,16 +6,16 @@ import { Link } from "wouter"
 import { Divider } from "~app/component/divider"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
+import {
+  useAccount,
+  useAccounts,
+  useAction,
+  useNetwork
+} from "~app/hook/storage"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
 import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
-import {
-  useAccount,
-  useAction,
-  useNetwork,
-  useShouldOnboard
-} from "~app/storage"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
@@ -27,11 +27,11 @@ export enum InfoNavigation {
 }
 
 export function Home() {
-  const shouldOnboard = useShouldOnboard()
+  const hasNoAccount = useAccounts().length === 0
   return (
     <>
       <Navbar />
-      {shouldOnboard ? (
+      {hasNoAccount ? (
         <AccountCreation />
       ) : (
         <>
@@ -108,12 +108,14 @@ export function AccountInfo() {
           </div>
         </Link>
         {/* Home page receive button */}
-        <button className="flex items-center p-[16px_38.5px_16px_38.5px] rounded-full border-[1px] border-solid border-black">
+        <Link
+          className="flex items-center px-[38.5px] py-[16px] rounded-full border-[1px] border-solid border-black"
+          href={Path.Receive}>
           <ArrowDown className="w-[24px] h-[24px] mr-[10px]" />
           <div className="leading-[19.36px] text-[16px] text-[#000000]">
             Receive
           </div>
-        </button>
+        </Link>
       </div>
     </div>
   )

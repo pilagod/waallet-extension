@@ -43,6 +43,7 @@ export const createAccountSlice: BackgroundStateCreator<
       const network = state.network[networkId]
       state.account[id] = {
         ...data,
+        id,
         chainId: network.chainId,
         // TODO: Design a value object
         publicKey: {

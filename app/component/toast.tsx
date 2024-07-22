@@ -8,13 +8,15 @@ import { ToastContext, type ToastStatus } from "~app/context/toastContext"
 const statusIcon: Record<ToastStatus, JSX.Element> = {
   success: <Success />,
   failed: <Failed />,
-  sent: <Sent />
+  sent: <Sent />,
+  copy: <Success />
 }
 
 const statusTextColor: Record<ToastStatus, string> = {
   success: "text-[#7FFF9C]",
   failed: "text-[#FF9393]",
-  sent: "text-[#7EE0FF]"
+  sent: "text-[#7EE0FF]",
+  copy: "text-[#7FFF9C]"
 }
 export const Toast = () => {
   const { toast, setToast } = useContext(ToastContext)

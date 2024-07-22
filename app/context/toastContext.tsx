@@ -2,7 +2,7 @@ import { createContext, useState, type ReactNode } from "react"
 
 import type { Nullable } from "~typing"
 
-export type ToastStatus = "success" | "failed" | "sent"
+export type ToastStatus = "success" | "failed" | "sent" | "copy"
 
 type Toast = {
   message: Nullable<string>
