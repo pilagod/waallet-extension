@@ -1,7 +1,6 @@
 import * as ethers from "ethers"
 import { useCallback, useContext, useState, type ChangeEvent } from "react"
-import { useRoute } from "wouter"
-import { navigate } from "wouter/use-hash-location"
+import { useParams } from "wouter"
 
 import { AccountItem } from "~app/component/accountItem"
 import { Button } from "~app/component/button"
@@ -11,7 +10,6 @@ import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
 import { useAccounts } from "~app/hook/storage"
-import { Path } from "~app/path"
 import { getUserTokens } from "~app/util/getUserTokens"
 import { getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
@@ -215,19 +213,14 @@ const SendAmount = ({
 }
 // Select token -> Select address -> Send amount -> Review
 export function Send() {
-  const [, params] = useRoute<{
-    tokenAddress: string
-  }>(`${Path.Send}/:tokenAddress`)
+  const params = useParams<{ tokenAddress?: string }>()
   const tokens = getUserTokens()
-  const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
+  const initialToken = params.tokenAddress
+    ? tokens.find((token) => token.address === params.tokenAddress)
+    : null
+  const [tokenSelected, setTokenSelected] =
+    useState<Nullable<Token>>(initialToken)
   const [txTo, setTxTo] = useState<HexString>("")
-
-  if (tokenSelected === null && params?.tokenAddress) {
-    const token = tokens.find((token) => token.address === params.tokenAddress)
-    if (token) {
-      setTokenSelected(token)
-    }
-  }
 
   if (!tokenSelected) {
     return <SelectToken key="step1" setTokenSelected={setTokenSelected} />
@@ -239,7 +232,6 @@ export function Send() {
         key="step2"
         onStepBack={() => {
           setTokenSelected(null)
-          navigate(Path.Send)
         }}
         setTxTo={setTxTo}
       />
