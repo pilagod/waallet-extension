@@ -1,4 +1,4 @@
-import Ethereum from "data-base64:~assets/ethereum.svg"
+import Ethereum from "data-base64:~assets/ethereumLight.svg"
 import Polygon from "data-base64:~assets/polygon.svg"
 
 export default {
