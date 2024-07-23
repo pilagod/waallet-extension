@@ -6,6 +6,7 @@ import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
 import { Home } from "~app/page/home"
+import { ImportToken } from "~app/page/importToken"
 import { Receive } from "~app/page/receive"
 import { Review } from "~app/page/review/"
 import { Send } from "~app/page/send"
@@ -75,6 +76,7 @@ function PageRouter() {
         <Route path={Path.Receive} component={Receive} />
         {/* To enable the Send page to accept a token address as a parameter */}
         <Route path={`${Path.Send}/:tokenAddress`} component={Send} />
+        <Route path={Path.ImportToken} component={ImportToken} />
         <Route
           path={Path.WebAuthnRegistration}
           component={WebAuthnRegistration}
