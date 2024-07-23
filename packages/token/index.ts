@@ -9,6 +9,10 @@ export type Token = {
   decimals: number
 }
 
+export type AccountToken = Token & {
+  balance: HexString
+}
+
 export const ETH: Token = {
   address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
   symbol: "ETH",

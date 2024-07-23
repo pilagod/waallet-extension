@@ -7,10 +7,9 @@ import { ProviderContext } from "~app/context/provider"
 import { Path } from "~app/path"
 import { useAccount, useTokens } from "~app/storage"
 import { getChainName } from "~packages/network/util"
-import { TokenContract } from "~packages/token"
+import { TokenContract, type AccountToken } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import { type Token } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 const SelectToken = ({ tokens, onSelectToken }) => {
@@ -113,14 +112,14 @@ const SendAmount = ({ amount, onChangeAmount }) => {
 export function Send() {
   const { provider } = useContext(ProviderContext)
   const account = useAccount()
-  const nativeToken: Token = {
+  const nativeToken: AccountToken = {
     address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
     symbol: `${getChainName(account.chainId)}ETH`,
     decimals: 18,
     balance: account.balance
   }
   const tokens = [nativeToken, ...useTokens()]
-  const [token, setToken] = useState<Token>(tokens[0])
+  const [token, setToken] = useState<AccountToken>(tokens[0])
   const [txTo, setTxTo] = useState<HexString>("")
   const [txValue, setTxValue] = useState<BigNumberish>("0")
   const [step, setStep] = useState<number>(0)
@@ -196,7 +195,7 @@ const sendErc20Token = async (
   signer: ethers.JsonRpcSigner,
   toAddress: HexString,
   value: BigNumberish,
-  token: Token
+  token: AccountToken
 ) => {
   const data = TokenContract.encodeTransferData(
     toAddress,
