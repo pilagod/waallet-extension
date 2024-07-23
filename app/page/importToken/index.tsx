@@ -1,7 +1,8 @@
-import { useContext, useState, type ChangeEvent } from "react"
+import { useContext, useState } from "react"
 
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
+import { Input } from "~app/component/input"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { useTokens } from "~app/hook/storage"
@@ -19,22 +20,21 @@ export function ImportToken() {
   const [tokenFetching, setTokenFetching] = useState(false)
   const [tokenAddressValid, setTokenAddressValid] = useState(false)
 
-  const onTokenAddressChanged = async (e: ChangeEvent<HTMLInputElement>) => {
-    const inputAddress = e.target.value
-    setTokenAddress(inputAddress)
+  const onTokenAddressChanged = async (value: string) => {
+    setTokenAddress(value)
 
     // Clear token information
     setTokenSymbol("")
     setTokenDecimals(0n)
 
-    if (tokens.some((t) => address.isEqual(t.address, inputAddress))) {
+    if (tokens.some((t) => address.isEqual(t.address, value))) {
       setTokenAddressValid(false)
       return
     }
 
     setTokenFetching(true)
     try {
-      const contract = getErc20Contract(inputAddress, provider)
+      const contract = getErc20Contract(value, provider)
       const [symbol, decimals] = await Promise.all([
         contract.symbol() as Promise<string>,
         contract.decimals() as Promise<bigint>
@@ -57,46 +57,30 @@ export function ImportToken() {
       <section className="h-[373px] pt-[24px]">
         {/* Token Contract Address */}
         <div>
-          <div className="text-[16px]">Contract Address</div>
-          <div className="mt-[8px]">
-            <input
-              type="text"
-              value={tokenAddress}
-              onChange={onTokenAddressChanged}
-              className="w-full border-solid border-black border-[2px] rounded-[16px] p-[16px] text-[16px]"
-              placeholder="Enter contract address"
-              required
-            />
-          </div>
+          <Input
+            label="Contract Address"
+            value={tokenAddress}
+            onValueChanged={onTokenAddressChanged}
+            placeholder="Enter contract address"
+            required={true}
+          />
         </div>
 
         {/* Token Symbol */}
         {tokenSymbol && (
-          <div className="mt-[8px]">
-            <div className="text-[16px]">Symbol</div>
-            <div className="mt-[8px]">
-              <input
-                type="text"
-                value={tokenSymbol}
-                disabled={true}
-                className="w-full border-solid border-black border-[2px] rounded-[16px] p-[16px] text-[16px]"
-              />
-            </div>
+          <div className="mt-[16px]">
+            <Input label="Symbol" value={tokenSymbol} disabled={true} />
           </div>
         )}
 
         {/* Token Decimals */}
         {tokenDecimals && (
-          <div className="mt-[8px]">
-            <div className="text-[16px]">Decimals</div>
-            <div className="mt-[8px]">
-              <input
-                type="text"
-                value={tokenDecimals.toString()}
-                disabled={true}
-                className="w-full border-solid border-black border-[2px] rounded-[16px] p-[16px] text-[16px]"
-              />
-            </div>
+          <div className="mt-[16px]">
+            <Input
+              label="Decimals"
+              value={tokenDecimals.toString()}
+              disabled={true}
+            />
           </div>
         )}
       </section>
