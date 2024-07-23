@@ -58,13 +58,9 @@ describe("Token contract", () => {
     const tokenContract = await TokenContract.init(TestToken, operator)
     const amount = tokenContract.parseAmount(100)
 
-    const balanceBefore = number.toBigInt(
-      await tokenContract.balanceOf(fromAddress)
-    )
+    const balanceBefore = await tokenContract.balanceOf(fromAddress)
     await mintableToken.mint(fromAddress, amount)
-    const balanceAfter = number.toBigInt(
-      await tokenContract.balanceOf(fromAddress)
-    )
+    const balanceAfter = await tokenContract.balanceOf(fromAddress)
 
     expect(balanceAfter - balanceBefore).toBe(amount)
   })

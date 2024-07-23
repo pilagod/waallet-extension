@@ -61,8 +61,8 @@ export class TokenContract {
     this.decimals = decimals
   }
 
-  public async balanceOf(account: HexString): Promise<BigNumberish> {
-    return await this.token.balanceOf(account)
+  public async balanceOf(account: HexString): Promise<bigint> {
+    return number.toBigInt(await this.token.balanceOf(account))
   }
 
   public parseAmount(amount: BigNumberish): bigint {
@@ -85,23 +85,23 @@ export class TokenContract {
 
   public static decodeTransferParam(calldata: HexString): {
     to: HexString
-    value: BigNumberish
+    value: bigint
   } {
     const [to, value] = new Interface(TokenContract.abi).decodeFunctionData(
       "transfer",
       calldata
     )
-    return { to, value }
+    return { to, value: number.toBigInt(value) }
   }
 
   public static decodeTransferFromParam(calldata: HexString): {
     from: HexString
     to: HexString
-    value: BigNumberish
+    value: bigint
   } {
     const [from, to, value] = new Interface(
       TokenContract.abi
     ).decodeFunctionData("transferFrom", calldata)
-    return { from, to, value }
+    return { from, to, value: number.toBigInt(value) }
   }
 }
