@@ -1,133 +1,88 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { getAddress, parseUnits, toNumber } from "ethers"
-import { useCallback, useContext, useState, type ChangeEvent } from "react"
-import Ethereum from "react:~assets/ethereum.svg"
-import { Link } from "wouter"
+import { getAddress, toNumber } from "ethers"
+import { useContext, useState, type ChangeEvent } from "react"
+import { useHashLocation } from "wouter/use-hash-location"
 
+import { TokenItem } from "~app/component/tokenItem"
+import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
+import { getUserTokens } from "~app/util/getUserTokens"
 import { getChainName } from "~packages/network/util"
-import { TokenContract } from "~packages/token"
+import { TokenContract, type AccountToken } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import type { BigNumberish, HexString } from "~typing"
+import type { BigNumberish, HexString, Nullable } from "~typing"
 
 export function Token() {
-  const tokens = useTokens()
-  const account = useAccount()
-
   const [isTokenImportModalOpened, setIsTokenImportModalOpened] =
     useState<boolean>(false)
-  const [selectedTokenAddress, setSelectedTokenAddress] =
-    useState<HexString>("")
+
+  const [tokenSelected, setTokenSelected] =
+    useState<Nullable<AccountToken>>(null)
 
   const toggleTokenImportModal = () => {
     setIsTokenImportModalOpened((prev) => !prev)
   }
-  const openTokenInfoModal = (tokenAddress: HexString) => {
-    setSelectedTokenAddress(tokenAddress)
+  const openTokenInfoModal = (token: AccountToken) => {
+    setTokenSelected(token)
   }
   const closeTokenInfoModal = () => {
-    setSelectedTokenAddress("")
+    setTokenSelected(null)
   }
+  const tokens = getUserTokens()
 
   return (
-    <>
-      {/* Home page token list */}
-      <div className="w-full flex flex-col items-start">
-        {/* Native token cell */}
-        <Link
-          className="w-full flex items-center p-[13.5px_0px_13.5px_0px]"
-          href={Path.Send}>
-          {/* Native token image */}
-          <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
-          {/* Native token symbol */}
-          <div className="flex-grow leading-[24px] text-[20px] text-[#000000] text-left whitespace-nowrap">
-            {`${getChainName(account.chainId)}ETH`}
-          </div>
-          {/* Native token balance */}
-          <div className="flex flex-col items-end">
-            <div className="mb-[4px] leading-[24.5px] text-[20px] font-[600] text-[#000000]">
-              {number.formatUnitsToFixed(account.balance, 18, 2)}
-            </div>
-            <div className="leading-[14.5px] text-[12px] text-[#000000]">
-              $1.23
-            </div>
-          </div>
-        </Link>
-        {/* Token cell */}
-        {tokens.map((token, index) => {
-          return (
-            <button
-              className="w-full flex items-center p-[13.5px_0px_13.5px_0px]"
-              onClick={() => openTokenInfoModal(token.address)}
-              key={index}>
-              {/* Token image */}
-              <Ethereum className="w-[36px] h-[36px] mr-[12px]" />
-              {/* Token symbol */}
-              <div className="flex-grow leading-[24px] text-[20px] text-[#000000] text-left whitespace-nowrap">
-                {token.symbol}
-              </div>
-              {/* Token balance */}
-              <div className="flex flex-col items-end">
-                <div className="mb-[4px] leading-[24.5px] text-[20px] font-[600] text-[#000000]">
-                  {number.formatUnitsToFixed(token.balance, token.decimals, 2)}
-                </div>
-                <div className="leading-[14.5px] text-[12px] text-[#000000]">
-                  $1000.00
-                </div>
-              </div>
-            </button>
-          )
-        })}
-        {/* Token information modal */}
-        {selectedTokenAddress && (
-          <TokenInfoModal
-            onModalClosed={closeTokenInfoModal}
-            tokenAddress={selectedTokenAddress}
-          />
-        )}
-        {/* Token importing button */}
-        <div
-          className="col-span-3 cursor-pointer"
-          onClick={toggleTokenImportModal}>
-          <span>Import Tokens</span>
-          <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
-        </div>
-        {/* Token importing modal */}
-        {isTokenImportModalOpened && (
-          <TokenImportModal onModalClosed={toggleTokenImportModal} />
-        )}
+    <TokenList>
+      {tokens.map((token, index) => (
+        <button
+          className="w-full"
+          key={index}
+          onClick={() => openTokenInfoModal(token)}>
+          <TokenItem token={token} />
+        </button>
+      ))}
+      {/* Token information modal */}
+      {tokenSelected && (
+        <TokenInfoModal
+          onModalClosed={closeTokenInfoModal}
+          tokenSelected={tokenSelected}
+        />
+      )}
+      {/* Token importing button */}
+      <div
+        className="col-span-3 cursor-pointer"
+        onClick={toggleTokenImportModal}>
+        <span>Import Tokens</span>
+        <FontAwesomeIcon icon={faCaretDown} className="ml-2" />
       </div>
-    </>
+      {/* Token importing modal */}
+      {isTokenImportModalOpened && (
+        <TokenImportModal onModalClosed={toggleTokenImportModal} />
+      )}
+    </TokenList>
   )
 }
 
 function TokenInfoModal({
   onModalClosed,
-  tokenAddress
+  tokenSelected
 }: {
   onModalClosed: () => void
-  tokenAddress: HexString
+  tokenSelected: AccountToken
 }) {
   const { updateToken, removeToken } = useAction()
   const account = useAccount()
-  const tokens = useTokens()
-  const token = tokens.find((token) =>
-    address.isEqual(token.address, tokenAddress)
-  )
 
   const explorerUrl = `https://${getChainName(account.chainId)}.etherscan.io/`
-  const tokenExplorerUrl = `${explorerUrl}token/${token.address}?a=${account.address}`
+  const tokenExplorerUrl = `${explorerUrl}token/${tokenSelected.address}?a=${account.address}`
 
-  const [tokenSymbol, setTokenSymbol] = useState<string>(token.symbol)
+  const [tokenSymbol, setTokenSymbol] = useState<string>(tokenSelected.symbol)
   const [invalidTokenSymbol, setInvalidTokenSymbol] = useState<boolean>(false)
   const [isViewExplorerVisible, setIsViewExplorerVisible] = useState(false)
-  const [isTokenSendModalOpened, setIsTokenSendModalOpened] =
-    useState<boolean>(false)
 
   const toggleViewExplorerVisibility = () => {
     setIsViewExplorerVisible((prev) => !prev)
@@ -140,24 +95,25 @@ function TokenInfoModal({
   }
 
   const handleUpdate = async () => {
-    await updateToken(account.id, tokenAddress, {
-      balance: token.balance,
+    await updateToken(account.id, tokenSelected.address, {
+      balance: tokenSelected.balance,
       symbol: tokenSymbol
     })
     onModalClosed()
   }
 
   const handleRemove = async () => {
-    await removeToken(account.id, tokenAddress)
+    await removeToken(account.id, tokenSelected.address)
     onModalClosed()
   }
 
   const handleClose = () => {
     onModalClosed()
   }
+  const [, navigate] = useHashLocation()
 
-  const toggleTokenSendModal = () => {
-    setIsTokenSendModalOpened((prev) => !prev)
+  const handleSend = () => {
+    navigate(`${Path.Send}/${tokenSelected.address}`)
   }
 
   return (
@@ -173,7 +129,7 @@ function TokenInfoModal({
           </button>
         </div>
         <div>
-          <span>{token.symbol}</span>
+          <span>{tokenSelected.symbol}</span>
           <button onClick={toggleViewExplorerVisibility} className="ml-2">
             ...
           </button>
@@ -187,9 +143,12 @@ function TokenInfoModal({
         </div>
         <div className="text-center">
           <span>
-            {number.formatUnitsToFixed(token.balance, token.decimals)}
+            {number.formatUnitsToFixed(
+              tokenSelected.balance,
+              tokenSelected.decimals
+            )}
           </span>
-          <span>{token.symbol}</span>
+          <span>{tokenSelected.symbol}</span>
         </div>
         <div>
           <label htmlFor="tokenAddress">Token Address:</label>
@@ -197,7 +156,7 @@ function TokenInfoModal({
             className="border w-96 outline-none border-gray-300"
             type="text"
             id="tokenAddress"
-            value={tokenAddress}
+            value={tokenSelected.address}
             disabled={true}
           />
         </div>
@@ -219,7 +178,7 @@ function TokenInfoModal({
             className="border w-96 outline-none border-gray-300"
             type="text"
             id="tokenDecimals"
-            value={token.decimals}
+            value={tokenSelected.decimals}
             disabled={true}
           />
         </div>
@@ -233,156 +192,18 @@ function TokenInfoModal({
           <button type="button" onClick={handleRemove}>
             Remove
           </button>
-          <button type="button" onClick={toggleTokenSendModal}>
+          <button type="button" onClick={handleSend}>
             Send
           </button>
           <button type="button" onClick={handleClose}>
             Close
           </button>
         </div>
-        {isTokenSendModalOpened && (
-          <TokenSendModal
-            onModalClosed={toggleTokenSendModal}
-            tokenAddress={tokenAddress}
-          />
-        )}
       </div>
     </div>
   )
 }
 
-function TokenSendModal({
-  onModalClosed,
-  tokenAddress
-}: {
-  onModalClosed: () => void
-  tokenAddress: HexString
-}) {
-  const { provider } = useContext(ProviderContext)
-  const account = useAccount()
-  const tokens = useTokens()
-  const token = tokens.find((token) =>
-    address.isEqual(token.address, tokenAddress)
-  )
-
-  const [inputTo, setInputTo] = useState<string>("")
-  const [inputValue, setInputValue] = useState<string>("")
-  const [invalidTo, setInvalidTo] = useState<boolean>(false)
-  const [invalidValue, setInvalidValue] = useState<boolean>(false)
-
-  const handleClose = () => {
-    onModalClosed()
-  }
-
-  const handleToChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value
-    setInputTo(value)
-    try {
-      console.log(`${getAddress(value)}`)
-      setInvalidTo(false)
-    } catch (error) {
-      console.warn(`Invalid to address: ${error}`)
-      setInvalidTo(true)
-    }
-  }
-
-  const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value
-    setInputValue(value)
-    try {
-      console.log(`${parseUnits(value, token.decimals)}`)
-      setInvalidValue(false)
-    } catch (error) {
-      console.warn(`Invalid value: ${error}`)
-      setInvalidValue(true)
-    }
-  }
-
-  const handleSend = useCallback(async () => {
-    try {
-      const data = TokenContract.encodeTransferData(
-        inputTo,
-        parseUnits(inputValue.toString(), token.decimals)
-      )
-
-      const signer = await provider.getSigner()
-      const { hash } = await signer.sendTransaction({
-        to: token.address,
-        value: 0,
-        data: data
-      })
-
-      console.log(`[Popup][TokenSendModal] transaction hash: ${hash}`)
-    } catch (error) {
-      console.warn(`[Popup][TokenSendModal] send transaction error: ${error}`)
-    }
-  }, [inputTo, inputValue])
-
-  return (
-    <div className="absolute top-0 left-0 w-screen h-screen p-4">
-      <div
-        className="absolute top-0 left-0 w-full h-full bg-black/75"
-        onClick={onModalClosed}
-      />
-      <div className="relative w-full p-4 bg-white rounded">
-        <div className="absolute top-4 right-4">
-          <button onClick={onModalClosed}>
-            <FontAwesomeIcon icon={faXmark} className="text-lg" />
-          </button>
-        </div>
-        <div>
-          <label htmlFor="asset">Asset:</label>
-          <input
-            type="text"
-            id="asset"
-            value={token.symbol}
-            disabled={true}
-            className="border w-96 outline-none border-gray-300"
-          />
-        </div>
-        <div>
-          <label htmlFor="to">To:</label>
-          <input
-            type="text"
-            id="to"
-            value={`${inputTo}`}
-            onChange={handleToChange}
-            list="suggestionTo"
-            className={`border w-96 outline-none ${
-              invalidTo ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          <datalist id="suggestionTo">
-            <option value={account.address} />
-          </datalist>
-        </div>
-        <div>
-          <label htmlFor="amount">Amount:</label>
-          <input
-            type="text"
-            id="amount"
-            value={`${inputValue}`}
-            onChange={handleAmountChange}
-            className={`border w-96 outline-none ${
-              invalidValue ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-        </div>
-        <div className="w-full grid grid-cols-5 justify-items-center my-4 text-base">
-          <button
-            onClick={handleSend}
-            disabled={invalidTo || invalidValue}
-            className="flex-1">
-            Send
-          </button>
-          <button type="button" onClick={handleClose}>
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const { provider } = useContext(ProviderContext)
   const { importToken } = useAction()

@@ -1,50 +1,37 @@
 import * as ethers from "ethers"
-import { useCallback, useContext, useState, type ChangeEvent } from "react"
-import { Link } from "wouter"
+import { useState, type ChangeEvent } from "react"
+import { useRoute } from "wouter"
+import { navigate } from "wouter/use-hash-location"
 
 import { StepBackHeader } from "~app/component/stepBackHeader"
-import { ProviderContext } from "~app/context/provider"
+import { TokenItem } from "~app/component/tokenItem"
+import { TokenList } from "~app/component/tokenList"
 import { Path } from "~app/path"
-import { useAccount, useTokens } from "~app/storage"
-import { getChainName } from "~packages/network/util"
-import { TokenContract, type AccountToken } from "~packages/token"
-import address from "~packages/util/address"
-import number from "~packages/util/number"
-import type { BigNumberish, HexString } from "~typing"
+import { useAccount } from "~app/storage"
+import { getUserTokens } from "~app/util/getUserTokens"
+import { type AccountToken } from "~packages/token"
+import type { BigNumberish, HexString, Nullable } from "~typing"
 
-const SelectToken = ({ tokens, onSelectToken }) => {
-  const handleAssetChange = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const tokenAddress = event.target.value
-    console.log(`tokenAddress: ${tokenAddress}`)
-    const token = tokens.find((token) => token.address === tokenAddress)
-    onSelectToken(token)
-  }
-
+const SelectToken = ({ setTokenSelected }) => {
+  const tokens = getUserTokens()
   return (
-    <div className="flex">
-      <label className="col-span-1">Asset:</label>
-      <select
-        id="asset"
-        value={tokens[0].address}
-        className="col-span-4 border w-full outline-none border-gray-300"
-        onChange={handleAssetChange}>
-        {tokens.map((token) => {
-          const balance = number.formatUnitsToFixed(
-            token.balance,
-            token.decimals
-          )
-          return (
-            <option key={token.address} value={token.address}>
-              {token.symbol}: {balance} {token.symbol}
-            </option>
-          )
-        })}
-      </select>
-    </div>
+    <>
+      <StepBackHeader title="Select Token" />
+      <TokenList className="pt-[16px]">
+        {tokens.map((token, index) => (
+          <button
+            className="w-full"
+            key={index}
+            onClick={() => setTokenSelected(token)}>
+            <TokenItem token={token} />
+          </button>
+        ))}
+      </TokenList>
+    </>
   )
 }
 
-const SelectAddress = ({ to, onChangeTo }) => {
+const SelectAddress = ({ to, setTokenSelected, onChangeTo }) => {
   const [invalidTo, setInvalidTo] = useState<boolean>(false)
   const account = useAccount()
 
@@ -60,21 +47,37 @@ const SelectAddress = ({ to, onChangeTo }) => {
     }
   }
   return (
-    <div className="flex">
-      <label className="flex-1">To:</label>
-      <input
-        type="text"
-        id="to"
-        value={`${to}`}
-        onChange={handleToChange}
-        list="suggestionTo"
-        className={`border w-96 outline-none ${
-          invalidTo ? "border-red-500" : "border-gray-300"
-        }`}></input>
-      <datalist id="suggestionTo">
-        <option value={account.address}></option>
-      </datalist>
-    </div>
+    <>
+      <StepBackHeader
+        title="Select Address"
+        onStepBack={() => {
+          setTokenSelected(null)
+          navigate(Path.Send)
+        }}
+      />
+      <div className="flex">
+        <label className="flex-1">To:</label>
+        <input
+          type="text"
+          id="to"
+          value={`${to}`}
+          onChange={handleToChange}
+          list="suggestionTo"
+          className={`border w-96 outline-none ${
+            invalidTo ? "border-red-500" : "border-gray-300"
+          }`}></input>
+        <datalist id="suggestionTo">
+          <option value={account.address}></option>
+        </datalist>
+      </div>
+      <button
+        onClick={() => {
+          //TODO
+        }}
+        className="flex-1">
+        Next
+      </button>
+    </>
   )
 }
 
@@ -94,116 +97,66 @@ const SendAmount = ({ amount, onChangeAmount }) => {
   }
 
   return (
-    <div className="flex">
-      <label className="flex-1">Amount:</label>
-      <input
-        type="text"
-        id="amount"
-        value={`${amount}`}
-        onChange={handleAmountChange}
-        className={`border w-96 outline-none ${
-          invalidValue ? "border-red-500" : "border-gray-300"
-        }`}></input>
-    </div>
-  )
-}
-// Select token -> Select address -> Send amount -> Review
-
-export function Send() {
-  const { provider } = useContext(ProviderContext)
-  const account = useAccount()
-  const nativeToken: AccountToken = {
-    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-    symbol: `${getChainName(account.chainId)}ETH`,
-    decimals: 18,
-    balance: account.balance
-  }
-  const tokens = [nativeToken, ...useTokens()]
-  const [token, setToken] = useState<AccountToken>(tokens[0])
-  const [txTo, setTxTo] = useState<HexString>("")
-  const [txValue, setTxValue] = useState<BigNumberish>("0")
-  const [step, setStep] = useState<number>(0)
-
-  const stepsComponents = [
-    <SelectToken key="step1" tokens={tokens} onSelectToken={setToken} />,
-    <SelectAddress key="step2" to={txTo} onChangeTo={setTxTo} />,
-    <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
-  ]
-  const stepsTitle = ["Select Token", "Select Address", "Send Amount"]
-
-  const handlePrevStep = useCallback(() => {
-    if (step > 0) {
-      setStep(step - 1)
-    }
-  }, [step])
-
-  const handleNextStep = useCallback(() => {
-    if (step < 2) {
-      setStep(step + 1)
-    }
-  }, [step])
-
-  const handleSend = useCallback(async () => {
-    const signer = await provider.getSigner()
-    if (address.isEqual(token.address, nativeToken.address)) {
-      return sendNativeToken(signer, txTo, txValue)
-    }
-    return sendErc20Token(signer, txTo, txValue, token)
-  }, [txTo, txValue])
-
-  return (
     <>
-      {step === 0 ? (
-        <StepBackHeader title={stepsTitle[0]} />
-      ) : (
-        <StepBackHeader title={stepsTitle[step]} onStepBack={handlePrevStep} />
-      )}
-      {stepsComponents[step]}
+      <StepBackHeader
+        title="Send Amount"
+        onStepBack={() => {
+          //TODO
+        }}
+      />
       <div className="flex">
-        {step < 2 ? (
-          <button onClick={handleNextStep} className="flex-1">
-            Next
-          </button>
-        ) : (
-          <>
-            <Link href={Path.Home} className="flex-1">
-              Cancel
-            </Link>
-            <button onClick={handleSend} className="flex-1">
-              Send
-            </button>
-          </>
-        )}
+        <label className="flex-1">Amount:</label>
+        <input
+          type="text"
+          id="amount"
+          value={`${amount}`}
+          onChange={handleAmountChange}
+          className={`border w-96 outline-none ${
+            invalidValue ? "border-red-500" : "border-gray-300"
+          }`}></input>
       </div>
+      <button
+        onClick={() => {
+          //TODO
+        }}
+        className="flex-1">
+        Next
+      </button>
     </>
   )
 }
+// Select token -> Select address -> Send amount -> Review
+export function Send() {
+  const [, params] = useRoute<{
+    tokenAddress: string
+  }>(`${Path.Send}/:tokenAddress`)
+  const tokens = getUserTokens()
+  const [tokenSelected, setTokenSelected] =
+    useState<Nullable<AccountToken>>(null)
+  const [txTo, setTxTo] = useState<HexString>("")
+  const [txValue, setTxValue] = useState<BigNumberish>("0")
 
-const sendNativeToken = async (
-  signer: ethers.JsonRpcSigner,
-  to: HexString,
-  value: BigNumberish
-) => {
-  return await signer.sendTransaction({
-    to: to,
-    value: ethers.parseUnits(value.toString(), "ether"),
-    data: "0x"
-  })
-}
+  if (tokenSelected === null && params?.tokenAddress) {
+    const token = tokens.find((token) => token.address === params.tokenAddress)
+    if (token) {
+      setTokenSelected(token)
+    }
+  }
 
-const sendErc20Token = async (
-  signer: ethers.JsonRpcSigner,
-  toAddress: HexString,
-  value: BigNumberish,
-  token: AccountToken
-) => {
-  const data = TokenContract.encodeTransferData(
-    toAddress,
-    ethers.parseUnits(value.toString(), token.decimals)
-  )
-  return await signer.sendTransaction({
-    to: token.address,
-    value: 0,
-    data: data
-  })
+  if (!tokenSelected) {
+    return <SelectToken key="step1" setTokenSelected={setTokenSelected} />
+  }
+
+  if (!txTo) {
+    return (
+      <SelectAddress
+        key="step2"
+        to={txTo}
+        setTokenSelected={setTokenSelected}
+        onChangeTo={setTxTo}
+      />
+    )
+  }
+
+  return <SendAmount key="step3" amount={txValue} onChangeAmount={setTxValue} />
 }
