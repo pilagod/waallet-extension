@@ -1,18 +1,21 @@
+import Ethereum from "data-base64:~assets/ethereum.svg"
+import Polygon from "data-base64:~assets/polygon.svg"
+
 export default {
   [1337]: {
     chainId: 1337,
     name: "Geth Testnet",
-    icon: "~assets/ethereum.svg"
+    icon: Ethereum
   },
   [80002]: {
     chainId: 80002,
     name: "Polygon Amoy",
-    icon: "~assets/polygon.svg"
+    icon: Polygon
   },
   [11155111]: {
     chainId: 11155111,
     name: "Sepolia",
-    icon: "~assets/ethereum.svg"
+    icon: Ethereum
   }
 } as Record<
   number,
