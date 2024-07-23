@@ -1,4 +1,5 @@
 import { useContext, useState } from "react"
+import CircleCheck from "react:~assets/circleCheck"
 import Plus from "react:~assets/plus"
 import Wallet from "react:~assets/wallet"
 import { useHashLocation } from "wouter/use-hash-location"
@@ -83,6 +84,7 @@ export function WalletList() {
               <WalletItem
                 address={a.address}
                 balance={number.toBigInt(a.balance)}
+                active={a.id === network.accountActive}
               />
             </div>
           )
@@ -106,13 +108,20 @@ export function WalletList() {
   )
 }
 
-function WalletItem(props: { address: HexString; balance: bigint }) {
+function WalletItem(props: {
+  address: HexString
+  balance: bigint
+  active: boolean
+}) {
   // Effect of `min-w-0`:
   // https://stackoverflow.com/questions/36230944/prevent-flex-items-from-overflowing-a-container
   return (
-    <div className="flex flex-row items-center gap-[12px] p-[16px] text-[16px]">
+    <div
+      className={`flex flex-row items-center gap-[12px] p-[16px] text-[16px] ${
+        props.active && "bg-[#F5F5F5]"
+      }`}>
       <div className="basis-[24px]">
-        <Wallet />
+        {props.active ? <CircleCheck /> : <Wallet />}
       </div>
       <div className="min-w-0 grow break-words">
         <div>Jesse’s wallet</div>
