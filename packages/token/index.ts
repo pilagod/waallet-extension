@@ -1,4 +1,4 @@
-import { Contract, Interface, parseUnits } from "ethers"
+import { Contract, Interface, parseUnits, toNumber } from "ethers"
 
 import type { ContractRunner } from "~packages/node"
 import number from "~packages/util/number"
@@ -24,7 +24,7 @@ export class TokenContract {
   public readonly address: HexString
   public name: string
   public symbol: string
-  public decimals: BigNumberish
+  public decimals: number
 
   private token: Contract
   private static abi = [
@@ -43,7 +43,7 @@ export class TokenContract {
       address,
       await token.name(),
       await token.symbol(),
-      await token.decimals()
+      toNumber(await token.decimals())
     )
   }
 
