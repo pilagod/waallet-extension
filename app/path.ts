@@ -3,7 +3,7 @@ export enum Path {
   Home = "/home",
   Send = "/send",
   Receive = "/receive",
-  WalletList = "/wallet-list",
+  AccountList = "/account-list",
 
   WebAuthnAuthentication = "/webauthn/authentication",
   WebAuthnRegistration = "/webauthn/registration",

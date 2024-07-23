@@ -18,7 +18,7 @@ import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
-export function WalletList() {
+export function AccountList() {
   const [, navigate] = useHashLocation()
   const { provider } = useContext(ProviderContext)
   const { setToast } = useContext(ToastContext)
@@ -31,9 +31,9 @@ export function WalletList() {
     return b + number.toBigInt(a.balance)
   }, 0n)
 
-  const [walletCreating, setWalletCreating] = useState(false)
-  const createWallet = async () => {
-    setWalletCreating(true)
+  const [accountCreating, setAccountCreating] = useState(false)
+  const createNewAccount = async () => {
+    setAccountCreating(true)
     try {
       if (!network.accountFactory[AccountType.PasskeyAccount]) {
         throw new Error("Passkey account factory is not set")
@@ -44,26 +44,26 @@ export function WalletList() {
         factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
       })
       await createAccount(account, network.id)
-      setToast("Wallet created!", "success")
+      setToast("Account created!", "success")
       navigate(Path.Home)
     } catch (e) {
       console.error(e)
     } finally {
-      setWalletCreating(false)
+      setAccountCreating(false)
     }
   }
-  const selectWallet = async (accountId: string) => {
+  const selectAccount = async (accountId: string) => {
     await switchAccount(accountId)
     navigate(Path.Home)
   }
 
-  if (walletCreating) {
+  if (accountCreating) {
     return <PasskeyVerification purpose="identity" />
   }
 
   return (
     <>
-      <StepBackHeader title="Wallet List" />
+      <StepBackHeader title="Account List" />
 
       {/* Total Balance */}
       <section className="py-[16px]">
@@ -73,15 +73,15 @@ export function WalletList() {
         </div>
       </section>
 
-      {/* Wallet List */}
+      {/* Account List */}
       <section className="w-[calc(100%+32px)] h-[264px] ml-[-16px] overflow-x-hidden overflow-y-scroll">
         {accounts.map((a, i) => {
           return (
             <div
               key={i}
               className="cursor-pointer hover:bg-[#F5F5F5]"
-              onClick={() => selectWallet(a.id)}>
-              <WalletItem
+              onClick={() => selectAccount(a.id)}>
+              <AccountItem
                 address={a.address}
                 balance={number.toBigInt(a.balance)}
                 active={a.id === network.accountActive}
@@ -93,22 +93,22 @@ export function WalletList() {
 
       <Divider />
 
-      {/* Create New Wallet */}
+      {/* Create New Account */}
       <section className="pt-[22.5px]">
         <button
           className="w-full flex flex-row justify-center items-center py-[16px] border-[1px] border-solid border-black rounded-full"
-          onClick={createWallet}>
+          onClick={createNewAccount}>
           <span className="mr-[8px]">
             <Plus />
           </span>
-          <span className="text-[18px]">Create new wallet</span>
+          <span className="text-[18px]">Create new account</span>
         </button>
       </section>
     </>
   )
 }
 
-function WalletItem(props: {
+function AccountItem(props: {
   address: HexString
   balance: bigint
   active: boolean

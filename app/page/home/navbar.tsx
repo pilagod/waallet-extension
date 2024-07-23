@@ -129,7 +129,7 @@ function AccountSelector() {
       {/* Home page account selector button */}
       <button
         className="p-[7px_20px_7px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
-        onClick={() => navigate(Path.WalletList)}>
+        onClick={() => navigate(Path.AccountList)}>
         <div className="mr-[12px] flex flex-col items-start">
           <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
             Jesse's wallet
