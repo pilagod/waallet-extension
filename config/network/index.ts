@@ -14,4 +14,11 @@ export default {
     name: "Sepolia",
     icon: "~assets/ethereum.svg"
   }
-}
+} as Record<
+  number,
+  {
+    chainId: number
+    name: string
+    icon: string
+  }
+>
