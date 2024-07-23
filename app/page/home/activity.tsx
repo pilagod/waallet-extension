@@ -5,10 +5,10 @@ import ArrowUpRightFromSquare from "react:~assets/arrowUpRightFromSquare.svg"
 import CircleXmark from "react:~assets/circleXmark.svg"
 import Clock from "react:~assets/clock.svg"
 
+import { ERC20Contract } from "~/packages/contract/erc20"
 import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
 import { decodeExecuteParams } from "~app/util/calldata"
 import { getChainName } from "~packages/network/util"
-import { TokenContract } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { TransactionStatus, type TransactionLog } from "~storage/local/state"
@@ -80,7 +80,7 @@ const UserOpHistoryItem: React.FC<{
   if (tokenStored) {
     try {
       const { to: tokenTo, value: tokenValue } =
-        TokenContract.decodeTransferParam(data)
+        ERC20Contract.decodeTransferParam(data)
       tokenInfo.symbol = tokenStored.symbol
       tokenInfo.value = tokenValue
       tokenInfo.to = tokenTo

@@ -1,9 +1,10 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { getAddress, toNumber } from "ethers"
+import { getAddress } from "ethers"
 import { useContext, useState, type ChangeEvent } from "react"
 import { useHashLocation } from "wouter/use-hash-location"
 
+import { ERC20Contract } from "~/packages/contract/erc20"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
@@ -12,7 +13,7 @@ import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getUserTokens } from "~app/util/getUserTokens"
 import { getChainName } from "~packages/network/util"
-import { TokenContract, type AccountToken } from "~packages/token"
+import { type AccountToken } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString, Nullable } from "~typing"
@@ -241,7 +242,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
     }
 
     try {
-      const erc20 = await TokenContract.init(inputTokenAddress, provider)
+      const erc20 = await ERC20Contract.init(inputTokenAddress, provider)
       const symbol = erc20.symbol
       const decimals = erc20.decimals
       setInvalidTokenAddressMessage("")
@@ -267,7 +268,7 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const onTokenImported = async () => {
     let balance: BigNumberish = 0
     try {
-      const token = await TokenContract.init(tokenAddress, provider)
+      const token = await ERC20Contract.init(tokenAddress, provider)
       balance = await token.balanceOf(account.address)
     } catch (error) {
       console.warn(

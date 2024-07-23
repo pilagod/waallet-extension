@@ -1,7 +1,8 @@
 import { Contract, getAddress, parseUnits, zeroPadValue } from "ethers"
 
-import { TokenContract } from "~packages/token"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
+
+import { ERC20Contract } from "./erc20"
 
 describeWaalletSuite({
   name: "TokenContract instance",
@@ -19,7 +20,7 @@ describeWaalletSuite({
       )
 
       const fromAddress = getAddress(zeroPadValue("0x1234", 20))
-      const tokenContract = await TokenContract.init(TestToken, operator)
+      const tokenContract = await ERC20Contract.init(TestToken, operator)
       const amount = tokenContract.parseAmount(100)
 
       const balanceBefore = await tokenContract.balanceOf(fromAddress)
@@ -37,12 +38,12 @@ describe("TokenContract static methods", () => {
     const tokenValue = 0.1
     const tokenDecimals = 18
 
-    const transferCalldata = TokenContract.encodeTransferData(
+    const transferCalldata = ERC20Contract.encodeTransferData(
       toAddress,
       parseUnits(tokenValue.toString(), tokenDecimals)
     )
 
-    const { to, value } = TokenContract.decodeTransferParam(transferCalldata)
+    const { to, value } = ERC20Contract.decodeTransferParam(transferCalldata)
 
     expect(to).toBe(toAddress)
     expect(value).toBe(parseUnits(tokenValue.toString(), tokenDecimals))
@@ -54,14 +55,14 @@ describe("TokenContract static methods", () => {
     const tokenValue = 0.1
     const tokenDecimals = 18
 
-    const transferFromCalldata = TokenContract.encodeTransferFromData(
+    const transferFromCalldata = ERC20Contract.encodeTransferFromData(
       fromAddress,
       toAddress,
       parseUnits(tokenValue.toString(), tokenDecimals)
     )
 
     const { from, to, value } =
-      TokenContract.decodeTransferFromParam(transferFromCalldata)
+      ERC20Contract.decodeTransferFromParam(transferFromCalldata)
 
     expect(from).toBe(fromAddress)
     expect(to).toBe(toAddress)
