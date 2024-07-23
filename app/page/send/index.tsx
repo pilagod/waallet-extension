@@ -107,7 +107,7 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
           required
         />
       </StepBackHeader>
-      <div className="py-[24px] h-[311px]">
+      <div className="py-[24px] h-[311px] overflow-y-scroll no-scrollbar">
         <h2 className="text-[16px]">Transaction History</h2>
         {/* TODO: Replace with actual transaction history */}
         {accounts.map((account, index) => {
