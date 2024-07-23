@@ -56,7 +56,7 @@ describe("Token contract", () => {
   it("should get balance", async () => {
     const fromAddress = getAddress(zeroPadValue("0x1234", 20))
     const tokenContract = await TokenContract.init(TestToken, operator)
-    const amount = parseUnits("100", tokenContract.decimals)
+    const amount = tokenContract.parseAmount(100)
 
     const balanceBefore = number.toBigInt(
       await tokenContract.balanceOf(fromAddress)

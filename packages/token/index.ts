@@ -1,6 +1,7 @@
-import { Contract, Interface } from "ethers"
+import { Contract, Interface, parseUnits } from "ethers"
 
 import type { ContractRunner } from "~packages/node"
+import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
 export type Token = {
@@ -62,6 +63,10 @@ export class TokenContract {
 
   public async balanceOf(account: HexString): Promise<BigNumberish> {
     return await this.token.balanceOf(account)
+  }
+
+  public parseAmount(amount: BigNumberish): bigint {
+    return parseUnits(number.toString(amount), this.decimals)
   }
 
   public static encodeTransferData(to: HexString, value: BigNumberish) {
