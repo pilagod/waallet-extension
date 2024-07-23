@@ -284,11 +284,9 @@ function UserOperationConfirmation(props: {
           <div>
             <Wallet />
           </div>
-          <div className="w-full py-[9.5px]">
+          <div className="w-full py-[9.5px] min-w-0">
             <h3 className="pb-[4px]">Jesse's wallet</h3>
-            <h4 className="text-[#989898] break-words pr-[36px]">
-              {userOp.sender}
-            </h4>
+            <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
           </div>
         </div>
         <h2
@@ -302,11 +300,9 @@ function UserOperationConfirmation(props: {
             <div>
               <Contract />
             </div>
-            <div className="py-[16px] w-full">
+            <div className="py-[16px] min-w-0">
               <h3 className="pb-[4px]">Contract address</h3>
-              <h3 className="break-words text-[#989898] pr-[36px]">
-                {props.tx.to}
-              </h3>
+              <h3 className="break-words text-[#989898]">{props.tx.to}</h3>
             </div>
           </div>
         ) : (

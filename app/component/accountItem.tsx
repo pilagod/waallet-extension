@@ -8,8 +8,8 @@ export const AccountItem = ({ address }: { address: HexString }) => {
       <div>
         <Wallet />
       </div>
-      <div className="w-full">
-        <h3 className="text-[16px] py-[16px] pr-[36px] break-words text-left">
+      <div className="min-w-0">
+        <h3 className="text-[16px] py-[16px] break-words text-left">
           {address}
         </h3>
       </div>
