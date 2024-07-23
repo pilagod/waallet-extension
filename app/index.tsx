@@ -75,7 +75,8 @@ function PageRouter() {
         <Route path={Path.Send} component={Send} />
         <Route path={Path.Receive} component={Receive} />
         <Route path={Path.WalletList} component={WalletList} />
-
+        {/* To enable the Send page to accept a token address as a parameter */}
+        <Route path={`${Path.Send}/:tokenAddress`} component={Send} />
         <Route
           path={Path.WebAuthnRegistration}
           component={WebAuthnRegistration}
@@ -85,9 +86,7 @@ function PageRouter() {
           component={WebAuthnAuthentication}
         />
         <Route path={Path.WebAuthnDevtool} component={WebAuthnDevtool} />
-
         <Route path={Path.Review} component={Review} />
-
         <Route path="*">
           <Redirect to={Path.Home} />
         </Route>
