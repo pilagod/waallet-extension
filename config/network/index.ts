@@ -1,7 +1,7 @@
 import Ethereum from "data-base64:~assets/ethereumLight.svg"
 import Polygon from "data-base64:~assets/polygon.svg"
 
-export default {
+export const NetworkConfig = {
   [1337]: {
     chainId: 1337,
     name: "Geth Testnet",

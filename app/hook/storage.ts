@@ -1,5 +1,5 @@
 import { useStorage } from "~app/storage"
-import NetworkConfig from "~config/network"
+import { NetworkConfig } from "~config/network"
 
 export { useStorage } from "~app/storage"
 
