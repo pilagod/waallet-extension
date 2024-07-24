@@ -26,6 +26,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
         error.unwrap()
       )
       res.send(error.unwrap())
+      return
     }
     console.log(
       "[background][message][JsonRpcRequest][InternalError]",
