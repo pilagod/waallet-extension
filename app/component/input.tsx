@@ -1,8 +1,8 @@
 import { type ChangeEvent } from "react"
 
 export function Input(props: {
-  label?: string
   value: string
+  label?: string
   disabled?: boolean
   placeholder?: string
   required?: boolean

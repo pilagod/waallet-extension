@@ -21,11 +21,13 @@ export function ImportToken() {
   const tokens = useTokens()
 
   const [tokenAddress, setTokenAddress] = useState("")
+  const [tokenAddressValid, setTokenAddressValid] = useState(false)
+
   const [tokenSymbol, setTokenSymbol] = useState("")
   const [tokenDecimals, setTokenDecimals] = useState(0n)
   const [tokenBalance, setTokenBalance] = useState(0n)
+
   const [tokenFetching, setTokenFetching] = useState(false)
-  const [tokenAddressValid, setTokenAddressValid] = useState(false)
 
   const onTokenAddressChanged = async (value: string) => {
     setTokenAddress(value)

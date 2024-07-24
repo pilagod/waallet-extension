@@ -1,12 +1,12 @@
 type ButtonProps = {
   text: string
   variant: "black" | "white"
+  className?: string
   disabled?: boolean
   onClick?: () => void
-  className?: string
 }
 export const Button = (props: ButtonProps) => {
-  const { text, disabled = false, onClick, variant, className } = props
+  const { text, disabled, onClick, variant, className } = props
   const baseClass =
     "font-bold border border-solid border-black p-[17px] rounded-full w-full"
   const variantClass =
