@@ -41,30 +41,34 @@ export class WaalletBackgroundProvider {
 
   public async request<T>(args: WaalletRequestArguments): Promise<T> {
     console.log(args)
-    const { node, bundler } = this.networkManager.getActive()
-    switch (args.method) {
-      case WaalletRpcMethod.eth_accounts:
-      case WaalletRpcMethod.eth_requestAccounts:
-        const { account } = await this.accountManager.getActive()
-        return [await account.getAddress()] as T
-      case WaalletRpcMethod.eth_chainId:
-        return number.toHex(await bundler.getChainId()) as T
-      case WaalletRpcMethod.eth_estimateGas:
-        return this.handleEstimateGas(args.params) as T
-      case WaalletRpcMethod.eth_estimateUserOperationGas:
-        return this.handleEstimateUserOperationGas(args.params) as T
-      case WaalletRpcMethod.eth_sendTransaction:
-        return this.handleSendTransaction(args.params) as T
-      case WaalletRpcMethod.eth_sendUserOperation:
-        return this.handleSendUserOperation(args.params) as T
-      case WaalletRpcMethod.custom_estimateGasPrice:
-        return this.handleEstimateGasPrice() as T
-      // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
-      default:
-        if (args.method in BundlerRpcMethod) {
-          return new JsonRpcProvider(bundler.url).send(args)
-        }
-        return new JsonRpcProvider(node.url).send(args)
+    try {
+      const { node, bundler } = this.networkManager.getActive()
+      switch (args.method) {
+        case WaalletRpcMethod.eth_accounts:
+        case WaalletRpcMethod.eth_requestAccounts:
+          const { account } = await this.accountManager.getActive()
+          return [await account.getAddress()] as T
+        case WaalletRpcMethod.eth_chainId:
+          return number.toHex(await bundler.getChainId()) as T
+        case WaalletRpcMethod.eth_estimateGas:
+          return this.handleEstimateGas(args.params) as T
+        case WaalletRpcMethod.eth_estimateUserOperationGas:
+          return this.handleEstimateUserOperationGas(args.params) as T
+        case WaalletRpcMethod.eth_sendTransaction:
+          return this.handleSendTransaction(args.params) as T
+        case WaalletRpcMethod.eth_sendUserOperation:
+          return this.handleSendUserOperation(args.params) as T
+        case WaalletRpcMethod.custom_estimateGasPrice:
+          return this.handleEstimateGasPrice() as T
+        // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
+        default:
+          if (args.method in BundlerRpcMethod) {
+            return new JsonRpcProvider(bundler.url).send(args)
+          }
+          return new JsonRpcProvider(node.url).send(args)
+      }
+    } catch (err) {
+      throw err
     }
   }
 
@@ -76,40 +80,48 @@ export class WaalletBackgroundProvider {
       // TODO: When `to` is empty, it should estimate gas for contract creation
       return
     }
-    const { account } = await this.accountManager.getActive()
-    if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
-      throw new Error("Address `from` doesn't match connected account")
+    try {
+      const { account } = await this.accountManager.getActive()
+      if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
+        throw new Error("Address `from` doesn't match connected account")
+      }
+      const { bundler } = this.networkManager.getActive()
+      const entryPoint = await account.getEntryPoint()
+      if (!bundler.isSupportedEntryPoint(entryPoint)) {
+        throw new Error(`Unsupported EntryPoint ${entryPoint}`)
+      }
+      const userOp = bundler.deriveUserOperation(
+        await account.buildExecution({
+          to: tx.to,
+          value: tx.value,
+          data: tx.data
+        }),
+        entryPoint
+      )
+      if (tx.gas) {
+        userOp.setGasLimit({ callGasLimit: tx.gas })
+      }
+      const { callGasLimit } = await bundler.estimateUserOperationGas(
+        userOp,
+        entryPoint
+      )
+      return number.toHex(callGasLimit)
+    } catch (err) {
+      throw err
     }
-    const { bundler } = this.networkManager.getActive()
-    const entryPoint = await account.getEntryPoint()
-    if (!bundler.isSupportedEntryPoint(entryPoint)) {
-      throw new Error(`Unsupported EntryPoint ${entryPoint}`)
-    }
-    const userOp = bundler.deriveUserOperation(
-      await account.buildExecution({
-        to: tx.to,
-        value: tx.value,
-        data: tx.data
-      }),
-      entryPoint
-    )
-    if (tx.gas) {
-      userOp.setGasLimit({ callGasLimit: tx.gas })
-    }
-    const { callGasLimit } = await bundler.estimateUserOperationGas(
-      userOp,
-      entryPoint
-    )
-    return number.toHex(callGasLimit)
   }
 
   private async handleEstimateGasPrice() {
     const { node, bundler } = this.networkManager.getActive()
     const gasPriceEstimator = new GasPriceEstimator(node, bundler)
-    const gasPrice = await gasPriceEstimator.estimate()
-    return {
-      maxFeePerGas: number.toHex(gasPrice.maxFeePerGas),
-      maxPriorityFeePerGas: number.toHex(gasPrice.maxPriorityFeePerGas)
+    try {
+      const gasPrice = await gasPriceEstimator.estimate()
+      return {
+        maxFeePerGas: number.toHex(gasPrice.maxFeePerGas),
+        maxPriorityFeePerGas: number.toHex(gasPrice.maxPriorityFeePerGas)
+      }
+    } catch (err) {
+      throw err
     }
   }
 
@@ -123,20 +135,24 @@ export class WaalletBackgroundProvider {
   }> {
     const [userOp, entryPoint] = params
     const { bundler } = this.networkManager.getActive()
-    if (!bundler.isSupportedEntryPoint(entryPoint)) {
-      throw new Error(`Unsupported EntryPoint ${entryPoint}`)
-    }
-    const data = await bundler.estimateUserOperationGas(
-      bundler.deriveUserOperation(userOp, entryPoint),
-      entryPoint
-    )
-    return {
-      preVerificationGas: number.toHex(data.preVerificationGas),
-      verificationGasLimit: number.toHex(data.verificationGasLimit),
-      callGasLimit: number.toHex(data.callGasLimit),
-      paymasterVerificationGasLimit: number.toHex(
-        data.paymasterVerificationGasLimit ?? 0n
+    try {
+      if (!bundler.isSupportedEntryPoint(entryPoint)) {
+        throw new Error(`Unsupported EntryPoint ${entryPoint}`)
+      }
+      const data = await bundler.estimateUserOperationGas(
+        bundler.deriveUserOperation(userOp, entryPoint),
+        entryPoint
       )
+      return {
+        preVerificationGas: number.toHex(data.preVerificationGas),
+        verificationGasLimit: number.toHex(data.verificationGasLimit),
+        callGasLimit: number.toHex(data.callGasLimit),
+        paymasterVerificationGasLimit: number.toHex(
+          data.paymasterVerificationGasLimit ?? 0n
+        )
+      }
+    } catch (err) {
+      throw err
     }
   }
 
@@ -151,28 +167,32 @@ export class WaalletBackgroundProvider {
     }
 
     const { id: networkId, bundler } = this.networkManager.getActive()
-    const { id: accountId, account } = await this.accountManager.getActive()
-    if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
-      throw new Error("Address `from` doesn't match connected account")
+    try {
+      const { id: accountId, account } = await this.accountManager.getActive()
+      if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
+        throw new Error("Address `from` doesn't match connected account")
+      }
+
+      const entryPoint = await account.getEntryPoint()
+      if (!bundler.isSupportedEntryPoint(entryPoint)) {
+        throw new Error(`Unsupported EntryPoint ${entryPoint}`)
+      }
+
+      const txId = await this.transactionPool.send({
+        tx: new Transaction({
+          ...tx,
+          to: tx.to,
+          gasLimit: tx.gas
+        }),
+        senderId: accountId,
+        networkId
+      })
+      const transactionHash = await this.transactionPool.wait(txId)
+
+      return transactionHash
+    } catch (err) {
+      throw err
     }
-
-    const entryPoint = await account.getEntryPoint()
-    if (!bundler.isSupportedEntryPoint(entryPoint)) {
-      throw new Error(`Unsupported EntryPoint ${entryPoint}`)
-    }
-
-    const txId = await this.transactionPool.send({
-      tx: new Transaction({
-        ...tx,
-        to: tx.to,
-        gasLimit: tx.gas
-      }),
-      senderId: accountId,
-      networkId
-    })
-    const transactionHash = await this.transactionPool.wait(txId)
-
-    return transactionHash
   }
 
   private async handleSendUserOperation(
@@ -180,9 +200,13 @@ export class WaalletBackgroundProvider {
   ): Promise<HexString> {
     const [userOp, entryPoint] = params
     const { bundler } = this.networkManager.getActive()
-    return bundler.sendUserOperation(
-      bundler.deriveUserOperation(userOp, entryPoint),
-      entryPoint
-    )
+    try {
+      return bundler.sendUserOperation(
+        bundler.deriveUserOperation(userOp, entryPoint),
+        entryPoint
+      )
+    } catch (err) {
+      throw err
+    }
   }
 }

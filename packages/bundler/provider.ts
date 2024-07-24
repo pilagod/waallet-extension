@@ -1,4 +1,5 @@
 import { Execution } from "~packages/account"
+import { JsonRpcProviderError } from "~packages/rpc/json/error"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString, Nullable } from "~typing"
@@ -45,24 +46,36 @@ export class BundlerProvider {
   /* rpc */
 
   public async getChainId(): Promise<bigint> {
-    const chainId = await this.bundler.send<HexString>({
-      method: BundlerRpcMethod.eth_chainId
-    })
-    return number.toBigInt(chainId)
+    try {
+      const chainId = await this.bundler.send<HexString>({
+        method: BundlerRpcMethod.eth_chainId
+      })
+      return number.toBigInt(chainId)
+    } catch (err) {
+      throw err
+    }
   }
 
   public async getMaxPriorityFeePerGas() {
-    const maxPriorityFeePerGas = await this.bundler.send<HexString>({
-      method: BundlerRpcMethod.rundler_maxPriorityFeePerGas
-    })
-    return number.toBigInt(maxPriorityFeePerGas)
+    try {
+      const maxPriorityFeePerGas = await this.bundler.send<HexString>({
+        method: BundlerRpcMethod.rundler_maxPriorityFeePerGas
+      })
+      return number.toBigInt(maxPriorityFeePerGas)
+    } catch (err) {
+      throw err
+    }
   }
 
   public async getSupportedEntryPoints(): Promise<HexString[]> {
-    const entryPoints = await this.bundler.send<HexString[]>({
-      method: BundlerRpcMethod.eth_supportedEntryPoints
-    })
-    return entryPoints
+    try {
+      const entryPoints = await this.bundler.send<HexString[]>({
+        method: BundlerRpcMethod.eth_supportedEntryPoints
+      })
+      return entryPoints
+    } catch (err) {
+      throw err
+    }
   }
 
   public async getUserOperationByHash(userOpHash: HexString): Promise<
@@ -74,29 +87,33 @@ export class BundlerProvider {
       transactionHash: HexString
     }>
   > {
-    const data = await this.bundler.send<
-      Nullable<{
-        userOperation: UserOperationData
-        entryPoint: HexString
-        blockNumber: HexString
-        blockHash: HexString
-        transactionHash: HexString
-      }>
-    >({
-      method: BundlerRpcMethod.eth_getUserOperationByHash,
-      params: [userOpHash]
-    })
-    // Even if the data is not null, blockNumber, blockHash, and transactionHash
-    // remain null until the transaction is fully broadcasted.
-    if (!data) {
-      return null
-    }
-    return {
-      ...data,
-      userOperation: this.deriveUserOperation(data.userOperation),
-      ...(data.blockNumber && {
-        blockNumber: number.toBigInt(data.blockNumber)
+    try {
+      const data = await this.bundler.send<
+        Nullable<{
+          userOperation: UserOperationData
+          entryPoint: HexString
+          blockNumber: HexString
+          blockHash: HexString
+          transactionHash: HexString
+        }>
+      >({
+        method: BundlerRpcMethod.eth_getUserOperationByHash,
+        params: [userOpHash]
       })
+      // Even if the data is not null, blockNumber, blockHash, and transactionHash
+      // remain null until the transaction is fully broadcasted.
+      if (!data) {
+        return null
+      }
+      return {
+        ...data,
+        userOperation: this.deriveUserOperation(data.userOperation),
+        ...(data.blockNumber && {
+          blockNumber: number.toBigInt(data.blockNumber)
+        })
+      }
+    } catch (err) {
+      throw err
     }
   }
 
@@ -109,19 +126,23 @@ export class BundlerProvider {
       blockNumber: BigNumberish
     }
   }> {
-    const receipt = await this.bundler.send<{
-      success: boolean
-      reason: string
-      receipt: {
-        transactionHash: HexString
-        blockHash: HexString
-        blockNumber: BigNumberish
-      }
-    }>({
-      method: BundlerRpcMethod.eth_getUserOperationReceipt,
-      params: [userOpHash]
-    })
-    return receipt
+    try {
+      const receipt = await this.bundler.send<{
+        success: boolean
+        reason: string
+        receipt: {
+          transactionHash: HexString
+          blockHash: HexString
+          blockNumber: BigNumberish
+        }
+      }>({
+        method: BundlerRpcMethod.eth_getUserOperationReceipt,
+        params: [userOpHash]
+      })
+      return receipt
+    } catch (err) {
+      console.log("getUserOperationReceipt error", err)
+    }
   }
 
   public async estimateUserOperationGas(
@@ -133,27 +154,31 @@ export class BundlerProvider {
     callGasLimit: bigint
     paymasterVerificationGasLimit: bigint
   }> {
-    const gasLimit = await this.bundler.send<{
-      preVerificationGas: HexString
-      verificationGasLimit: HexString
-      callGasLimit: HexString
-      paymasterVerificationGasLimit: HexString
-    }>({
-      method: BundlerRpcMethod.eth_estimateUserOperationGas,
-      params: [userOp.unwrap(), entryPoint]
-    })
-    // Add 10% buffer to avoid over limit.
-    const addBuffer = (n: bigint) => (n * 110n) / 100n
+    try {
+      const gasLimit = await this.bundler.send<{
+        preVerificationGas: HexString
+        verificationGasLimit: HexString
+        callGasLimit: HexString
+        paymasterVerificationGasLimit: HexString
+      }>({
+        method: BundlerRpcMethod.eth_estimateUserOperationGas,
+        params: [userOp.unwrap(), entryPoint]
+      })
+      // Add 10% buffer to avoid over limit.
+      const addBuffer = (n: bigint) => (n * 110n) / 100n
 
-    return {
-      preVerificationGas: number.toBigInt(gasLimit.preVerificationGas),
-      verificationGasLimit: addBuffer(
-        number.toBigInt(gasLimit.verificationGasLimit)
-      ),
-      callGasLimit: addBuffer(number.toBigInt(gasLimit.callGasLimit)),
-      paymasterVerificationGasLimit: addBuffer(
-        number.toBigInt(gasLimit.paymasterVerificationGasLimit ?? "0x0")
-      )
+      return {
+        preVerificationGas: number.toBigInt(gasLimit.preVerificationGas),
+        verificationGasLimit: addBuffer(
+          number.toBigInt(gasLimit.verificationGasLimit)
+        ),
+        callGasLimit: addBuffer(number.toBigInt(gasLimit.callGasLimit)),
+        paymasterVerificationGasLimit: addBuffer(
+          number.toBigInt(gasLimit.paymasterVerificationGasLimit ?? "0x0")
+        )
+      }
+    } catch (err) {
+      throw err
     }
   }
 
@@ -161,18 +186,26 @@ export class BundlerProvider {
     userOp: UserOperation,
     entryPoint: HexString
   ): Promise<HexString> {
-    const userOpHash = await this.bundler.send<HexString>({
-      method: BundlerRpcMethod.eth_sendUserOperation,
-      params: [userOp.unwrap(), entryPoint]
-    })
-    if (this.mode === BundlerMode.Manual) {
-      await this.debugSendBundleNow()
+    try {
+      const userOpHash = await this.bundler.send<HexString>({
+        method: BundlerRpcMethod.eth_sendUserOperation,
+        params: [userOp.unwrap(), entryPoint]
+      })
+      if (this.mode === BundlerMode.Manual) {
+        await this.debugSendBundleNow()
+      }
+      return userOpHash
+    } catch (err) {
+      throw err
     }
-    return userOpHash
   }
 
   public async send<T>(args: { method: string; params?: any[] }): Promise<T> {
-    return this.bundler.send(args) as T
+    try {
+      return this.bundler.send(args) as T
+    } catch (err) {
+      throw err
+    }
   }
 
   /* util */
@@ -208,25 +241,33 @@ export class BundlerProvider {
   }
 
   public async isSupportedEntryPoint(entryPoint: HexString): Promise<boolean> {
-    const entryPoints = await this.getSupportedEntryPoints()
-    return (
-      entryPoints.filter((ep) => address.isEqual(entryPoint, ep)).length > 0
-    )
+    try {
+      const entryPoints = await this.getSupportedEntryPoints()
+      return (
+        entryPoints.filter((ep) => address.isEqual(entryPoint, ep)).length > 0
+      )
+    } catch (err) {
+      throw err
+    }
   }
 
   public async wait(userOpHash: HexString): Promise<HexString> {
     while (true) {
-      const res = await new Promise<
-        Nullable<{
-          transactionHash: HexString
-        }>
-      >((resolve) => {
-        setTimeout(async () => {
-          resolve(await this.getUserOperationByHash(userOpHash))
-        }, 1000)
-      })
-      if (res && res.transactionHash) {
-        return res.transactionHash
+      try {
+        const res = await new Promise<
+          Nullable<{
+            transactionHash: HexString
+          }>
+        >((resolve) => {
+          setTimeout(async () => {
+            resolve(await this.getUserOperationByHash(userOpHash))
+          }, 1000)
+        })
+        if (res && res.transactionHash) {
+          return res.transactionHash
+        }
+      } catch (err) {
+        throw err
       }
     }
   }
@@ -234,8 +275,12 @@ export class BundlerProvider {
   /* private */
 
   private async debugSendBundleNow() {
-    await this.bundler.send({
-      method: BundlerRpcMethod.debug_bundler_sendBundleNow
-    })
+    try {
+      await this.bundler.send({
+        method: BundlerRpcMethod.debug_bundler_sendBundleNow
+      })
+    } catch (err) {
+      throw err
+    }
   }
 }
