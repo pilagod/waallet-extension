@@ -25,10 +25,6 @@ export type State = {
   }
 }
 
-export type AccountToken = Token & {
-  balance: HexString
-}
-
 /* Netowork */
 
 export type Network = {
@@ -49,6 +45,10 @@ export type Network = {
 /* Account */
 
 export type Account = SimpleAccount | PasskeyAccount
+
+export type AccountToken = Token & {
+  balance: HexString
+}
 
 export type AccountMeta<T> = {
   id: string
