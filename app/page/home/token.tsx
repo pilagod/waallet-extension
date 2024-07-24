@@ -243,8 +243,8 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
 
     try {
       const erc20 = await ERC20Contract.init(inputTokenAddress, provider)
-      const symbol = erc20.symbol
-      const decimals = erc20.decimals
+      const symbol = await erc20.symbol()
+      const decimals = await erc20.decimals()
       setInvalidTokenAddressMessage("")
       setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)

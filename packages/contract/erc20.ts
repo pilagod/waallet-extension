@@ -15,10 +15,6 @@ export class ERC20Contract {
   ]
 
   public readonly address: HexString
-  public name: string
-  public symbol: string
-  public decimals: number
-
   private token: Contract
 
   public static encodeTransferData(to: HexString, value: BigNumberish) {
@@ -59,34 +55,31 @@ export class ERC20Contract {
 
   public static async init(address: HexString, runner: ContractRunner) {
     const token = new Contract(address, ERC20Contract.abi, runner)
-    return new ERC20Contract(
-      token,
-      address,
-      await token.name(),
-      await token.symbol(),
-      toNumber(await token.decimals())
-    )
+    return new ERC20Contract(token, address)
   }
 
-  private constructor(
-    token: Contract,
-    address: HexString,
-    name: string,
-    symbol: string,
-    decimals: number
-  ) {
+  private constructor(token: Contract, address: HexString) {
     this.token = token
     this.address = address
-    this.name = name
-    this.symbol = symbol
-    this.decimals = decimals
+  }
+
+  public async name(): Promise<string> {
+    return await this.token.name()
+  }
+
+  public async symbol(): Promise<string> {
+    return await this.token.symbol()
+  }
+
+  public async decimals(): Promise<number> {
+    return toNumber(await this.token.decimals())
   }
 
   public async balanceOf(account: HexString): Promise<bigint> {
     return number.toBigInt(await this.token.balanceOf(account))
   }
 
-  public parseAmount(amount: BigNumberish): bigint {
-    return parseUnits(number.toString(amount), this.decimals)
+  public async parseAmount(amount: BigNumberish): Promise<bigint> {
+    return parseUnits(number.toString(amount), await this.decimals())
   }
 }
