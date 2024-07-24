@@ -1,64 +1,29 @@
-import { useContext, useState } from "react"
 import CircleCheck from "react:~assets/circleCheck"
 import Plus from "react:~assets/plus"
 import Wallet from "react:~assets/wallet"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
-import { PasskeyVerification } from "~app/component/passkeyVerification"
 import { StepBackHeader } from "~app/component/stepBackHeader"
-import { ProviderContext } from "~app/context/provider"
-import { ToastContext } from "~app/context/toastContext"
 import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
-import { AccountType } from "~packages/account"
-import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
 export function AccountList() {
   const [, navigate] = useHashLocation()
-  const { provider } = useContext(ProviderContext)
-  const { setToast } = useContext(ToastContext)
-  const { createAccount, switchAccount } = useAction()
-
-  const network = useNetwork()
+  const { switchAccount } = useAction()
 
   const accounts = useAccounts()
+  const network = useNetwork()
+
   const totalBalance = accounts.reduce((b, a) => {
     return b + number.toBigInt(a.balance)
   }, 0n)
-
-  const [accountCreating, setAccountCreating] = useState(false)
-  const createNewAccount = async () => {
-    setAccountCreating(true)
-    try {
-      if (!network.accountFactory[AccountType.PasskeyAccount]) {
-        throw new Error("Passkey account factory is not set")
-      }
-      const account = await PasskeyAccount.initWithFactory(provider, {
-        owner: await PasskeyOwnerWebAuthn.register(),
-        salt: number.random(),
-        factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
-      })
-      await createAccount(`Account ${accounts.length + 1}`, account, network.id)
-      setToast("Account created!", "success")
-      navigate(Path.Home)
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setAccountCreating(false)
-    }
-  }
   const selectAccount = async (accountId: string) => {
     await switchAccount(accountId)
     navigate(Path.Home)
-  }
-
-  if (accountCreating) {
-    return <PasskeyVerification purpose="identity" />
   }
 
   return (
@@ -98,7 +63,7 @@ export function AccountList() {
       <section className="pt-[22.5px]">
         <button
           className="w-full flex flex-row justify-center items-center py-[16px] border-[1px] border-solid border-black rounded-full"
-          onClick={createNewAccount}>
+          onClick={() => navigate(Path.AccountCreate)}>
           <span className="mr-[8px]">
             <Plus />
           </span>
