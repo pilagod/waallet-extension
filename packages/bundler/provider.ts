@@ -280,7 +280,7 @@ export class BundlerProvider {
         method: BundlerRpcMethod.debug_bundler_sendBundleNow
       })
     } catch (err) {
-      throw err
+      return // no op to send in debug mode,  so ignore the error
     }
   }
 }
