@@ -4,7 +4,7 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
-import { type AccountToken } from "~packages/token"
+import { type Token } from "~packages/token"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
 /* State */
@@ -23,6 +23,10 @@ export type State = {
   pendingTransaction: {
     [txId: string]: TransactionPending
   }
+}
+
+export type AccountToken = Token & {
+  balance: HexString
 }
 
 /* Netowork */

@@ -13,9 +13,9 @@ import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getUserTokens } from "~app/util/getUserTokens"
 import { getChainName } from "~packages/network/util"
-import { type AccountToken } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
+import { type AccountToken } from "~storage/local/state"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
 export function Token() {

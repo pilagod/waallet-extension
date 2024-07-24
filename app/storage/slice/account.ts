@@ -1,9 +1,9 @@
 import { v4 as uuidV4 } from "uuid"
 
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { type AccountToken } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
+import { type AccountToken } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 import type { BackgroundStateCreator } from "../middleware/background"

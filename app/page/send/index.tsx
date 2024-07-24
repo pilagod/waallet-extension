@@ -12,9 +12,9 @@ import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
 import { useAccounts } from "~app/hook/storage"
 import { getUserTokens } from "~app/util/getUserTokens"
-import { type AccountToken } from "~packages/token"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
+import { type AccountToken } from "~storage/local/state"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
 const isValidTo = (to: string) => {

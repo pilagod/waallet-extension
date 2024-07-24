@@ -1,7 +1,7 @@
 import Ethereum from "react:~assets/ethereum.svg"
 
-import { type AccountToken } from "~packages/token"
 import number from "~packages/util/number"
+import { type AccountToken } from "~storage/local/state"
 
 export const TokenItem = ({ token }: { token: AccountToken }) => {
   return (
