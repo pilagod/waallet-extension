@@ -46,12 +46,12 @@ export function Home() {
 
 function AccountCreation() {
   const { provider } = useContext(ProviderContext)
+  const { setToast } = useContext(ToastContext)
   const { createAccount } = useAction()
+
   const network = useNetwork()
 
-  const { setToast } = useContext(ToastContext)
-
-  const onPasskeyAccountCreated = async () => {
+  const createNewAccount = async () => {
     try {
       if (!network.accountFactory[AccountType.PasskeyAccount]) {
         throw new Error("Passkey account factory is not set")
@@ -61,8 +61,8 @@ function AccountCreation() {
         salt: number.random(),
         factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
       })
-      await createAccount(account, network.id)
-      setToast("Wallet Created", "success")
+      await createAccount("Account 1", account, network.id)
+      setToast("Account created!", "success")
     } catch (error) {
       setToast(error.message, "failed")
     }
@@ -72,7 +72,7 @@ function AccountCreation() {
     <div className="text-center">
       <button
         className="border-2 border-black rounded-full px-2"
-        onClick={onPasskeyAccountCreated}>
+        onClick={createNewAccount}>
         Create your first AA account
       </button>
     </div>

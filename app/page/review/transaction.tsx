@@ -61,6 +61,9 @@ export function TransactionConfirmation(props: { tx: TransactionPending }) {
     <UserOperationConfirmation
       tx={tx}
       sender={senderAccount}
+      senderInfo={{
+        name: sender.name
+      }}
       network={network}
     />
   )
@@ -69,9 +72,12 @@ export function TransactionConfirmation(props: { tx: TransactionPending }) {
 function UserOperationConfirmation(props: {
   tx: TransactionPending
   sender: Account
+  senderInfo: {
+    name: string
+  }
   network: Network
 }) {
-  const { tx, sender, network } = props
+  const { tx, sender, senderInfo, network } = props
 
   const { provider } = useContext(ProviderContext)
 
@@ -275,7 +281,7 @@ function UserOperationConfirmation(props: {
         <div className="flex gap-[12px] items-center">
           <Wallet />
           <div className="w-[322px] py-[9.5px]">
-            <h3 className="pb-[4px]">Jesse's wallet</h3>
+            <h3 className="pb-[4px]">{senderInfo.name}</h3>
             <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
           </div>
         </div>

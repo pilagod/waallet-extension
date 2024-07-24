@@ -43,7 +43,7 @@ export function AccountList() {
         salt: number.random(),
         factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
       })
-      await createAccount(account, network.id)
+      await createAccount(`Account ${accounts.length + 1}`, account, network.id)
       setToast("Account created!", "success")
       navigate(Path.Home)
     } catch (e) {
@@ -82,6 +82,7 @@ export function AccountList() {
               className="cursor-pointer hover:bg-[#F5F5F5]"
               onClick={() => selectAccount(a.id)}>
               <AccountItem
+                name={a.name}
                 address={a.address}
                 balance={number.toBigInt(a.balance)}
                 active={a.id === network.accountActive}
@@ -109,6 +110,7 @@ export function AccountList() {
 }
 
 function AccountItem(props: {
+  name: string
   address: HexString
   balance: bigint
   active: boolean
@@ -124,7 +126,7 @@ function AccountItem(props: {
         {props.active ? <CircleCheck /> : <Wallet />}
       </div>
       <div className="min-w-0 grow break-words">
-        <div>Jesse’s wallet</div>
+        <div>{props.name}</div>
         <div className="text-[12px]">{address.ellipsize(props.address)}</div>
       </div>
       <div className="min-w-0 basis-[120px] text-right">

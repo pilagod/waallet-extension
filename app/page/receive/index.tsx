@@ -9,7 +9,7 @@ import { ToastContext } from "~app/context/toastContext"
 import { useAccount } from "~app/storage"
 
 export const Receive = () => {
-  const { address } = useAccount()
+  const { address, name } = useAccount()
   const { setToast } = useContext(ToastContext)
 
   const handleCopy = async () => {
@@ -23,7 +23,8 @@ export const Receive = () => {
 
   return (
     <>
-      <StepBackHeader title={"Jesse's wallet"} />
+      <StepBackHeader title={name} />
+
       <div className="flex items-center justify-center my-[24px]">
         <QrCode address={address} size={200} />
       </div>

@@ -12,7 +12,11 @@ import type { StateSlice } from "./state"
 export interface AccountSlice {
   /* Account */
 
-  createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
+  createAccount: (
+    name: string,
+    account: PasskeyAccount,
+    networkId: string
+  ) => Promise<void>
   switchAccount: (accountId: string) => Promise<void>
 
   /* Token */
@@ -36,7 +40,11 @@ export const createAccountSlice: BackgroundStateCreator<
 > = (set) => ({
   /* Account */
 
-  createAccount: async (account: PasskeyAccount, networkId: string) => {
+  createAccount: async (
+    name: string,
+    account: PasskeyAccount,
+    networkId: string
+  ) => {
     const id = uuidV4()
     const data = account.dump()
     await set(({ state }) => {
@@ -44,6 +52,7 @@ export const createAccountSlice: BackgroundStateCreator<
       state.account[id] = {
         ...data,
         id,
+        name,
         chainId: network.chainId,
         // TODO: Design a value object
         publicKey: {
