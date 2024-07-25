@@ -4,6 +4,7 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
+import { type Token } from "~packages/token"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
 /* State */
@@ -45,13 +46,17 @@ export type Network = {
 
 export type Account = SimpleAccount | PasskeyAccount
 
+export type AccountToken = Token & {
+  balance: HexString
+}
+
 export type AccountMeta<T> = {
   id: string
   transactionLog: {
     [txId: string]: TransactionLog
   }
   balance: HexString
-  tokens: Token[]
+  tokens: AccountToken[]
 } & T
 
 export type SimpleAccount = AccountMeta<{
@@ -73,13 +78,6 @@ export type PasskeyAccount = AccountMeta<{
   factoryAddress?: HexString
   salt?: HexString
 }>
-
-export type Token = {
-  address: HexString
-  symbol: string
-  decimals: number
-  balance: HexString
-}
 
 /* Paymaster */
 

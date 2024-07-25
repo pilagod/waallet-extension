@@ -9,7 +9,7 @@ import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { useAccount, useAction, useTokens } from "~app/hook/storage"
 import { Path } from "~app/path"
-import { getErc20Contract } from "~packages/network/util"
+import { ERC20Contract } from "~packages/contract/erc20"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 
@@ -27,7 +27,7 @@ export function ImportToken() {
   const [tokenAddressValid, setTokenAddressValid] = useState(false)
 
   const [tokenSymbol, setTokenSymbol] = useState("")
-  const [tokenDecimals, setTokenDecimals] = useState(0n)
+  const [tokenDecimals, setTokenDecimals] = useState(0)
   const [tokenBalance, setTokenBalance] = useState(0n)
 
   const [tokenFetching, setTokenFetching] = useState(false)
@@ -37,16 +37,16 @@ export function ImportToken() {
 
     // Clear token information
     setTokenSymbol("")
-    setTokenDecimals(0n)
+    setTokenDecimals(0)
     setTokenBalance(0n)
 
     setTokenFetching(true)
     try {
-      const contract = getErc20Contract(value, provider)
+      const contract = await ERC20Contract.init(value, provider)
       const [symbol, decimals, balance] = await Promise.all([
-        contract.symbol() as Promise<string>,
-        contract.decimals() as Promise<bigint>,
-        contract.balanceOf(account.address) as Promise<bigint>
+        contract.symbol(),
+        contract.decimals(),
+        contract.balanceOf(account.address)
       ])
       setTokenSymbol(symbol)
       setTokenDecimals(decimals)
@@ -67,7 +67,7 @@ export function ImportToken() {
       await importToken(account.id, {
         address: tokenAddress,
         symbol: tokenSymbol,
-        decimals: Number(tokenDecimals),
+        decimals: tokenDecimals,
         balance: number.toHex(tokenBalance)
       })
       setToast(`Token ${tokenSymbol} imported!`, "success")
@@ -100,7 +100,7 @@ export function ImportToken() {
         )}
 
         {/* Token Decimals */}
-        {tokenDecimals && (
+        {tokenDecimals !== 0 && (
           <div className="mt-[16px]">
             <Input
               label="Decimals"

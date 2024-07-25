@@ -11,15 +11,16 @@ import { useAccount, useAction } from "~app/storage"
 import { getUserTokens } from "~app/util/getUserTokens"
 import { getChainName } from "~packages/network/util"
 import number from "~packages/util/number"
-import type { Token } from "~storage/local/state"
+import { type AccountToken } from "~storage/local/state"
 import type { Nullable } from "~typing"
 
 export function Token() {
   const [, navigate] = useHashLocation()
 
-  const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
+  const [tokenSelected, setTokenSelected] =
+    useState<Nullable<AccountToken>>(null)
 
-  const openTokenInfoModal = (token: Token) => {
+  const openTokenInfoModal = (token: AccountToken) => {
     setTokenSelected(token)
   }
   const closeTokenInfoModal = () => {
@@ -64,7 +65,7 @@ function TokenInfoModal({
   tokenSelected
 }: {
   onModalClosed: () => void
-  tokenSelected: Token
+  tokenSelected: AccountToken
 }) {
   const { updateToken, removeToken } = useAction()
   const account = useAccount()

@@ -2,16 +2,16 @@ import * as ethers from "ethers"
 import { useContext, useEffect, useState } from "react"
 import Contract from "react:~assets/contract"
 import Gas from "react:~assets/gas"
-import PassKey from "react:~assets/passkey"
 import Wallet from "react:~assets/wallet"
 import { useClsState } from "use-cls-state"
 
+import { AccountItem } from "~app/component/accountItem"
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
+import { PasskeyVerification } from "~app/component/passkeyVerification"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
-import { Path } from "~app/path"
 import { useAccount, useAction, useNetwork } from "~app/storage"
 import type { Account } from "~packages/account"
 import {
@@ -256,14 +256,7 @@ function UserOperationConfirmation(props: {
   }
 
   if (isSigning) {
-    return (
-      <div className="w-full h-full flex flex-col gap-[43px] items-center justify-center">
-        <PassKey />
-        <span className="text-[24px] text-center">
-          Use passkey to verify transaction
-        </span>
-      </div>
-    )
+    return <PasskeyVerification purpose="transaction" />
   }
 
   return (
@@ -281,8 +274,10 @@ function UserOperationConfirmation(props: {
           {isContract ? "You are using this wallet" : "From"}
         </h2>
         <div className="flex gap-[12px] items-center">
-          <Wallet />
-          <div className="w-[322px] py-[9.5px]">
+          <div>
+            <Wallet />
+          </div>
+          <div className="w-full py-[9.5px] min-w-0">
             <h3 className="pb-[4px]">Jesse's wallet</h3>
             <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
           </div>
@@ -293,15 +288,19 @@ function UserOperationConfirmation(props: {
           }`}>
           {isContract ? "to interact with" : "To"}
         </h2>
-        <div className="flex gap-[12px] items-center">
-          {isContract ? <Contract /> : <Wallet />}
-          <div className="py-[16px] w-[322px]">
-            {isContract && <h3 className="pb-[4px]">Contract address</h3>}
-            <h3 className={`break-words ${isContract && "text-[#989898]"}`}>
-              {props.tx.to}
-            </h3>
+        {isContract ? (
+          <div className="flex gap-[12px] items-center">
+            <div>
+              <Contract />
+            </div>
+            <div className="py-[16px] min-w-0">
+              <h3 className="pb-[4px]">Contract address</h3>
+              <h3 className="break-words text-[#989898]">{props.tx.to}</h3>
+            </div>
           </div>
-        </div>
+        ) : (
+          <AccountItem address={tx.to} />
+        )}
         {isContract && (
           <>
             <h2 className="py-[8px] text-[12px] text-[#989898]">Call data</h2>

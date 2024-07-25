@@ -1,5 +1,5 @@
 import type { Paymaster } from "~packages/paymaster"
-import { ETH, Token } from "~packages/token"
+import { ETH, type Token } from "~packages/token"
 
 export class NullPaymaster implements Paymaster {
   public async quoteFee(fee: bigint, quote: Token) {
