@@ -4,7 +4,7 @@ import json, { format, replacer } from "~packages/util/json"
 
 import { JsonRpcError } from "./error"
 
-type JsonRpcResponse<T extends any> = {
+export type JsonRpcResponse<T extends any> = {
   jsonrpc: "2.0"
   id: number
   result?: T
@@ -49,7 +49,7 @@ export class JsonRpcProvider {
 
       if (payload.error) {
         // 200 response but may have issues executing that request
-        throw JsonRpcError.wrap(payload.error)
+        throw JsonRpcError.wrap(payload)
       }
       console.log(
         `[JsonRpcProvider][${args.method}][response] ${format(payload)}`

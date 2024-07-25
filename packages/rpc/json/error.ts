@@ -1,16 +1,24 @@
-export class JsonRpcError extends Error {
-  public readonly code: number
-  public readonly data?: unknown
+import type { JsonRpcResponse } from "./provider"
 
-  public static wrap(error: { message: string; code: number; data?: unknown }) {
-    return new JsonRpcError(error.message, error.code, error.data)
+export class JsonRpcError extends Error {
+  public readonly jsonrpc: string
+  public readonly id: number
+  public readonly error: {
+    code: number
+    message: string
+    data?: unknown
   }
 
-  public constructor(message: string, code: number, data?: unknown) {
-    super(message)
-    this.name = "JsonRpcProviderError"
-    this.code = code
-    this.data = data
+  public static wrap(payload: JsonRpcResponse<unknown>) {
+    return new JsonRpcError(payload)
+  }
+
+  public constructor(payload: JsonRpcResponse<unknown>) {
+    super(payload.error.message)
+    this.name = "JsonRpcError"
+    this.jsonrpc = payload.jsonrpc
+    this.id = payload.id
+    this.error = payload.error
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, JsonRpcError)
@@ -19,9 +27,9 @@ export class JsonRpcError extends Error {
 
   public unwrap() {
     return {
-      message: this.message,
-      code: this.code,
-      data: this.data
+      jsonrpc: this.jsonrpc,
+      id: this.id,
+      error: this.error
     }
   }
 }
