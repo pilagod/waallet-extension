@@ -5,6 +5,7 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
+import { AccountList } from "~app/page/accountList"
 import { Home } from "~app/page/home"
 import { Receive } from "~app/page/receive"
 import { Review } from "~app/page/review/"
@@ -70,21 +71,22 @@ function PageRouter() {
   return (
     <Router hook={useHashLocation}>
       <Switch>
+        <Route path={Path.AccountList} component={AccountList} />
         <Route path={Path.Home} component={Home} />
-        <Route path={Path.Send} component={Send} />
         <Route path={Path.Receive} component={Receive} />
+        <Route path={Path.Review} component={Review} />
+        <Route path={Path.Send} component={Send} />
         {/* To enable the Send page to accept a token address as a parameter */}
         <Route path={`${Path.Send}/:tokenAddress`} component={Send} />
-        <Route
-          path={Path.WebAuthnRegistration}
-          component={WebAuthnRegistration}
-        />
         <Route
           path={Path.WebAuthnAuthentication}
           component={WebAuthnAuthentication}
         />
         <Route path={Path.WebAuthnDevtool} component={WebAuthnDevtool} />
-        <Route path={Path.Review} component={Review} />
+        <Route
+          path={Path.WebAuthnRegistration}
+          component={WebAuthnRegistration}
+        />
         <Route path="*">
           <Redirect to={Path.Home} />
         </Route>
