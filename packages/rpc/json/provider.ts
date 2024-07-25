@@ -60,8 +60,17 @@ export class JsonRpcProvider {
         console.log(`[JsonRpcProvider][${args.method}][error] ${format(err)}`)
         throw err
       }
-      console.log(`[JsonRpcProvider][${args.method}][error] ${format(err)}`)
-      throw err
+      console.log(
+        `[JsonRpcProvider][${args.method}][stringify error] ${format(err)}`
+      )
+      throw new JsonRpcError({
+        jsonrpc: "2.0",
+        id: 0,
+        error: {
+          code: -32600,
+          message: "Invalid Request"
+        }
+      })
     }
   }
 }
