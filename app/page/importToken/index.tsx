@@ -6,6 +6,7 @@ import { Divider } from "~app/component/divider"
 import { Input } from "~app/component/input"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
+import { ToastContext } from "~app/context/toastContext"
 import { useAccount, useAction, useTokens } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { getErc20Contract } from "~packages/network/util"
@@ -15,6 +16,8 @@ import number from "~packages/util/number"
 export function ImportToken() {
   const [, navigate] = useHashLocation()
   const { provider } = useContext(ProviderContext)
+  const { setToast } = useContext(ToastContext)
+
   const { importToken } = useAction()
 
   const account = useAccount()
@@ -67,6 +70,7 @@ export function ImportToken() {
         decimals: Number(tokenDecimals),
         balance: number.toHex(tokenBalance)
       })
+      setToast(`Token ${tokenSymbol} imported!`, "success")
     }
     navigate(Path.Home)
   }
