@@ -13,6 +13,10 @@ function toBigInt(n: BigNumberish) {
   return ethers.toBigInt(n)
 }
 
+function toString(n: BigNumberish) {
+  return ethers.toBigInt(n).toString()
+}
+
 function toHex(n: BigNumberish, withPrefix: boolean = true) {
   const result = ethers.toBeHex(n)
   return withPrefix ? result : result.slice(2)
@@ -35,6 +39,7 @@ function formatUnitsToFixed(
 export default {
   random,
   toBigInt,
+  toString,
   toHex,
   formatUnitsToFixed
 }

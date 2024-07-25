@@ -1,4 +1,5 @@
 import * as ethers from "ethers"
+import { ERC20Contract } from "packages/contract/erc20"
 import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { useParams } from "wouter"
 
@@ -11,10 +12,9 @@ import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
 import { useAccounts } from "~app/hook/storage"
 import { getUserTokens } from "~app/util/getUserTokens"
-import { getErc20Contract } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import { type Token } from "~storage/local/state"
+import { type AccountToken } from "~storage/local/state"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
 const isValidTo = (to: string) => {
@@ -51,13 +51,12 @@ const sendErc20Token = async (
   signer: ethers.JsonRpcSigner,
   toAddress: HexString,
   value: BigNumberish,
-  token: Token
+  token: AccountToken
 ) => {
-  const erc20 = getErc20Contract(token.address, signer)
-  const data = erc20.interface.encodeFunctionData("transfer", [
+  const data = ERC20Contract.encodeTransferData(
     toAddress,
     ethers.parseUnits(value.toString(), token.decimals)
-  ])
+  )
   return await signer.sendTransaction({
     to: token.address,
     value: 0,
@@ -140,7 +139,7 @@ const SendAmount = ({
   onStepBack
 }: {
   txInfo: {
-    token: Token
+    token: AccountToken
     txTo: HexString
   }
   onStepBack: () => void
@@ -219,7 +218,7 @@ export function Send() {
     ? tokens.find((token) => token.address === params.tokenAddress)
     : null
   const [tokenSelected, setTokenSelected] =
-    useState<Nullable<Token>>(initialToken)
+    useState<Nullable<AccountToken>>(initialToken)
   const [txTo, setTxTo] = useState<HexString>("")
 
   if (!tokenSelected) {

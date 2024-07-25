@@ -1,18 +1,13 @@
 import type { HexString } from "~typing"
 
-export class Token {
-  public constructor(
-    public readonly address: HexString,
-    public readonly symbol: string,
-    public readonly decimals: number
-  ) {}
+export type Token = {
+  address: HexString
+  symbol: string
+  decimals: number
 }
 
-// TODO: Network specific
-export const ETH = new Token(
-  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-  "ETH",
-  18
-)
-
-// TODO: Decoding or encoding token calldata here
+export const ETH: Token = {
+  address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+  symbol: "ETH",
+  decimals: 18
+}
