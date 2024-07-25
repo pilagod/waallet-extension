@@ -1,9 +1,9 @@
-export class JsonRpcProviderError extends Error {
+export class JsonRpcError extends Error {
   public readonly code: number
   public readonly data?: unknown
 
   public static wrap(error: { message: string; code: number; data?: unknown }) {
-    return new JsonRpcProviderError(error.message, error.code, error.data)
+    return new JsonRpcError(error.message, error.code, error.data)
   }
 
   public constructor(message: string, code: number, data?: unknown) {
@@ -13,7 +13,7 @@ export class JsonRpcProviderError extends Error {
     this.data = data
 
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, JsonRpcProviderError)
+      Error.captureStackTrace(this, JsonRpcError)
     }
   }
 

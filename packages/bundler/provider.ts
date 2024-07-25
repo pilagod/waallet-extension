@@ -1,5 +1,4 @@
 import { Execution } from "~packages/account"
-import { JsonRpcProviderError } from "~packages/rpc/json/error"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString, Nullable } from "~typing"
