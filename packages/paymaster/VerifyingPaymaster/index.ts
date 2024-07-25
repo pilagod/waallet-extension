@@ -7,7 +7,7 @@ import {
 } from "~packages/bundler/userOperation"
 import { type ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
-import { ETH, Token } from "~packages/token"
+import { ETH, type Token } from "~packages/token"
 import type { HexString } from "~typing"
 
 export class VerifyingPaymaster implements Paymaster {

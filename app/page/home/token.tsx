@@ -1,9 +1,10 @@
 import { faCaretDown, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { getAddress, toNumber } from "ethers"
+import { getAddress } from "ethers"
 import { useContext, useState, type ChangeEvent } from "react"
 import { useHashLocation } from "wouter/use-hash-location"
 
+import { ERC20Contract } from "~/packages/contract/erc20"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
@@ -11,22 +12,23 @@ import { ToastContext } from "~app/context/toastContext"
 import { Path } from "~app/path"
 import { useAccount, useAction, useTokens } from "~app/storage"
 import { getUserTokens } from "~app/util/getUserTokens"
-import { getChainName, getErc20Contract } from "~packages/network/util"
+import { getChainName } from "~packages/network/util"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import type { Token } from "~storage/local/state"
+import { type AccountToken } from "~storage/local/state"
 import type { BigNumberish, HexString, Nullable } from "~typing"
 
 export function Token() {
   const [isTokenImportModalOpened, setIsTokenImportModalOpened] =
     useState<boolean>(false)
 
-  const [tokenSelected, setTokenSelected] = useState<Nullable<Token>>(null)
+  const [tokenSelected, setTokenSelected] =
+    useState<Nullable<AccountToken>>(null)
 
   const toggleTokenImportModal = () => {
     setIsTokenImportModalOpened((prev) => !prev)
   }
-  const openTokenInfoModal = (token: Token) => {
+  const openTokenInfoModal = (token: AccountToken) => {
     setTokenSelected(token)
   }
   const closeTokenInfoModal = () => {
@@ -71,7 +73,7 @@ function TokenInfoModal({
   tokenSelected
 }: {
   onModalClosed: () => void
-  tokenSelected: Token
+  tokenSelected: AccountToken
 }) {
   const { updateToken, removeToken } = useAction()
   const account = useAccount()
@@ -239,11 +241,10 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
       return
     }
 
-    const erc20 = getErc20Contract(inputTokenAddress, provider)
-
     try {
-      const symbol: string = await erc20.symbol()
-      const decimals: number = toNumber(await erc20.decimals())
+      const erc20 = await ERC20Contract.init(inputTokenAddress, provider)
+      const symbol = await erc20.symbol()
+      const decimals = await erc20.decimals()
       setInvalidTokenAddressMessage("")
       setInvalidTokenSymbol(false)
       setTokenSymbol(symbol)
@@ -267,9 +268,8 @@ function TokenImportModal({ onModalClosed }: { onModalClosed: () => void }) {
   const onTokenImported = async () => {
     let balance: BigNumberish = 0
     try {
-      balance = await getErc20Contract(tokenAddress, provider).balanceOf(
-        account.address
-      )
+      const token = await ERC20Contract.init(tokenAddress, provider)
+      balance = await token.balanceOf(account.address)
     } catch (error) {
       console.warn(
         `[Popup][tokens] error occurred while getting balance: ${error}`

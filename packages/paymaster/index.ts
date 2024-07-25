@@ -1,5 +1,5 @@
 import { type UserOperation } from "~packages/bundler/userOperation"
-import { Token } from "~packages/token"
+import { type Token } from "~packages/token"
 import type { HexString } from "~typing"
 
 export enum PaymasterType {
