@@ -1,6 +1,5 @@
-import { useShallow } from "zustand/react/shallow"
-
 import { useStorage } from "~app/storage"
+import { NetworkConfig } from "~config/network"
 
 export { useStorage } from "~app/storage"
 
@@ -12,13 +11,19 @@ export const useAction = () => {
 
 export const useNetwork = (id?: string) => {
   return useStorage(({ state }) => {
-    return state.network[id ?? state.networkActive]
+    const network = state.network[id ?? state.networkActive]
+    return {
+      ...NetworkConfig[network.chainId],
+      ...state.network[id ?? state.networkActive]
+    }
   })
 }
 
 export const useNetworks = () => {
   return useStorage(({ state }) => {
-    return Object.values(state.network)
+    return Object.values(state.network).map((n) => {
+      return { ...NetworkConfig[n.chainId], ...n }
+    })
   })
 }
 
