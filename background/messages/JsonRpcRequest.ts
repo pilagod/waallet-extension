@@ -32,7 +32,16 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
       "[background][message][JsonRpcRequest][InternalError]",
       format(error)
     )
-    res.send(error)
+    const internalError = new JsonRpcError({
+      jsonrpc: "2.0",
+      id: 0,
+      error: {
+        code: -32603,
+        message: "Internal error",
+        data: error.message
+      }
+    })
+    res.send(internalError.unwrap())
   }
 }
 
