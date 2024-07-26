@@ -37,8 +37,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
       id: 0,
       error: {
         code: -32603,
-        message: "Internal error",
-        data: error.message
+        message: error.message
       }
     })
     res.send(internalError.unwrap())
