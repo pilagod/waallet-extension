@@ -3,7 +3,7 @@ import { format } from "util"
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 import { getWaalletBackgroundProvider } from "~background/provider"
-import { JsonRpcError } from "~packages/rpc/json/error"
+import { ProviderRpcError } from "~packages/rpc/json/error"
 import { WaalletMessage } from "~packages/waallet/message"
 
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
@@ -20,25 +20,23 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
     )
     res.send(result)
   } catch (error) {
-    if (error instanceof JsonRpcError) {
+    if (error instanceof ProviderRpcError) {
       console.log(
         `[background][message][${WaalletMessage.JsonRpcRequest}][JsonRpcProviderError]`,
         error.unwrap()
       )
-      res.send(error.unwrap())
+      res.send(error)
       return
     }
     console.log(
       "[background][message][JsonRpcRequest][InternalError]",
       format(error)
     )
-    const internalError = new JsonRpcError({
+    const internalError = new ProviderRpcError({
       jsonrpc: "2.0",
       id: 0,
-      error: {
-        code: -32603,
-        message: error.message
-      }
+      code: -32603,
+      message: error.message
     })
     res.send(internalError.unwrap())
   }

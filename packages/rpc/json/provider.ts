@@ -2,7 +2,7 @@ import fetch from "isomorphic-fetch"
 
 import json, { format, replacer } from "~packages/util/json"
 
-import { JsonRpcError } from "./error"
+import { ProviderRpcError } from "./error"
 
 export type JsonRpcResponse<T extends any> = {
   jsonrpc: "2.0"
@@ -49,7 +49,7 @@ export class JsonRpcProvider {
 
       if (payload.error) {
         // 200 response but may have issues executing that request
-        throw JsonRpcError.wrap(payload)
+        throw ProviderRpcError.wrap(payload)
       }
       console.log(
         `[JsonRpcProvider][${args.method}][response] ${format(payload)}`
@@ -57,17 +57,15 @@ export class JsonRpcProvider {
       return payload.result
     } catch (err) {
       console.log(`[JsonRpcProvider][${args.method}][error] ${format(err)}`)
-      if (err instanceof JsonRpcError) {
+      if (err instanceof ProviderRpcError) {
         throw err
       }
 
-      throw new JsonRpcError({
+      throw new ProviderRpcError({
         jsonrpc: "2.0",
         id: 0,
-        error: {
-          code: -32600,
-          message: "Invalid Request"
-        }
+        code: -32600,
+        message: "Invalid Request"
       })
     }
   }

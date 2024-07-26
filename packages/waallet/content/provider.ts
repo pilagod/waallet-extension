@@ -1,6 +1,7 @@
 import { EventEmitter } from "events"
 
 import { type BackgroundMessenger } from "~packages/messenger/background"
+import { ProviderRpcError } from "~packages/rpc/json/error"
 import type { JsonRpcResponse } from "~packages/rpc/json/provider"
 import { format } from "~packages/util/json"
 import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
@@ -8,10 +9,6 @@ import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
 import { WaalletMessage } from "../message"
 import { type WaalletRequestArguments } from "../rpc"
 
-type WalletProviderError = Error & {
-  code?: number
-  data?: unknown
-}
 export class WaalletContentProvider extends EventEmitter {
   public constructor(private backgroundMessenger: BackgroundMessenger) {
     super()
@@ -23,12 +20,8 @@ export class WaalletContentProvider extends EventEmitter {
       body: args
     })
 
-    // https://github.com/ethers-io/ethers.js/blob/72c2182d01afa855d131e82635dca3da063cfb31/src.ts/providers/provider-browser.ts#L69-L85
     if (res.error) {
-      const error: WalletProviderError = new Error(res.error.message)
-      error.code = res.error.code
-      error.data = res.error.data
-      throw error
+      throw ProviderRpcError.wrap(res)
     }
     return res as T
   }
