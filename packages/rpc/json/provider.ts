@@ -56,13 +56,11 @@ export class JsonRpcProvider {
       )
       return payload.result
     } catch (err) {
+      console.log(`[JsonRpcProvider][${args.method}][error] ${format(err)}`)
       if (err instanceof JsonRpcError) {
-        console.log(`[JsonRpcProvider][${args.method}][error] ${format(err)}`)
         throw err
       }
-      console.log(
-        `[JsonRpcProvider][${args.method}][stringify error] ${format(err)}`
-      )
+
       throw new JsonRpcError({
         jsonrpc: "2.0",
         id: 0,
