@@ -9,6 +9,11 @@ export const NetworkConfig: Record<
     icon: string
   }
 > = {
+  [137]: {
+    chainId: 137,
+    name: "Polygon",
+    icon: Polygon
+  },
   [1337]: {
     chainId: 1337,
     name: "Geth Testnet",
