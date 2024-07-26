@@ -24,13 +24,13 @@ export function ImportToken() {
   const tokens = useTokens()
 
   const [tokenAddress, setTokenAddress] = useState("")
-  const [tokenAddressValid, setTokenAddressValid] = useState(false)
-
   const [tokenSymbol, setTokenSymbol] = useState("")
   const [tokenDecimals, setTokenDecimals] = useState(0)
   const [tokenBalance, setTokenBalance] = useState(0n)
 
   const [tokenFetching, setTokenFetching] = useState(false)
+
+  const isTokenValid = tokenSymbol && tokenDecimals > 0
 
   const onTokenAddressChanged = async (value: string) => {
     setTokenAddress(value)
@@ -51,9 +51,6 @@ export function ImportToken() {
       setTokenSymbol(symbol)
       setTokenDecimals(decimals)
       setTokenBalance(balance)
-      setTokenAddressValid(true)
-    } catch (e) {
-      setTokenAddressValid(false)
     } finally {
       setTokenFetching(false)
     }
@@ -119,7 +116,7 @@ export function ImportToken() {
           <Button
             text="Import token"
             variant="black"
-            disabled={tokenFetching || !tokenAddressValid}
+            disabled={tokenFetching || !isTokenValid}
             onClick={importNewToken}
           />
         </div>
