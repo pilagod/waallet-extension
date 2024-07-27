@@ -9,9 +9,7 @@ export const AccountItem = ({ address }: { address: HexString }) => {
         <Wallet />
       </div>
       <div className="min-w-0">
-        <h3 className="text-[16px] py-[16px] break-words text-left">
-          {address}
-        </h3>
+        <h3 className="text-[16px] break-words text-left">{address}</h3>
       </div>
     </div>
   )

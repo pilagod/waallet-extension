@@ -107,12 +107,12 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
         />
       </StepBackHeader>
       <ScrollableWrapper className="h-[311px] py-[24px]">
-        <h2 className="text-[16px]">Transaction History</h2>
+        <h2 className="text-[16px] px-[16px] py-[12px]">Transaction History</h2>
         {/* TODO: Replace with actual transaction history */}
         {accounts.map((account, index) => {
           return (
             <button
-              className="w-full"
+              className="w-full p-[16px] hover:bg-[#F5F5F5] cursor-pointer"
               key={index}
               onClick={() => {
                 setInputTo(account.address)
