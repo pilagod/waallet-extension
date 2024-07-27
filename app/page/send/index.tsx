@@ -73,7 +73,7 @@ const SelectToken = ({ setTokenSelected }) => {
         <TokenList className="pt-[16px]">
           {tokens.map((token, index) => (
             <button
-              className="w-full"
+              className="w-full px-[16px] hover:bg-[#F5F5F5] cursor-pointer"
               key={index}
               onClick={() => setTokenSelected(token)}>
               <TokenItem token={token} />
