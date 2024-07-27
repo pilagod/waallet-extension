@@ -1,6 +1,7 @@
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Button } from "~app/component/button"
+import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { Path } from "~app/path"
@@ -12,22 +13,24 @@ export function Token() {
   const tokens = getUserTokens()
 
   return (
-    <TokenList>
-      {tokens.map((token, index) => (
-        <div className="w-full" key={index}>
-          <TokenItem token={token} />
-        </div>
-      ))}
+    <ScrollableWrapper className="h-[270px] px-[16px]">
+      <TokenList>
+        {tokens.map((token, index) => (
+          <div className="w-full" key={index}>
+            <TokenItem token={token} />
+          </div>
+        ))}
 
-      {/* Import Token Button */}
-      <div className="mx-auto my-[20px] text-[18px]">
-        <Button
-          text="Import token"
-          variant="white"
-          className="px-[24px] !font-[600]"
-          onClick={() => navigate(Path.ImportToken)}
-        />
-      </div>
-    </TokenList>
+        {/* Import Token Button */}
+        <div className="mx-auto my-[20px] text-[18px]">
+          <Button
+            text="Import token"
+            variant="white"
+            className="px-[24px] !font-[600]"
+            onClick={() => navigate(Path.ImportToken)}
+          />
+        </div>
+      </TokenList>
+    </ScrollableWrapper>
   )
 }

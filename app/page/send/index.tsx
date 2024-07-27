@@ -5,6 +5,7 @@ import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { AccountItem } from "~app/component/accountItem"
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
+import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
@@ -68,16 +69,18 @@ const SelectToken = ({ setTokenSelected }) => {
   return (
     <>
       <StepBackHeader title="Select Token" />
-      <TokenList className="pt-[16px]">
-        {tokens.map((token, index) => (
-          <button
-            className="w-full"
-            key={index}
-            onClick={() => setTokenSelected(token)}>
-            <TokenItem token={token} />
-          </button>
-        ))}
-      </TokenList>
+      <ScrollableWrapper className="h-[483px]">
+        <TokenList className="pt-[16px]">
+          {tokens.map((token, index) => (
+            <button
+              className="w-full"
+              key={index}
+              onClick={() => setTokenSelected(token)}>
+              <TokenItem token={token} />
+            </button>
+          ))}
+        </TokenList>
+      </ScrollableWrapper>
     </>
   )
 }
@@ -103,7 +106,7 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
           required
         />
       </StepBackHeader>
-      <div className="py-[24px] h-[311px] overflow-y-scroll no-scrollbar">
+      <ScrollableWrapper className="h-[311px] py-[24px]">
         <h2 className="text-[16px]">Transaction History</h2>
         {/* TODO: Replace with actual transaction history */}
         {accounts.map((account, index) => {
@@ -118,7 +121,7 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
             </button>
           )
         })}
-      </div>
+      </ScrollableWrapper>
       <Divider />
       <Button
         text="Next"
