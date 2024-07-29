@@ -26,8 +26,6 @@ export function Activity() {
 const TransactionHistory: React.FC<{
   txLogs: TransactionLog[]
 }> = ({ txLogs }) => {
-  // const { chainId } = useNetwork()
-  // const chainName = getChainName(chainId)
   return (
     <>
       {/* Home page activity list bar */}
