@@ -141,6 +141,7 @@ function UserOperationConfirmation(props: {
         setIsSigning(false)
         console.log("signErr", signErr)
         setToast("Verify passkey failed.", "failed")
+        return
       }
 
       const userOpHash = await provider.send(
