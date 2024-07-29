@@ -40,10 +40,22 @@ const provider = {
 }
 const { node } = provider
 
+class WalletNonceManager extends ethers.NonceManager {
+  public constructor(private wallet: ethers.Wallet) {
+    super(wallet)
+  }
+
+  public get privateKey() {
+    return this.wallet.privateKey
+  }
+}
+
 const wallet = {
-  operator: new ethers.Wallet(
-    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-    node
+  operator: new WalletNonceManager(
+    new ethers.Wallet(
+      "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      node
+    )
   )
 }
 
