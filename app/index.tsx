@@ -79,9 +79,8 @@ function PageRouter() {
         <Route path={Path.NetworkList} component={NetworkList} />
         <Route path={Path.Receive} component={Receive} />
         <Route path={Path.Review} component={Review} />
-        <Route path={Path.Send} component={Send} />
         {/* To enable the Send page to accept a token address as a parameter */}
-        <Route path={`${Path.Send}/:tokenAddress`} component={Send} />
+        <Route path={`${Path.Send}/:tokenAddress?`} component={Send} />
         <Route
           path={Path.WebAuthnAuthentication}
           component={WebAuthnAuthentication}
