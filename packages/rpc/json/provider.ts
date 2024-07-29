@@ -62,8 +62,6 @@ export class JsonRpcProvider {
       }
 
       throw new ProviderRpcError({
-        jsonrpc: "2.0",
-        id: 0,
         code: -32600,
         message: "Invalid Request"
       })

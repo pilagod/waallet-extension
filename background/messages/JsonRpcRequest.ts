@@ -33,8 +33,6 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
       format(error)
     )
     const internalError = new ProviderRpcError({
-      jsonrpc: "2.0",
-      id: 0,
       code: -32603,
       message: error.message
     })
