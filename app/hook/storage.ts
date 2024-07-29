@@ -57,7 +57,16 @@ export const usePendingTransactions = () => {
 
 export const useTokens = (accountId?: string) => {
   const account = useAccount(accountId)
+  const network = useNetwork()
   return useStorage(({ state }) => {
-    return state.account[account.id].tokens
+    return [
+      {
+        address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        symbol: network.tokenSymbol,
+        decimals: 18,
+        balance: account.balance
+      },
+      ...state.account[account.id].tokens
+    ]
   })
 }

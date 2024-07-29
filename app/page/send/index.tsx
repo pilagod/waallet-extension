@@ -10,8 +10,7 @@ import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
-import { useAccounts } from "~app/hook/storage"
-import { getUserTokens } from "~app/util/getUserTokens"
+import { useAccounts, useTokens } from "~app/hook/storage"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { type AccountToken } from "~storage/local/state"
@@ -65,7 +64,7 @@ const sendErc20Token = async (
 }
 
 const SelectToken = ({ setTokenSelected }) => {
-  const tokens = getUserTokens()
+  const tokens = useTokens()
   return (
     <>
       <StepBackHeader title="Select Token" />
@@ -213,7 +212,7 @@ const SendAmount = ({
 // Select token -> Select address -> Send amount -> Review
 export function Send() {
   const params = useParams<{ tokenAddress?: string }>()
-  const tokens = getUserTokens()
+  const tokens = useTokens()
   const initialToken = params.tokenAddress
     ? tokens.find((token) => token.address === params.tokenAddress)
     : null

@@ -7,8 +7,7 @@ import { Button } from "~app/component/button"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { Path } from "~app/path"
-import { useAccount, useAction } from "~app/storage"
-import { getUserTokens } from "~app/util/getUserTokens"
+import { useAccount, useAction, useTokens } from "~app/storage"
 import { getChainName } from "~packages/network/util"
 import number from "~packages/util/number"
 import { type AccountToken } from "~storage/local/state"
@@ -26,7 +25,7 @@ export function Token() {
   const closeTokenInfoModal = () => {
     setTokenSelected(null)
   }
-  const tokens = getUserTokens()
+  const tokens = useTokens()
 
   return (
     <TokenList>
