@@ -5,7 +5,7 @@ import { Link } from "wouter"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
-import { useAccount, useAccounts } from "~app/hook/storage"
+import { useAccount, useAccounts, useNetwork } from "~app/hook/storage"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
 import { Token } from "~app/page/home/token"
@@ -51,6 +51,7 @@ function AccountCreation() {
 
 export function AccountInfo() {
   const account = useAccount()
+  const network = useNetwork()
 
   return (
     <div className="w-full pb-[24px]">
@@ -60,11 +61,11 @@ export function AccountInfo() {
         <div className="mb-[8px] leading-[19px] text-[16px] text-[#000000]">
           Balance
         </div>
-        <div className="leading-[58px] text-[48px] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
+        <div className="leading-[58px] text-[48px] text-[#000000] whitespace-nowrap">{`${number.formatUnitsToFixed(
           account.balance,
           18,
           2
-        )}`}</div>
+        )} ${network.tokenSymbol}`}</div>
       </div>
       {/* Home page action */}
       <div className="flex justify-between">

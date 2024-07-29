@@ -11,8 +11,7 @@ import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
-import { useAccounts } from "~app/hook/storage"
-import { getUserTokens } from "~app/util/getUserTokens"
+import { useAccounts, useNetwork, useTokens } from "~app/hook/storage"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { type AccountToken } from "~storage/local/state"
@@ -66,7 +65,7 @@ const sendErc20Token = async (
 }
 
 const SelectToken = ({ setTokenSelected }) => {
-  const tokens = getUserTokens()
+  const tokens = useTokens()
   return (
     <>
       <StepBackHeader title="Select Token" />
@@ -147,9 +146,12 @@ const SendAmount = ({
   }
   onStepBack: () => void
 }) => {
-  const [inputAmount, setInputAmount] = useState<string>("0")
-  const { provider } = useContext(ProviderContext)
   const { token, txTo } = txInfo
+
+  const { provider } = useContext(ProviderContext)
+  const network = useNetwork()
+
+  const [inputAmount, setInputAmount] = useState<string>("0")
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -180,7 +182,7 @@ const SendAmount = ({
           onChange={handleAmountChange}
           className="text-center text-[64px] focus:outline-none max-w-[390px]"
         />
-        <div className="text-[24px]">ETH</div>
+        <div className="text-[24px]">{network.tokenSymbol}</div>
       </div>
       <Divider />
       <div>
@@ -216,7 +218,7 @@ const SendAmount = ({
 // Select token -> Select address -> Send amount -> Review
 export function Send() {
   const params = useParams<{ tokenAddress?: string }>()
-  const tokens = getUserTokens()
+  const tokens = useTokens()
   const initialToken = params.tokenAddress
     ? tokens.find((token) => token.address === params.tokenAddress)
     : null

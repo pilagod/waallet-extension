@@ -5,12 +5,12 @@ import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { Path } from "~app/path"
-import { getUserTokens } from "~app/util/getUserTokens"
+import { useTokens } from "~app/storage"
 
 export function Token() {
   const [, navigate] = useHashLocation()
 
-  const tokens = getUserTokens()
+  const tokens = useTokens()
 
   return (
     <ScrollableWrapper className="h-[270px]">
