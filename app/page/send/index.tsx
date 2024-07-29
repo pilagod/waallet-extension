@@ -11,11 +11,12 @@ import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
-import { useAccounts, useNetwork, useTokens } from "~app/hook/storage"
+import { useAccounts, useTokens } from "~app/hook/storage"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
+import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import { type AccountToken } from "~storage/local/state"
-import type { BigNumberish, HexString, Nullable } from "~typing"
+import type { HexString, Nullable } from "~typing"
 
 const isValidTo = (to: string) => {
   try {
@@ -36,32 +37,34 @@ const isValidValue = (value: string, decimals: number) => {
 }
 
 const sendNativeToken = async (
-  signer: ethers.JsonRpcSigner,
+  provider: ethers.BrowserProvider,
   to: HexString,
-  value: BigNumberish
+  value: bigint
 ) => {
-  return await signer.sendTransaction({
-    to: to,
-    value: ethers.parseUnits(value.toString(), "ether"),
-    data: "0x"
-  })
+  return await provider.send(WaalletRpcMethod.eth_sendTransaction, [
+    {
+      to,
+      value: number.toHex(value),
+      data: "0x"
+    }
+  ])
 }
 
 const sendErc20Token = async (
-  signer: ethers.JsonRpcSigner,
+  provider: ethers.BrowserProvider,
   toAddress: HexString,
-  value: BigNumberish,
+  value: bigint,
   token: AccountToken
 ) => {
-  const data = ERC20Contract.encodeTransferData(
-    toAddress,
-    ethers.parseUnits(value.toString(), token.decimals)
-  )
-  return await signer.sendTransaction({
-    to: token.address,
-    value: 0,
-    data: data
-  })
+  const data = ERC20Contract.encodeTransferData(toAddress, value)
+
+  return await provider.send(WaalletRpcMethod.eth_sendTransaction, [
+    {
+      to: token.address,
+      value: 0,
+      data
+    }
+  ])
 }
 
 const SelectToken = ({ setTokenSelected }) => {
@@ -149,26 +152,26 @@ const SendAmount = ({
   const { token, txTo } = txInfo
 
   const { provider } = useContext(ProviderContext)
-  const network = useNetwork()
 
   const [inputAmount, setInputAmount] = useState<string>("0")
+  const [transferAmount, setTransferAmount] = useState(0n)
 
   const handleAmountChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     setInputAmount(value)
+    setTransferAmount(ethers.parseUnits(value, token.decimals))
   }
 
   const handleSend = useCallback(async () => {
-    const signer = await provider.getSigner()
     if (
       address.isEqual(
         token.address,
         "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
       )
     ) {
-      return sendNativeToken(signer, txTo, inputAmount)
+      return sendNativeToken(provider, txTo, transferAmount)
     }
-    return sendErc20Token(signer, txTo, inputAmount, token)
+    return sendErc20Token(provider, txTo, transferAmount, token)
   }, [txTo, inputAmount])
 
   return (
@@ -182,7 +185,7 @@ const SendAmount = ({
           onChange={handleAmountChange}
           className="text-center text-[64px] focus:outline-none max-w-[390px]"
         />
-        <div className="text-[24px]">{network.tokenSymbol}</div>
+        <div className="text-[24px]">{token.symbol}</div>
       </div>
       <Divider />
       <div>
@@ -194,12 +197,10 @@ const SendAmount = ({
           <button
             className="text-[16px] p-[8px_20px] border border-solid border-black h-[35px] rounded-[99px]"
             onClick={() => {
-              const balance = number.formatUnitsToFixed(
-                token.balance,
-                token.decimals,
-                2
+              setInputAmount(
+                number.formatUnitsToFixed(token.balance, token.decimals, 2)
               )
-              setInputAmount(balance)
+              setTransferAmount(number.toBigInt(token.balance))
             }}>
             Max
           </button>
