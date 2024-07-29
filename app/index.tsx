@@ -8,6 +8,7 @@ import { ProviderContextProvider } from "~app/context/provider"
 import { AccountList } from "~app/page/accountList"
 import { Home } from "~app/page/home"
 import { ImportToken } from "~app/page/importToken"
+import { NetworkList } from "~app/page/networkList"
 import { Receive } from "~app/page/receive"
 import { Review } from "~app/page/review/"
 import { Send } from "~app/page/send"
@@ -74,10 +75,11 @@ function PageRouter() {
       <Switch>
         <Route path={Path.AccountList} component={AccountList} />
         <Route path={Path.Home} component={Home} />
+        <Route path={Path.ImportToken} component={ImportToken} />
+        <Route path={Path.NetworkList} component={NetworkList} />
         <Route path={Path.Receive} component={Receive} />
         <Route path={Path.Review} component={Review} />
         <Route path={Path.Send} component={Send} />
-        <Route path={Path.ImportToken} component={ImportToken} />
         <Route
           path={Path.WebAuthnAuthentication}
           component={WebAuthnAuthentication}
