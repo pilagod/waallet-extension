@@ -71,7 +71,7 @@ function UserOperationConfirmation(props: {
 
   const { provider } = useContext(ProviderContext)
 
-  // TODO: More paymaster option
+  // TODO: How to present paymaster on review page
   const paymentOptions: PaymentOption[] = [
     {
       name: "No Paymaster",
