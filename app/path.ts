@@ -3,6 +3,7 @@ export enum Path {
   Home = "/home",
   Send = "/send",
   Receive = "/receive",
+  ImportToken = "/import-token",
   NetworkList = "/network-list",
   AccountList = "/account-list",
 
