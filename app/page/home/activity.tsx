@@ -6,6 +6,7 @@ import CircleXmark from "react:~assets/circleXmark.svg"
 import Clock from "react:~assets/clock.svg"
 
 import { ERC20Contract } from "~/packages/contract/erc20"
+import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
 import { decodeExecuteParams } from "~app/util/calldata"
 import { getChainName } from "~packages/network/util"
@@ -31,13 +32,15 @@ const TransactionHistory: React.FC<{
   return (
     <>
       {/* Home page activity list bar */}
-      <div className="w-full flex flex-col items-start">
-        {txLogs.map((txLog, i) => {
-          return (
-            <UserOpHistoryItem key={i} txLog={txLog} chainName={chainName} />
-          )
-        })}
-      </div>
+      <ScrollableWrapper className="h-[270px] px-[16px]">
+        <div className="w-full flex flex-col items-start">
+          {txLogs.map((txLog, i) => {
+            return (
+              <UserOpHistoryItem key={i} txLog={txLog} chainName={chainName} />
+            )
+          })}
+        </div>
+      </ScrollableWrapper>
     </>
   )
 }

@@ -6,6 +6,7 @@ import { useParams } from "wouter"
 import { AccountItem } from "~app/component/accountItem"
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
+import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
@@ -69,16 +70,18 @@ const SelectToken = ({ setTokenSelected }) => {
   return (
     <>
       <StepBackHeader title="Select Token" />
-      <TokenList className="pt-[16px]">
-        {tokens.map((token, index) => (
-          <button
-            className="w-full"
-            key={index}
-            onClick={() => setTokenSelected(token)}>
-            <TokenItem token={token} />
-          </button>
-        ))}
-      </TokenList>
+      <ScrollableWrapper className="h-[483px]">
+        <TokenList className="pt-[16px]">
+          {tokens.map((token, index) => (
+            <button
+              className="w-full px-[16px] hover:bg-[#F5F5F5] cursor-pointer"
+              key={index}
+              onClick={() => setTokenSelected(token)}>
+              <TokenItem token={token} />
+            </button>
+          ))}
+        </TokenList>
+      </ScrollableWrapper>
     </>
   )
 }
@@ -104,13 +107,13 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
           required
         />
       </StepBackHeader>
-      <div className="py-[24px] h-[311px] overflow-y-scroll no-scrollbar">
-        <h2 className="text-[16px]">Transaction History</h2>
+      <ScrollableWrapper className="h-[311px] py-[24px]">
+        <h2 className="text-[16px] px-[16px] py-[12px]">Transaction History</h2>
         {/* TODO: Replace with actual transaction history */}
         {accounts.map((account, index) => {
           return (
             <button
-              className="w-full"
+              className="w-full p-[16px] hover:bg-[#F5F5F5] cursor-pointer"
               key={index}
               onClick={() => {
                 setInputTo(account.address)
@@ -119,7 +122,7 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
             </button>
           )
         })}
-      </div>
+      </ScrollableWrapper>
       <Divider />
       <Button
         text="Next"

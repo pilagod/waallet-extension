@@ -9,6 +9,7 @@ import { AccountItem } from "~app/component/accountItem"
 import { Button } from "~app/component/button"
 import { Divider } from "~app/component/divider"
 import { PasskeyVerification } from "~app/component/passkeyVerification"
+import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
@@ -267,64 +268,66 @@ function UserOperationConfirmation(props: {
           {number.formatUnitsToFixed(tx.value, 18, 4)} ETH
         </div>
       </StepBackHeader>
-      <section className="py-[16px] text-[16px]">
-        <h2
-          className={`${
-            isContract ? "py-[8px] text-[12px] text-[#989898]" : "py-[12px]"
-          }`}>
-          {isContract ? "You are using this wallet" : "From"}
-        </h2>
-        <div className="flex gap-[12px] items-center">
-          <div>
-            <Wallet />
-          </div>
-          <div className="w-full py-[9.5px] min-w-0">
-            <h3 className="pb-[4px]">Jesse's wallet</h3>
-            <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
-          </div>
-        </div>
-        <h2
-          className={`${
-            isContract ? "py-[8px] text-[12px] text-[#989898]" : "py-[12px]"
-          }`}>
-          {isContract ? "to interact with" : "To"}
-        </h2>
-        {isContract ? (
+      <ScrollableWrapper className="px-[16px] h-[307px]">
+        <section className="py-[16px] text-[16px] ">
+          <h2
+            className={`${
+              isContract ? "py-[8px] text-[12px] text-[#989898]" : "py-[12px]"
+            }`}>
+            {isContract ? "You are using this wallet" : "From"}
+          </h2>
           <div className="flex gap-[12px] items-center">
             <div>
-              <Contract />
+              <Wallet />
             </div>
-            <div className="py-[16px] min-w-0">
-              <h3 className="pb-[4px]">Contract address</h3>
-              <h3 className="break-words text-[#989898]">{props.tx.to}</h3>
+            <div className="w-full py-[9.5px] min-w-0">
+              <h3 className="pb-[4px]">Jesse's wallet</h3>
+              <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
             </div>
           </div>
-        ) : (
-          <AccountItem address={tx.to} />
-        )}
-        {isContract && (
-          <>
-            <h2 className="py-[8px] text-[12px] text-[#989898]">Call data</h2>
-            <div className="break-words">{tx.data}</div>
-          </>
-        )}
-      </section>
+          <h2
+            className={`${
+              isContract ? "py-[8px] text-[12px] text-[#989898]" : "py-[12px]"
+            }`}>
+            {isContract ? "to interact with" : "To"}
+          </h2>
+          {isContract ? (
+            <div className="flex gap-[12px] items-center">
+              <div>
+                <Contract />
+              </div>
+              <div className="py-[16px] min-w-0">
+                <h3 className="pb-[4px]">Contract address</h3>
+                <h3 className="break-words text-[#989898]">{props.tx.to}</h3>
+              </div>
+            </div>
+          ) : (
+            <AccountItem address={tx.to} />
+          )}
+          {isContract && (
+            <>
+              <h2 className="py-[8px] text-[12px] text-[#989898]">Call data</h2>
+              <div className="break-words">{tx.data}</div>
+            </>
+          )}
+        </section>
+        <Divider />
+        <section className="py-[16px]">
+          <h2 className="py-[8px] text-[12px] text-[#989898]">Est. gas fee</h2>
+          <div className="flex gap-[12px] py-[16px]">
+            <Gas />
+            <p className="text-[20px]">
+              {userOpEstimating || paymentCalculating
+                ? "Estimating..."
+                : `${ethers.formatEther(
+                    userOp ? userOp.calculateGasFee() : 0n
+                  )} ${ETH.symbol}`}
+            </p>
+          </div>
+        </section>
+      </ScrollableWrapper>
       <Divider />
-      <section className="py-[16px]">
-        <h2 className="py-[8px] text-[12px] text-[#989898]">Est. gas fee</h2>
-        <div className="flex gap-[12px] py-[16px]">
-          <Gas />
-          <p className="text-[20px]">
-            {userOpEstimating || paymentCalculating
-              ? "Estimating..."
-              : `${ethers.formatEther(
-                  userOp ? userOp.calculateGasFee() : 0n
-                )} ${ETH.symbol}`}
-          </p>
-        </div>
-      </section>
-
-      <div className="py-[22.5px] flex justify-between gap-[16px] text-[18px] font-semibold">
+      <div className="py-[22px] flex justify-between gap-[16px] text-[18px] font-semibold">
         <Button
           disabled={userOpResolving}
           onClick={rejectUserOperation}
