@@ -63,6 +63,9 @@ export function TransactionConfirmation(props: { tx: TransactionPending }) {
     <UserOperationConfirmation
       tx={tx}
       sender={senderAccount}
+      senderInfo={{
+        name: sender.name
+      }}
       network={network}
     />
   )
@@ -71,9 +74,12 @@ export function TransactionConfirmation(props: { tx: TransactionPending }) {
 function UserOperationConfirmation(props: {
   tx: TransactionPending
   sender: Account
+  senderInfo: {
+    name: string
+  }
   network: Network
 }) {
-  const { tx, sender, network } = props
+  const { tx, sender, senderInfo, network } = props
 
   const { provider } = useContext(ProviderContext)
 
@@ -268,6 +274,7 @@ function UserOperationConfirmation(props: {
           {number.formatUnitsToFixed(tx.value, 18, 4)} ETH
         </div>
       </StepBackHeader>
+
       <ScrollableWrapper className="px-[16px] h-[307px]">
         <section className="py-[16px] text-[16px] ">
           <h2
@@ -281,7 +288,7 @@ function UserOperationConfirmation(props: {
               <Wallet />
             </div>
             <div className="w-full py-[9.5px] min-w-0">
-              <h3 className="pb-[4px]">Jesse's wallet</h3>
+              <h3 className="pb-[4px]"> {senderInfo.name}</h3>
               <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
             </div>
           </div>
@@ -311,7 +318,9 @@ function UserOperationConfirmation(props: {
             </>
           )}
         </section>
+
         <Divider />
+
         <section className="py-[16px]">
           <h2 className="py-[8px] text-[12px] text-[#989898]">Est. gas fee</h2>
           <div className="flex gap-[12px] py-[16px]">
@@ -326,7 +335,9 @@ function UserOperationConfirmation(props: {
           </div>
         </section>
       </ScrollableWrapper>
+
       <Divider />
+
       <div className="py-[22px] flex justify-between gap-[16px] text-[18px] font-semibold">
         <Button
           disabled={userOpResolving}

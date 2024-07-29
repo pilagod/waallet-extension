@@ -52,6 +52,7 @@ export type AccountToken = Token & {
 
 export type AccountMeta<T> = {
   id: string
+  name: string
   transactionLog: {
     [txId: string]: TransactionLog
   }

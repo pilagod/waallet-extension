@@ -5,7 +5,8 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
-import { AccountList } from "~app/page/accountList"
+import { AccountCreate } from "~app/page/account/create"
+import { AccountList } from "~app/page/account/list"
 import { Home } from "~app/page/home"
 import { ImportToken } from "~app/page/importToken"
 import { NetworkList } from "~app/page/networkList"
@@ -73,6 +74,7 @@ function PageRouter() {
   return (
     <Router hook={useHashLocation}>
       <Switch>
+        <Route path={Path.AccountCreate} component={AccountCreate} />
         <Route path={Path.AccountList} component={AccountList} />
         <Route path={Path.Home} component={Home} />
         <Route path={Path.ImportToken} component={ImportToken} />
