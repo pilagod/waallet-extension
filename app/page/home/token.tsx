@@ -13,12 +13,15 @@ export function Token() {
   const tokens = getUserTokens()
 
   return (
-    <ScrollableWrapper className="h-[270px] px-[16px]">
+    <ScrollableWrapper className="h-[270px]">
       <TokenList>
         {tokens.map((token, index) => (
-          <div className="w-full" key={index}>
+          <button
+            className="w-full px-[16px] hover:bg-[#F5F5F5] cursor-pointer"
+            key={index}
+            onClick={() => navigate(`${Path.Send}/${token.address}`)}>
             <TokenItem token={token} />
-          </div>
+          </button>
         ))}
 
         {/* Import Token Button */}
