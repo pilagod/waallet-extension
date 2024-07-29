@@ -7,26 +7,31 @@ export const NetworkConfig: Record<
     chainId: number
     name: string
     icon: string
+    tokenSymbol: string
   }
 > = {
   [137]: {
     chainId: 137,
     name: "Polygon",
-    icon: Polygon
+    icon: Polygon,
+    tokenSymbol: "MATIC"
   },
   [1337]: {
     chainId: 1337,
     name: "Geth Testnet",
-    icon: Ethereum
+    icon: Ethereum,
+    tokenSymbol: "GethETH"
   },
   [80002]: {
     chainId: 80002,
     name: "Polygon Amoy",
-    icon: Polygon
+    icon: Polygon,
+    tokenSymbol: "AmoyMATIC"
   },
   [11155111]: {
     chainId: 11155111,
     name: "Sepolia",
-    icon: Ethereum
+    icon: Ethereum,
+    tokenSymbol: "SepoliaETH"
   }
 }
