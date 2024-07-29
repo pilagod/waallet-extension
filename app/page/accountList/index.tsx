@@ -69,7 +69,7 @@ export function AccountList() {
       <section className="py-[16px]">
         <div className="mb-[8px] text-[16px]">Total Balance</div>
         <div className="text-[48px]">
-          {number.formatUnitsToFixed(totalBalance, 18, 2)} ETH
+          {number.formatUnitsToFixed(totalBalance, 18, 2)} {network.tokenSymbol}
         </div>
       </section>
 
@@ -85,6 +85,7 @@ export function AccountList() {
                 address={a.address}
                 balance={number.toBigInt(a.balance)}
                 active={a.id === network.accountActive}
+                tokenSymbol={network.tokenSymbol}
               />
             </div>
           )
@@ -112,6 +113,7 @@ function AccountItem(props: {
   address: HexString
   balance: bigint
   active: boolean
+  tokenSymbol: string
 }) {
   // Effect of `min-w-0`:
   // https://stackoverflow.com/questions/36230944/prevent-flex-items-from-overflowing-a-container
@@ -128,7 +130,7 @@ function AccountItem(props: {
         <div className="text-[12px]">{address.ellipsize(props.address)}</div>
       </div>
       <div className="min-w-0 basis-[120px] text-right">
-        {number.formatUnitsToFixed(props.balance, 18, 2)} ETH
+        {number.formatUnitsToFixed(props.balance, 18, 2)} {props.tokenSymbol}
       </div>
     </div>
   )

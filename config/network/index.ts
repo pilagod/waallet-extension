@@ -1,15 +1,14 @@
 import Ethereum from "data-base64:~assets/ethereumLight.svg"
 import Polygon from "data-base64:~assets/polygon.svg"
 
-export const NetworkConfig: Record<
-  number,
-  {
-    chainId: number
-    name: string
-    icon: string
-    tokenSymbol: string
-  }
-> = {
+export type NetworkMetadata = {
+  chainId: number
+  name: string
+  icon: string
+  tokenSymbol: string
+}
+
+export const NetworkConfig: Record<number, NetworkMetadata> = {
   [137]: {
     chainId: 137,
     name: "Polygon",

@@ -26,16 +26,14 @@ export function Activity() {
 const TransactionHistory: React.FC<{
   txLogs: TransactionLog[]
 }> = ({ txLogs }) => {
-  const { chainId } = useNetwork()
-  const chainName = getChainName(chainId)
+  // const { chainId } = useNetwork()
+  // const chainName = getChainName(chainId)
   return (
     <>
       {/* Home page activity list bar */}
       <div className="w-full flex flex-col items-start">
         {txLogs.map((txLog, i) => {
-          return (
-            <UserOpHistoryItem key={i} txLog={txLog} chainName={chainName} />
-          )
+          return <UserOpHistoryItem key={i} txLog={txLog} />
         })}
       </div>
     </>
@@ -50,9 +48,9 @@ type TokenTransferInfo = {
 
 const UserOpHistoryItem: React.FC<{
   txLog: TransactionLog
-  chainName: string
-}> = ({ txLog, chainName }) => {
+}> = ({ txLog }) => {
   const { tokens, type } = useAccount()
+  const network = useNetwork()
   const { createdAt, status, detail } = txLog
   const creationDate = new Date(createdAt * 1000).toLocaleDateString("zh-TW", {
     year: "numeric",
@@ -68,7 +66,7 @@ const UserOpHistoryItem: React.FC<{
   const { to, value, data } = decodeExecuteParams(type, detail.data.callData)
 
   const tokenInfo: TokenTransferInfo = {
-    symbol: `${chainName}ETH`,
+    symbol: network.tokenSymbol,
     value,
     to
   }
@@ -100,7 +98,9 @@ const UserOpHistoryItem: React.FC<{
     status === TransactionStatus.Succeeded ||
     status === TransactionStatus.Reverted
   ) {
-    const link = `${explorerUrl}userOpHash/${txLog.receipt.userOpHash}?network=${chainName}`
+    const link = `${explorerUrl}userOpHash/${
+      txLog.receipt.userOpHash
+    }?network=${getChainName(network.chainId)}`
     return (
       <div className="w-full flex items-center py-[13px] justify-between">
         <div className="flex flex-col items-start gap-[8px]">

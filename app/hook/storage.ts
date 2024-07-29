@@ -1,5 +1,6 @@
 import { useStorage } from "~app/storage"
-import { NetworkConfig } from "~config/network"
+import { NetworkConfig, type NetworkMetadata } from "~config/network"
+import { type Network as NetworkStorage } from "~storage/local/state"
 
 export { useStorage } from "~app/storage"
 
@@ -9,7 +10,9 @@ export const useAction = () => {
   })
 }
 
-export const useNetwork = (id?: string) => {
+export type Network = NetworkMetadata & NetworkStorage
+
+export const useNetwork = (id?: string): Network => {
   return useStorage(({ state }) => {
     const network = state.network[id ?? state.networkActive]
     return {
@@ -19,7 +22,7 @@ export const useNetwork = (id?: string) => {
   })
 }
 
-export const useNetworks = () => {
+export const useNetworks = (): Network[] => {
   return useStorage(({ state }) => {
     return Object.values(state.network).map((n) => {
       return { ...NetworkConfig[n.chainId], ...n }

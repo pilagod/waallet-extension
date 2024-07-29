@@ -12,7 +12,7 @@ import { PasskeyVerification } from "~app/component/passkeyVerification"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
-import { useAccount, useAction, useNetwork } from "~app/storage"
+import { useAccount, useAction, useNetwork, type Network } from "~app/storage"
 import type { Account } from "~packages/account"
 import {
   UserOperationV0_6,
@@ -21,16 +21,11 @@ import {
 } from "~packages/bundler/userOperation"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
-import { VerifyingPaymaster } from "~packages/paymaster/VerifyingPaymaster"
 import { ETH } from "~packages/token"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import { AccountStorageManager } from "~storage/local/manager"
-import {
-  TransactionType,
-  type Network,
-  type TransactionPending
-} from "~storage/local/state"
+import { TransactionType, type TransactionPending } from "~storage/local/state"
 
 export type PaymentOption = {
   name: string
@@ -76,24 +71,13 @@ function UserOperationConfirmation(props: {
 
   const { provider } = useContext(ProviderContext)
 
+  // TODO: More paymaster option
   const paymentOptions: PaymentOption[] = [
     {
       name: "No Paymaster",
       paymaster: new NullPaymaster()
-    },
-    // TODO: Put paymaster into config
-    {
-      name: "Verifying Paymaster",
-      paymaster: new VerifyingPaymaster(provider, {
-        address: process.env.PLASMO_PUBLIC_VERIFYING_PAYMASTER,
-        ownerPrivateKey:
-          process.env
-            .PLASMO_PUBLIC_VERIFYING_PAYMASTER_VERIFYING_SIGNER_PRIVATE_KEY,
-        expirationSecs: 300
-      })
     }
   ]
-  // TODO: Select paymaster
   const paymentOption = paymentOptions[0]
 
   const {
@@ -263,7 +247,7 @@ function UserOperationConfirmation(props: {
     <>
       <StepBackHeader title={isContract ? "Interact with contract" : "Send"}>
         <div className="text-[48px]">
-          {number.formatUnitsToFixed(tx.value, 18, 4)} ETH
+          {number.formatUnitsToFixed(tx.value, 18, 4)} {network.tokenSymbol}
         </div>
       </StepBackHeader>
       <section className="py-[16px] text-[16px]">
@@ -318,7 +302,7 @@ function UserOperationConfirmation(props: {
               ? "Estimating..."
               : `${ethers.formatEther(
                   userOp ? userOp.calculateGasFee() : 0n
-                )} ${ETH.symbol}`}
+                )} ${network.tokenSymbol}`}
           </p>
         </div>
       </section>
