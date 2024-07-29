@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 import { ERC20Contract } from "packages/contract/erc20"
 import { useCallback, useContext, useState, type ChangeEvent } from "react"
+import { useParams } from "wouter"
 
 import { AccountItem } from "~app/component/accountItem"
 import { Button } from "~app/component/button"
@@ -214,8 +215,13 @@ const SendAmount = ({
 }
 // Select token -> Select address -> Send amount -> Review
 export function Send() {
+  const params = useParams<{ tokenAddress?: string }>()
+  const tokens = getUserTokens()
+  const initialToken = params.tokenAddress
+    ? tokens.find((token) => token.address === params.tokenAddress)
+    : null
   const [tokenSelected, setTokenSelected] =
-    useState<Nullable<AccountToken>>(null)
+    useState<Nullable<AccountToken>>(initialToken)
   const [txTo, setTxTo] = useState<HexString>("")
 
   if (!tokenSelected) {
