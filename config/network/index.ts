@@ -19,18 +19,18 @@ export const NetworkConfig: Record<number, NetworkMetadata> = {
     chainId: 1337,
     name: "Geth Testnet",
     icon: Ethereum,
-    tokenSymbol: "GethETH"
+    tokenSymbol: "ETH"
   },
   [80002]: {
     chainId: 80002,
     name: "Polygon Amoy",
     icon: Polygon,
-    tokenSymbol: "AmoyMATIC"
+    tokenSymbol: "MATIC"
   },
   [11155111]: {
     chainId: 11155111,
     name: "Sepolia",
     icon: Ethereum,
-    tokenSymbol: "SepoliaETH"
+    tokenSymbol: "ETH"
   }
 }
