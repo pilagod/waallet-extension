@@ -1,24 +1,15 @@
-import { useContext, useState } from "react"
+import { useState } from "react"
 import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
+import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
-import { ProviderContext } from "~app/context/provider"
-import { ToastContext } from "~app/context/toastContext"
-import {
-  useAccount,
-  useAccounts,
-  useAction,
-  useNetwork
-} from "~app/hook/storage"
+import { useAccount, useAccounts, useNetwork } from "~app/hook/storage"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
 import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
-import { AccountType } from "~packages/account"
-import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {
@@ -45,34 +36,13 @@ export function Home() {
 }
 
 function AccountCreation() {
-  const { provider } = useContext(ProviderContext)
-  const { setToast } = useContext(ToastContext)
-  const { createAccount } = useAction()
-
-  const network = useNetwork()
-
-  const onPasskeyAccountCreated = async () => {
-    try {
-      if (!network.accountFactory[AccountType.PasskeyAccount]) {
-        throw new Error("Passkey account factory is not set")
-      }
-      const account = await PasskeyAccount.initWithFactory(provider, {
-        owner: await PasskeyOwnerWebAuthn.register(),
-        salt: number.random(),
-        factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
-      })
-      await createAccount(account, network.id)
-      setToast("Wallet Created", "success")
-    } catch (error) {
-      setToast(error.message, "failed")
-    }
-  }
+  const [, navigate] = useHashLocation()
 
   return (
     <div className="text-center">
       <button
         className="border-2 border-black rounded-full px-2"
-        onClick={onPasskeyAccountCreated}>
+        onClick={() => navigate(Path.AccountCreate)}>
         Create your first AA account
       </button>
     </div>

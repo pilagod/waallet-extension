@@ -1,6 +1,8 @@
 import { EventEmitter } from "events"
 
 import { type BackgroundMessenger } from "~packages/messenger/background"
+import { ProviderRpcError } from "~packages/rpc/json/error"
+import type { JsonRpcResponse } from "~packages/rpc/json/provider"
 import { format } from "~packages/util/json"
 import type { WebAuthnCreation, WebAuthnRequest } from "~packages/webAuthn"
 
@@ -13,10 +15,14 @@ export class WaalletContentProvider extends EventEmitter {
   }
 
   public async request<T>(args: WaalletRequestArguments): Promise<T> {
-    const res = await this.backgroundMessenger.send({
+    const res: JsonRpcResponse<T> = await this.backgroundMessenger.send({
       name: WaalletMessage.JsonRpcRequest,
       body: args
     })
+
+    if (res.error) {
+      throw ProviderRpcError.wrap(res)
+    }
     return res as T
   }
 

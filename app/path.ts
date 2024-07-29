@@ -5,7 +5,9 @@ export enum Path {
   Receive = "/receive",
   ImportToken = "/import-token",
   NetworkList = "/network-list",
-  AccountList = "/account-list",
+
+  AccountCreate = "/account/create",
+  AccountList = "/account/list",
 
   WebAuthnAuthentication = "/webauthn/authentication",
   WebAuthnRegistration = "/webauthn/registration",

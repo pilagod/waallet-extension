@@ -19,8 +19,4 @@
     font-family: Inter, system-ui, sans-serif;
     line-height: 1.21;
   }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
 }

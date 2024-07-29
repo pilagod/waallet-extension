@@ -60,7 +60,7 @@ function AccountSelector() {
         onClick={() => navigate(Path.AccountList)}>
         <div className="mr-[12px] flex flex-col items-start">
           <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
-            Jesse's wallet
+            {account.name}
           </div>
           <div className="leading-[14.6px] text-[12px] text-[#989898]">
             {address.ellipsize(account.address)}

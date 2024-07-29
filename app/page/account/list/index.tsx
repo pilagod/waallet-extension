@@ -1,64 +1,30 @@
-import { useContext, useState } from "react"
 import CircleCheck from "react:~assets/circleCheck"
 import Plus from "react:~assets/plus"
 import Wallet from "react:~assets/wallet"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
-import { PasskeyVerification } from "~app/component/passkeyVerification"
+import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
-import { ProviderContext } from "~app/context/provider"
-import { ToastContext } from "~app/context/toastContext"
 import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
-import { AccountType } from "~packages/account"
-import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
 export function AccountList() {
   const [, navigate] = useHashLocation()
-  const { provider } = useContext(ProviderContext)
-  const { setToast } = useContext(ToastContext)
-  const { createAccount, switchAccount } = useAction()
-
-  const network = useNetwork()
+  const { switchAccount } = useAction()
 
   const accounts = useAccounts()
+  const network = useNetwork()
+
   const totalBalance = accounts.reduce((b, a) => {
     return b + number.toBigInt(a.balance)
   }, 0n)
-
-  const [accountCreating, setAccountCreating] = useState(false)
-  const createNewAccount = async () => {
-    setAccountCreating(true)
-    try {
-      if (!network.accountFactory[AccountType.PasskeyAccount]) {
-        throw new Error("Passkey account factory is not set")
-      }
-      const account = await PasskeyAccount.initWithFactory(provider, {
-        owner: await PasskeyOwnerWebAuthn.register(),
-        salt: number.random(),
-        factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
-      })
-      await createAccount(account, network.id)
-      setToast("Account created!", "success")
-      navigate(Path.Home)
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setAccountCreating(false)
-    }
-  }
   const selectAccount = async (accountId: string) => {
     await switchAccount(accountId)
     navigate(Path.Home)
-  }
-
-  if (accountCreating) {
-    return <PasskeyVerification purpose="identity" />
   }
 
   return (
@@ -74,23 +40,26 @@ export function AccountList() {
       </section>
 
       {/* Account List */}
-      <section className="w-[calc(100%+32px)] h-[264px] ml-[-16px] overflow-x-hidden overflow-y-scroll">
-        {accounts.map((a, i) => {
-          return (
-            <div
-              key={i}
-              className="cursor-pointer hover:bg-[#F5F5F5]"
-              onClick={() => selectAccount(a.id)}>
-              <AccountItem
-                address={a.address}
-                balance={number.toBigInt(a.balance)}
-                active={a.id === network.accountActive}
-                tokenSymbol={network.tokenSymbol}
-              />
-            </div>
-          )
-        })}
-      </section>
+      <ScrollableWrapper className="h-[264px]">
+        <section>
+          {accounts.map((a, i) => {
+            return (
+              <div
+                key={i}
+                className="cursor-pointer hover:bg-[#F5F5F5]"
+                onClick={() => selectAccount(a.id)}>
+                <AccountItem
+                  name={a.name}
+                  address={a.address}
+                  balance={number.toBigInt(a.balance)}
+                  active={a.id === network.accountActive}
+                  tokenSymbol={network.tokenSymbol}
+                />
+              </div>
+            )
+          })}
+        </section>
+      </ScrollableWrapper>
 
       <Divider />
 
@@ -98,7 +67,7 @@ export function AccountList() {
       <section className="pt-[22.5px]">
         <button
           className="w-full flex flex-row justify-center items-center py-[16px] border-[1px] border-solid border-black rounded-full"
-          onClick={createNewAccount}>
+          onClick={() => navigate(Path.AccountCreate)}>
           <span className="mr-[8px]">
             <Plus />
           </span>
@@ -110,6 +79,7 @@ export function AccountList() {
 }
 
 function AccountItem(props: {
+  name: string
   address: HexString
   balance: bigint
   active: boolean
@@ -126,7 +96,7 @@ function AccountItem(props: {
         {props.active ? <CircleCheck /> : <Wallet />}
       </div>
       <div className="min-w-0 grow break-words">
-        <div>Jesse’s wallet</div>
+        <div>{props.name}</div>
         <div className="text-[12px]">{address.ellipsize(props.address)}</div>
       </div>
       <div className="min-w-0 basis-[120px] text-right">
