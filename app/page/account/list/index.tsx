@@ -4,6 +4,7 @@ import Wallet from "react:~assets/wallet"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
+import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
@@ -39,23 +40,25 @@ export function AccountList() {
       </section>
 
       {/* Account List */}
-      <section className="w-[calc(100%+32px)] h-[264px] ml-[-16px] overflow-x-hidden overflow-y-scroll">
-        {accounts.map((a, i) => {
-          return (
-            <div
-              key={i}
-              className="cursor-pointer hover:bg-[#F5F5F5]"
-              onClick={() => selectAccount(a.id)}>
-              <AccountItem
-                name={a.name}
-                address={a.address}
-                balance={number.toBigInt(a.balance)}
-                active={a.id === network.accountActive}
-              />
-            </div>
-          )
-        })}
-      </section>
+      <ScrollableWrapper className="h-[264px]">
+        <section>
+          {accounts.map((a, i) => {
+            return (
+              <div
+                key={i}
+                className="cursor-pointer hover:bg-[#F5F5F5]"
+                onClick={() => selectAccount(a.id)}>
+                <AccountItem
+                  name={a.name}
+                  address={a.address}
+                  balance={number.toBigInt(a.balance)}
+                  active={a.id === network.accountActive}
+                />
+              </div>
+            )
+          })}
+        </section>
+      </ScrollableWrapper>
 
       <Divider />
 

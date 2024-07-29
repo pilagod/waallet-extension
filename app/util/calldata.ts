@@ -18,17 +18,3 @@ export const decodeExecuteParams = (
       throw new Error(`Unknown account type`)
   }
 }
-
-export type TransferParam = {
-  to: HexString
-  value: bigint
-}
-
-export const decodeTransferParams = (calldata: HexString): TransferParam => {
-  const transferAbi = [
-    "function transfer(address to, uint256 value) public returns (bool)"
-  ]
-  const transferIface = new Interface(transferAbi)
-  const [to, value] = transferIface.decodeFunctionData("transfer", calldata)
-  return { to, value }
-}

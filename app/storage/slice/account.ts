@@ -3,7 +3,7 @@ import { v4 as uuidV4 } from "uuid"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import { type Token } from "~storage/local/state"
+import { type AccountToken } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 import type { BackgroundStateCreator } from "../middleware/background"
@@ -22,7 +22,7 @@ export interface AccountSlice {
   /* Token */
 
   updateBalance: (accountId: string, balance: BigNumberish) => Promise<void>
-  importToken: (accountId: string, token: Token) => Promise<void>
+  importToken: (accountId: string, token: AccountToken) => Promise<void>
   updateToken: (
     accountId: string,
     tokenAddress: HexString,
@@ -88,7 +88,7 @@ export const createAccountSlice: BackgroundStateCreator<
     })
   },
 
-  importToken: async (accountId: string, token: Token) => {
+  importToken: async (accountId: string, token: AccountToken) => {
     await set(({ state }) => {
       state.account[accountId].tokens.push({
         address: address.normalize(token.address),

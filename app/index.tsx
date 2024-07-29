@@ -8,6 +8,8 @@ import { ProviderContextProvider } from "~app/context/provider"
 import { AccountCreate } from "~app/page/account/create"
 import { AccountList } from "~app/page/account/list"
 import { Home } from "~app/page/home"
+import { ImportToken } from "~app/page/importToken"
+import { NetworkList } from "~app/page/networkList"
 import { Receive } from "~app/page/receive"
 import { Review } from "~app/page/review/"
 import { Send } from "~app/page/send"
@@ -75,11 +77,12 @@ function PageRouter() {
         <Route path={Path.AccountCreate} component={AccountCreate} />
         <Route path={Path.AccountList} component={AccountList} />
         <Route path={Path.Home} component={Home} />
+        <Route path={Path.ImportToken} component={ImportToken} />
+        <Route path={Path.NetworkList} component={NetworkList} />
         <Route path={Path.Receive} component={Receive} />
         <Route path={Path.Review} component={Review} />
-        <Route path={Path.Send} component={Send} />
         {/* To enable the Send page to accept a token address as a parameter */}
-        <Route path={`${Path.Send}/:tokenAddress`} component={Send} />
+        <Route path={`${Path.Send}/:tokenAddress?`} component={Send} />
         <Route
           path={Path.WebAuthnAuthentication}
           component={WebAuthnAuthentication}

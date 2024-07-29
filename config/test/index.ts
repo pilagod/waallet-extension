@@ -6,6 +6,7 @@ import { NodeProvider } from "~packages/node/provider"
 
 const address = {
   Counter: "0x8464135c8F25Da09e49BC8782676a84730C318bC",
+  TestToken: "0x71C95911E9a5D330f4D621842EC243EE1343292e",
 
   /* v0.6 */
 
@@ -39,10 +40,22 @@ const provider = {
 }
 const { node } = provider
 
+class WalletNonceManager extends ethers.NonceManager {
+  public constructor(private wallet: ethers.Wallet) {
+    super(wallet)
+  }
+
+  public get privateKey() {
+    return this.wallet.privateKey
+  }
+}
+
 const wallet = {
-  operator: new ethers.Wallet(
-    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-    node
+  operator: new WalletNonceManager(
+    new ethers.Wallet(
+      "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      node
+    )
   )
 }
 
