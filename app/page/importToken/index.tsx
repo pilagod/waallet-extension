@@ -82,6 +82,7 @@ export function ImportToken() {
         <div>
           <Input
             label="Contract Address"
+            name="tokenAddress"
             value={tokenAddress}
             onValueChanged={onTokenAddressChanged}
             placeholder="Enter contract address"
@@ -92,7 +93,12 @@ export function ImportToken() {
         {/* Token Symbol */}
         {tokenSymbol && (
           <div className="mt-[16px]">
-            <Input label="Symbol" value={tokenSymbol} disabled={true} />
+            <Input
+              label="Symbol"
+              name="tokenSymbol"
+              value={tokenSymbol}
+              disabled={true}
+            />
           </div>
         )}
 
@@ -101,6 +107,7 @@ export function ImportToken() {
           <div className="mt-[16px]">
             <Input
               label="Decimals"
+              name="tokenDecimals"
               value={tokenDecimals.toString()}
               disabled={true}
             />
