@@ -47,7 +47,7 @@ export function App() {
     <ProviderContextProvider>
       <ToastProvider>
         {/* Waallet popup script page */}
-        <div className="w-[390px] h-[600px] px-[16px] pt-[20px]">
+        <div className="w-[390px] h-[600px] mx-auto px-[16px] pt-[20px]">
           <Toast />
           <PageRouter />
         </div>
