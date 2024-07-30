@@ -213,19 +213,6 @@ function UserOperationConfirmation(props: {
   }, [tx.id])
 
   useEffect(() => {
-    async function estimateUserOp() {
-      setUserOpEstimating(true)
-      await estimateGas(userOp)
-      setUserOp(userOp)
-      setUserOpEstimating(false)
-    }
-    if (!userOp) {
-      return
-    }
-    estimateUserOp()
-  }, [])
-
-  useEffect(() => {
     async function calculatePayment() {
       setPaymentCalculating(true)
       setPayment({
