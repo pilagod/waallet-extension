@@ -17,7 +17,7 @@ export function Review() {
         active: true,
         lastFocusedWindow: true
       })
-      if (tab.url?.includes("notification")) {
+      if (tab?.url?.includes("notification")) {
         window.close()
       } else {
         navigate(Path.Home)
