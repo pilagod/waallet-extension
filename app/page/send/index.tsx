@@ -172,7 +172,7 @@ const SendAmount = ({
       return sendNativeToken(provider, txTo, transferAmount)
     }
     return sendErc20Token(provider, txTo, transferAmount, token)
-  }, [txTo, inputAmount])
+  }, [txTo, transferAmount])
 
   return (
     <>
