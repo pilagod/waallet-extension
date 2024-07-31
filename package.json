@@ -79,6 +79,9 @@
       "https://*/*",
       "http://localhost:*/*"
     ],
-    "key": "$CRX_KEY"
+    "key": "$CRX_KEY",
+    "permissions": [
+      "tabs"
+    ]
   }
 }

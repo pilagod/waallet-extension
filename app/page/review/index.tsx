@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import browser from "webextension-polyfill"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Path } from "~app/path"
@@ -6,7 +7,40 @@ import { useAction, usePendingTransactions } from "~app/storage"
 
 import { TransactionConfirmation } from "./transaction"
 
-function ProfileSwithcher(props: {
+export function Review() {
+  const [, navigate] = useHashLocation()
+  const pendingTxs = usePendingTransactions()
+
+  useEffect(() => {
+    async function redirect() {
+      const [tab] = await browser.tabs.query({
+        active: true,
+        lastFocusedWindow: true
+      })
+      if (tab?.url?.includes("notification")) {
+        window.close()
+      } else {
+        navigate(Path.Home)
+      }
+    }
+    if (pendingTxs.length === 0) {
+      redirect()
+    }
+  }, [pendingTxs.length])
+
+  if (pendingTxs.length === 0) {
+    return
+  }
+  const [tx] = pendingTxs
+
+  return (
+    <ProfileSwitcher accountId={tx.senderId} networkId={tx.networkId}>
+      <TransactionConfirmation tx={tx} />
+    </ProfileSwitcher>
+  )
+}
+
+function ProfileSwitcher(props: {
   accountId: string
   networkId: string
   children: React.ReactNode
@@ -29,20 +63,4 @@ function ProfileSwithcher(props: {
   }
 
   return children
-}
-
-export function Review() {
-  const [, navigate] = useHashLocation()
-  const pendingTxs = usePendingTransactions()
-  if (pendingTxs.length === 0) {
-    navigate(Path.Index)
-    return
-  }
-  const [tx] = pendingTxs
-
-  return (
-    <ProfileSwithcher accountId={tx.senderId} networkId={tx.networkId}>
-      <TransactionConfirmation tx={tx} />
-    </ProfileSwithcher>
-  )
 }

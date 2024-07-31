@@ -84,7 +84,7 @@ async function main() {
       }
 
       await browser.windows.create({
-        url: browser.runtime.getURL("popup.html"),
+        url: browser.runtime.getURL("tabs/notification.html"),
         focused: true,
         type: "popup",
         width: 480,
