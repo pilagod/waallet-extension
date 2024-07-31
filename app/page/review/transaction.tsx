@@ -199,7 +199,7 @@ function UserOperationConfirmation(props: {
     } catch (e) {
       console.error(e)
       if (e.error?.code === -32521) {
-        throw new Error("Execution Reverted from bundler")
+        throw new Error("Estimation reverted from bundler")
       }
       throw e
     }
