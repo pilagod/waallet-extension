@@ -2,7 +2,7 @@ import { type ChangeEvent } from "react"
 
 export function Input(props: {
   value: string
-  name: string
+  name?: string
   label?: string
   disabled?: boolean
   placeholder?: string
