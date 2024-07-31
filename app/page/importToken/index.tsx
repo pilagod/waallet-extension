@@ -82,6 +82,7 @@ export function ImportToken() {
         <div>
           <Input
             label="Contract Address"
+            name="tokenAddress"
             value={tokenAddress}
             onValueChanged={onTokenAddressChanged}
             placeholder="Enter contract address"

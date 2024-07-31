@@ -2,6 +2,7 @@ import { type ChangeEvent } from "react"
 
 export function Input(props: {
   value: string
+  name?: string
   label?: string
   disabled?: boolean
   placeholder?: string
@@ -13,6 +14,7 @@ export function Input(props: {
       {props.label && <div className="mb-[8px] text-[16px]">{props.label}</div>}
       <input
         type="text"
+        name={props.name} // To improve auto-complete support
         value={props.value}
         onChange={(e: ChangeEvent<HTMLInputElement>) =>
           props.onValueChanged(e.target.value)

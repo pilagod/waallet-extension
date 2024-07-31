@@ -67,6 +67,7 @@ export function AccountCreate() {
       <section className="h-[373px] pt-[24px]">
         <Input
           label="Set account name"
+          name="accountName"
           value={accountName}
           placeholder="Enter account name"
           onValueChanged={onAccountNameChanged}
