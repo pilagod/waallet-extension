@@ -177,6 +177,9 @@ function UserOperationConfirmation(props: {
   }
 
   const estimateGas = async (userOp: UserOperation) => {
+    if (!userOp) {
+      return
+    }
     const paymasterAndData =
       await paymentOption.paymaster.requestPaymasterAndData(userOp, true)
     userOp.setPaymasterAndData(paymasterAndData)
@@ -187,11 +190,19 @@ function UserOperationConfirmation(props: {
     )
     userOp.setGasFee(gasFee)
 
-    const gasLimit = await provider.send(
-      WaalletRpcMethod.eth_estimateUserOperationGas,
-      [userOp.unwrap(), await sender.getEntryPoint()]
-    )
-    userOp.setGasLimit(gasLimit)
+    try {
+      const gasLimit = await provider.send(
+        WaalletRpcMethod.eth_estimateUserOperationGas,
+        [userOp.unwrap(), await sender.getEntryPoint()]
+      )
+      userOp.setGasLimit(gasLimit)
+    } catch (e) {
+      console.error(e)
+      if (e.error?.code === -32521) {
+        throw new Error("Estimation reverted from bundler")
+      }
+      throw e
+    }
   }
 
   useEffect(() => {
@@ -206,24 +217,18 @@ function UserOperationConfirmation(props: {
         transactionType === TransactionType.ERC4337V0_6
           ? UserOperationV0_6.wrap(execution)
           : UserOperationV0_7.wrap(execution)
-      await estimateGas(userOp)
-      setUserOp(userOp)
+      try {
+        setUserOpEstimating(true)
+        await estimateGas(userOp)
+        setUserOpEstimating(false)
+      } catch (e) {
+        setToast(e.message, "failed")
+      } finally {
+        setUserOp(userOp)
+      }
     }
     setupUserOp()
   }, [tx.id])
-
-  useEffect(() => {
-    async function estimateUserOp() {
-      setUserOpEstimating(true)
-      await estimateGas(userOp)
-      setUserOp(userOp)
-      setUserOpEstimating(false)
-    }
-    if (!userOp) {
-      return
-    }
-    estimateUserOp()
-  }, [])
 
   useEffect(() => {
     async function calculatePayment() {

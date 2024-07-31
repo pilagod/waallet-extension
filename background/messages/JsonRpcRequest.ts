@@ -25,7 +25,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
         `[background][message][${WaalletMessage.JsonRpcRequest}][JsonRpcProviderError]`,
         error.unwrap()
       )
-      res.send(error)
+      res.send(error.unwrap())
       return
     }
     console.log(
