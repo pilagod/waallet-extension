@@ -2,55 +2,46 @@
 
 ## Demo
 
-> This showcase swaps on Uniswap with a Passkey-verified account contract. For more demos, visit the [demo](demo.md) page.
+> This showcase swaps on Uniswap with a Passkey-verified account contract.
 
 [![Waallet Demo](https://i.imgur.com/ojApmiQ.gif)](https://youtu.be/9D5K4IlofLY)
 
-## Development
+## Testing
 
-This project depends on [waallet-contract](https://github.com/pilagod/waallet-contract) to provide the testnet environment, please follow the instructions in the repository to setup local testnet.
+This project depends on [waallet-contract](https://github.com/pilagod/waallet-contract) to provide the network environment, please follow the instructions in the repository to setup local testnet.
 
-After you spin up a testnet from [waallet-contract](https://github.com/pilagod/waallet-contract), run following commands to do testing:
+After you spin up a testnet from [waallet-contract](https://github.com/pilagod/waallet-contract), run the following command to do testing:
 
 ```bash
 npm run test
 ```
 
-## Plasmo Extension
+## Extension
 
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+> [!NOTE]  
+> This project is bootstrapped with [Plasmo](https://docs.plasmo.com/).
 
-### Getting Started
+### Preapre Environment Variables
 
-First, run the development server:
+Please refer to `.env.development.example` and preapre your own `.env.development`.
+
+### Load Extension into Browser
+
+First, run Plasmo development server:
 
 ```bash
-pnpm dev
-# or
 npm run dev
 ```
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+Open your browser, goto extension management page, and load `build/chrome-mv3-dev` by `Load unpacked` button. All code changes will be watched by Plasmo development server, and outcomes will be automatically reflected to the extension on your browser.
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+For further development guidance, please [visit Plasmo documentation](https://docs.plasmo.com/).
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+> [!TIP]
+> Testnet from [waallet-contract](https://github.com/pilagod/waallet-contract) can help you testing the extension. You can also import funded accounts pre-deployed in the testnet to the extension via environment variables.
 
-### Making production build
-
-Run the following:
-
-```bash
-pnpm build
-# or
-npm run build
-```
-
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
-
-### Submit to the webstores
-
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+> [!TIP]
+> There is another repository [waallet-dapp](https://github.com/pilagod/waallet-dapp) to help you simulating DApp interaction with the extension.
 
 ## Contributors
 
