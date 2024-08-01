@@ -20,7 +20,7 @@ export function AccountCreate() {
   const { provider } = useContext(ProviderContext)
   const { setToast } = useContext(ToastContext)
 
-  const { createAccount } = useAction()
+  const { createPasskeyAccount } = useAction()
   const accounts = useAccounts()
   const network = useNetwork()
 
@@ -40,7 +40,7 @@ export function AccountCreate() {
         salt: number.random(),
         factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
       })
-      await createAccount(accountName, account, network.id)
+      await createPasskeyAccount(accountName, account, network.id)
       setToast("Account created!", "success")
       navigate(Path.Home)
     } catch (e) {
