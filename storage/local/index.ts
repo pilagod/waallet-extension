@@ -1,7 +1,9 @@
+import { Wallet } from "ethers"
 import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 
 import { getConfig } from "~config"
+import { AccountType } from "~packages/account"
 import { ObservableStorage } from "~packages/storage/observable"
 import address from "~packages/util/address"
 
@@ -20,6 +22,24 @@ export async function getLocalStorage() {
     })
     const state = storage.get()
     const config = getConfig()
+
+    // Initialize an account if it doesn't exist
+    if (config.accounts.length === 0) {
+      const initialChainId = 80002
+      const wallet = Wallet.createRandom()
+      config.accounts = [
+        {
+          type: AccountType.SimpleAccount,
+          chainId: initialChainId,
+          address: wallet.address,
+          ownerPrivateKey: wallet.privateKey
+        }
+      ]
+      // Update network's active value based on the initial account's chain
+      Object.entries(config.networks).forEach(([_, network]) => {
+        network.active = network.chainId === initialChainId
+      })
+    }
 
     // TODO: Separate init process by environment
 
