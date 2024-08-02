@@ -63,7 +63,6 @@ export class AccountStorageManager implements AccountManager {
     if (!account) {
       throw new Error(`Unknown account ${id}`)
     }
-
     const { node } = this.networkManager.getActive()
     return {
       id,
@@ -74,7 +73,6 @@ export class AccountStorageManager implements AccountManager {
   public async getActive() {
     const state = this.storage.get()
     const network = state.network[state.networkActive]
-
     return this.get(network.accountActive)
   }
 
