@@ -49,7 +49,7 @@ export const config = {
       },
       accountFactory: {
         [AccountType.SimpleAccount]:
-          "0xe569f1d8487239659C09b5cA1881320B5EbB0ab2", // v0.7
+          "0x261D8c5e9742e6f7f1076Fa1F560894524e19cad", // v0.7
         [AccountType.PasskeyAccount]:
           "0xCba6b9A951749B8735C603e7fFC5151849248772" // v0.7
       }
