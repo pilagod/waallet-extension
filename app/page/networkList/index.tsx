@@ -36,7 +36,12 @@ export function NetworkList() {
     const targetNetwork = networks.find((network) => network.id === networkId)
 
     // Initialize an account if it doesn’t exist on the target network.
-    if (targetNetwork && !targetNetwork?.accountActive) {
+    if (
+      targetNetwork &&
+      !targetNetwork?.accountActive &&
+      targetNetwork.accountFactory[AccountType.SimpleAccount] &&
+      targetNetwork.accountFactory[AccountType.SimpleAccount] !== "0x"
+    ) {
       const account = await SimpleAccount.initWithFactory(provider, {
         ownerPrivateKey: Wallet.createRandom().privateKey,
         salt: number.random(),

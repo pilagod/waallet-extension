@@ -32,7 +32,10 @@ export function AccountCreate() {
   const createNewAccount = async () => {
     setAccountCreating(true)
     try {
-      if (!network.accountFactory[AccountType.PasskeyAccount]) {
+      if (
+        !network.accountFactory[AccountType.PasskeyAccount] ||
+        network.accountFactory[AccountType.PasskeyAccount] === "0x"
+      ) {
         throw new Error("Passkey account factory is not set")
       }
       const account = await PasskeyAccount.initWithFactory(provider, {
