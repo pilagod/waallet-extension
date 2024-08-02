@@ -64,7 +64,6 @@ export class AccountStorageManager implements AccountManager {
       throw new Error(`Unknown account ${id}`)
     }
 
-    // Error: Unknown account undefined
     const { node } = this.networkManager.getActive()
     return {
       id,
@@ -76,7 +75,6 @@ export class AccountStorageManager implements AccountManager {
     const state = this.storage.get()
     const network = state.network[state.networkActive]
 
-    // Error: Unknown account undefined
     return this.get(network.accountActive)
   }
 
