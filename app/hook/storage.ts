@@ -46,6 +46,12 @@ export const useAccounts = () => {
   })
 }
 
+export const useTotalAccountCount = () => {
+  return useStorage(({ state }) => {
+    return Object.values(state.account).length
+  })
+}
+
 export const useTransactionLogs = (accountId: string) => {
   return useStorage(({ state }) => {
     return Object.values(state.account[accountId].transactionLog)
