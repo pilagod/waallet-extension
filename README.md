@@ -21,9 +21,9 @@ npm run test
 > [!NOTE]  
 > This project is bootstrapped with [Plasmo](https://docs.plasmo.com/).
 
-### Preapre Environment Variables
+### Prepare Environment Variables
 
-Please refer to `.env.development.example` and preapre your own `.env.development`.
+Please refer to `.env.development.example` and prepare your own `.env.development`.
 
 ### Load Extension into Browser
 
