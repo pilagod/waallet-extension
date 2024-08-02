@@ -1,19 +1,55 @@
+import { Wallet } from "ethers"
+import { useContext } from "react"
 import Circle from "react:~assets/circle.svg"
 import CircleDot from "react:~assets/circleDot.svg"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { StepBackHeader } from "~app/component/stepBackHeader"
-import { useAction, useNetwork, useNetworks } from "~app/hook/storage"
+import { ProviderContext } from "~app/context/provider"
+import { ToastContext } from "~app/context/toastContext"
+import {
+  useAction,
+  useNetwork,
+  useNetworks,
+  useTotalAccountCount
+} from "~app/hook/storage"
 import { Path } from "~app/path"
+import { AccountType } from "~packages/account"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
+import number from "~packages/util/number"
 
 export function NetworkList() {
   const [, navigate] = useHashLocation()
-  const { switchNetwork } = useAction()
+  const { provider } = useContext(ProviderContext)
+  const { setToast } = useContext(ToastContext)
+
+  const { switchNetwork, createSimpleAccount } = useAction()
 
   const network = useNetwork()
   const networks = useNetworks()
+  const totalAccountCount = useTotalAccountCount()
+
   const selectNetwork = async (networkId: string) => {
+    // Switch networks first to update the provider to the target network
     await switchNetwork(networkId)
+
+    const targetNetwork = networks.find((network) => network.id === networkId)
+
+    // Initialize an account if it doesn’t exist on the target network.
+    if (targetNetwork && !targetNetwork?.accountActive) {
+      const account = await SimpleAccount.initWithFactory(provider, {
+        ownerPrivateKey: Wallet.createRandom().privateKey,
+        salt: number.random(),
+        factoryAddress: targetNetwork.accountFactory[AccountType.SimpleAccount]
+      })
+
+      await createSimpleAccount(
+        `Account ${totalAccountCount + 1}`,
+        account,
+        networkId
+      )
+      setToast("Account created!", "success")
+    }
     navigate(Path.Home)
   }
 
