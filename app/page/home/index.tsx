@@ -1,15 +1,26 @@
-import { useState } from "react"
+import { Wallet } from "ethers"
+import { useContext, useEffect, useState } from "react"
 import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
-import { useAccount, useAccounts, useNetwork } from "~app/hook/storage"
+import { ProviderContext } from "~app/context/provider"
+import { ToastContext } from "~app/context/toastContext"
+import {
+  useAccount,
+  useAccounts,
+  useAction,
+  useNetwork,
+  useTotalAccountCount
+} from "~app/hook/storage"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
 import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
+import { AccountType } from "~packages/account"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {
@@ -36,7 +47,37 @@ export function Home() {
 }
 
 function AccountCreation() {
+  const { provider } = useContext(ProviderContext)
+  const { setToast } = useContext(ToastContext)
+  const { createSimpleAccount } = useAction()
   const [, navigate] = useHashLocation()
+  const network = useNetwork()
+  const totalAccountCount = useTotalAccountCount()
+
+  useEffect(() => {
+    const initialSimpleAccount = async () => {
+      const hasSimpleAccountFactory =
+        !network.accountFactory[AccountType.SimpleAccount] ||
+        network.accountFactory[AccountType.SimpleAccount] !== "0x"
+
+      if (hasSimpleAccountFactory) {
+        const account = await SimpleAccount.initWithFactory(provider, {
+          ownerPrivateKey: Wallet.createRandom().privateKey,
+          salt: number.random(),
+          factoryAddress: network.accountFactory[AccountType.SimpleAccount]
+        })
+
+        await createSimpleAccount(
+          `Account ${totalAccountCount + 1}`,
+          account,
+          network.id
+        )
+        setToast("Account created!", "success")
+      }
+    }
+
+    initialSimpleAccount()
+  }, [])
 
   return (
     <div className="text-center">

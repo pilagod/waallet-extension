@@ -1,13 +1,9 @@
-import { JsonRpcProvider, Wallet } from "ethers"
 import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 
 import { getConfig } from "~config"
-import { AccountType } from "~packages/account"
-import { SimpleAccount } from "~packages/account/SimpleAccount"
 import { ObservableStorage } from "~packages/storage/observable"
 import address from "~packages/util/address"
-import number from "~packages/util/number"
 
 import type { State } from "./state"
 
@@ -88,57 +84,6 @@ export async function getLocalStorage() {
         networkActive = targetNetwork.id
       }
     })
-
-    // Initialize an account if it doesn't exist
-    if (Object.keys(account).length === 0) {
-      const initialChainId = 80002
-      const wallet = Wallet.createRandom()
-      const privateKey = wallet.privateKey
-
-      const initialNetwork = Object.values(network).find(
-        (n) => n.chainId === initialChainId
-      )
-      const factoryAddress = initialNetwork.accountFactory.SimpleAccount
-      const salt = number.toHex(number.random())
-
-      // Update networkActive id
-      networkActive = initialNetwork.id
-
-      const simpleAccount = await SimpleAccount.initWithFactory(
-        new JsonRpcProvider(initialNetwork.nodeRpcUrl),
-        {
-          ownerPrivateKey: privateKey,
-          factoryAddress,
-          salt
-        }
-      )
-      const accountId = uuidv4()
-
-      Object.assign(account, {
-        [accountId]: {
-          id: accountId,
-          name: "Account 1",
-          transactionLog: {},
-          balance: "0x00",
-          tokens: [],
-          type: AccountType.SimpleAccount,
-          chainId: initialNetwork.chainId,
-          address: await simpleAccount.getAddress(),
-          ownerPrivateKey: privateKey,
-          factoryAddress,
-          salt
-        }
-      })
-
-      // Update network's active id based on the initial account
-      Object.assign(network, {
-        [initialNetwork.id]: {
-          ...initialNetwork,
-          ...{ accountActive: accountId, active: true }
-        }
-      })
-    }
-
     // TODO: Only for development at this moment. Remove following when getting to production.
     // Enable only network specified in env
     storage.set((draft) => {
