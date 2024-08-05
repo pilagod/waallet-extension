@@ -30,18 +30,20 @@ export function NetworkList() {
   const totalAccountCount = useTotalAccountCount()
 
   const selectNetwork = async (networkId: string) => {
-    // Switch networks first to update the provider to the target network
+    // Switch networks to update the `provider` to the target network,
+    // it also checks if the target network exists
     await switchNetwork(networkId)
 
     const targetNetwork = networks.find((network) => network.id === networkId)
 
-    // Initialize an account if it doesn’t exist on the target network.
-    if (
-      targetNetwork &&
-      !targetNetwork?.accountActive &&
+    const targetHasNoAccount = !targetNetwork?.accountActive
+
+    const targetHasSimpleAccountFactory =
       targetNetwork.accountFactory[AccountType.SimpleAccount] &&
       targetNetwork.accountFactory[AccountType.SimpleAccount] !== "0x"
-    ) {
+
+    // Initialize an account if it doesn’t exist on the target network.
+    if (targetHasNoAccount && targetHasSimpleAccountFactory) {
       const account = await SimpleAccount.initWithFactory(provider, {
         ownerPrivateKey: Wallet.createRandom().privateKey,
         salt: number.random(),
