@@ -57,7 +57,7 @@ function AccountCreation() {
   useEffect(() => {
     const initialSimpleAccount = async () => {
       const hasSimpleAccountFactory =
-        !network.accountFactory[AccountType.SimpleAccount] ||
+        network.accountFactory[AccountType.SimpleAccount] &&
         network.accountFactory[AccountType.SimpleAccount] !== "0x"
 
       if (hasSimpleAccountFactory) {
