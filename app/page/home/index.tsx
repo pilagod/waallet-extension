@@ -77,7 +77,7 @@ function AccountCreation() {
     }
 
     initialSimpleAccount()
-  }, [])
+  }, [network.id])
 
   return (
     <div className="text-center">
