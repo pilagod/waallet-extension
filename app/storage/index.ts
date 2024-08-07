@@ -3,6 +3,7 @@ import browser from "webextension-polyfill"
 import { create, type StoreApi } from "zustand"
 
 import { StorageAction } from "~background/messages/storage"
+import { Bytes } from "~packages/primitive/bytes"
 
 import { StorageMessenger } from "./messenger"
 import { background, type BackgroundStorage } from "./middleware/background"
@@ -26,18 +27,19 @@ class BackgroundStorageMessenger implements BackgroundStorage<Storage> {
   public constructor(private messenger: StorageMessenger) {}
 
   public async set(patches: Patch[]) {
-    await this.messenger.set(
-      patches.map((p) => {
-        const path = [...p.path]
-        if (path[0] === "state") {
-          path.shift()
-        }
-        return { ...p, path }
-      })
-    )
+    const patchesForStorage = patches.map((p) => {
+      const path = [...p.path]
+      if (path[0] === "state") {
+        path.shift()
+      }
+      return { ...p, path }
+    })
+    await this.messenger.set(patchesForStorage)
+
     const promiseWithResolvers = Promise.withResolvers<void>()
 
-    this.patchesInSync[this.getPatchesId(patches)] = promiseWithResolvers
+    this.patchesInSync[this.getPatchesId(patchesForStorage)] =
+      promiseWithResolvers
 
     return promiseWithResolvers.promise
   }
@@ -65,7 +67,7 @@ class BackgroundStorageMessenger implements BackgroundStorage<Storage> {
   }
 
   private getPatchesId(patches: Patch[]) {
-    return JSON.stringify(patches)
+    return Bytes.wrap(JSON.stringify(patches)).sha256().unwrap("hex")
   }
 }
 
