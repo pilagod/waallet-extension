@@ -21,6 +21,8 @@ interface Storage
     TransactionSlice {}
 
 class BackgroundStorageMessenger implements BackgroundStorage<Storage> {
+  private patchesInSync: Record<string, PromiseWithResolvers<void>> = {}
+
   public constructor(private messenger: StorageMessenger) {}
 
   public async set(patches: Patch[]) {
@@ -33,6 +35,11 @@ class BackgroundStorageMessenger implements BackgroundStorage<Storage> {
         return { ...p, path }
       })
     )
+    const promiseWithResolvers = Promise.withResolvers<void>()
+
+    this.patchesInSync[this.getPatchesId(patches)] = promiseWithResolvers
+
+    return promiseWithResolvers.promise
   }
 
   public sync(
@@ -43,9 +50,22 @@ class BackgroundStorageMessenger implements BackgroundStorage<Storage> {
       if (message.action !== StorageAction.Sync) {
         return
       }
-      console.log("[popup] Receive state update from background")
+      console.log(
+        "[popup] Receive state update from background",
+        message.patches
+      )
       set({ state: applyPatches(get().state, message.patches) })
+
+      const patchesId = this.getPatchesId(message.patches)
+      if (patchesId in this.patchesInSync) {
+        this.patchesInSync[patchesId].resolve()
+        delete this.patchesInSync[patchesId]
+      }
     })
+  }
+
+  private getPatchesId(patches: Patch[]) {
+    return JSON.stringify(patches)
   }
 }
 
