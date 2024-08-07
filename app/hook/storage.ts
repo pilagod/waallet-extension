@@ -52,9 +52,9 @@ export const useTransactionLogs = (accountId: string) => {
   })
 }
 
-export const usePendingTransactions = () => {
+export const usePendingRequests = () => {
   return useStorage(({ state }) => {
-    return Object.values(state.pendingTransaction)
+    return state.pendingRequests
   })
 }
 

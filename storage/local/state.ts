@@ -20,9 +20,7 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
-  pendingTransaction: {
-    [txId: string]: TransactionPending
-  }
+  pendingRequests: Request[]
 }
 
 /* Netowork */
@@ -95,11 +93,31 @@ export type VerifyingPaymaster = {
   ownerPrivateKey: HexString
 }
 
+/* Request */
+
+export enum RequestType {
+  Transaction = "Transaction"
+}
+
+export type Request = TransactionRequest
+
+export type TransactionRequest = {
+  type: RequestType.Transaction
+  id: string
+  createdAt: number
+  senderId: string
+  networkId: string
+  to: HexString
+  value: HexString
+  data: HexString
+  nonce?: HexString
+  gasLimit?: HexString
+  gasPrice?: HexString
+}
+
 /* Transaction */
 
 export enum TransactionStatus {
-  // Waiting to be processed in local user operation pool.
-  Pending = "Pending",
   // User rejects the user operation.
   Rejected = "Rejected",
   // Bundler accepts the user operation.
@@ -115,22 +133,6 @@ export enum TransactionStatus {
 export enum TransactionType {
   ERC4337V0_6 = "ERC4337V0_6",
   ERC4337V0_7 = "ERC4337V0_7"
-}
-
-/* Transaction - Pending */
-
-export type TransactionPending = {
-  id: string
-  status: TransactionStatus.Pending
-  createdAt: number
-  senderId: string
-  networkId: string
-  to: HexString
-  value: HexString
-  data: HexString
-  nonce?: HexString
-  gasLimit?: HexString
-  gasPrice?: HexString
 }
 
 /* Transaction - Log */

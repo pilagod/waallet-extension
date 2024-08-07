@@ -91,7 +91,7 @@ async function main() {
         height: 720
       })
     },
-    { pendingTransaction: {} }
+    { pendingRequests: [] }
   )
 
   const indexTransactionSent = async () => {

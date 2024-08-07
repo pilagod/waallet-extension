@@ -5,7 +5,11 @@ import type {
   Transaction,
   TransactionPool
 } from "~packages/waallet/background/pool/transaction"
-import { TransactionStatus, type State } from "~storage/local/state"
+import {
+  RequestType,
+  TransactionStatus,
+  type State
+} from "~storage/local/state"
 
 export class TransactionStoragePool implements TransactionPool {
   public constructor(private storage: ObservableStorage<State>) {}
@@ -19,14 +23,14 @@ export class TransactionStoragePool implements TransactionPool {
     const id = uuidv4()
 
     this.storage.set((state) => {
-      state.pendingTransaction[id] = {
+      state.pendingRequests.push({
+        type: RequestType.Transaction,
         id,
-        status: TransactionStatus.Pending,
         createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
         senderId,
         networkId,
         ...tx.unwrap()
-      }
+      })
     })
 
     return id
@@ -34,10 +38,14 @@ export class TransactionStoragePool implements TransactionPool {
 
   public wait(txId: string) {
     return new Promise<string>((resolve, reject) => {
-      const { senderId } = this.storage.get().pendingTransaction[txId]
-
+      // TODO: What if transaction not found?
+      const [tx] = this.storage
+        .get()
+        .pendingRequests.filter(
+          (r) => r.type === RequestType.Transaction && r.id === txId
+        )
       const subscriber = async ({ account }: State) => {
-        const txLog = account[senderId].transactionLog[txId]
+        const txLog = account[tx.senderId].transactionLog[txId]
 
         // Bundler is still processing this user operation
         if (txLog.status === TransactionStatus.Sent) {
@@ -61,8 +69,9 @@ export class TransactionStoragePool implements TransactionPool {
 
         resolve(txLog.receipt.transactionHash)
       }
+
       this.storage.subscribe(subscriber, {
-        account: { [senderId]: { transactionLog: { [txId]: {} } } }
+        account: { [tx.senderId]: { transactionLog: { [txId]: {} } } }
       })
     })
   }
