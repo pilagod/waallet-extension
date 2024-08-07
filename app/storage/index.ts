@@ -21,7 +21,7 @@ interface Storage
     NetworkSlice,
     TransactionSlice {}
 
-class BackgroundStorageMessenger implements BackgroundStorage<Storage> {
+class StorageSyncer implements BackgroundStorage<Storage> {
   private patchesInSync: Record<string, PromiseWithResolvers<void>> = {}
 
   public constructor(private messenger: StorageMessenger) {}
@@ -83,7 +83,7 @@ export const useStorage = create<Storage>()(
       ...createNetworkSlice(...actions),
       ...createTransactionSlice(...actions)
     }),
-    new BackgroundStorageMessenger(storageMessenger)
+    new StorageSyncer(storageMessenger)
   )
 )
 
