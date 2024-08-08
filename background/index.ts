@@ -18,7 +18,7 @@ import {
 import { getSessionStorage } from "~storage/session"
 
 import { StorageAction } from "./messages/storage"
-import { TransactionStoragePool } from "./pool"
+import { RequestStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 
 console.log(
@@ -48,7 +48,7 @@ async function main() {
   setupWaalletBackgroundProvider({
     accountManager,
     networkManager,
-    transactionPool: new TransactionStoragePool(storage)
+    requestPool: new RequestStoragePool(storage)
   })
 
   const sessionStorage = await getSessionStorage()

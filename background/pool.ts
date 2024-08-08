@@ -2,24 +2,25 @@ import { v4 as uuidv4 } from "uuid"
 
 import { ObservableStorage } from "~packages/storage/observable"
 import type {
-  Transaction,
-  TransactionPool
-} from "~packages/waallet/background/pool/transaction"
+  Request,
+  RequestPool
+} from "~packages/waallet/background/pool/request"
 import {
   RequestType,
   TransactionStatus,
   type State
 } from "~storage/local/state"
 
-export class TransactionStoragePool implements TransactionPool {
+export class RequestStoragePool implements RequestPool {
   public constructor(private storage: ObservableStorage<State>) {}
 
   public async send(data: {
-    tx: Transaction
-    senderId: string
+    request: Request
+    accountId: string
     networkId: string
   }) {
-    const { tx, senderId, networkId } = data
+    const { request, accountId, networkId } = data
+
     const id = uuidv4()
 
     this.storage.set((state) => {
@@ -27,9 +28,9 @@ export class TransactionStoragePool implements TransactionPool {
         type: RequestType.Transaction,
         id,
         createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
-        senderId,
+        senderId: accountId,
         networkId,
-        ...tx.unwrap()
+        ...request.unwrap()
       })
     })
 
