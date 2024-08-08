@@ -38,7 +38,7 @@ export function TransactionConfirmation(props: { tx: TransactionRequest }) {
 
   const { provider } = useContext(ProviderContext)
   const network = useNetwork(tx.networkId)
-  const sender = useAccount(tx.senderId)
+  const sender = useAccount(tx.accountId)
 
   const [senderAccount, setSenderAccount] = useState<Account>(null)
 

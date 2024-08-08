@@ -53,12 +53,12 @@ const UserOpHistoryItem: React.FC<{
   const { tokens, type } = useAccount()
   const network = useNetwork()
   const { createdAt, status, detail } = txLog
-  const creationDate = new Date(createdAt * 1000).toLocaleDateString("zh-TW", {
+  const creationDate = new Date(createdAt).toLocaleDateString("zh-TW", {
     year: "numeric",
     month: "numeric",
     day: "numeric"
   })
-  const creationTime = new Date(createdAt * 1000).toLocaleTimeString("zh-TW", {
+  const creationTime = new Date(createdAt).toLocaleTimeString("zh-TW", {
     hour: "numeric",
     minute: "numeric",
     second: "numeric",

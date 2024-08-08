@@ -131,7 +131,7 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.account[txSucceeded.senderId].transactionLog[txSucceeded.id] =
+          state.account[txSucceeded.accountId].transactionLog[txSucceeded.id] =
             txSucceeded
         })
         return
@@ -150,7 +150,7 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.account[txReverted.senderId].transactionLog[txReverted.id] =
+          state.account[txReverted.accountId].transactionLog[txReverted.id] =
             txReverted
         })
         return

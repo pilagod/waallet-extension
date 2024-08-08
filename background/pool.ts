@@ -27,8 +27,8 @@ export class RequestStoragePool implements RequestPool {
       state.pendingRequests.push({
         type: RequestType.Transaction,
         id,
-        createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
-        senderId: accountId,
+        createdAt: Date.now(),
+        accountId,
         networkId,
         ...request.unwrap()
       })
@@ -46,7 +46,7 @@ export class RequestStoragePool implements RequestPool {
           (r) => r.type === RequestType.Transaction && r.id === txId
         )
       const subscriber = async ({ account }: State) => {
-        const txLog = account[tx.senderId].transactionLog[txId]
+        const txLog = account[tx.accountId].transactionLog[txId]
 
         // Bundler is still processing this user operation
         if (txLog.status === TransactionStatus.Sent) {
@@ -72,7 +72,7 @@ export class RequestStoragePool implements RequestPool {
       }
 
       this.storage.subscribe(subscriber, {
-        account: { [tx.senderId]: { transactionLog: { [txId]: {} } } }
+        account: { [tx.accountId]: { transactionLog: { [txId]: {} } } }
       })
     })
   }

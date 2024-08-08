@@ -105,7 +105,7 @@ export type TransactionRequest = {
   type: RequestType.Transaction
   id: string
   createdAt: number
-  senderId: string
+  accountId: string
   networkId: string
   to: HexString
   value: HexString
@@ -141,7 +141,7 @@ export type TransactionLog = ERC4337TransactionLog
 
 export type TransactionLogMeta<T> = {
   id: string
-  senderId: string
+  accountId: string
   networkId: string
   createdAt: number
 } & T
