@@ -21,6 +21,7 @@ import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
 import { AccountType } from "~packages/account"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {
@@ -56,9 +57,9 @@ function AccountCreation() {
 
   useEffect(() => {
     const initialSimpleAccount = async () => {
-      const hasSimpleAccountFactory =
-        network.accountFactory[AccountType.SimpleAccount] &&
-        network.accountFactory[AccountType.SimpleAccount] !== "0x"
+      const hasSimpleAccountFactory = address.isValid(
+        network.accountFactory[AccountType.SimpleAccount]
+      )
 
       if (hasSimpleAccountFactory) {
         const account = await SimpleAccount.initWithFactory(provider, {
