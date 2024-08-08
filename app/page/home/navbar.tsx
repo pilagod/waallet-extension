@@ -1,18 +1,17 @@
 import ChevronDown from "react:~assets/chevronDown.svg"
 import { useHashLocation } from "wouter/use-hash-location"
 
-import { useAccount, useAccounts, useNetwork } from "~app/hook/storage"
+import { useAccount, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
 import address from "~packages/util/address"
 
 export function Navbar() {
-  const hasNoAccount = useAccounts().length === 0
   return (
     <>
       {/* Home page navbar */}
       <nav className="flex items-center justify-between mb-[16px] mt-[4px]">
         <div>
-          {hasNoAccount ? <NullAccountSelector /> : <AccountSelector />}
+          <AccountSelector />
         </div>
         <div>
           <NetworkSelector />
@@ -22,7 +21,7 @@ export function Navbar() {
   )
 }
 
-function NetworkSelector() {
+export function NetworkSelector() {
   const [, navigate] = useHashLocation()
   const network = useNetwork()
   return (
@@ -36,25 +35,6 @@ function NetworkSelector() {
         <div className="w-[16px]">
           <ChevronDown />
         </div>
-      </button>
-    </>
-  )
-}
-
-function NullAccountSelector() {
-  const [, navigate] = useHashLocation()
-  return (
-    <>
-      {/* Home page account selector button */}
-      <button
-        className="px-[20px] py-[14.3px] flex items-center rounded-full border-[1px] border-solid border-black"
-        onClick={() => navigate(Path.AccountList)}>
-        <div className="mr-[12px] flex flex-col items-start">
-          <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
-            No account
-          </div>
-        </div>
-        <ChevronDown className="w-[16px] h-[16px]" />
       </button>
     </>
   )
