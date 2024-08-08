@@ -48,7 +48,6 @@ export function Home() {
 function AccountCreation() {
   const { provider } = useContext(ProviderContext)
   const { createSimpleAccount } = useAction()
-  const [, navigate] = useHashLocation()
   const network = useNetwork()
 
   useEffect(() => {
@@ -71,15 +70,7 @@ function AccountCreation() {
     initSimpleAccount()
   }, [network.id])
 
-  return (
-    <div className="text-center">
-      <button
-        className="border-2 border-black rounded-full px-2"
-        onClick={() => navigate(Path.AccountCreate)}>
-        Create your first AA account
-      </button>
-    </div>
-  )
+  return <></>
 }
 
 export function AccountInfo() {

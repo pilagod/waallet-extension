@@ -42,10 +42,21 @@ function NetworkSelector() {
 }
 
 function NullAccountSelector() {
+  const [, navigate] = useHashLocation()
   return (
-    <div>
-      <span>No account available</span>
-    </div>
+    <>
+      {/* Home page account selector button */}
+      <button
+        className="px-[20px] py-[14.3px] flex items-center rounded-full border-[1px] border-solid border-black"
+        onClick={() => navigate(Path.AccountList)}>
+        <div className="mr-[12px] flex flex-col items-start">
+          <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
+            No account
+          </div>
+        </div>
+        <ChevronDown className="w-[16px] h-[16px]" />
+      </button>
+    </>
   )
 }
 
