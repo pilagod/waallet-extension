@@ -56,7 +56,7 @@ function AccountCreation() {
   const totalAccountCount = useTotalAccountCount()
 
   useEffect(() => {
-    const initialSimpleAccount = async () => {
+    const initSimpleAccount = async () => {
       const hasSimpleAccountFactory = address.isValid(
         network.accountFactory[AccountType.SimpleAccount]
       )
@@ -73,11 +73,10 @@ function AccountCreation() {
           account,
           network.id
         )
-        setToast("Account created!", "success")
       }
     }
 
-    initialSimpleAccount()
+    initSimpleAccount()
   }, [network.id])
 
   return (
