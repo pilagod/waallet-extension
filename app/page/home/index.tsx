@@ -7,13 +7,11 @@ import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
 import { ProviderContext } from "~app/context/provider"
-import { ToastContext } from "~app/context/toastContext"
 import {
   useAccount,
   useAccounts,
   useAction,
-  useNetwork,
-  useTotalAccountCount
+  useNetwork
 } from "~app/hook/storage"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
@@ -49,11 +47,9 @@ export function Home() {
 
 function AccountCreation() {
   const { provider } = useContext(ProviderContext)
-  const { setToast } = useContext(ToastContext)
   const { createSimpleAccount } = useAction()
   const [, navigate] = useHashLocation()
   const network = useNetwork()
-  const totalAccountCount = useTotalAccountCount()
 
   useEffect(() => {
     const initSimpleAccount = async () => {
@@ -68,11 +64,7 @@ function AccountCreation() {
           factoryAddress: network.accountFactory[AccountType.SimpleAccount]
         })
 
-        await createSimpleAccount(
-          `Account ${totalAccountCount + 1}`,
-          account,
-          network.id
-        )
+        await createSimpleAccount(`Account 1`, account, network.id)
       }
     }
 
