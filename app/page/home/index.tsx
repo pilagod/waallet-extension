@@ -34,12 +34,16 @@ export function Home() {
   const network = useNetwork()
 
   useEffect(() => {
+    if (!hasNoAccount) {
+      return
+    }
+
     const initSimpleAccount = async () => {
       const hasSimpleAccountFactory = address.isValid(
         network.accountFactory[AccountType.SimpleAccount]
       )
 
-      if (hasNoAccount && hasSimpleAccountFactory) {
+      if (hasSimpleAccountFactory) {
         const account = await SimpleAccount.initWithFactory(provider, {
           ownerPrivateKey: Wallet.createRandom().privateKey,
           salt: number.random(),
