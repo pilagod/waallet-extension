@@ -59,9 +59,9 @@ export function Home() {
 
   return (
     <>
-      <Navbar />
       {!hasNoAccount && (
         <>
+          <Navbar />
           <AccountInfo />
           <Divider />
           <AccountNavigation />

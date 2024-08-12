@@ -48,17 +48,13 @@ function AccountSelector() {
       {/* Home page account selector button */}
       <button
         className="p-[7px_20px_7px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
-        onClick={() =>
-          account ? navigate(Path.AccountList) : navigate(Path.AccountCreate)
-        }>
+        onClick={() => navigate(Path.AccountList)}>
         <div className="mr-[12px] flex flex-col items-start">
           <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
-            {account ? account.name : "No account"}
+            {account.name}
           </div>
           <div className="leading-[14.6px] text-[12px] text-[#989898]">
-            {account
-              ? address.ellipsize(account.address)
-              : "Create new account"}
+            {address.ellipsize(account.address)}
           </div>
         </div>
         <ChevronDown className="w-[16px] h-[16px]" />
