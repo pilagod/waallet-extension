@@ -90,11 +90,14 @@ function NullAccountSelector() {
     <>
       {/* Home page account selector button */}
       <button
-        className="px-[20px] py-[14.3px] flex items-center rounded-full border-[1px] border-solid border-black"
-        onClick={() => navigate(Path.AccountList)}>
+        className="p-[7px_20px_7px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
+        onClick={() => navigate(Path.AccountCreate)}>
         <div className="mr-[12px] flex flex-col items-start">
           <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
             No account
+          </div>
+          <div className="leading-[14.6px] text-[12px] text-[#989898]">
+            Create new account
           </div>
         </div>
         <ChevronDown className="w-[16px] h-[16px]" />
