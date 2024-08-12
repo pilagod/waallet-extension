@@ -1,4 +1,4 @@
-import { getAddress } from "ethers"
+import { getAddress, isAddress } from "ethers"
 
 import type { HexString } from "~typing"
 
@@ -18,8 +18,13 @@ function normalize(address: HexString) {
   return getAddress(address)
 }
 
+function isValid(address: HexString) {
+  return isAddress(address)
+}
+
 export default {
   ellipsize,
   isEqual,
-  normalize
+  normalize,
+  isValid
 }

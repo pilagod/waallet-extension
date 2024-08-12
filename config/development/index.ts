@@ -31,7 +31,8 @@ export const config = {
         [EntryPointVersion.V0_7]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
       },
       accountFactory: {
-        [AccountType.SimpleAccount]: "0x",
+        [AccountType.SimpleAccount]:
+          "0x94b797AC2a89400A30ec1DC583a45b45BcF707c7",
         [AccountType.PasskeyAccount]:
           "0x4B13F6BcC9B8EB780C6a1A82F5796135C238767D" // v0.7
       }
@@ -49,7 +50,7 @@ export const config = {
       },
       accountFactory: {
         [AccountType.SimpleAccount]:
-          "0xe569f1d8487239659C09b5cA1881320B5EbB0ab2", // v0.7
+          "0x261D8c5e9742e6f7f1076Fa1F560894524e19cad", // v0.7
         [AccountType.PasskeyAccount]:
           "0xCba6b9A951749B8735C603e7fFC5151849248772" // v0.7
       }

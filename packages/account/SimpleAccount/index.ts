@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 
 import type { Call } from "~packages/account"
+import { AccountType } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import { type ContractRunner } from "~packages/node"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
@@ -69,6 +70,18 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     })
     this.account = new ethers.Contract(option.address, SimpleAccount.abi)
     this.owner = option.owner
+  }
+
+  public dump() {
+    return {
+      type: AccountType.SimpleAccount as AccountType.SimpleAccount,
+      address: this.address,
+      ownerPrivateKey: this.owner.privateKey,
+      ...(this.factory && {
+        factoryAddress: this.factory.address,
+        salt: this.factory.salt
+      })
+    }
   }
 
   public async sign(message: BytesLike) {
