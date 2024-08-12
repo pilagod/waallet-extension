@@ -1,8 +1,8 @@
 import address from "packages/util/address"
 
 import { type UserOperation } from "~packages/bundler/userOperation"
+import { StateActor } from "~storage/local/actor"
 import {
-  RequestType,
   TransactionStatus,
   TransactionType,
   type ERC4337TransactionRejected,
@@ -87,10 +87,8 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   markERC4337TransactionRejected: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const txIndex = state.pendingRequests.findIndex(
-        (r) => r.type === RequestType.Transaction && r.id === txId
-      )
-      const tx = state.pendingRequests[txIndex]
+      const stateActor = new StateActor(state)
+      const tx = stateActor.getTranasctionRequest(txId)
       const txRejected: ERC4337TransactionRejected = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -105,16 +103,14 @@ export const createTransactionSlice: BackgroundStateCreator<
       }
       state.account[txRejected.senderId].transactionLog[txRejected.id] =
         txRejected
-      state.pendingRequests.splice(txIndex, 1)
+      stateActor.resolveTransactionRequest(txId)
     })
   },
 
   markERC4337TransactionSent: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const txIndex = state.pendingRequests.findIndex(
-        (r) => r.type === RequestType.Transaction && r.id === txId
-      )
-      const tx = state.pendingRequests[txIndex]
+      const stateActor = new StateActor(state)
+      const tx = stateActor.getTranasctionRequest(txId)
       const txSent: ERC4337TransactionSent = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -131,7 +127,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         }
       }
       state.account[txSent.senderId].transactionLog[txSent.id] = txSent
-      state.pendingRequests.splice(txIndex, 1)
+      stateActor.resolveTransactionRequest(txId)
     })
   }
 })
