@@ -6,8 +6,7 @@ import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
 import type { HexString } from "~typing"
 
-import type { Request, RequestPool } from "./index"
-import { TransactionRequest } from "./transaction"
+import { TransactionRequest, type Request, type RequestPool } from "./index"
 
 export class RequestHandler implements RequestPool {
   private request: Record<string, Request> = {}
@@ -65,7 +64,7 @@ export class TransactionRequestHandler implements RequestPool {
   ) {}
 
   public async send(data: {
-    request: Request
+    request: TransactionRequest
     accountId: string
     networkId: string
   }) {

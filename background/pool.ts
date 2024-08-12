@@ -5,6 +5,7 @@ import type {
   Request,
   RequestPool
 } from "~packages/waallet/background/pool/request"
+import { Eip712Request } from "~packages/waallet/background/pool/request"
 import {
   RequestType,
   TransactionStatus,
@@ -20,6 +21,10 @@ export class RequestStoragePool implements RequestPool {
     networkId: string
   }) {
     const { request, accountId, networkId } = data
+
+    if (request instanceof Eip712Request) {
+      throw new Error("EIP-712 is not yet supported")
+    }
 
     const id = uuidv4()
 
