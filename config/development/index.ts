@@ -87,7 +87,7 @@ export const config = {
         [AccountType.SimpleAccount]:
           "0x983D1f4ddA8f48d38155DFf89c632AF5CD384d32", // v0.6
         [AccountType.PasskeyAccount]:
-          "0x5A0b3668719722c16fE44f5A2C28c85B4Bbed606" // v0.6
+          "0x0a1De47125A52123a8e4a296fCeC478440e42cd8" // v0.6
       }
     }
   ]

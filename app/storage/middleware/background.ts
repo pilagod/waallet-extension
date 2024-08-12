@@ -21,7 +21,7 @@ type SkipTwo<T> = T extends { length: 0 }
   ? A
   : never
 
-interface BackgroundStorage<T> {
+export interface BackgroundStorage<T> {
   set: (patches: Patch[]) => Promise<void>
   sync: (get: StoreApi<T>["getState"], set: StoreApi<T>["setState"]) => void
 }
