@@ -1,11 +1,8 @@
-import { NetworkSelector } from "app/page/home/navbar"
 import { Wallet } from "ethers"
 import { useContext, useEffect, useState } from "react"
 import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
-import ChevronDown from "react:~assets/chevronDown.svg"
 import { Link } from "wouter"
-import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
 import { ProviderContext } from "~app/context/provider"
@@ -31,23 +28,7 @@ export enum InfoNavigation {
 
 export function Home() {
   const hasNoAccount = useAccounts().length === 0
-  return (
-    <>
-      {hasNoAccount ? (
-        <AccountCreation />
-      ) : (
-        <>
-          <Navbar />
-          <AccountInfo />
-          <Divider />
-          <AccountNavigation />
-        </>
-      )}
-    </>
-  )
-}
 
-function AccountCreation() {
   const { provider } = useContext(ProviderContext)
   const { createSimpleAccount } = useAction()
   const network = useNetwork()
@@ -58,7 +39,7 @@ function AccountCreation() {
         network.accountFactory[AccountType.SimpleAccount]
       )
 
-      if (hasSimpleAccountFactory) {
+      if (hasNoAccount && hasSimpleAccountFactory) {
         const account = await SimpleAccount.initWithFactory(provider, {
           ownerPrivateKey: Wallet.createRandom().privateKey,
           salt: number.random(),
@@ -73,35 +54,15 @@ function AccountCreation() {
   }, [network.id])
 
   return (
-    <div className="flex items-center justify-between mb-[16px] mt-[4px]">
-      <div>
-        <NullAccountSelector />
-      </div>
-      <div>
-        <NetworkSelector />
-      </div>
-    </div>
-  )
-}
-
-function NullAccountSelector() {
-  const [, navigate] = useHashLocation()
-  return (
     <>
-      {/* Home page account selector button */}
-      <button
-        className="p-[7px_20px_7px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
-        onClick={() => navigate(Path.AccountCreate)}>
-        <div className="mr-[12px] flex flex-col items-start">
-          <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
-            No account
-          </div>
-          <div className="leading-[14.6px] text-[12px] text-[#989898]">
-            Create new account
-          </div>
-        </div>
-        <ChevronDown className="w-[16px] h-[16px]" />
-      </button>
+      <Navbar />
+      {!hasNoAccount && (
+        <>
+          <AccountInfo />
+          <Divider />
+          <AccountNavigation />
+        </>
+      )}
     </>
   )
 }
