@@ -31,7 +31,8 @@ export const config = {
         [EntryPointVersion.V0_7]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
       },
       accountFactory: {
-        [AccountType.SimpleAccount]: "0x",
+        [AccountType.SimpleAccount]:
+          "0x94b797AC2a89400A30ec1DC583a45b45BcF707c7",
         [AccountType.PasskeyAccount]:
           "0x4B13F6BcC9B8EB780C6a1A82F5796135C238767D" // v0.7
       }
