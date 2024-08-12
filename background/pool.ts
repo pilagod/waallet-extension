@@ -40,7 +40,7 @@ export class TransactionStoragePool implements TransactionPool {
   public wait(txId: string) {
     return new Promise<string>((resolve, reject) => {
       const stateActor = new StateActor(this.storage.get())
-      const tx = stateActor.getTranasctionRequest(txId)
+      const tx = stateActor.getTransactionRequest(txId)
 
       const subscriber = async ({ account }: State) => {
         const txLog = account[tx.senderId].transactionLog[txId]

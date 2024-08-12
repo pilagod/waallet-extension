@@ -88,7 +88,7 @@ export const createTransactionSlice: BackgroundStateCreator<
   markERC4337TransactionRejected: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
       const stateActor = new StateActor(state)
-      const tx = stateActor.getTranasctionRequest(txId)
+      const tx = stateActor.getTransactionRequest(txId)
       const txRejected: ERC4337TransactionRejected = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -110,7 +110,7 @@ export const createTransactionSlice: BackgroundStateCreator<
   markERC4337TransactionSent: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
       const stateActor = new StateActor(state)
-      const tx = stateActor.getTranasctionRequest(txId)
+      const tx = stateActor.getTransactionRequest(txId)
       const txSent: ERC4337TransactionSent = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),

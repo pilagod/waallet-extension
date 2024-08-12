@@ -6,7 +6,7 @@ import { RequestType, type State } from "./state"
 export class StateActor {
   public constructor(private state: State) {}
 
-  public getTranasctionRequest(requestId: string) {
+  public getTransactionRequest(requestId: string) {
     const [tx] = this.state.pendingRequests.filter(
       (r) => r.type === RequestType.Transaction && r.id === requestId
     )
