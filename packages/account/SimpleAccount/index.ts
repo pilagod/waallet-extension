@@ -3,6 +3,7 @@ import * as ethers from "ethers"
 import type { Call } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import { type ContractRunner } from "~packages/node"
+import { Bytes } from "~packages/primitive/bytes"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
@@ -71,10 +72,6 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     this.owner = option.owner
   }
 
-  public async sign(message: BytesLike) {
-    return this.owner.signMessage(ethers.getBytes(message))
-  }
-
   public static decode(calldata: HexString): Call {
     const [dest, value, func] = new ethers.Interface(
       SimpleAccount.abi
@@ -92,5 +89,10 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
 
   protected async getDummySignature(): Promise<HexString> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
+  }
+
+  protected async signRaw(message: BytesLike) {
+    const signature = this.owner.signingKey.sign(Bytes.wrap(message))
+    return signature.serialized
   }
 }

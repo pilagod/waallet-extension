@@ -21,6 +21,8 @@ export class Eip712Request {
   }
 
   public hash() {
-    return TypedDataEncoder.hash(this.domain, this.types, this.message)
+    // TypedDataEncoder forbids unused type in message
+    const { EIP712Domain, ...types } = this.types
+    return TypedDataEncoder.hash(this.domain, types, this.message)
   }
 }

@@ -13,9 +13,14 @@ import {
   type EthEstimateUserOperationGasArguments,
   type EthSendTransactionArguments,
   type EthSendUserOperationArguments,
+  type EthSignTypedDataV4,
   type WaalletRequestArguments
 } from "../rpc"
-import { TransactionRequest, type RequestPool } from "./pool/request"
+import {
+  Eip712Request,
+  TransactionRequest,
+  type RequestPool
+} from "./pool/request"
 
 export type WaalletBackgroundProviderOption = {
   accountManager?: AccountManager
@@ -57,6 +62,8 @@ export class WaalletBackgroundProvider {
         return this.handleSendTransaction(args.params) as T
       case WaalletRpcMethod.eth_sendUserOperation:
         return this.handleSendUserOperation(args.params) as T
+      case WaalletRpcMethod.eth_signTypedData_v4:
+        return this.handleSignTypedDataV4(args.params) as T
       case WaalletRpcMethod.custom_estimateGasPrice:
         return this.handleEstimateGasPrice() as T
       // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
@@ -173,6 +180,25 @@ export class WaalletBackgroundProvider {
     const transactionHash = await this.requestPool.wait(txId)
 
     return transactionHash
+  }
+
+  private async handleSignTypedDataV4(params: EthSignTypedDataV4["params"]) {
+    const [signer, typedData] = params
+
+    const { id: networkId } = this.networkManager.getActive()
+    const { id: accountId, account } = await this.accountManager.getActive()
+    if (!address.isEqual(signer, await account.getAddress())) {
+      throw new Error("Signer address doesn't match connected account")
+    }
+
+    const requestId = await this.requestPool.send({
+      request: new Eip712Request(typedData),
+      accountId,
+      networkId
+    })
+    const signature = await this.requestPool.wait(requestId)
+
+    return signature
   }
 
   private async handleSendUserOperation(

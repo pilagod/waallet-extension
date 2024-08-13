@@ -16,7 +16,7 @@ describe("PasskeyOwnerP256", () => {
       signature: { r, s }
     } = await owner.sign(challenge)
 
-    expect(Bytes.wrap(challenge).eip191().unwrap("base64url")).toBe(
+    expect(Bytes.wrap(challenge).unwrap("base64url")).toBe(
       JSON.parse(clientDataJson).challenge
     )
 

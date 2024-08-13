@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid"
 
+import { SignatureFormat } from "~packages/account"
 import type { AccountManager } from "~packages/account/manager"
 import type { UserOperation } from "~packages/bundler/userOperation"
 import { GasPriceEstimator } from "~packages/gas/price/estimator"
@@ -156,7 +157,7 @@ export class Eip712RequestHandler {
     const { request, accountId } = data
     const { account } = await this.accountManager.get(accountId)
     const id = uuidv4()
-    this.pool[id] = account.sign(request.hash())
+    this.pool[id] = account.sign(request.hash(), SignatureFormat.Raw)
     return id
   }
 
