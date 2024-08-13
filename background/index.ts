@@ -13,6 +13,7 @@ import {
   TransactionStatus,
   type ERC4337TransactionReverted,
   type ERC4337TransactionSucceeded,
+  type State,
   type TransactionLog
 } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
@@ -94,6 +95,84 @@ async function main() {
     { pendingTransaction: {} }
   )
 
+  // networkContext to hold the current provider and block subscriber
+  const networkContext: {
+    provider?: JsonRpcProvider
+    blockSubscriber?: (blockNumber: number) => Promise<void>
+  } = {}
+
+  const listenAccountBalance = async () => {
+    // Subscriber function that handles network changes
+    const networkActiveSubscriber = async (state: State) => {
+      console.log(`[background][listenAccountBalance] network changed`)
+
+      // Remove previous subscription if exists
+      if (networkContext.provider && networkContext.blockSubscriber) {
+        networkContext.provider.off("block", networkContext.blockSubscriber)
+      }
+
+      const { account, network, networkActive } = state
+
+      // Return early if the account is not exist
+      if (!network[networkActive].accountActive) {
+        return
+      }
+
+      const {
+        id,
+        tokens,
+        chainId,
+        balance: accountBalance,
+        address: accountAddress
+      } = account[network[networkActive].accountActive]
+
+      // Create a new provider instance with the updated RPC URL
+      networkContext.provider = new JsonRpcProvider(
+        network[networkActive].nodeRpcUrl
+      )
+
+      // Define a new block subscriber function
+      networkContext.blockSubscriber = async (blockNumber) => {
+        console.log(
+          `[background][listenAccountBalance] Chain id: ${chainId}, New block mined: ${blockNumber}`
+        )
+
+        const nativeBalance =
+          await networkContext.provider.getBalance(accountAddress)
+
+        // Update the account balance if it has changed
+        if (number.toBigInt(accountBalance) !== nativeBalance) {
+          storage.set((state) => {
+            state.account[id].balance = number.toHex(nativeBalance)
+          })
+        }
+
+        tokens.map(async (t) => {
+          const tokenContract = await ERC20Contract.init(
+            t.address,
+            networkContext.provider
+          )
+          const tokenBalance = await tokenContract.balanceOf(accountAddress)
+
+          // Update token balance if it has changed
+          if (number.toBigInt(t.balance) !== tokenBalance) {
+            storage.set((state) => {
+              state.account[id].tokens.find((token) =>
+                address.isEqual(token.address, t.address)
+              ).balance = number.toHex(tokenBalance)
+            })
+          }
+        })
+      }
+
+      // Subscribe to new blocks using the updated block subscriber function
+      networkContext.provider.on("block", networkContext.blockSubscriber)
+    }
+
+    // Subscribe to network changes
+    storage.subscribe(networkActiveSubscriber, { networkActive: "" })
+  }
+
   const indexTransactionSent = async () => {
     const timeout = 3000
     console.log(`[background] Sync transactions sent every ${timeout} ms`)
@@ -160,66 +239,11 @@ async function main() {
     setTimeout(indexTransactionSent, timeout)
   }
 
-  // TODO: In the future, adding an Indexer to the Background Script to
-  // monitor Account-related transactions. Updates like balance will trigger
-  // as needed, avoiding fixed interval polling with setInterval().
-  const fetchAccountBalances = async () => {
-    const timeout = 3000
-    console.log(`[background] fetch token balance every ${timeout} ms`)
-
-    const { node } = networkManager.getActive()
-    const { id: accountId } = await accountManager.getActive()
-
-    const { account } = storage.get()
-    const { tokens, balance, address: accountAddress } = account[accountId]
-
-    const provider = new JsonRpcProvider(node.url)
-
-    // TODO: Need to obtain the 'from' address for transferring native token and ERC20 tokens
-
-    // Update the balance of native token
-    const nativeBalance: bigint = await provider.getBalance(accountAddress)
-
-    if (number.toBigInt(balance) !== nativeBalance) {
-      storage.set((state) => {
-        state.account[accountId].balance = number.toHex(nativeBalance)
-      })
-    }
-
-    // Update the balance of all tokens
-    for (const t of tokens) {
-      try {
-        const token = await ERC20Contract.init(t.address, provider)
-        const tokenBalance = await token.balanceOf(accountAddress)
-
-        if (number.toBigInt(t.balance) !== tokenBalance) {
-          storage.set((state) => {
-            const token = state.account[accountId].tokens.find((token) =>
-              address.isEqual(token.address, t.address)
-            )
-            if (!token) {
-              console.warn(`[Popup][tokens] Unknown token: ${t.address}`)
-              return
-            }
-            token.balance = number.toHex(tokenBalance)
-          })
-        }
-      } catch (error) {
-        console.warn(
-          `[Popup][tokens] error occurred while getting balance: ${error}`
-        )
-        continue
-      }
-    }
-
-    setTimeout(fetchAccountBalances, timeout)
-  }
-
   // TODO: Using these two asynchronous functions, both executing
   // `storage.set()` commands, often triggers the error: "Error: Could not
   // establish connection. Receiving end does not exist."
+  await listenAccountBalance()
   await indexTransactionSent()
-  await fetchAccountBalances()
 }
 
 main()
