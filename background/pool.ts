@@ -1,14 +1,16 @@
 import { v4 as uuidv4 } from "uuid"
 
 import { ObservableStorage } from "~packages/storage/observable"
-import type {
-  Request,
-  RequestPool
+import {
+  Eip712Request,
+  TransactionRequest,
+  type Request,
+  type RequestPool
 } from "~packages/waallet/background/pool/request"
-import { Eip712Request } from "~packages/waallet/background/pool/request"
 import {
   RequestType,
   TransactionStatus,
+  type Request as PendingRequest,
   type State
 } from "~storage/local/state"
 
@@ -20,26 +22,13 @@ export class RequestStoragePool implements RequestPool {
     accountId: string
     networkId: string
   }) {
-    const { request, accountId, networkId } = data
-
-    if (request instanceof Eip712Request) {
-      throw new Error("EIP-712 is not yet supported")
-    }
-
-    const id = uuidv4()
+    const request = this.transformPendingRequest(data)
 
     this.storage.set((state) => {
-      state.pendingRequests.push({
-        type: RequestType.Transaction,
-        id,
-        createdAt: Date.now(),
-        accountId,
-        networkId,
-        ...request.unwrap()
-      })
+      state.pendingRequests.push(request)
     })
 
-    return id
+    return request.id
   }
 
   public wait(txId: string) {
@@ -80,5 +69,28 @@ export class RequestStoragePool implements RequestPool {
         account: { [tx.accountId]: { transactionLog: { [txId]: {} } } }
       })
     })
+  }
+
+  /* private */
+
+  private transformPendingRequest(data: {
+    request: Request
+    accountId: string
+    networkId: string
+  }): PendingRequest {
+    const { request, accountId, networkId } = data
+    const meta = {
+      id: uuidv4(),
+      createdAt: Date.now(),
+      accountId,
+      networkId
+    }
+    if (request instanceof TransactionRequest) {
+      return { type: RequestType.Transaction, ...meta, ...request.unwrap() }
+    }
+    if (request instanceof Eip712Request) {
+      return { type: RequestType.Eip712, ...meta, ...request.unwrap() }
+    }
+    throw new Error(`Unknown request type ${request}`)
   }
 }

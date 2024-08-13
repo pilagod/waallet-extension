@@ -4,6 +4,7 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
+import type { Eip712TypedData } from "~packages/eip/712"
 import { type Token } from "~packages/token"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
@@ -96,24 +97,34 @@ export type VerifyingPaymaster = {
 /* Request */
 
 export enum RequestType {
-  Transaction = "Transaction"
+  Transaction = "Transaction",
+  Eip712 = "Eip712"
 }
 
-export type Request = TransactionRequest
+export type Request = TransactionRequest | Eip712Request
 
-export type TransactionRequest = {
-  type: RequestType.Transaction
+export type RequestMeta<T> = {
   id: string
   createdAt: number
   accountId: string
   networkId: string
+} & T
+
+export type TransactionRequest = RequestMeta<{
+  type: RequestType.Transaction
   to: HexString
   value: HexString
   data: HexString
   nonce?: HexString
   gasLimit?: HexString
   gasPrice?: HexString
-}
+}>
+
+export type Eip712Request = RequestMeta<
+  {
+    type: RequestType.Eip712
+  } & Eip712TypedData
+>
 
 /* Transaction */
 

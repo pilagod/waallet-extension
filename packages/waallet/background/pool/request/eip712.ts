@@ -1,6 +1,10 @@
 import { TypedDataEncoder } from "ethers"
 
-import type { Eip712Domain, Eip712Types } from "~packages/eip/712"
+import type {
+  Eip712Domain,
+  Eip712TypedData,
+  Eip712Types
+} from "~packages/eip/712"
 
 export class Eip712Request {
   public types: Eip712Types
@@ -24,5 +28,14 @@ export class Eip712Request {
     // TypedDataEncoder forbids unused type in message
     const { EIP712Domain, ...types } = this.types
     return TypedDataEncoder.hash(this.domain, types, this.message)
+  }
+
+  public unwrap(): Eip712TypedData {
+    return {
+      types: this.types,
+      domain: this.domain,
+      primaryType: this.primaryType,
+      message: this.message
+    }
   }
 }

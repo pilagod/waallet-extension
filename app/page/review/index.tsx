@@ -4,6 +4,7 @@ import { useHashLocation } from "wouter/use-hash-location"
 
 import { Path } from "~app/path"
 import { useAction, usePendingRequests } from "~app/storage"
+import { RequestType } from "~storage/local/state"
 
 import { TransactionConfirmation } from "./transaction"
 
@@ -31,14 +32,20 @@ export function Review() {
   if (pendingRequests.length === 0) {
     return
   }
-  // TODO: Support more request types
-  const [tx] = pendingRequests
 
-  return (
-    <ProfileSwitcher accountId={tx.accountId} networkId={tx.networkId}>
-      <TransactionConfirmation tx={tx} />
-    </ProfileSwitcher>
-  )
+  const [request] = pendingRequests
+
+  if (request.type === RequestType.Transaction) {
+    return (
+      <ProfileSwitcher
+        accountId={request.accountId}
+        networkId={request.networkId}>
+        <TransactionConfirmation tx={request} />
+      </ProfileSwitcher>
+    )
+  }
+
+  return <div>This is a EIP712 request</div>
 }
 
 function ProfileSwitcher(props: {
