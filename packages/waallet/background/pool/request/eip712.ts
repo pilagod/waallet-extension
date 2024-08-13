@@ -1,3 +1,5 @@
+import { TypedDataEncoder } from "ethers"
+
 import type { Eip712Domain, Eip712Types } from "~packages/waallet/rpc"
 
 export class Eip712Request {
@@ -16,5 +18,9 @@ export class Eip712Request {
     this.domain = data.domain
     this.primaryType = data.primaryType
     this.message = data.message
+  }
+
+  public hash() {
+    return TypedDataEncoder.hash(this.domain, this.types, this.message)
   }
 }

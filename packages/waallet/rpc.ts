@@ -142,7 +142,7 @@ export type Eip712Domain = {
   salt?: Nullable<BytesLike>
 }
 
-export type Eip712Types = Record<string, Eip712Type>
+export type Eip712Types = Record<string, Eip712Type[]>
 
 export type Eip712Type = {
   name: string

@@ -6,18 +6,27 @@ import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
 import type { HexString } from "~typing"
 
-import { TransactionRequest, type Request, type RequestPool } from "./index"
+import {
+  Eip712Request,
+  TransactionRequest,
+  type Request,
+  type RequestPool
+} from "./index"
 
 export class RequestHandler implements RequestPool {
   private request: Record<string, Request> = {}
 
-  public constructor(private transactionRequestHandler: RequestPool) {}
+  public constructor(
+    private transactionRequestHandler: TransactionRequestHandler,
+    private eip712RequestHandler: Eip712RequestHandler
+  ) {}
 
   public async send(data: {
     request: Request
     accountId: string
     networkId: string
   }) {
+    // TODO: Return id and promise
     const requestId = await this.handleSend(data)
     this.request[requestId] = data.request
     return requestId
@@ -37,7 +46,13 @@ export class RequestHandler implements RequestPool {
     networkId: string
   }) {
     if (data.request instanceof TransactionRequest) {
-      return this.transactionRequestHandler.send(data)
+      return this.transactionRequestHandler.send({
+        ...data,
+        request: data.request
+      })
+    }
+    if (data.request instanceof Eip712Request) {
+      return this.eip712RequestHandler.send({ ...data, request: data.request })
     }
     throw new Error("Unknown request type to send")
   }
@@ -47,12 +62,17 @@ export class RequestHandler implements RequestPool {
     if (request instanceof TransactionRequest) {
       return this.transactionRequestHandler.wait(requestId)
     }
+    if (request instanceof Eip712Request) {
+      return this.eip712RequestHandler.wait(requestId)
+    }
     throw new Error("Unknown request type to wait")
   }
 }
 
-export class TransactionRequestHandler implements RequestPool {
-  private pool: { [txId: string]: Promise<HexString> } = {}
+/* Transaction Request Handler */
+
+export class TransactionRequestHandler {
+  private pool: { [requestId: string]: Promise<HexString> } = {}
 
   public constructor(
     private accountManager: AccountManager,
@@ -120,7 +140,27 @@ export class TransactionRequestHandler implements RequestPool {
     return id
   }
 
-  public wait(txId: string) {
-    return this.pool[txId]
+  public wait(requestId: string) {
+    return this.pool[requestId]
+  }
+}
+
+/* EIP-712 Request Handler */
+
+export class Eip712RequestHandler {
+  private pool: { [requestId: string]: Promise<HexString> } = {}
+
+  public constructor(private accountManager: AccountManager) {}
+
+  public async send(data: { request: Eip712Request; accountId: string }) {
+    const { request, accountId } = data
+    const { account } = await this.accountManager.get(accountId)
+    const id = uuidv4()
+    this.pool[id] = account.sign(request.hash())
+    return id
+  }
+
+  public wait(requestId: string) {
+    return this.pool[requestId]
   }
 }
