@@ -1,6 +1,6 @@
 import { TypedDataEncoder } from "ethers"
 
-import type { Eip712Domain, Eip712Types } from "~packages/waallet/rpc"
+import type { Eip712Domain, Eip712Types } from "~packages/eip/712"
 
 export class Eip712Request {
   public types: Eip712Types
