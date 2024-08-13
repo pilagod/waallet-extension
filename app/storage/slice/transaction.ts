@@ -5,6 +5,7 @@ import {
   RequestType,
   TransactionStatus,
   TransactionType,
+  type Eip712Request,
   type ERC4337TransactionRejected,
   type ERC4337TransactionSent
 } from "~storage/local/state"
@@ -13,6 +14,7 @@ import type { HexString } from "~typing"
 import type { BackgroundStateCreator } from "../middleware/background"
 import type { StateSlice } from "./state"
 
+// TODO: Rename to request slice
 export interface TransactionSlice {
   /* Profile */
 
@@ -44,6 +46,11 @@ export interface TransactionSlice {
       userOpHash: HexString
     }
   ): Promise<void>
+
+  /* EIP-712 */
+
+  cancelEip712Request(requestId: string): Promise<void>
+  resolveEip712Request(requestId: string, signature: HexString): Promise<void>
 }
 
 export const createTransactionSlice: BackgroundStateCreator<
@@ -132,6 +139,32 @@ export const createTransactionSlice: BackgroundStateCreator<
       }
       state.account[txSent.accountId].transactionLog[txSent.id] = txSent
       state.pendingRequests.splice(txIndex, 1)
+    })
+  },
+
+  /* EIP-712 */
+
+  cancelEip712Request: async (requestId: string) => {
+    await set(({ state }) => {
+      const index = state.pendingRequests.findIndex(
+        (r) => r.type === RequestType.Eip712 && r.id === requestId
+      )
+      if (index < 0) {
+        return
+      }
+      state.pendingRequests.splice(index, 1)
+    })
+  },
+
+  resolveEip712Request: async (requestId: string, signature: HexString) => {
+    await set(({ state }) => {
+      const request = state.pendingRequests.find(
+        (r) => r.type === RequestType.Eip712 && r.id === requestId
+      ) as Eip712Request
+      if (!request) {
+        return
+      }
+      request.signature = signature
     })
   }
 })

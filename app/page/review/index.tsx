@@ -1,11 +1,16 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import browser from "webextension-polyfill"
 import { useHashLocation } from "wouter/use-hash-location"
 
+import { ProviderContext } from "~app/context/provider"
+import { useAccount, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { useAction, usePendingRequests } from "~app/storage"
-import { RequestType } from "~storage/local/state"
+import type { Account } from "~packages/account"
+import { AccountStorageManager } from "~storage/local/manager"
+import { RequestType, type Request } from "~storage/local/state"
 
+import { Eip712Confirmation } from "./eip712"
 import { TransactionConfirmation } from "./transaction"
 
 export function Review() {
@@ -35,17 +40,13 @@ export function Review() {
 
   const [request] = pendingRequests
 
-  if (request.type === RequestType.Transaction) {
-    return (
-      <ProfileSwitcher
-        accountId={request.accountId}
-        networkId={request.networkId}>
-        <TransactionConfirmation tx={request} />
-      </ProfileSwitcher>
-    )
-  }
-
-  return <div>This is a EIP712 request</div>
+  return (
+    <ProfileSwitcher
+      accountId={request.accountId}
+      networkId={request.networkId}>
+      <PendingRequestConfirmation request={pendingRequests[0]} />
+    </ProfileSwitcher>
+  )
 }
 
 function ProfileSwitcher(props: {
@@ -71,4 +72,49 @@ function ProfileSwitcher(props: {
   }
 
   return children
+}
+
+function PendingRequestConfirmation(props: { request: Request }) {
+  const { request } = props
+
+  const { provider } = useContext(ProviderContext)
+
+  const account = useAccount(request.accountId)
+  const network = useNetwork(request.networkId)
+
+  const [accountActor, setAccountActor] = useState<Account>(null)
+
+  useEffect(() => {
+    async function setupAccountActor() {
+      const actor = await AccountStorageManager.wrap(provider, account)
+      setAccountActor(actor)
+    }
+    setupAccountActor()
+  }, [account.id])
+
+  if (!accountActor) {
+    return
+  }
+
+  if (request.type === RequestType.Transaction) {
+    return (
+      <TransactionConfirmation
+        tx={request}
+        account={{ actor: accountActor, name: account.name }}
+        network={network}
+      />
+    )
+  }
+
+  if (request.type === RequestType.Eip712) {
+    return (
+      <Eip712Confirmation
+        request={request}
+        account={{ actor: accountActor }}
+        network={network}
+      />
+    )
+  }
+
+  throw new Error("Unknown request")
 }

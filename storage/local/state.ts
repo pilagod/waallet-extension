@@ -123,6 +123,7 @@ export type TransactionRequest = RequestMeta<{
 export type Eip712Request = RequestMeta<
   {
     type: RequestType.Eip712
+    signature?: HexString
   } & Eip712TypedData
 >
 
