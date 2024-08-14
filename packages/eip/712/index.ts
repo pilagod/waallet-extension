@@ -1,4 +1,4 @@
-import { TypedDataEncoder } from "ethers"
+import { TypedDataEncoder, verifyTypedData } from "ethers"
 
 import type { BigNumberish, BytesLike, HexString, Nullable } from "~typing"
 
@@ -48,4 +48,13 @@ export function eip712Hash(typedData: Eip712TypedData) {
     message
   } = typedData
   return TypedDataEncoder.hash(domain, types, message)
+}
+
+export function eip712Verify(typedData: Eip712TypedData, signature: HexString) {
+  const {
+    domain,
+    types: { EIP712Domain, ...types },
+    message
+  } = typedData
+  return verifyTypedData(domain, types, message, signature)
 }
