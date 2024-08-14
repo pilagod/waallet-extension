@@ -115,26 +115,29 @@ async function main() {
 
       const { account, network, networkActive } = state
 
-      // Return early if the account is not exist
-      if (!network[networkActive].accountActive) {
-        return
-      }
-
-      const {
-        id,
-        tokens,
-        chainId,
-        balance: accountBalance,
-        address: accountAddress
-      } = account[network[networkActive].accountActive]
-
-      // Create a new provider instance with the updated RPC URL
+      // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
+      // Refer: https://github.com/ethers-io/ethers.js/issues/4377
       networkContext.provider = new JsonRpcProvider(
-        network[networkActive].nodeRpcUrl
+        network[networkActive].nodeRpcUrl,
+        network[networkActive].chainId,
+        { staticNetwork: true }
       )
 
       // Define a new block subscriber function
       networkContext.blockSubscriber = async (blockNumber) => {
+        // Return early if the account is not exist
+        if (!network[networkActive].accountActive) {
+          return
+        }
+
+        const {
+          id,
+          tokens,
+          chainId,
+          balance: accountBalance,
+          address: accountAddress
+        } = account[network[networkActive].accountActive]
+
         console.log(
           `[background][listenAccountBalance] Chain id: ${chainId}, New block mined: ${blockNumber}`
         )
