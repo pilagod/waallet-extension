@@ -11,8 +11,8 @@ import {
 } from "~storage/local/manager"
 import {
   TransactionStatus,
-  type ERC4337TransactionReverted,
-  type ERC4337TransactionSucceeded,
+  type Erc4337TransactionReverted,
+  type Erc4337TransactionSucceeded,
   type TransactionLog
 } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
@@ -120,7 +120,7 @@ async function main() {
       }
 
       if (userOpReceipt.success) {
-        const txSucceeded: ERC4337TransactionSucceeded = {
+        const txSucceeded: Erc4337TransactionSucceeded = {
           ...txLog,
           status: TransactionStatus.Succeeded,
           receipt: {
@@ -138,7 +138,7 @@ async function main() {
       }
 
       if (!userOpReceipt.success) {
-        const txReverted: ERC4337TransactionReverted = {
+        const txReverted: Erc4337TransactionReverted = {
           ...txLog,
           status: TransactionStatus.Reverted,
           receipt: {
