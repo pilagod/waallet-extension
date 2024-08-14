@@ -26,14 +26,14 @@ import { ETH } from "~packages/token"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import { AccountStorageManager } from "~storage/local/manager"
-import { TransactionType, type TransactionPending } from "~storage/local/state"
+import { TransactionType, type TransactionRequest } from "~storage/local/state"
 
 export type PaymentOption = {
   name: string
   paymaster: Paymaster
 }
 
-export function TransactionConfirmation(props: { tx: TransactionPending }) {
+export function TransactionConfirmation(props: { tx: TransactionRequest }) {
   const { tx } = props
 
   const { provider } = useContext(ProviderContext)
@@ -67,7 +67,7 @@ export function TransactionConfirmation(props: { tx: TransactionPending }) {
 }
 
 function UserOperationConfirmation(props: {
-  tx: TransactionPending
+  tx: TransactionRequest
   sender: Account
   senderInfo: {
     name: string

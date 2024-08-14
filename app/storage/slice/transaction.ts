@@ -1,6 +1,7 @@
 import address from "packages/util/address"
 
 import { type UserOperation } from "~packages/bundler/userOperation"
+import { StateActor } from "~storage/local/actor"
 import {
   TransactionStatus,
   TransactionType,
@@ -86,7 +87,8 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   markERC4337TransactionRejected: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const tx = state.pendingTransaction[txId]
+      const stateActor = new StateActor(state)
+      const tx = stateActor.getTransactionRequest(txId)
       const txRejected: ERC4337TransactionRejected = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -101,13 +103,14 @@ export const createTransactionSlice: BackgroundStateCreator<
       }
       state.account[txRejected.senderId].transactionLog[txRejected.id] =
         txRejected
-      delete state.pendingTransaction[tx.id]
+      stateActor.resolveTransactionRequest(txId)
     })
   },
 
   markERC4337TransactionSent: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const tx = state.pendingTransaction[txId]
+      const stateActor = new StateActor(state)
+      const tx = stateActor.getTransactionRequest(txId)
       const txSent: ERC4337TransactionSent = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -124,7 +127,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         }
       }
       state.account[txSent.senderId].transactionLog[txSent.id] = txSent
-      delete state.pendingTransaction[tx.id]
+      stateActor.resolveTransactionRequest(txId)
     })
   }
 })

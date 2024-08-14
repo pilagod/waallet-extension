@@ -3,13 +3,13 @@ import browser from "webextension-polyfill"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { Path } from "~app/path"
-import { useAction, usePendingTransactions } from "~app/storage"
+import { useAction, usePendingRequests } from "~app/storage"
 
 import { TransactionConfirmation } from "./transaction"
 
 export function Review() {
   const [, navigate] = useHashLocation()
-  const pendingTxs = usePendingTransactions()
+  const pendingRequests = usePendingRequests()
 
   useEffect(() => {
     async function redirect() {
@@ -23,15 +23,16 @@ export function Review() {
         navigate(Path.Home)
       }
     }
-    if (pendingTxs.length === 0) {
+    if (pendingRequests.length === 0) {
       redirect()
     }
-  }, [pendingTxs.length])
+  }, [pendingRequests.length])
 
-  if (pendingTxs.length === 0) {
+  if (pendingRequests.length === 0) {
     return
   }
-  const [tx] = pendingTxs
+  // TODO: Support more request types
+  const [tx] = pendingRequests
 
   return (
     <ProfileSwitcher accountId={tx.senderId} networkId={tx.networkId}>
