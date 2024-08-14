@@ -1,6 +1,7 @@
 import * as ethers from "ethers"
 
 import type { Call } from "~packages/account"
+import { AccountType } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import { type ContractRunner } from "~packages/node"
 import { Bytes } from "~packages/primitive/bytes"
@@ -50,11 +51,19 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     })
   }
 
-  private account: ethers.Contract
-  private owner: ethers.Wallet
+  public static decode(calldata: HexString): Call {
+    const [dest, value, func] = new ethers.Interface(
+      SimpleAccount.abi
+    ).decodeFunctionData("execute", calldata)
+    return { to: dest, value, data: func }
+  }
+
   private static abi: string[] = [
     "function execute(address dest, uint256 value, bytes calldata func)"
   ]
+
+  private account: ethers.Contract
+  private owner: ethers.Wallet
 
   private constructor(
     runner: ContractRunner,
@@ -72,11 +81,16 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     this.owner = option.owner
   }
 
-  public static decode(calldata: HexString): Call {
-    const [dest, value, func] = new ethers.Interface(
-      SimpleAccount.abi
-    ).decodeFunctionData("execute", calldata)
-    return { to: dest, value, data: func }
+  public dump() {
+    return {
+      type: AccountType.SimpleAccount as AccountType.SimpleAccount,
+      address: this.address,
+      ownerPrivateKey: this.owner.privateKey,
+      ...(this.factory && {
+        factoryAddress: this.factory.address,
+        salt: this.factory.salt
+      })
+    }
   }
 
   protected async getCallData(call: Call): Promise<HexString> {
