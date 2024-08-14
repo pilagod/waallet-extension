@@ -8,11 +8,12 @@ import { PasskeyVerification } from "~app/component/passkeyVerification"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
-import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
+import { useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 
 export function AccountCreate() {
@@ -20,8 +21,7 @@ export function AccountCreate() {
   const { provider } = useContext(ProviderContext)
   const { setToast } = useContext(ToastContext)
 
-  const { createAccount } = useAction()
-  const accounts = useAccounts()
+  const { createPasskeyAccount } = useAction()
   const network = useNetwork()
 
   const [accountName, setAccountName] = useState("")
@@ -32,7 +32,9 @@ export function AccountCreate() {
   const createNewAccount = async () => {
     setAccountCreating(true)
     try {
-      if (!network.accountFactory[AccountType.PasskeyAccount]) {
+      if (
+        !address.isValid(network.accountFactory[AccountType.PasskeyAccount])
+      ) {
         throw new Error("Passkey account factory is not set")
       }
       const account = await PasskeyAccount.initWithFactory(provider, {
@@ -40,7 +42,7 @@ export function AccountCreate() {
         salt: number.random(),
         factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
       })
-      await createAccount(accountName, account, network.id)
+      await createPasskeyAccount(accountName, account, network.id)
       setToast("Account created!", "success")
       navigate(Path.Home)
     } catch (e) {

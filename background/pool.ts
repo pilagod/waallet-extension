@@ -5,6 +5,7 @@ import type {
   Request,
   RequestPool
 } from "~packages/waallet/background/pool/request"
+import { StateActor } from "~storage/local/actor"
 import {
   RequestType,
   TransactionStatus,
@@ -39,12 +40,9 @@ export class RequestStoragePool implements RequestPool {
 
   public wait(txId: string) {
     return new Promise<string>((resolve, reject) => {
-      // TODO: What if transaction not found?
-      const [tx] = this.storage
-        .get()
-        .pendingRequests.filter(
-          (r) => r.type === RequestType.Transaction && r.id === txId
-        )
+      const stateActor = new StateActor(this.storage.get())
+      const tx = stateActor.getTransactionRequest(txId)
+
       const subscriber = async ({ account }: State) => {
         const txLog = account[tx.accountId].transactionLog[txId]
 
