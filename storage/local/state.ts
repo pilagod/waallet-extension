@@ -21,6 +21,7 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
+  // TODO: Add `resolvedRequest`
   pendingRequest: Record<string, Request>
 }
 
