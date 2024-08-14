@@ -4,6 +4,7 @@ import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
 import address from "~packages/util/address"
+import json from "~packages/util/json"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
@@ -192,7 +193,9 @@ export class WaalletBackgroundProvider {
     }
 
     const requestId = await this.requestPool.send({
-      request: new Eip712Request(typedData),
+      request: new Eip712Request(
+        typeof typedData === "string" ? json.parse(typedData) : typedData
+      ),
       accountId,
       networkId
     })

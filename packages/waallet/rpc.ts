@@ -105,6 +105,6 @@ export type EthSignTypedDataV4 = {
   method: WaalletRpcMethod.eth_signTypedData_v4
   params: [
     HexString, // signer address
-    Eip712TypedData
+    Eip712TypedData | string
   ]
 }
