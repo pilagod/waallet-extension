@@ -31,7 +31,7 @@ export function Eip712Confirmation(props: {
     <>
       <StepBackHeader title="Signing Request" />
 
-      <ScrollableWrapper x={true} className="p-[16px] h-[307px]">
+      <ScrollableWrapper x={true} className="p-[16px] h-[381px]">
         <section>
           <h2 className="text-[12px] text-[#989898]">Domain</h2>
           <div className="mt-[8px] text-[16px]">
