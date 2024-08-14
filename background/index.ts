@@ -104,7 +104,9 @@ async function main() {
   const listenAccountBalance = async () => {
     // Subscriber function that handles network changes
     const networkActiveSubscriber = async (state: State) => {
-      console.log(`[background][listenAccountBalance] network changed`)
+      console.log(
+        `[background][listenAccountBalance] Network or account changed`
+      )
 
       // Remove previous subscription if exists
       if (networkContext.provider && networkContext.blockSubscriber) {
@@ -169,8 +171,14 @@ async function main() {
       networkContext.provider.on("block", networkContext.blockSubscriber)
     }
 
-    // Subscribe to network changes
-    storage.subscribe(networkActiveSubscriber, { networkActive: "" })
+    // Subscribe to networkActive changes
+    storage.subscribe(networkActiveSubscriber, {
+      networkActive: ""
+    })
+    // Subscribe to account changes
+    storage.subscribe(networkActiveSubscriber, {
+      account: {}
+    })
   }
 
   const indexTransactionSent = async () => {
