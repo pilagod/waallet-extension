@@ -5,9 +5,11 @@ import type { ContractRunner } from "~packages/node"
 import type { BigNumberish, HexString } from "~typing"
 
 export class SimpleAccountFactory implements AccountFactory {
+  public address: HexString
+  public salt: BigNumberish
+
   private factory: ethers.Contract
   private owner: HexString
-  private salt: BigNumberish
 
   public constructor(
     private runner: ContractRunner,
@@ -17,6 +19,8 @@ export class SimpleAccountFactory implements AccountFactory {
       salt: BigNumberish
     }
   ) {
+    this.address = option.address
+    this.salt = option.salt
     this.factory = new ethers.Contract(
       option.address,
       [
@@ -27,7 +31,6 @@ export class SimpleAccountFactory implements AccountFactory {
       this.runner
     )
     this.owner = option.owner
-    this.salt = option.salt
   }
 
   public async getAddress() {

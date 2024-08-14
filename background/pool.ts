@@ -112,7 +112,7 @@ export class RequestStoragePool implements RequestPool {
     return new Promise<HexString>((resolve, reject) => {
       const subscriber = async (_: State, patches: Patch[]) => {
         const [patch] = patches.filter(
-          (p) => p.path[0] === "pendingRequests" && p.path[1] === request.id
+          (p) => p.path[0] === "pendingRequest" && p.path[1] === request.id
         )
         if (!patch || patch.op === "replace") {
           return

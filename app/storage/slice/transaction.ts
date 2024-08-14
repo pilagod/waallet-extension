@@ -1,8 +1,8 @@
 import address from "packages/util/address"
 
 import { type UserOperation } from "~packages/bundler/userOperation"
+import { StateActor } from "~storage/local/actor"
 import {
-  RequestType,
   TransactionStatus,
   TransactionType,
   type ERC4337TransactionRejected,
@@ -94,10 +94,8 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   markERC4337TransactionRejected: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const tx = state.pendingRequest[txId]
-      if (!tx || tx.type !== RequestType.Transaction) {
-        throw new Error(`Transaction request ${txId} not found`)
-      }
+      const stateActor = new StateActor(state)
+      const tx = stateActor.getTransactionRequest(txId)
       const txRejected: ERC4337TransactionRejected = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -118,10 +116,8 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   markERC4337TransactionSent: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const tx = state.pendingRequest[txId]
-      if (!tx || tx.type !== RequestType.Transaction) {
-        throw new Error(`Transaction request ${txId} not found`)
-      }
+      const stateActor = new StateActor(state)
+      const tx = stateActor.getTransactionRequest(txId)
       const txSent: ERC4337TransactionSent = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -146,21 +142,17 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   cancelEip712Request: async (requestId: string) => {
     await set(({ state }) => {
-      const eip712 = state.pendingRequest[requestId]
-      if (!eip712 || eip712.type !== RequestType.Eip712) {
-        throw new Error(`EIP-712 request ${requestId} not found`)
-      }
-      delete state.pendingRequest[requestId]
+      const stateActor = new StateActor(state)
+      const request = stateActor.getEip712Request(requestId)
+      delete state.pendingRequest[request.id]
     })
   },
 
   resolveEip712Request: async (requestId: string, signature: HexString) => {
     await set(({ state }) => {
-      const eip712 = state.pendingRequest[requestId]
-      if (!eip712 || eip712.type !== RequestType.Eip712) {
-        throw new Error(`EIP-712 request ${requestId} not found`)
-      }
-      eip712.signature = signature
+      const stateActor = new StateActor(state)
+      const request = stateActor.getEip712Request(requestId)
+      request.signature = signature
     })
   }
 })

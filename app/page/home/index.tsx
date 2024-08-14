@@ -1,15 +1,24 @@
-import { useState } from "react"
+import { Wallet } from "ethers"
+import { useContext, useEffect, useState } from "react"
 import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
-import { useHashLocation } from "wouter/use-hash-location"
 
 import { Divider } from "~app/component/divider"
-import { useAccount, useAccounts, useNetwork } from "~app/hook/storage"
+import { ProviderContext } from "~app/context/provider"
+import {
+  useAccount,
+  useAccounts,
+  useAction,
+  useNetwork
+} from "~app/hook/storage"
 import { Activity } from "~app/page/home/activity"
 import { Navbar } from "~app/page/home/navbar"
 import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
+import { AccountType } from "~packages/account"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {
@@ -19,12 +28,39 @@ export enum InfoNavigation {
 
 export function Home() {
   const hasNoAccount = useAccounts().length === 0
+
+  const { provider } = useContext(ProviderContext)
+  const { createSimpleAccount } = useAction()
+  const network = useNetwork()
+
+  useEffect(() => {
+    if (!hasNoAccount) {
+      return
+    }
+
+    const initSimpleAccount = async () => {
+      const hasSimpleAccountFactory = address.isValid(
+        network.accountFactory[AccountType.SimpleAccount]
+      )
+
+      if (hasSimpleAccountFactory) {
+        const account = await SimpleAccount.initWithFactory(provider, {
+          ownerPrivateKey: Wallet.createRandom().privateKey,
+          salt: number.random(),
+          factoryAddress: network.accountFactory[AccountType.SimpleAccount]
+        })
+
+        await createSimpleAccount(`Account 1`, account, network.id)
+      }
+    }
+
+    initSimpleAccount()
+  }, [network.id])
+
   return (
     <>
       <Navbar />
-      {hasNoAccount ? (
-        <AccountCreation />
-      ) : (
+      {!hasNoAccount && (
         <>
           <AccountInfo />
           <Divider />
@@ -32,20 +68,6 @@ export function Home() {
         </>
       )}
     </>
-  )
-}
-
-function AccountCreation() {
-  const [, navigate] = useHashLocation()
-
-  return (
-    <div className="text-center">
-      <button
-        className="border-2 border-black rounded-full px-2"
-        onClick={() => navigate(Path.AccountCreate)}>
-        Create your first AA account
-      </button>
-    </div>
   )
 }
 

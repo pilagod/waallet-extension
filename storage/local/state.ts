@@ -64,6 +64,8 @@ export type SimpleAccount = AccountMeta<{
   chainId: number
   address: HexString
   ownerPrivateKey: HexString
+  factoryAddress?: HexString
+  salt?: HexString
 }>
 
 export type PasskeyAccount = AccountMeta<{
