@@ -4,7 +4,7 @@ import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useAction, type Network } from "~app/hook/storage"
 import type { Account } from "~packages/account"
-import { Eip712Request as Eip712RequestEncoder } from "~packages/eip/712"
+import { eip712Hash } from "~packages/eip/712"
 import { format } from "~packages/util/json"
 import type { Eip712Request } from "~storage/local/state"
 
@@ -23,9 +23,7 @@ export function Eip712Confirmation(props: {
     await cancelEip712Request(request.id)
   }
   const sign = async () => {
-    const signature = await account.actor.sign(
-      new Eip712RequestEncoder(request).hash()
-    )
+    const signature = await account.actor.sign(eip712Hash(request))
     await resolveEip712Request(request.id, signature)
   }
 

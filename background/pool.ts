@@ -87,7 +87,7 @@ export class RequestStoragePool implements RequestPool {
       return { type: RequestType.Transaction, ...meta, ...request.unwrap() }
     }
     if (request instanceof Eip712Request) {
-      return { type: RequestType.Eip712, ...meta, ...request.unwrap() }
+      return { type: RequestType.Eip712, ...meta, ...request.typedData }
     }
     throw new Error(`Unknown request type ${request}`)
   }
