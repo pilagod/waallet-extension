@@ -5,7 +5,6 @@ import {
   RequestType,
   TransactionStatus,
   TransactionType,
-  type Eip712Request,
   type ERC4337TransactionRejected,
   type ERC4337TransactionSent
 } from "~storage/local/state"
@@ -50,6 +49,7 @@ export interface TransactionSlice {
   /* EIP-712 */
 
   cancelEip712Request(requestId: string): Promise<void>
+
   resolveEip712Request(requestId: string, signature: HexString): Promise<void>
 }
 
