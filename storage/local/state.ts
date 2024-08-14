@@ -21,8 +21,8 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
-  pendingRequest: Record<string, Request>
-  resolvedRequest: Record<string, RequestLog>
+  request: Record<string, Request>
+  requestLog: Record<string, RequestLog & { requestType: RequestType }>
 }
 
 /* Netowork */
@@ -105,7 +105,7 @@ export enum RequestType {
 }
 
 export type Request = TransactionRequest | Eip712Request
-export type RequestMeta<T> = {
+export type RequestMeta<T = {}> = {
   id: string
   createdAt: number
   accountId: string
@@ -132,7 +132,7 @@ export type Eip712Request = RequestMeta<
 /* Request Log */
 
 export type RequestLog = TransactionLog
-export type RequestLogMeta<T> = {
+export type RequestLogMeta<T = {}> = {
   id: string
   createdAt: number
   updatedAt: number
@@ -169,7 +169,7 @@ export type Erc4337TransactionLog =
   | Erc4337TransactionSucceeded
   | Erc4337TransactionReverted
 
-export type Erc4337TransactionLogMeta<T> = RequestLogMeta<
+export type Erc4337TransactionLogMeta<T = {}> = RequestLogMeta<
   | {
       type: TransactionType.Erc4337V0_6
       detail: {

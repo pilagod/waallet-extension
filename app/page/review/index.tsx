@@ -5,7 +5,7 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { ProviderContext } from "~app/context/provider"
 import { useAccount, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
-import { useAction, usePendingRequests } from "~app/storage"
+import { useAction, useRequests } from "~app/storage"
 import type { Account } from "~packages/account"
 import { AccountStorageManager } from "~storage/local/manager"
 import { RequestType, type Request } from "~storage/local/state"
@@ -15,7 +15,7 @@ import { TransactionConfirmation } from "./transaction"
 
 export function Review() {
   const [, navigate] = useHashLocation()
-  const pendingRequests = usePendingRequests()
+  const requests = useRequests()
 
   useEffect(() => {
     async function redirect() {
@@ -29,22 +29,22 @@ export function Review() {
         navigate(Path.Home)
       }
     }
-    if (pendingRequests.length === 0) {
+    if (requests.length === 0) {
       redirect()
     }
-  }, [pendingRequests.length])
+  }, [requests.length])
 
-  if (pendingRequests.length === 0) {
+  if (requests.length === 0) {
     return
   }
 
-  const [request] = pendingRequests
+  const [request] = requests
 
   return (
     <ProfileSwitcher
       accountId={request.accountId}
       networkId={request.networkId}>
-      <PendingRequestConfirmation request={pendingRequests[0]} />
+      <RequestConfirmation request={requests[0]} />
     </ProfileSwitcher>
   )
 }
@@ -74,7 +74,7 @@ function ProfileSwitcher(props: {
   return children
 }
 
-function PendingRequestConfirmation(props: { request: Request }) {
+function RequestConfirmation(props: { request: Request }) {
   const { request } = props
 
   const { provider } = useContext(ProviderContext)

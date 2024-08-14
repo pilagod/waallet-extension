@@ -108,7 +108,7 @@ export function TransactionConfirmation(props: {
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
       }
-      // TODO: Wrong nonce problem when confirming consecutive pending tx
+      // TODO: Wrong nonce problem when confirming consecutive tx requests
       try {
         await markErc4337TransactionSent(tx.id, {
           entryPoint,

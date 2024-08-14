@@ -11,10 +11,10 @@ import {
 import {
   RequestType,
   TransactionStatus,
-  type Eip712Request as PendingEip712Request,
-  type Request as PendingRequest,
-  type TransactionRequest as PendingTransactionRequest,
-  type State
+  type State,
+  type Eip712Request as StorageEip712Request,
+  type Request as StorageRequest,
+  type TransactionRequest as StorageTransactionRequest
 } from "~storage/local/state"
 import type { HexString } from "~typing"
 
@@ -26,19 +26,19 @@ export class RequestStoragePool implements RequestPool {
     accountId: string
     networkId: string
   }) {
-    const request = this.transformPendingRequest(data)
+    const request = this.transformToStorageRequest(data)
 
     this.storage.set((state) => {
-      state.pendingRequest[request.id] = request
+      state.request[request.id] = request
     })
 
     return request.id
   }
 
   public wait(requestId: string) {
-    const request = this.storage.get().pendingRequest[requestId]
+    const request = this.storage.get().request[requestId]
     if (!request) {
-      throw new Error(`Pending request ${request.id} not found`)
+      throw new Error(`Request ${request.id} not found`)
     }
     if (request.type === RequestType.Transaction) {
       return this.waitForTransaction(request)
@@ -51,11 +51,11 @@ export class RequestStoragePool implements RequestPool {
 
   /* private */
 
-  private transformPendingRequest(data: {
+  private transformToStorageRequest(data: {
     request: Request
     accountId: string
     networkId: string
-  }): PendingRequest {
+  }): StorageRequest {
     const { request, accountId, networkId } = data
     const meta = {
       id: uuidv4(),
@@ -72,7 +72,7 @@ export class RequestStoragePool implements RequestPool {
     throw new Error(`Unknown request type ${request}`)
   }
 
-  private waitForTransaction(request: PendingTransactionRequest) {
+  private waitForTransaction(request: StorageTransactionRequest) {
     return new Promise<HexString>((resolve, reject) => {
       const subscriber = async ({ account }: State) => {
         const txLog = account[request.accountId].transactionLog[request.id]
@@ -108,11 +108,12 @@ export class RequestStoragePool implements RequestPool {
     })
   }
 
-  private waitForEip712(request: PendingEip712Request) {
+  private waitForEip712(request: StorageEip712Request) {
     return new Promise<HexString>((resolve, reject) => {
+      // TODO: Listen to request log
       const subscriber = async (_: State, patches: Patch[]) => {
         const [patch] = patches.filter(
-          (p) => p.path[0] === "pendingRequest" && p.path[1] === request.id
+          (p) => p.path[0] === "request" && p.path[1] === request.id
         )
         if (!patch || patch.op === "replace") {
           return
@@ -124,19 +125,19 @@ export class RequestStoragePool implements RequestPool {
           return
         }
 
-        const { signature } = this.storage.get().pendingRequest[
+        const { signature } = this.storage.get().request[
           request.id
-        ] as PendingEip712Request
+        ] as StorageEip712Request
 
         resolve(signature)
 
         this.storage.set((state) => {
-          delete state.pendingRequest[request.id]
+          delete state.request[request.id]
         })
       }
 
       this.storage.subscribe(subscriber, {
-        pendingRequest: { [request.id]: {} }
+        request: { [request.id]: {} }
       })
     })
   }

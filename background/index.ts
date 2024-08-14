@@ -5,16 +5,12 @@ import { ERC20Contract } from "~packages/contract/erc20"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
+import { StateActor } from "~storage/local/actor"
 import {
   AccountStorageManager,
   NetworkStorageManager
 } from "~storage/local/manager"
-import {
-  TransactionStatus,
-  type Erc4337TransactionReverted,
-  type Erc4337TransactionSucceeded,
-  type TransactionLog
-} from "~storage/local/state"
+import { RequestType, TransactionStatus } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
 
 import { StorageAction } from "./messages/storage"
@@ -77,9 +73,9 @@ async function main() {
   // @dev: Trigger popup when new pending user op is added into the pool.
   storage.subscribe(
     async (_, patches) => {
-      const newPendingTxs = patches.filter((p) => p.op === "add")
+      const newRequests = patches.filter((p) => p.op === "add")
 
-      if (newPendingTxs.length === 0 || sessionStorage.get().isPopupOpened) {
+      if (newRequests.length === 0 || sessionStorage.get().isPopupOpened) {
         return
       }
 
@@ -91,23 +87,19 @@ async function main() {
         height: 720
       })
     },
-    { pendingRequest: {} }
+    { request: {} }
   )
 
   const indexTransactionSent = async () => {
     const timeout = 3000
     console.log(`[background] Sync transactions sent every ${timeout} ms`)
 
-    const { account } = storage.get()
+    const state = storage.get()
     const { bundler } = networkManager.getActive()
 
-    // Fetch all sent user operations from all accounts
-    const txLogs = Object.values(account)
-      .map((a) => a.transactionLog)
-      .reduce((result, txLog) => {
-        return result.concat(Object.values(txLog) ?? [])
-      }, [] as TransactionLog[])
-
+    const txLogs = Object.values(state.requestLog).filter(
+      (r) => r.requestType === RequestType.Transaction
+    )
     txLogs.forEach(async (txLog) => {
       if (txLog.status !== TransactionStatus.Sent) {
         return
@@ -118,29 +110,11 @@ async function main() {
       if (!userOpReceipt) {
         return
       }
-
-      if (userOpReceipt.success) {
-        const txSucceeded: Erc4337TransactionSucceeded = {
-          ...txLog,
-          status: TransactionStatus.Succeeded,
-          receipt: {
-            userOpHash,
-            transactionHash: userOpReceipt.receipt.transactionHash,
-            blockHash: userOpReceipt.receipt.blockHash,
-            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
-          }
-        }
-        storage.set((state) => {
-          state.account[txSucceeded.accountId].transactionLog[txSucceeded.id] =
-            txSucceeded
-        })
-        return
-      }
-
-      if (!userOpReceipt.success) {
-        const txReverted: Erc4337TransactionReverted = {
-          ...txLog,
-          status: TransactionStatus.Reverted,
+      storage.set((state) => {
+        new StateActor(state).transitErc4337TransactionLog(txLog.id, {
+          status: userOpReceipt.success
+            ? TransactionStatus.Succeeded
+            : TransactionStatus.Reverted,
           receipt: {
             userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
@@ -148,13 +122,8 @@ async function main() {
             blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
             errorMessage: userOpReceipt.reason
           }
-        }
-        storage.set((state) => {
-          state.account[txReverted.accountId].transactionLog[txReverted.id] =
-            txReverted
         })
-        return
-      }
+      })
     })
 
     setTimeout(indexTransactionSent, timeout)

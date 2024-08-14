@@ -126,7 +126,7 @@ export const createTransactionSlice: BackgroundStateCreator<
     await set(({ state }) => {
       const stateActor = new StateActor(state)
       const request = stateActor.getEip712Request(requestId)
-      delete state.pendingRequest[request.id]
+      delete state.request[request.id]
     })
   },
 
