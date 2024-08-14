@@ -94,7 +94,7 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   markERC4337TransactionRejected: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const tx = state.pendingRequests[txId]
+      const tx = state.pendingRequest[txId]
       if (!tx || tx.type !== RequestType.Transaction) {
         throw new Error(`Transaction request ${txId} not found`)
       }
@@ -112,13 +112,13 @@ export const createTransactionSlice: BackgroundStateCreator<
       }
       state.account[txRejected.accountId].transactionLog[txRejected.id] =
         txRejected
-      delete state.pendingRequests[txId]
+      delete state.pendingRequest[txId]
     })
   },
 
   markERC4337TransactionSent: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const tx = state.pendingRequests[txId]
+      const tx = state.pendingRequest[txId]
       if (!tx || tx.type !== RequestType.Transaction) {
         throw new Error(`Transaction request ${txId} not found`)
       }
@@ -138,7 +138,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         }
       }
       state.account[txSent.accountId].transactionLog[txSent.id] = txSent
-      delete state.pendingRequests[txId]
+      delete state.pendingRequest[txId]
     })
   },
 
@@ -146,17 +146,17 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   cancelEip712Request: async (requestId: string) => {
     await set(({ state }) => {
-      const eip712 = state.pendingRequests[requestId]
+      const eip712 = state.pendingRequest[requestId]
       if (!eip712 || eip712.type !== RequestType.Eip712) {
         throw new Error(`EIP-712 request ${requestId} not found`)
       }
-      delete state.pendingRequests[requestId]
+      delete state.pendingRequest[requestId]
     })
   },
 
   resolveEip712Request: async (requestId: string, signature: HexString) => {
     await set(({ state }) => {
-      const eip712 = state.pendingRequests[requestId]
+      const eip712 = state.pendingRequest[requestId]
       if (!eip712 || eip712.type !== RequestType.Eip712) {
         throw new Error(`EIP-712 request ${requestId} not found`)
       }

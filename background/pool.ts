@@ -29,14 +29,14 @@ export class RequestStoragePool implements RequestPool {
     const request = this.transformPendingRequest(data)
 
     this.storage.set((state) => {
-      state.pendingRequests[request.id] = request
+      state.pendingRequest[request.id] = request
     })
 
     return request.id
   }
 
   public wait(requestId: string) {
-    const request = this.storage.get().pendingRequests[requestId]
+    const request = this.storage.get().pendingRequest[requestId]
     if (!request) {
       throw new Error(`Pending request ${request.id} not found`)
     }
@@ -124,19 +124,19 @@ export class RequestStoragePool implements RequestPool {
           return
         }
 
-        const { signature } = this.storage.get().pendingRequests[
+        const { signature } = this.storage.get().pendingRequest[
           request.id
         ] as PendingEip712Request
 
         resolve(signature)
 
         this.storage.set((state) => {
-          delete state.pendingRequests[request.id]
+          delete state.pendingRequest[request.id]
         })
       }
 
       this.storage.subscribe(subscriber, {
-        pendingRequests: { [request.id]: {} }
+        pendingRequest: { [request.id]: {} }
       })
     })
   }
