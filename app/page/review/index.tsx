@@ -2,8 +2,8 @@ import { useEffect, useState } from "react"
 import browser from "webextension-polyfill"
 import { useHashLocation } from "wouter/use-hash-location"
 
+import { useAction, usePendingRequests } from "~app/hook/storage"
 import { Path } from "~app/path"
-import { useAction, usePendingRequests } from "~app/storage"
 
 import { TransactionConfirmation } from "./transaction"
 
