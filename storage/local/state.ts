@@ -21,7 +21,7 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
-  pendingRequests: Request[]
+  pendingRequests: Record<string, Request>
 }
 
 /* Netowork */

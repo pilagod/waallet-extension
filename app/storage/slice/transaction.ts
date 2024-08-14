@@ -94,10 +94,10 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   markERC4337TransactionRejected: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const txIndex = state.pendingRequests.findIndex(
-        (r) => r.type === RequestType.Transaction && r.id === txId
-      )
-      const tx = state.pendingRequests[txIndex]
+      const tx = state.pendingRequests[txId]
+      if (!tx || tx.type !== RequestType.Transaction) {
+        throw new Error(`Transaction request ${txId} not found`)
+      }
       const txRejected: ERC4337TransactionRejected = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -112,16 +112,16 @@ export const createTransactionSlice: BackgroundStateCreator<
       }
       state.account[txRejected.accountId].transactionLog[txRejected.id] =
         txRejected
-      state.pendingRequests.splice(txIndex, 1)
+      delete state.pendingRequests[txId]
     })
   },
 
   markERC4337TransactionSent: async (txId, data) => {
     await set(({ state, getERC4337TransactionType }) => {
-      const txIndex = state.pendingRequests.findIndex(
-        (r) => r.type === RequestType.Transaction && r.id === txId
-      )
-      const tx = state.pendingRequests[txIndex]
+      const tx = state.pendingRequests[txId]
+      if (!tx || tx.type !== RequestType.Transaction) {
+        throw new Error(`Transaction request ${txId} not found`)
+      }
       const txSent: ERC4337TransactionSent = {
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
@@ -138,7 +138,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         }
       }
       state.account[txSent.accountId].transactionLog[txSent.id] = txSent
-      state.pendingRequests.splice(txIndex, 1)
+      delete state.pendingRequests[txId]
     })
   },
 
@@ -146,25 +146,21 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   cancelEip712Request: async (requestId: string) => {
     await set(({ state }) => {
-      const index = state.pendingRequests.findIndex(
-        (r) => r.type === RequestType.Eip712 && r.id === requestId
-      )
-      if (index < 0) {
-        return
+      const eip712 = state.pendingRequests[requestId]
+      if (!eip712 || eip712.type !== RequestType.Eip712) {
+        throw new Error(`EIP-712 request ${requestId} not found`)
       }
-      state.pendingRequests.splice(index, 1)
+      delete state.pendingRequests[requestId]
     })
   },
 
   resolveEip712Request: async (requestId: string, signature: HexString) => {
     await set(({ state }) => {
-      const request = state.pendingRequests.find(
-        (r) => r.type === RequestType.Eip712 && r.id === requestId
-      ) as Eip712Request
-      if (!request) {
-        return
+      const eip712 = state.pendingRequests[requestId]
+      if (!eip712 || eip712.type !== RequestType.Eip712) {
+        throw new Error(`EIP-712 request ${requestId} not found`)
       }
-      request.signature = signature
+      eip712.signature = signature
     })
   }
 })

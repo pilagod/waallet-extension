@@ -25,7 +25,7 @@ export class RequestStoragePool implements RequestPool {
     const request = this.transformPendingRequest(data)
 
     this.storage.set((state) => {
-      state.pendingRequests.push(request)
+      state.pendingRequests[request.id] = request
     })
 
     return request.id
@@ -33,12 +33,10 @@ export class RequestStoragePool implements RequestPool {
 
   public wait(txId: string) {
     return new Promise<string>((resolve, reject) => {
-      // TODO: What if transaction not found?
-      const [tx] = this.storage
-        .get()
-        .pendingRequests.filter(
-          (r) => r.type === RequestType.Transaction && r.id === txId
-        )
+      const tx = this.storage.get().pendingRequests[txId]
+      if (!tx || tx.type !== RequestType.Transaction) {
+        throw new Error(`Transaction request ${txId} not found`)
+      }
       const subscriber = async ({ account }: State) => {
         const txLog = account[tx.accountId].transactionLog[txId]
 

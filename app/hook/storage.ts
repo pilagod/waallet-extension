@@ -54,7 +54,7 @@ export const useTransactionLogs = (accountId: string) => {
 
 export const usePendingRequests = () => {
   return useStorage(({ state }) => {
-    return state.pendingRequests
+    return Object.values(state.pendingRequests)
   })
 }
 
