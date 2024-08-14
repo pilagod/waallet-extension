@@ -152,7 +152,7 @@ async function main() {
           })
         }
 
-        tokens.map(async (t) => {
+        tokens.forEach(async (t) => {
           const tokenContract = await ERC20Contract.init(
             t.address,
             networkContext.provider
