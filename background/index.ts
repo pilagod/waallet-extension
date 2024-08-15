@@ -105,7 +105,7 @@ async function main() {
     // Subscriber function that handles network changes
     const networkActiveAndAccountSubscriber = async (state: State) => {
       console.log(
-        `[background][listenAccountBalance] Network or account changed`
+        `[background][indexBalanceOnBlock] Network or account changed`
       )
 
       // Remove previous subscription if exists
@@ -141,7 +141,7 @@ async function main() {
         } = account[network[networkActive].accountActive]
 
         console.log(
-          `[background][listenAccountBalance] Chain id: ${chainId}, New block mined: ${blockNumber}`
+          `[background][indexBalanceOnBlock] Chain id: ${chainId}, New block mined: ${blockNumber}`
         )
 
         const nativeBalance =
@@ -187,6 +187,9 @@ async function main() {
     storage.subscribe(networkActiveAndAccountSubscriber, {
       account: {}
     })
+
+    // First run if the extension is reloaded
+    await networkActiveAndAccountSubscriber(storage.get())
   }
 
   const indexTransactionSent = async () => {
