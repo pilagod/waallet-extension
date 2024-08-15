@@ -96,36 +96,38 @@ async function main() {
   )
 
   // networkContext to hold the current provider and block subscriber
-  const networkContext: {
+  const indexBalanceContext: {
     provider?: JsonRpcProvider
     blockSubscriber?: (blockNumber: number) => Promise<void>
   } = {}
 
-  const listenAccountBalance = async () => {
+  const indexBalanceOnBlock = async () => {
     // Subscriber function that handles network changes
-    const networkActiveSubscriber = async (state: State) => {
+    const networkActiveAndAccountSubscriber = async (state: State) => {
       console.log(
         `[background][listenAccountBalance] Network or account changed`
       )
 
       // Remove previous subscription if exists
-      if (networkContext.provider && networkContext.blockSubscriber) {
-        networkContext.provider.off("block", networkContext.blockSubscriber)
+      if (indexBalanceContext.provider && indexBalanceContext.blockSubscriber) {
+        indexBalanceContext.provider.off(
+          "block",
+          indexBalanceContext.blockSubscriber
+        )
       }
 
       const { account, network, networkActive } = state
 
       // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
       // Refer: https://github.com/ethers-io/ethers.js/issues/4377
-      networkContext.provider = new JsonRpcProvider(
+      indexBalanceContext.provider = new JsonRpcProvider(
         network[networkActive].nodeRpcUrl,
         network[networkActive].chainId,
         { staticNetwork: true }
       )
 
-      // Define a new block subscriber function
-      networkContext.blockSubscriber = async (blockNumber) => {
-        // Return early if the account is not exist
+      // Define a new block subscriber
+      indexBalanceContext.blockSubscriber = async (blockNumber) => {
         if (!network[networkActive].accountActive) {
           return
         }
@@ -143,7 +145,7 @@ async function main() {
         )
 
         const nativeBalance =
-          await networkContext.provider.getBalance(accountAddress)
+          await indexBalanceContext.provider.getBalance(accountAddress)
 
         // Update the account balance if it has changed
         if (number.toBigInt(accountBalance) !== nativeBalance) {
@@ -152,14 +154,14 @@ async function main() {
           })
         }
 
+        // Update token balance if it has changed
         tokens.forEach(async (t) => {
           const tokenContract = await ERC20Contract.init(
             t.address,
-            networkContext.provider
+            indexBalanceContext.provider
           )
           const tokenBalance = await tokenContract.balanceOf(accountAddress)
 
-          // Update token balance if it has changed
           if (number.toBigInt(t.balance) !== tokenBalance) {
             storage.set((state) => {
               state.account[id].tokens.find((token) =>
@@ -171,15 +173,18 @@ async function main() {
       }
 
       // Subscribe to new blocks using the updated block subscriber function
-      networkContext.provider.on("block", networkContext.blockSubscriber)
+      indexBalanceContext.provider.on(
+        "block",
+        indexBalanceContext.blockSubscriber
+      )
     }
 
     // Subscribe to networkActive changes
-    storage.subscribe(networkActiveSubscriber, {
+    storage.subscribe(networkActiveAndAccountSubscriber, {
       networkActive: ""
     })
     // Subscribe to account changes
-    storage.subscribe(networkActiveSubscriber, {
+    storage.subscribe(networkActiveAndAccountSubscriber, {
       account: {}
     })
   }
@@ -253,7 +258,7 @@ async function main() {
   // TODO: Using these two asynchronous functions, both executing
   // `storage.set()` commands, often triggers the error: "Error: Could not
   // establish connection. Receiving end does not exist."
-  await listenAccountBalance()
+  await indexBalanceOnBlock()
   await indexTransactionSent()
 }
 
