@@ -2,6 +2,7 @@ import address from "~packages/util/address"
 import type { HexString } from "~typing"
 
 import {
+  Eip712Status,
   RequestType,
   TransactionStatus,
   TransactionType,
@@ -12,7 +13,6 @@ import {
   type Erc4337TransactionSent,
   type Erc4337TransactionSucceeded,
   type Request,
-  type RequestLog,
   type RequestLogMeta,
   type State
 } from "./state"
@@ -23,10 +23,12 @@ import {
 export class StateActor {
   public constructor(private state: State) {}
 
+  /* Transaction Request */
+
   public getTransactionRequest(requestId: string) {
     const request = this.state.request[requestId]
     if (!request || request.type !== RequestType.Transaction) {
-      throw new Error(`Transaction request ${request.id} not found`)
+      throw new Error(`Transaction request ${requestId} not found`)
     }
     return request
   }
@@ -34,17 +36,9 @@ export class StateActor {
   public getTransactionLog(requestId: string) {
     const log = this.state.requestLog[requestId]
     if (!log || log.requestType !== RequestType.Transaction) {
-      throw new Error(`Transaction request ${log.id} not found`)
+      throw new Error(`Transaction request log ${requestId} not found`)
     }
     return log
-  }
-
-  public getEip712Request(requestId: string) {
-    const request = this.state.request[requestId]
-    if (!request || request.type !== RequestType.Eip712) {
-      throw new Error(`EIP-712 request ${request.id} not found`)
-    }
-    return request
   }
 
   public getErc4337TransactionType(networkId: string, entryPoint: HexString) {
@@ -62,13 +56,14 @@ export class StateActor {
       | Erc4337TransactionFailed
   >(requestId: string, data: Omit<T, keyof RequestLogMeta | "type">) {
     const request = this.getTransactionRequest(requestId)
-    const log = this.createRequestLog(request, {
+    const log = {
       ...data,
+      ...this.createRequestLogMeta(request),
       type: this.getErc4337TransactionType(
         request.networkId,
         data.detail.entryPoint
       )
-    } as T)
+    } as T
     // TODO: Handle failed status
     if (log.status !== TransactionStatus.Rejected) {
       this.state.account[log.accountId].transactionLog[log.id] = log
@@ -89,19 +84,54 @@ export class StateActor {
     this.state.requestLog[log.id] = next
   }
 
+  /* EIP-712 Request */
+
+  public getEip712Request(requestId: string) {
+    const request = this.state.request[requestId]
+    if (!request || request.type !== RequestType.Eip712) {
+      throw new Error(`EIP-712 request ${request.id} not found`)
+    }
+    return request
+  }
+
+  public getEip712Log(requestId: string) {
+    const log = this.state.requestLog[requestId]
+    if (!log || log.requestType !== RequestType.Eip712) {
+      throw new Error(`EIP-712 request log ${requestId} not found`)
+    }
+    return log
+  }
+
+  public rejectEip712Request(requestId: string) {
+    const request = this.getEip712Request(requestId)
+    this.state.requestLog[requestId] = {
+      ...this.createRequestLogMeta(request),
+      requestType: RequestType.Eip712,
+      status: Eip712Status.Rejected
+    }
+    delete this.state.request[requestId]
+  }
+
+  public resolveEip712Request(requestId: string, signature: HexString) {
+    const request = this.getEip712Request(requestId)
+    this.state.requestLog[requestId] = {
+      ...this.createRequestLogMeta(request),
+      requestType: RequestType.Eip712,
+      status: Eip712Status.Resolved,
+      signature
+    }
+    delete this.state.request[requestId]
+  }
+
   /* private */
 
-  private createRequestLog<T extends RequestLog>(
-    request: Request,
-    data: Omit<T, keyof RequestLogMeta>
-  ): T {
+  private createRequestLogMeta(request: Request) {
     return {
-      ...data,
       id: request.id,
       createdAt: request.createdAt,
       updatedAt: new Date().getTime(),
       accountId: request.accountId,
       networkId: request.networkId
-    } as T
+    }
   }
 }

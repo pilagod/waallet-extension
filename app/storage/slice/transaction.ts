@@ -46,7 +46,7 @@ export interface TransactionSlice {
 
   /* EIP-712 */
 
-  cancelEip712Request(requestId: string): Promise<void>
+  rejectEip712Request(requestId: string): Promise<void>
 
   resolveEip712Request(requestId: string, signature: HexString): Promise<void>
 }
@@ -122,19 +122,15 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   /* EIP-712 */
 
-  cancelEip712Request: async (requestId: string) => {
+  rejectEip712Request: async (requestId: string) => {
     await set(({ state }) => {
-      const stateActor = new StateActor(state)
-      const request = stateActor.getEip712Request(requestId)
-      delete state.request[request.id]
+      new StateActor(state).rejectEip712Request(requestId)
     })
   },
 
   resolveEip712Request: async (requestId: string, signature: HexString) => {
     await set(({ state }) => {
-      const stateActor = new StateActor(state)
-      const request = stateActor.getEip712Request(requestId)
-      request.signature = signature
+      new StateActor(state).resolveEip712Request(requestId, signature)
     })
   }
 })

@@ -22,7 +22,7 @@ export type State = {
     [id: string]: Paymaster
   }
   request: Record<string, Request>
-  requestLog: Record<string, RequestLog & { requestType: RequestType }>
+  requestLog: Record<string, RequestLog>
 }
 
 /* Netowork */
@@ -125,22 +125,25 @@ export type TransactionRequest = RequestMeta<{
 export type Eip712Request = RequestMeta<
   {
     type: RequestType.Eip712
-    signature?: HexString
   } & Eip712TypedData
 >
 
 /* Request Log */
 
-export type RequestLog = TransactionLog
-export type RequestLogMeta<T = {}> = {
-  id: string
-  createdAt: number
-  updatedAt: number
-  accountId: string
-  networkId: string
-} & T
+export type RequestLog =
+  | ({
+      requestType: RequestType.Transaction
+    } & TransactionLog)
+  | ({
+      requestType: RequestType.Eip712
+    } & Eip712Log)
 
-/* Request Log - Transaction */
+export type RequestLogMeta<T = {}> = RequestMeta<{
+  updatedAt: number
+}> &
+  T
+
+/* Transaction Log */
 
 export type TransactionLog = Erc4337TransactionLog
 
@@ -226,3 +229,20 @@ export type Erc4337TransactionReverted = Erc4337TransactionLogMeta<{
     errorMessage: string
   }
 }>
+
+/* EIP-712 Log */
+
+export type Eip712Log = RequestLogMeta<
+  | {
+      status: Eip712Status.Resolved
+      signature: HexString
+    }
+  | {
+      status: Eip712Status.Rejected
+    }
+>
+
+export enum Eip712Status {
+  Resolved = "Resolved",
+  Rejected = "Rejected"
+}
