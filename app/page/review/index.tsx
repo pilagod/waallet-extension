@@ -35,7 +35,7 @@ export function Review() {
   const [tx] = pendingRequests
 
   return (
-    <ProfileSwitcher accountId={tx.senderId} networkId={tx.networkId}>
+    <ProfileSwitcher accountId={tx.accountId} networkId={tx.networkId}>
       <TransactionConfirmation tx={tx} />
     </ProfileSwitcher>
   )

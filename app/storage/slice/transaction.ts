@@ -93,7 +93,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
         status: TransactionStatus.Rejected,
-        senderId: tx.senderId,
+        accountId: tx.accountId,
         networkId: tx.networkId,
         createdAt: tx.createdAt,
         detail: {
@@ -101,7 +101,7 @@ export const createTransactionSlice: BackgroundStateCreator<
           data: data.userOp.unwrap() as any
         }
       }
-      state.account[txRejected.senderId].transactionLog[txRejected.id] =
+      state.account[txRejected.accountId].transactionLog[txRejected.id] =
         txRejected
       stateActor.resolveTransactionRequest(txId)
     })
@@ -115,7 +115,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         id: tx.id,
         type: getERC4337TransactionType(tx.networkId, data.entryPoint),
         status: TransactionStatus.Sent,
-        senderId: tx.senderId,
+        accountId: tx.accountId,
         networkId: tx.networkId,
         createdAt: tx.createdAt,
         detail: {
@@ -126,7 +126,7 @@ export const createTransactionSlice: BackgroundStateCreator<
           userOpHash: data.userOpHash
         }
       }
-      state.account[txSent.senderId].transactionLog[txSent.id] = txSent
+      state.account[txSent.accountId].transactionLog[txSent.id] = txSent
       stateActor.resolveTransactionRequest(txId)
     })
   }

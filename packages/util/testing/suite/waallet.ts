@@ -4,13 +4,13 @@ import config from "~config/test"
 import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import {
-  UserOperationV0_6,
-  UserOperationV0_7
-} from "~packages/bundler/userOperation"
+import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import { SingleNetworkManager } from "~packages/network/manager/single"
 import type { Paymaster } from "~packages/paymaster"
-import { TransactionToUserOperationSender } from "~packages/waallet/background/pool/transaction/sender"
+import {
+  RequestHandler,
+  TransactionRequestHandler
+} from "~packages/waallet/background/pool/request/handler"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 import type { BigNumberish } from "~typing"
 
@@ -79,27 +79,29 @@ export function describeWaalletSuite<A extends Account, P extends Paymaster>(
       ctx.provider.waallet = new WaalletBackgroundProvider(
         accountManager,
         networkManager,
-        new TransactionToUserOperationSender(
-          accountManager,
-          networkManager,
-          async (userOp, forGasEstimation) => {
-            if (!option.usePaymaster) {
-              return
+        new RequestHandler(
+          new TransactionRequestHandler(
+            accountManager,
+            networkManager,
+            async (userOp, forGasEstimation) => {
+              if (!option.usePaymaster) {
+                return
+              }
+              const paymaster = await option.usePaymaster(ctx)
+              const paymasterAndData = await paymaster.requestPaymasterAndData(
+                userOp,
+                forGasEstimation
+              )
+              if (userOp instanceof UserOperationV0_6) {
+                userOp.setPaymasterAndData(paymasterAndData)
+                return
+              }
+              userOp.setPaymaster({
+                paymaster: ethers.dataSlice(paymasterAndData, 0, 20),
+                paymasterData: ethers.dataSlice(paymasterAndData, 20)
+              })
             }
-            const paymaster = await option.usePaymaster(ctx)
-            const paymasterAndData = await paymaster.requestPaymasterAndData(
-              userOp,
-              forGasEstimation
-            )
-            if (userOp instanceof UserOperationV0_6) {
-              userOp.setPaymasterAndData(paymasterAndData)
-              return
-            }
-            userOp.setPaymaster({
-              paymaster: ethers.dataSlice(paymasterAndData, 0, 20),
-              paymasterData: ethers.dataSlice(paymasterAndData, 20)
-            })
-          }
+          )
         )
       )
     })

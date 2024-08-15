@@ -4,12 +4,55 @@ import type { AccountManager } from "~packages/account/manager"
 import type { UserOperation } from "~packages/bundler/userOperation"
 import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
-import { NodeProvider } from "~packages/node/provider"
-import type { BigNumberish, HexString } from "~typing"
+import type { HexString } from "~typing"
 
-import type { Transaction, TransactionPool } from "./index"
+import type { Request, RequestPool } from "./index"
+import { TransactionRequest } from "./transaction"
 
-export class TransactionToUserOperationSender implements TransactionPool {
+export class RequestHandler implements RequestPool {
+  private request: Record<string, Request> = {}
+
+  public constructor(private transactionRequestHandler: RequestPool) {}
+
+  public async send(data: {
+    request: Request
+    accountId: string
+    networkId: string
+  }) {
+    const requestId = await this.handleSend(data)
+    this.request[requestId] = data.request
+    return requestId
+  }
+
+  public async wait(requestId: string) {
+    const result = await this.handleWait(requestId)
+    delete this.request[requestId]
+    return result
+  }
+
+  /* private */
+
+  private handleSend(data: {
+    request: Request
+    accountId: string
+    networkId: string
+  }) {
+    if (data.request instanceof TransactionRequest) {
+      return this.transactionRequestHandler.send(data)
+    }
+    throw new Error("Unknown request type to send")
+  }
+
+  private handleWait(requestId: string) {
+    const request = this.request[requestId]
+    if (request instanceof TransactionRequest) {
+      return this.transactionRequestHandler.wait(requestId)
+    }
+    throw new Error("Unknown request type to wait")
+  }
+}
+
+export class TransactionRequestHandler implements RequestPool {
   private pool: { [txId: string]: Promise<HexString> } = {}
 
   public constructor(
@@ -22,12 +65,12 @@ export class TransactionToUserOperationSender implements TransactionPool {
   ) {}
 
   public async send(data: {
-    tx: Transaction
-    senderId: string
+    request: Request
+    accountId: string
     networkId: string
   }) {
-    const { tx, senderId, networkId } = data
-    const { account } = await this.accountManager.get(senderId)
+    const { request, accountId, networkId } = data
+    const { account } = await this.accountManager.get(accountId)
     const { chainId, node, bundler } = this.networkManager.get(networkId)
 
     const entryPoint = await account.getEntryPoint()
@@ -37,7 +80,7 @@ export class TransactionToUserOperationSender implements TransactionPool {
     }
 
     const userOp = bundler.deriveUserOperation(
-      await account.buildExecution(tx.unwrap()),
+      await account.buildExecution(request.unwrap()),
       entryPoint
     )
 
@@ -45,16 +88,16 @@ export class TransactionToUserOperationSender implements TransactionPool {
       await this.usePaymaster(userOp, true)
     }
 
-    if (tx.gasPrice) {
-      userOp.setGasFee(tx.gasPrice)
+    if (request.gasPrice) {
+      userOp.setGasFee(request.gasPrice)
     } else {
       const gasPriceEstimator = new GasPriceEstimator(node, bundler)
       userOp.setGasFee(await gasPriceEstimator.estimate())
     }
 
     const gas = await bundler.estimateUserOperationGas(userOp, entryPoint)
-    if (tx.gasLimit) {
-      gas.callGasLimit = tx.gasLimit
+    if (request.gasLimit) {
+      gas.callGasLimit = request.gasLimit
     }
     userOp.setGasLimit(gas)
 

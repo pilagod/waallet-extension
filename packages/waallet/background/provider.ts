@@ -15,26 +15,26 @@ import {
   type EthSendUserOperationArguments,
   type WaalletRequestArguments
 } from "../rpc"
-import { Transaction, type TransactionPool } from "./pool/transaction"
+import { TransactionRequest, type RequestPool } from "./pool/request"
 
 export type WaalletBackgroundProviderOption = {
   accountManager?: AccountManager
   networkManager?: NetworkManager
-  transactionPool?: TransactionPool
+  requestPool?: RequestPool
 }
 
 export class WaalletBackgroundProvider {
   public constructor(
     public accountManager: AccountManager,
     public networkManager: NetworkManager,
-    public transactionPool: TransactionPool
+    public requestPool: RequestPool
   ) {}
 
   public clone(option: WaalletBackgroundProviderOption = {}) {
     const provider = new WaalletBackgroundProvider(
       option.accountManager ?? this.accountManager,
       option.networkManager ?? this.networkManager,
-      option.transactionPool ?? this.transactionPool
+      option.requestPool ?? this.requestPool
     )
     return provider
   }
@@ -161,16 +161,16 @@ export class WaalletBackgroundProvider {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
 
-    const txId = await this.transactionPool.send({
-      tx: new Transaction({
+    const txId = await this.requestPool.send({
+      request: new TransactionRequest({
         ...tx,
         to: tx.to,
         gasLimit: tx.gas
       }),
-      senderId: accountId,
+      accountId,
       networkId
     })
-    const transactionHash = await this.transactionPool.wait(txId)
+    const transactionHash = await this.requestPool.wait(txId)
 
     return transactionHash
   }

@@ -18,7 +18,7 @@ import {
 import { getSessionStorage } from "~storage/session"
 
 import { StorageAction } from "./messages/storage"
-import { TransactionStoragePool } from "./pool"
+import { RequestStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 
 console.log(
@@ -48,7 +48,7 @@ async function main() {
   setupWaalletBackgroundProvider({
     accountManager,
     networkManager,
-    transactionPool: new TransactionStoragePool(storage)
+    requestPool: new RequestStoragePool(storage)
   })
 
   const sessionStorage = await getSessionStorage()
@@ -131,7 +131,7 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.account[txSucceeded.senderId].transactionLog[txSucceeded.id] =
+          state.account[txSucceeded.accountId].transactionLog[txSucceeded.id] =
             txSucceeded
         })
         return
@@ -150,7 +150,7 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.account[txReverted.senderId].transactionLog[txReverted.id] =
+          state.account[txReverted.accountId].transactionLog[txReverted.id] =
             txReverted
         })
         return

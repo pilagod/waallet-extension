@@ -2,9 +2,9 @@ import { v4 as uuidv4 } from "uuid"
 
 import { ObservableStorage } from "~packages/storage/observable"
 import type {
-  Transaction,
-  TransactionPool
-} from "~packages/waallet/background/pool/transaction"
+  Request,
+  RequestPool
+} from "~packages/waallet/background/pool/request"
 import { StateActor } from "~storage/local/actor"
 import {
   RequestType,
@@ -12,25 +12,26 @@ import {
   type State
 } from "~storage/local/state"
 
-export class TransactionStoragePool implements TransactionPool {
+export class RequestStoragePool implements RequestPool {
   public constructor(private storage: ObservableStorage<State>) {}
 
   public async send(data: {
-    tx: Transaction
-    senderId: string
+    request: Request
+    accountId: string
     networkId: string
   }) {
-    const { tx, senderId, networkId } = data
+    const { request, accountId, networkId } = data
+
     const id = uuidv4()
 
     this.storage.set((state) => {
       state.pendingRequests.push({
         type: RequestType.Transaction,
         id,
-        createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
-        senderId,
+        createdAt: Date.now(),
+        accountId,
         networkId,
-        ...tx.unwrap()
+        ...request.unwrap()
       })
     })
 
@@ -43,7 +44,7 @@ export class TransactionStoragePool implements TransactionPool {
       const tx = stateActor.getTransactionRequest(txId)
 
       const subscriber = async ({ account }: State) => {
-        const txLog = account[tx.senderId].transactionLog[txId]
+        const txLog = account[tx.accountId].transactionLog[txId]
 
         // Bundler is still processing this user operation
         if (txLog.status === TransactionStatus.Sent) {
@@ -69,7 +70,7 @@ export class TransactionStoragePool implements TransactionPool {
       }
 
       this.storage.subscribe(subscriber, {
-        account: { [tx.senderId]: { transactionLog: { [txId]: {} } } }
+        account: { [tx.accountId]: { transactionLog: { [txId]: {} } } }
       })
     })
   }
