@@ -95,101 +95,108 @@ async function main() {
     { pendingTransaction: {} }
   )
 
-  // networkContext to hold the current provider and block subscriber
+  // Hold the current provider and block subscriber
   const indexBalanceContext: {
     provider?: JsonRpcProvider
     blockSubscriber?: (blockNumber: number) => Promise<void>
   } = {}
 
   const indexBalanceOnBlock = async () => {
-    // Subscriber function that handles network changes
-    const networkActiveAndAccountSubscriber = async (state: State) => {
-      console.log(
-        `[background][indexBalanceOnBlock] Network or account changed`
-      )
+    const { network, networkActive } = storage.get()
+    const { nodeRpcUrl, chainId } = network[networkActive]
 
-      // Remove previous subscription if exists
-      if (indexBalanceContext.provider && indexBalanceContext.blockSubscriber) {
+    // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
+    // Refer: https://github.com/ethers-io/ethers.js/issues/4377
+    indexBalanceContext.provider = new JsonRpcProvider(nodeRpcUrl, chainId, {
+      staticNetwork: true
+    })
+
+    indexBalanceContext.blockSubscriber = async (blockNumber: number) => {
+      const { network, networkActive } = storage.get()
+      const { nodeRpcUrl, chainId, accountActive } = network[networkActive]
+
+      // Update provider and subscriber on network switch
+      if (
+        (await indexBalanceContext.provider.getNetwork()).chainId !==
+        number.toBigInt(chainId)
+      ) {
         indexBalanceContext.provider.off(
           "block",
           indexBalanceContext.blockSubscriber
         )
-      }
 
-      const { account, network, networkActive } = state
-
-      // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
-      // Refer: https://github.com/ethers-io/ethers.js/issues/4377
-      indexBalanceContext.provider = new JsonRpcProvider(
-        network[networkActive].nodeRpcUrl,
-        network[networkActive].chainId,
-        { staticNetwork: true }
-      )
-
-      // Define a new block subscriber
-      indexBalanceContext.blockSubscriber = async (blockNumber) => {
-        if (!network[networkActive].accountActive) {
-          return
-        }
-
-        const {
-          id,
-          tokens,
+        indexBalanceContext.provider = new JsonRpcProvider(
+          nodeRpcUrl,
           chainId,
-          balance: accountBalance,
-          address: accountAddress
-        } = account[network[networkActive].accountActive]
-
-        console.log(
-          `[background][indexBalanceOnBlock] Chain id: ${chainId}, New block mined: ${blockNumber}`
+          {
+            staticNetwork: true
+          }
         )
 
-        const nativeBalance =
-          await indexBalanceContext.provider.getBalance(accountAddress)
+        indexBalanceContext.provider.on(
+          "block",
+          indexBalanceContext.blockSubscriber
+        )
+        return
+      }
 
-        // Update the account balance if it has changed
-        if (number.toBigInt(accountBalance) !== nativeBalance) {
-          storage.set((state) => {
-            state.account[id].balance = number.toHex(nativeBalance)
-          })
-        }
+      // If the blockNumber from the listener differs greatly from the provider's blockNumber,
+      // it indicates the observed blockNumber is from the subscriber before the provider switch.
+      if (
+        Math.abs(
+          (await indexBalanceContext.provider.getBlockNumber()) - blockNumber
+        ) > 9 ||
+        !accountActive
+      ) {
+        return
+      }
 
-        // Update token balance if it has changed
-        tokens.forEach(async (t) => {
-          const tokenContract = await ERC20Contract.init(
-            t.address,
-            indexBalanceContext.provider
-          )
-          const tokenBalance = await tokenContract.balanceOf(accountAddress)
+      const { account } = storage.get()
 
-          if (number.toBigInt(t.balance) !== tokenBalance) {
-            storage.set((state) => {
-              state.account[id].tokens.find((token) =>
-                address.isEqual(token.address, t.address)
-              ).balance = number.toHex(tokenBalance)
-            })
-          }
+      const {
+        id,
+        tokens,
+        balance: accountBalance,
+        address: accountAddress
+      } = account[accountActive]
+
+      console.log(
+        `[background][indexBalanceOnBlock] Chain id: ${chainId}, New block mined: ${blockNumber}`
+      )
+
+      const nativeBalance =
+        await indexBalanceContext.provider.getBalance(accountAddress)
+
+      // Update the account balance if it has changed
+      if (number.toBigInt(accountBalance) !== nativeBalance) {
+        storage.set((state) => {
+          state.account[id].balance = number.toHex(nativeBalance)
         })
       }
 
-      // Subscribe to new blocks using the updated block subscriber function
-      indexBalanceContext.provider.on(
-        "block",
-        indexBalanceContext.blockSubscriber
-      )
+      // Update token balance if it has changed
+      tokens.forEach(async (t) => {
+        const tokenContract = await ERC20Contract.init(
+          t.address,
+          indexBalanceContext.provider
+        )
+        const tokenBalance = await tokenContract.balanceOf(accountAddress)
+
+        if (number.toBigInt(t.balance) !== tokenBalance) {
+          storage.set((state) => {
+            state.account[id].tokens.find((token) =>
+              address.isEqual(token.address, t.address)
+            ).balance = number.toHex(tokenBalance)
+          })
+        }
+      })
     }
 
-    // Subscribe to networkActive changes
-    storage.subscribe(networkActiveAndAccountSubscriber, {
-      networkActive: ""
-    })
-    // Subscribe to account changes
-    storage.subscribe(networkActiveAndAccountSubscriber, {
-      account: {}
-    })
-
-    // First run if the extension is reloaded
-    await networkActiveAndAccountSubscriber(storage.get())
+    // Subscribe to new blocks using the updated block subscriber function
+    indexBalanceContext.provider.on(
+      "block",
+      indexBalanceContext.blockSubscriber
+    )
   }
 
   const indexTransactionSent = async () => {
