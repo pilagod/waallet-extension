@@ -1,7 +1,10 @@
 import { JsonRpcProvider } from "ethers"
 import browser from "webextension-polyfill"
 
+import { BundlerRpcMethod } from "~packages/bundler/rpc"
+import { EntryPointContract } from "~packages/contract/entryPoint"
 import { ERC20Contract } from "~packages/contract/erc20"
+import { JsonRpcProvider as WaalletJsonRpcProvider } from "~packages/rpc/json/provider"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
@@ -17,6 +20,7 @@ import {
   type TransactionLog
 } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
+import type { BigNumberish, HexString } from "~typing"
 
 import { StorageAction } from "./messages/storage"
 import { TransactionStoragePool } from "./pool"
@@ -189,77 +193,154 @@ async function main() {
     })
   }
 
-  const indexTransactionSent = async () => {
-    const timeout = 3000
-    console.log(`[background] Sync transactions sent every ${timeout} ms`)
+  // Create a context to hold providers, bundlers, and entry point contracts for each network
+  const indexTransactionContext: Record<
+    string,
+    {
+      provider?: JsonRpcProvider
+      bundler?: WaalletJsonRpcProvider
+      entryPoint?: EntryPointContract
+    }
+  > = {}
 
-    const { account } = storage.get()
-    const { bundler } = networkManager.getActive()
+  const indexTransactionOnEvent = async () => {
+    // Subscriber function that processes state changes and handles user operations
+    const accountSubscriber = async (state: State) => {
+      console.log(`[background][indexTransactionOnEvent] Account changed`)
 
-    // Fetch all sent user operations from all accounts
-    const txLogs = Object.values(account)
-      .map((a) => a.transactionLog)
-      .reduce((result, txLog) => {
-        return result.concat(Object.values(txLog) ?? [])
-      }, [] as TransactionLog[])
+      const { account, network } = state
 
-    txLogs.forEach(async (txLog) => {
-      if (txLog.status !== TransactionStatus.Sent) {
-        return
-      }
-      // TODO: Handle different version
-      const userOpHash = txLog.receipt.userOpHash
-      const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
-      if (!userOpReceipt) {
-        return
-      }
+      // Fetch all sent user operations from all accounts
+      const txLogs = Object.values(account)
+        .map((a) => a.transactionLog)
+        .reduce((result, txLog) => {
+          return result.concat(Object.values(txLog) ?? [])
+        }, [] as TransactionLog[])
 
-      if (userOpReceipt.success) {
-        const txSucceeded: ERC4337TransactionSucceeded = {
-          ...txLog,
-          status: TransactionStatus.Succeeded,
-          receipt: {
-            userOpHash,
-            transactionHash: userOpReceipt.receipt.transactionHash,
-            blockHash: userOpReceipt.receipt.blockHash,
-            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
-          }
+      // Iterate over each transaction log to process sent operations
+      txLogs.forEach(async (txLog) => {
+        if (txLog.status !== TransactionStatus.Sent) {
+          return
         }
-        storage.set((state) => {
-          state.account[txSucceeded.senderId].transactionLog[txSucceeded.id] =
-            txSucceeded
-        })
-        return
-      }
 
-      if (!userOpReceipt.success) {
-        const txReverted: ERC4337TransactionReverted = {
-          ...txLog,
-          status: TransactionStatus.Reverted,
-          receipt: {
-            userOpHash,
-            transactionHash: userOpReceipt.receipt.transactionHash,
-            blockHash: userOpReceipt.receipt.blockHash,
-            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
-            errorMessage: userOpReceipt.reason
-          }
+        // Initialize context for the network if not already done
+        if (!indexTransactionContext[txLog.networkId]) {
+          indexTransactionContext[txLog.networkId] = {}
+
+          indexTransactionContext[txLog.networkId].provider =
+            new JsonRpcProvider(network[txLog.networkId].nodeRpcUrl)
+
+          indexTransactionContext[txLog.networkId].bundler =
+            new WaalletJsonRpcProvider(network[txLog.networkId].bundlerRpcUrl)
+
+          indexTransactionContext[txLog.networkId].entryPoint =
+            await EntryPointContract.init(
+              txLog.detail.entryPoint,
+              indexTransactionContext[txLog.networkId].provider
+            )
         }
-        storage.set((state) => {
-          state.account[txReverted.senderId].transactionLog[txReverted.id] =
-            txReverted
-        })
-        return
-      }
+
+        // Define a handler for processing user operation events
+        const userOpEventHandler = async (userOpHash: HexString) => {
+          // Return if the user operation is not yet on-chain.
+          if (userOpHash !== txLog.receipt.userOpHash) {
+            return
+          }
+
+          console.log(
+            `[background][indexTransactionOnEvent] Chain id: ${
+              network[txLog.networkId].chainId
+            }, Account name: ${
+              account[txLog.senderId].name
+            }, userOp is on-chain: ${txLog.receipt.userOpHash}`
+          )
+
+          // Fetch the user operation receipt
+          const userOpReceipt = await indexTransactionContext[
+            txLog.networkId
+          ].bundler.send<{
+            success: boolean
+            reason: string
+            receipt: {
+              transactionHash: HexString
+              blockHash: HexString
+              blockNumber: BigNumberish
+            }
+          }>({
+            method: BundlerRpcMethod.eth_getUserOperationReceipt,
+            params: [userOpHash]
+          })
+
+          if (userOpReceipt.success) {
+            const txSucceeded: ERC4337TransactionSucceeded = {
+              ...txLog,
+              status: TransactionStatus.Succeeded,
+              receipt: {
+                userOpHash,
+                transactionHash: userOpReceipt.receipt.transactionHash,
+                blockHash: userOpReceipt.receipt.blockHash,
+                blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
+              }
+            }
+
+            storage.set((state) => {
+              state.account[txSucceeded.senderId].transactionLog[
+                txSucceeded.id
+              ] = txSucceeded
+            })
+          }
+
+          if (!userOpReceipt.success) {
+            const txReverted: ERC4337TransactionReverted = {
+              ...txLog,
+              status: TransactionStatus.Reverted,
+              receipt: {
+                userOpHash,
+                transactionHash: userOpReceipt.receipt.transactionHash,
+                blockHash: userOpReceipt.receipt.blockHash,
+                blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
+                errorMessage: userOpReceipt.reason
+              }
+            }
+
+            storage.set((state) => {
+              state.account[txReverted.senderId].transactionLog[txReverted.id] =
+                txReverted
+            })
+          }
+
+          // Remove the event handler once the operation is processed
+          indexTransactionContext[
+            txLog.networkId
+          ].entryPoint.offUserOperationEvent(txLog.receipt.userOpHash)
+        }
+
+        // Register the handler for the user operation event if entry point and bundler are initialized
+        if (
+          indexTransactionContext[txLog.networkId].entryPoint &&
+          indexTransactionContext[txLog.networkId].bundler
+        ) {
+          indexTransactionContext[
+            txLog.networkId
+          ].entryPoint.onUserOperationEvent(
+            txLog.receipt.userOpHash,
+            userOpEventHandler
+          )
+        }
+      })
+    }
+
+    // Subscribe to state changes and process the initial state
+    storage.subscribe(accountSubscriber, {
+      account: {}
     })
-
-    setTimeout(indexTransactionSent, timeout)
   }
 
   // TODO: Using these two asynchronous functions, both executing
   // `storage.set()` commands, often triggers the error: "Error: Could not
   // establish connection. Receiving end does not exist."
   await indexBalanceOnBlock()
-  await indexTransactionSent()
+  await indexTransactionOnEvent()
 }
 
 main()
