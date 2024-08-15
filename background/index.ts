@@ -1,4 +1,5 @@
 import { JsonRpcProvider } from "ethers"
+import { MulticallWrapper } from "ethers-multicall-provider"
 import browser from "webextension-polyfill"
 
 import { ERC20Contract } from "~packages/contract/erc20"
@@ -13,7 +14,6 @@ import {
   TransactionStatus,
   type ERC4337TransactionReverted,
   type ERC4337TransactionSucceeded,
-  type State,
   type TransactionLog
 } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
@@ -164,32 +164,48 @@ async function main() {
         `[background][indexBalanceOnBlock] Chain id: ${chainId}, New block mined: ${blockNumber}`
       )
 
-      const nativeBalance =
-        await indexBalanceContext.provider.getBalance(accountAddress)
+      // Use multicall provider to reduce calls
+      const multicallProvider = MulticallWrapper.wrap(
+        indexBalanceContext.provider
+      )
 
       // Update the account balance if it has changed
-      if (number.toBigInt(accountBalance) !== nativeBalance) {
-        storage.set((state) => {
-          state.account[id].balance = number.toHex(nativeBalance)
-        })
-      }
+      const tokenQueries = [
+        (async () => {
+          const nativeBalance =
+            await multicallProvider.getBalance(accountAddress)
+
+          if (number.toBigInt(accountBalance) !== nativeBalance) {
+            storage.set((state) => {
+              state.account[id].balance = number.toHex(nativeBalance)
+            })
+          }
+        })()
+      ]
 
       // Update token balance if it has changed
       tokens.forEach(async (t) => {
-        const tokenContract = await ERC20Contract.init(
-          t.address,
-          indexBalanceContext.provider
-        )
-        const tokenBalance = await tokenContract.balanceOf(accountAddress)
+        tokenQueries.push(
+          (async () => {
+            const tokenContract = await ERC20Contract.init(
+              t.address,
+              multicallProvider
+            )
+            const tokenBalance = await tokenContract.balanceOf(accountAddress)
 
-        if (number.toBigInt(t.balance) !== tokenBalance) {
-          storage.set((state) => {
-            state.account[id].tokens.find((token) =>
-              address.isEqual(token.address, t.address)
-            ).balance = number.toHex(tokenBalance)
-          })
-        }
+            if (number.toBigInt(t.balance) !== tokenBalance) {
+              storage.set((state) => {
+                state.account[id].tokens.find((token) =>
+                  address.isEqual(token.address, t.address)
+                ).balance = number.toHex(tokenBalance)
+              })
+            }
+          })()
+        )
       })
+
+      // Execute all token balance queries in parallel
+      await Promise.all(tokenQueries)
     }
 
     // Subscribe to new blocks using the updated block subscriber function
