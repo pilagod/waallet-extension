@@ -203,6 +203,85 @@ async function main() {
     }
   > = {}
 
+  // Synchronize user operation receipts based on transaction logs
+  const syncUserOpReceipt = async (txLog: TransactionLog) => {
+    const networkId = txLog.networkId
+
+    if (
+      !indexTransactionContext[networkId] ||
+      txLog.status !== TransactionStatus.Sent
+    ) {
+      return
+    }
+
+    const userOpHash = txLog.receipt.userOpHash
+    const { entryPoint, bundler } = indexTransactionContext[networkId]
+
+    if (!entryPoint.isListening(userOpHash)) {
+      return
+    }
+
+    // Fetch the user operation receipt from the bundler
+    const userOpReceipt = await bundler.send<{
+      success: boolean
+      reason: string
+      receipt: {
+        transactionHash: HexString
+        blockHash: HexString
+        blockNumber: BigNumberish
+      }
+    }>({
+      method: BundlerRpcMethod.eth_getUserOperationReceipt,
+      params: [userOpHash]
+    })
+
+    // Update the transaction log if the user operation was successful
+    if (userOpReceipt.success) {
+      const txSucceeded: ERC4337TransactionSucceeded = {
+        ...txLog,
+        status: TransactionStatus.Succeeded,
+        receipt: {
+          userOpHash,
+          transactionHash: userOpReceipt.receipt.transactionHash,
+          blockHash: userOpReceipt.receipt.blockHash,
+          blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
+        }
+      }
+
+      storage.set((state) => {
+        state.account[txSucceeded.senderId].transactionLog[txSucceeded.id] =
+          txSucceeded
+      })
+
+      // Remove the event handler once the operation is processed
+      entryPoint.offUserOperationEvent(txLog.receipt.userOpHash)
+    }
+
+    // Update the transaction log if the user operation was reverted
+    if (!userOpReceipt.success) {
+      const txReverted: ERC4337TransactionReverted = {
+        ...txLog,
+        status: TransactionStatus.Reverted,
+        receipt: {
+          userOpHash,
+          transactionHash: userOpReceipt.receipt.transactionHash,
+          blockHash: userOpReceipt.receipt.blockHash,
+          blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
+          errorMessage: userOpReceipt.reason
+        }
+      }
+
+      storage.set((state) => {
+        state.account[txReverted.senderId].transactionLog[txReverted.id] =
+          txReverted
+      })
+
+      // Remove the event handler once the operation is processed
+      entryPoint.offUserOperationEvent(txLog.receipt.userOpHash)
+    }
+  }
+
+  // Set up event listeners for user operations and handle state changes
   const indexTransactionOnEvent = async () => {
     // Subscriber function that processes state changes and handles user operations
     const accountSubscriber = async (state: State) => {
@@ -222,27 +301,23 @@ async function main() {
         if (txLog.status !== TransactionStatus.Sent) {
           return
         }
+        const networkId = txLog.networkId
+        const entryPoint = txLog.detail.entryPoint
+        const { nodeRpcUrl, bundlerRpcUrl } = network[networkId]
 
         // Initialize context for the network if not already done
-        if (!indexTransactionContext[txLog.networkId]) {
-          indexTransactionContext[txLog.networkId] = {}
+        if (!indexTransactionContext[networkId]) {
+          const provider = new JsonRpcProvider(nodeRpcUrl)
 
-          indexTransactionContext[txLog.networkId].provider =
-            new JsonRpcProvider(network[txLog.networkId].nodeRpcUrl)
-
-          indexTransactionContext[txLog.networkId].bundler =
-            new WaalletJsonRpcProvider(network[txLog.networkId].bundlerRpcUrl)
-
-          indexTransactionContext[txLog.networkId].entryPoint =
-            await EntryPointContract.init(
-              txLog.detail.entryPoint,
-              indexTransactionContext[txLog.networkId].provider
-            )
+          indexTransactionContext[networkId] = {
+            provider,
+            bundler: new WaalletJsonRpcProvider(bundlerRpcUrl),
+            entryPoint: await EntryPointContract.init(entryPoint, provider)
+          }
         }
 
-        // Define a handler for processing user operation events
+        // Handler to process user operation events
         const userOpEventHandler = async (userOpHash: HexString) => {
-          // Return if the user operation is not yet on-chain.
           if (userOpHash !== txLog.receipt.userOpHash) {
             return
           }
@@ -254,72 +329,11 @@ async function main() {
               account[txLog.senderId].name
             }, userOp is on-chain: ${txLog.receipt.userOpHash}`
           )
-
-          // Fetch the user operation receipt
-          const userOpReceipt = await indexTransactionContext[
-            txLog.networkId
-          ].bundler.send<{
-            success: boolean
-            reason: string
-            receipt: {
-              transactionHash: HexString
-              blockHash: HexString
-              blockNumber: BigNumberish
-            }
-          }>({
-            method: BundlerRpcMethod.eth_getUserOperationReceipt,
-            params: [userOpHash]
-          })
-
-          if (userOpReceipt.success) {
-            const txSucceeded: ERC4337TransactionSucceeded = {
-              ...txLog,
-              status: TransactionStatus.Succeeded,
-              receipt: {
-                userOpHash,
-                transactionHash: userOpReceipt.receipt.transactionHash,
-                blockHash: userOpReceipt.receipt.blockHash,
-                blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
-              }
-            }
-
-            storage.set((state) => {
-              state.account[txSucceeded.senderId].transactionLog[
-                txSucceeded.id
-              ] = txSucceeded
-            })
-          }
-
-          if (!userOpReceipt.success) {
-            const txReverted: ERC4337TransactionReverted = {
-              ...txLog,
-              status: TransactionStatus.Reverted,
-              receipt: {
-                userOpHash,
-                transactionHash: userOpReceipt.receipt.transactionHash,
-                blockHash: userOpReceipt.receipt.blockHash,
-                blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
-                errorMessage: userOpReceipt.reason
-              }
-            }
-
-            storage.set((state) => {
-              state.account[txReverted.senderId].transactionLog[txReverted.id] =
-                txReverted
-            })
-          }
-
-          // Remove the event handler once the operation is processed
-          indexTransactionContext[
-            txLog.networkId
-          ].entryPoint.offUserOperationEvent(txLog.receipt.userOpHash)
+          syncUserOpReceipt(txLog)
         }
 
-        // Register the handler for the user operation event if entry point and bundler are initialized
-        if (
-          indexTransactionContext[txLog.networkId].entryPoint &&
-          indexTransactionContext[txLog.networkId].bundler
-        ) {
+        // Register the event handler if the network context is initialized
+        if (indexTransactionContext[txLog.networkId]) {
           indexTransactionContext[
             txLog.networkId
           ].entryPoint.onUserOperationEvent(
@@ -336,9 +350,6 @@ async function main() {
     })
   }
 
-  // TODO: Using these two asynchronous functions, both executing
-  // `storage.set()` commands, often triggers the error: "Error: Could not
-  // establish connection. Receiving end does not exist."
   await indexBalanceOnBlock()
   await indexTransactionOnEvent()
 }
