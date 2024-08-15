@@ -53,4 +53,8 @@ export class EntryPointContract {
       delete this.handlers[userOpHash]
     }
   }
+
+  public isListening(userOpHash: HexString) {
+    return !!this.handlers[userOpHash]
+  }
 }
