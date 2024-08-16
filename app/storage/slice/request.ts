@@ -11,8 +11,7 @@ import type { HexString } from "~typing"
 import type { BackgroundStateCreator } from "../middleware/background"
 import type { StateSlice } from "./state"
 
-// TODO: Rename to request slice
-export interface TransactionSlice {
+export interface RequestSlice {
   /* Profile */
 
   switchProfile: (profile: {
@@ -51,9 +50,9 @@ export interface TransactionSlice {
   resolveEip712Request(requestId: string, signature: HexString): Promise<void>
 }
 
-export const createTransactionSlice: BackgroundStateCreator<
-  StateSlice & TransactionSlice,
-  TransactionSlice
+export const createRequestSlice: BackgroundStateCreator<
+  StateSlice & RequestSlice,
+  RequestSlice
 > = (set, get) => ({
   /* Profile */
 
