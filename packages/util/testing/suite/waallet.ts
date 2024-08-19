@@ -8,6 +8,7 @@ import { UserOperationV0_6 } from "~packages/bundler/userOperation"
 import { SingleNetworkManager } from "~packages/network/manager/single"
 import type { Paymaster } from "~packages/paymaster"
 import {
+  Eip712RequestHandler,
   RequestHandler,
   TransactionRequestHandler
 } from "~packages/waallet/background/pool/request/handler"
@@ -101,7 +102,8 @@ export function describeWaalletSuite<A extends Account, P extends Paymaster>(
                 paymasterData: ethers.dataSlice(paymasterAndData, 20)
               })
             }
-          )
+          ),
+          new Eip712RequestHandler(accountManager)
         )
       )
     })

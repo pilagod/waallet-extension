@@ -9,5 +9,6 @@ export type PasskeyPublicKey = {
 export interface PasskeyOwner {
   getCredentialId(): B64UrlString
   getPublicKey(): Nullable<PasskeyPublicKey>
+  // TODO: Remove `metadata`
   sign(challenge: BytesLike, metadata?: any): Promise<WebAuthnAuthentication>
 }

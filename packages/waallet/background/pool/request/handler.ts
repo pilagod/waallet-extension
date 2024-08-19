@@ -1,32 +1,41 @@
 import { v4 as uuidv4 } from "uuid"
 
+import { SignatureFormat } from "~packages/account"
 import type { AccountManager } from "~packages/account/manager"
 import type { UserOperation } from "~packages/bundler/userOperation"
 import { GasPriceEstimator } from "~packages/gas/price/estimator"
 import type { NetworkManager } from "~packages/network/manager"
 import type { HexString } from "~typing"
 
-import type { Request, RequestPool } from "./index"
-import { TransactionRequest } from "./transaction"
+import {
+  Eip712Request,
+  TransactionRequest,
+  type Request,
+  type RequestPool
+} from "./index"
 
 export class RequestHandler implements RequestPool {
-  private request: Record<string, Request> = {}
+  private pool: { [requestId: string]: Promise<HexString> } = {}
 
-  public constructor(private transactionRequestHandler: RequestPool) {}
+  public constructor(
+    private transactionRequestHandler: TransactionRequestHandler,
+    private eip712RequestHandler: Eip712RequestHandler
+  ) {}
 
   public async send(data: {
     request: Request
     accountId: string
     networkId: string
   }) {
-    const requestId = await this.handleSend(data)
-    this.request[requestId] = data.request
+    const promise = this.handleSend(data)
+    const requestId = uuidv4()
+    this.pool[requestId] = promise
     return requestId
   }
 
   public async wait(requestId: string) {
-    const result = await this.handleWait(requestId)
-    delete this.request[requestId]
+    const result = await this.pool[requestId]
+    delete this.pool[requestId]
     return result
   }
 
@@ -38,23 +47,21 @@ export class RequestHandler implements RequestPool {
     networkId: string
   }) {
     if (data.request instanceof TransactionRequest) {
-      return this.transactionRequestHandler.send(data)
+      return this.transactionRequestHandler.send({
+        ...data,
+        request: data.request
+      })
+    }
+    if (data.request instanceof Eip712Request) {
+      return this.eip712RequestHandler.send({ ...data, request: data.request })
     }
     throw new Error("Unknown request type to send")
   }
-
-  private handleWait(requestId: string) {
-    const request = this.request[requestId]
-    if (request instanceof TransactionRequest) {
-      return this.transactionRequestHandler.wait(requestId)
-    }
-    throw new Error("Unknown request type to wait")
-  }
 }
 
-export class TransactionRequestHandler implements RequestPool {
-  private pool: { [txId: string]: Promise<HexString> } = {}
+/* Transaction Request Handler */
 
+export class TransactionRequestHandler {
   public constructor(
     private accountManager: AccountManager,
     private networkManager: NetworkManager,
@@ -65,7 +72,7 @@ export class TransactionRequestHandler implements RequestPool {
   ) {}
 
   public async send(data: {
-    request: Request
+    request: TransactionRequest
     accountId: string
     networkId: string
   }) {
@@ -111,17 +118,22 @@ export class TransactionRequestHandler implements RequestPool {
     if (!userOpHash) {
       throw new Error("Send user operation fail")
     }
-    const id = uuidv4()
 
-    this.pool[id] = new Promise(async (resolve) => {
+    return new Promise<HexString>(async (resolve) => {
       const transactionHash = await bundler.wait(userOpHash)
       resolve(transactionHash)
     })
-
-    return id
   }
+}
 
-  public wait(txId: string) {
-    return this.pool[txId]
+/* EIP-712 Request Handler */
+
+export class Eip712RequestHandler {
+  public constructor(private accountManager: AccountManager) {}
+
+  public async send(data: { request: Eip712Request; accountId: string }) {
+    const { request, accountId } = data
+    const { account } = await this.accountManager.get(accountId)
+    return account.sign(request.hash(), SignatureFormat.Raw)
   }
 }
