@@ -1,5 +1,10 @@
+import { useEffect, useState } from "react"
+
 import { useStorage } from "~app/storage"
 import { NetworkConfig, type NetworkMetadata } from "~config/network"
+import { type Account } from "~packages/account"
+import { type ContractRunner } from "~packages/node"
+import { AccountStorageManager } from "~storage/local/manager"
 import { type Network as NetworkStorage } from "~storage/local/state"
 
 export { useStorage } from "~app/storage"
@@ -35,6 +40,23 @@ export const useAccount = (id?: string) => {
   return useStorage(({ state }) => {
     return state.account[id ?? network.accountActive]
   })
+}
+
+export const useAccountWithActor = (runner: ContractRunner, id?: string) => {
+  const account = useAccount(id)
+  const [actor, setActor] = useState<Account>(null)
+  useEffect(() => {
+    async function setupActor() {
+      const actor = await AccountStorageManager.wrap(runner, account)
+      setActor(actor)
+    }
+    setupActor()
+  }, [account.id])
+  return {
+    ...account,
+    actor,
+    actorLoaded: actor !== null
+  }
 }
 
 export const useAccounts = () => {

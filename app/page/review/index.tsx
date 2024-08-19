@@ -3,11 +3,9 @@ import browser from "webextension-polyfill"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { ProviderContext } from "~app/context/provider"
-import { useAccount, useNetwork } from "~app/hook/storage"
+import { useAccountWithActor, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { useAction, usePendingRequests } from "~app/storage"
-import type { Account } from "~packages/account"
-import { AccountStorageManager } from "~storage/local/manager"
 import { RequestType, type Request } from "~storage/local/state"
 
 import { Eip712Confirmation } from "./eip712"
@@ -79,20 +77,10 @@ function PendingRequestConfirmation(props: { request: Request }) {
 
   const { provider } = useContext(ProviderContext)
 
-  const account = useAccount(request.accountId)
+  const account = useAccountWithActor(provider, request.accountId)
   const network = useNetwork(request.networkId)
 
-  const [accountActor, setAccountActor] = useState<Account>(null)
-
-  useEffect(() => {
-    async function setupAccountActor() {
-      const actor = await AccountStorageManager.wrap(provider, account)
-      setAccountActor(actor)
-    }
-    setupAccountActor()
-  }, [account.id])
-
-  if (!accountActor) {
+  if (!account.actorLoaded) {
     return
   }
 
@@ -100,7 +88,7 @@ function PendingRequestConfirmation(props: { request: Request }) {
     return (
       <TransactionConfirmation
         tx={request}
-        account={{ actor: accountActor, name: account.name }}
+        account={account}
         network={network}
       />
     )
@@ -110,7 +98,7 @@ function PendingRequestConfirmation(props: { request: Request }) {
     return (
       <Eip712Confirmation
         request={request}
-        account={{ actor: accountActor }}
+        account={account}
         network={network}
       />
     )
