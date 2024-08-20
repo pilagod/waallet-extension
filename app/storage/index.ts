@@ -90,6 +90,3 @@ export const useStorage = create<Storage>()(
 storageMessenger.get().then((state) => {
   useStorage.setStateLocally({ state })
 })
-
-// TODO: Remove it after fully migrated
-export * from "~app/hook/storage"

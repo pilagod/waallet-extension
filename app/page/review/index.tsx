@@ -3,9 +3,13 @@ import browser from "webextension-polyfill"
 import { useHashLocation } from "wouter/use-hash-location"
 
 import { ProviderContext } from "~app/context/provider"
-import { useAccountWithActor, useNetwork } from "~app/hook/storage"
+import {
+  useAccountWithActor,
+  useAction,
+  useNetwork,
+  usePendingRequests
+} from "~app/hook/storage"
 import { Path } from "~app/path"
-import { useAction, usePendingRequests } from "~app/storage"
 import { RequestType, type Request } from "~storage/local/state"
 
 import { Eip712Confirmation } from "./eip712"
