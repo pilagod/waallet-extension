@@ -3,13 +3,14 @@ import * as ethers from "ethers"
 import type { AccountFactory } from "~packages/account/factory"
 import type { ContractRunner } from "~packages/node"
 import { Address, type AddressLike } from "~packages/primitive"
+import number from "~packages/util/number"
 import type { BigNumberish } from "~typing"
 
 import type { PasskeyPublicKey } from "./passkeyOwner"
 
 export class PasskeyAccountFactory implements AccountFactory {
   public address: Address
-  public salt: BigNumberish
+  public salt: bigint
 
   private factory: ethers.Contract
   private credentialId: string
@@ -25,6 +26,9 @@ export class PasskeyAccountFactory implements AccountFactory {
     }
   ) {
     this.address = Address.wrap(option.address)
+    this.credentialId = option.credentialId
+    this.publicKey = option.publicKey
+    this.salt = number.toBigInt(option.salt)
     this.factory = new ethers.Contract(
       this.address,
       [
@@ -34,9 +38,6 @@ export class PasskeyAccountFactory implements AccountFactory {
       ],
       this.runner
     )
-    this.credentialId = option.credentialId
-    this.publicKey = option.publicKey
-    this.salt = option.salt
   }
 
   public async getAddress() {

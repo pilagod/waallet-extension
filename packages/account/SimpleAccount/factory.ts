@@ -3,11 +3,12 @@ import * as ethers from "ethers"
 import type { AccountFactory } from "~packages/account/factory"
 import type { ContractRunner } from "~packages/node"
 import { Address, type AddressLike } from "~packages/primitive"
+import number from "~packages/util/number"
 import type { BigNumberish } from "~typing"
 
 export class SimpleAccountFactory implements AccountFactory {
   public address: Address
-  public salt: BigNumberish
+  public salt: bigint
 
   private factory: ethers.Contract
   private owner: Address
@@ -22,7 +23,7 @@ export class SimpleAccountFactory implements AccountFactory {
   ) {
     this.address = Address.wrap(option.address)
     this.owner = Address.wrap(option.owner)
-    this.salt = option.salt
+    this.salt = number.toBigInt(option.salt)
     this.factory = new ethers.Contract(
       this.address,
       [

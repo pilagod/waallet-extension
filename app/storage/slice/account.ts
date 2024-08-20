@@ -59,12 +59,7 @@ export const createAccountSlice: BackgroundStateCreator<
         ...data,
         id,
         name,
-        address: data.address.unwrap(),
         chainId: network.chainId,
-        ...(data.factory && {
-          factoryAddress: data.factory.unwrap(),
-          salt: number.toHex(data.salt)
-        }),
         transactionLog: {},
         balance: "0x00",
         tokens: []
@@ -88,12 +83,6 @@ export const createAccountSlice: BackgroundStateCreator<
         id,
         name,
         chainId: network.chainId,
-        // TODO: Design a value object
-        publicKey: {
-          x: number.toHex(data.publicKey.x),
-          y: number.toHex(data.publicKey.y)
-        },
-        salt: number.toHex(data.salt),
         // TODO: Design an account periphery prototype
         transactionLog: {},
         balance: "0x00",

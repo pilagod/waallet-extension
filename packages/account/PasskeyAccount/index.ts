@@ -5,6 +5,7 @@ import { AccountSkeleton } from "~packages/account/skeleton"
 import type { ContractRunner } from "~packages/node"
 import { Address, type AddressLike } from "~packages/primitive"
 import { Bytes } from "~packages/primitive/bytes"
+import number from "~packages/util/number"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
@@ -102,14 +103,18 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
   }
 
   public dump() {
+    const { x, y } = this.owner.getPublicKey()
     return {
       type: AccountType.PasskeyAccount as AccountType.PasskeyAccount,
       address: this.address.unwrap(),
       credentialId: this.owner.getCredentialId(),
-      publicKey: this.owner.getPublicKey(),
+      publicKey: {
+        x: number.toHex(x),
+        y: number.toHex(y)
+      },
       ...(this.factory && {
         factoryAddress: this.factory.address.unwrap(),
-        salt: this.factory.salt
+        salt: number.toHex(this.factory.salt)
       })
     }
   }

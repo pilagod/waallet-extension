@@ -6,6 +6,7 @@ import { AccountSkeleton } from "~packages/account/skeleton"
 import { type ContractRunner } from "~packages/node"
 import { Address, type AddressLike } from "~packages/primitive"
 import { Bytes } from "~packages/primitive/bytes"
+import number from "~packages/util/number"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
@@ -88,11 +89,11 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   public dump() {
     return {
       type: AccountType.SimpleAccount as AccountType.SimpleAccount,
-      address: this.address,
+      address: this.address.unwrap(),
       ownerPrivateKey: this.owner.privateKey,
       ...(this.factory && {
-        factory: this.factory.address,
-        salt: this.factory.salt
+        factoryAddress: this.factory.address.unwrap(),
+        salt: number.toHex(this.factory.salt)
       })
     }
   }
