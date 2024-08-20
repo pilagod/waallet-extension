@@ -1,7 +1,7 @@
 import { JsonRpcProvider } from "ethers"
 import browser from "webextension-polyfill"
 
-import { getErc20Contract } from "~packages/network/util"
+import { ERC20Contract } from "~packages/contract/erc20"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
@@ -18,7 +18,7 @@ import {
 import { getSessionStorage } from "~storage/session"
 
 import { StorageAction } from "./messages/storage"
-import { TransactionStoragePool } from "./pool"
+import { RequestStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 
 console.log(
@@ -48,7 +48,7 @@ async function main() {
   setupWaalletBackgroundProvider({
     accountManager,
     networkManager,
-    transactionPool: new TransactionStoragePool(storage)
+    requestPool: new RequestStoragePool(storage)
   })
 
   const sessionStorage = await getSessionStorage()
@@ -84,14 +84,14 @@ async function main() {
       }
 
       await browser.windows.create({
-        url: browser.runtime.getURL("popup.html"),
+        url: browser.runtime.getURL("tabs/notification.html"),
         focused: true,
         type: "popup",
         width: 480,
         height: 720
       })
     },
-    { pendingTransaction: {} }
+    { pendingRequests: [] }
   )
 
   const indexTransactionSent = async () => {
@@ -131,7 +131,7 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.account[txSucceeded.senderId].transactionLog[txSucceeded.id] =
+          state.account[txSucceeded.accountId].transactionLog[txSucceeded.id] =
             txSucceeded
         })
         return
@@ -150,7 +150,7 @@ async function main() {
           }
         }
         storage.set((state) => {
-          state.account[txReverted.senderId].transactionLog[txReverted.id] =
+          state.account[txReverted.accountId].transactionLog[txReverted.id] =
             txReverted
         })
         return
@@ -189,10 +189,8 @@ async function main() {
     // Update the balance of all tokens
     for (const t of tokens) {
       try {
-        const tokenBalance: bigint = await getErc20Contract(
-          t.address,
-          provider
-        ).balanceOf(accountAddress)
+        const token = await ERC20Contract.init(t.address, provider)
+        const tokenBalance = await token.balanceOf(accountAddress)
 
         if (number.toBigInt(t.balance) !== tokenBalance) {
           storage.set((state) => {

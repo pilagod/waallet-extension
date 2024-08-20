@@ -1,6 +1,6 @@
 import type { AccountManager } from "~packages/account/manager"
 import type { NetworkManager } from "~packages/network/manager"
-import type { TransactionPool } from "~packages/waallet/background/pool/transaction"
+import type { RequestPool } from "~packages/waallet/background/pool/request"
 import { WaalletBackgroundProvider } from "~packages/waallet/background/provider"
 
 let waalletBackgroundProvider: WaalletBackgroundProvider
@@ -12,12 +12,12 @@ export function getWaalletBackgroundProvider() {
 export function setupWaalletBackgroundProvider(option: {
   accountManager: AccountManager
   networkManager: NetworkManager
-  transactionPool: TransactionPool
+  requestPool: RequestPool
 }): WaalletBackgroundProvider {
   waalletBackgroundProvider = new WaalletBackgroundProvider(
     option.accountManager,
     option.networkManager,
-    option.transactionPool
+    option.requestPool
   )
   return waalletBackgroundProvider
 }

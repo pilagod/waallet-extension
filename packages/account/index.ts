@@ -42,11 +42,16 @@ export class Execution {
   }
 }
 
+export enum SignatureFormat {
+  Raw = "Raw",
+  Eip191 = "Eip191"
+}
+
 export interface Account {
   buildExecution(call: Call): Promise<Execution>
   getAddress(): Promise<Address>
   getEntryPoint(): Promise<Address>
   getNonce(): Promise<bigint>
   isDeployed(): Promise<boolean>
-  sign(message: BytesLike, metadata?: any): Promise<HexString>
+  sign(message: BytesLike, format?: SignatureFormat): Promise<HexString>
 }

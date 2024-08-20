@@ -4,9 +4,10 @@ import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
 import type { ContractRunner } from "~packages/node"
 import { Address, type AddressLike } from "~packages/primitive"
+import { Bytes } from "~packages/primitive/bytes"
 import type { BytesLike, HexString } from "~typing"
 
-import { Execution } from "./index"
+import { Execution, SignatureFormat } from "./index"
 
 export abstract class AccountSkeleton<T extends AccountFactory>
   implements Account
@@ -27,9 +28,9 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   /* abstract */
 
-  public abstract sign(message: BytesLike): Promise<HexString>
   protected abstract getCallData(call: Call): Promise<HexString>
   protected abstract getDummySignature(): Promise<HexString>
+  protected abstract signRaw(message: BytesLike): Promise<HexString>
 
   /* public */
 
@@ -97,6 +98,13 @@ export abstract class AccountSkeleton<T extends AccountFactory>
 
   public async isDeployed(): Promise<boolean> {
     return this.address.isContract(this.runner.provider)
+  }
+
+  public async sign(message: BytesLike, format = SignatureFormat.Eip191) {
+    if (format === SignatureFormat.Eip191) {
+      return this.signRaw(Bytes.wrap(message).eip191())
+    }
+    return this.signRaw(message)
   }
 
   /* protected */

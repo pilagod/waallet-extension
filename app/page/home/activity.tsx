@@ -5,8 +5,10 @@ import ArrowUpRightFromSquare from "react:~assets/arrowUpRightFromSquare.svg"
 import CircleXmark from "react:~assets/circleXmark.svg"
 import Clock from "react:~assets/clock.svg"
 
-import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
-import { decodeExecuteParams, decodeTransferParams } from "~app/util/calldata"
+import { ERC20Contract } from "~/packages/contract/erc20"
+import { ScrollableWrapper } from "~app/component/scrollableWrapper"
+import { useAccount, useNetwork, useTransactionLogs } from "~app/hook/storage"
+import { decodeExecuteParams } from "~app/util/calldata"
 import { getChainName } from "~packages/network/util"
 import number from "~packages/util/number"
 import { TransactionStatus, type TransactionLog } from "~storage/local/state"
@@ -24,18 +26,16 @@ export function Activity() {
 const TransactionHistory: React.FC<{
   txLogs: TransactionLog[]
 }> = ({ txLogs }) => {
-  const { chainId } = useNetwork()
-  const chainName = getChainName(chainId)
   return (
     <>
       {/* Home page activity list bar */}
-      <div className="w-full flex flex-col items-start">
-        {txLogs.map((txLog, i) => {
-          return (
-            <UserOpHistoryItem key={i} txLog={txLog} chainName={chainName} />
-          )
-        })}
-      </div>
+      <ScrollableWrapper className="h-[270px] px-[16px]">
+        <div className="w-full flex flex-col items-start">
+          {txLogs.map((txLog, i) => {
+            return <UserOpHistoryItem key={i} txLog={txLog} />
+          })}
+        </div>
+      </ScrollableWrapper>
     </>
   )
 }
@@ -48,16 +48,16 @@ type TokenTransferInfo = {
 
 const UserOpHistoryItem: React.FC<{
   txLog: TransactionLog
-  chainName: string
-}> = ({ txLog, chainName }) => {
+}> = ({ txLog }) => {
   const { tokens, type } = useAccount()
+  const network = useNetwork()
   const { createdAt, status, detail } = txLog
-  const creationDate = new Date(createdAt * 1000).toLocaleDateString("zh-TW", {
+  const creationDate = new Date(createdAt).toLocaleDateString("zh-TW", {
     year: "numeric",
     month: "numeric",
     day: "numeric"
   })
-  const creationTime = new Date(createdAt * 1000).toLocaleTimeString("zh-TW", {
+  const creationTime = new Date(createdAt).toLocaleTimeString("zh-TW", {
     hour: "numeric",
     minute: "numeric",
     second: "numeric",
@@ -66,7 +66,7 @@ const UserOpHistoryItem: React.FC<{
   const { to, value, data } = decodeExecuteParams(type, detail.data.callData)
 
   const tokenInfo: TokenTransferInfo = {
-    symbol: `${chainName}ETH`,
+    symbol: network.tokenSymbol,
     value,
     to: to.unwrap()
   }
@@ -77,7 +77,8 @@ const UserOpHistoryItem: React.FC<{
   // If a token is found, consider it an ERC20 token transfer
   if (tokenStored) {
     try {
-      const { to: tokenTo, value: tokenValue } = decodeTransferParams(data)
+      const { to: tokenTo, value: tokenValue } =
+        ERC20Contract.decodeTransferParam(data)
       tokenInfo.symbol = tokenStored.symbol
       tokenInfo.value = tokenValue
       tokenInfo.to = tokenTo
@@ -97,7 +98,9 @@ const UserOpHistoryItem: React.FC<{
     status === TransactionStatus.Succeeded ||
     status === TransactionStatus.Reverted
   ) {
-    const link = `${explorerUrl}userOpHash/${txLog.receipt.userOpHash}?network=${chainName}`
+    const link = `${explorerUrl}userOpHash/${
+      txLog.receipt.userOpHash
+    }?network=${getChainName(network.chainId)}`
     return (
       <div className="w-full flex items-center py-[13px] justify-between">
         <div className="flex flex-col items-start gap-[8px]">

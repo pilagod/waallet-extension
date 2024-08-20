@@ -241,8 +241,12 @@ export class BundlerProvider {
   /* private */
 
   private async debugSendBundleNow() {
-    await this.bundler.send({
-      method: BundlerRpcMethod.debug_bundler_sendBundleNow
-    })
+    try {
+      await this.bundler.send({
+        method: BundlerRpcMethod.debug_bundler_sendBundleNow
+      })
+    } catch (err) {
+      return // no op to send in debug mode,  so ignore the error
+    }
   }
 }

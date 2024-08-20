@@ -4,6 +4,7 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
+import { type Token } from "~packages/token"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
 /* State */
@@ -19,9 +20,7 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
-  pendingTransaction: {
-    [txId: string]: TransactionPending
-  }
+  pendingRequests: Request[]
 }
 
 /* Netowork */
@@ -45,13 +44,18 @@ export type Network = {
 
 export type Account = SimpleAccount | PasskeyAccount
 
+export type AccountToken = Token & {
+  balance: HexString
+}
+
 export type AccountMeta<T> = {
   id: string
+  name: string
   transactionLog: {
     [txId: string]: TransactionLog
   }
   balance: HexString
-  tokens: Token[]
+  tokens: AccountToken[]
 } & T
 
 export type SimpleAccount = AccountMeta<{
@@ -59,6 +63,8 @@ export type SimpleAccount = AccountMeta<{
   chainId: number
   address: HexString
   ownerPrivateKey: HexString
+  factoryAddress?: HexString
+  salt?: HexString
 }>
 
 export type PasskeyAccount = AccountMeta<{
@@ -73,13 +79,6 @@ export type PasskeyAccount = AccountMeta<{
   factoryAddress?: HexString
   salt?: HexString
 }>
-
-export type Token = {
-  address: HexString
-  symbol: string
-  decimals: number
-  balance: HexString
-}
 
 /* Paymaster */
 
@@ -96,11 +95,31 @@ export type VerifyingPaymaster = {
   ownerPrivateKey: HexString
 }
 
+/* Request */
+
+export enum RequestType {
+  Transaction = "Transaction"
+}
+
+export type Request = TransactionRequest
+
+export type TransactionRequest = {
+  type: RequestType.Transaction
+  id: string
+  createdAt: number
+  accountId: string
+  networkId: string
+  to: HexString
+  value: HexString
+  data: HexString
+  nonce?: HexString
+  gasLimit?: HexString
+  gasPrice?: HexString
+}
+
 /* Transaction */
 
 export enum TransactionStatus {
-  // Waiting to be processed in local user operation pool.
-  Pending = "Pending",
   // User rejects the user operation.
   Rejected = "Rejected",
   // Bundler accepts the user operation.
@@ -118,29 +137,13 @@ export enum TransactionType {
   ERC4337V0_7 = "ERC4337V0_7"
 }
 
-/* Transaction - Pending */
-
-export type TransactionPending = {
-  id: string
-  status: TransactionStatus.Pending
-  createdAt: number
-  senderId: string
-  networkId: string
-  to: HexString
-  value: HexString
-  data: HexString
-  nonce?: HexString
-  gasLimit?: HexString
-  gasPrice?: HexString
-}
-
 /* Transaction - Log */
 
 export type TransactionLog = ERC4337TransactionLog
 
 export type TransactionLogMeta<T> = {
   id: string
-  senderId: string
+  accountId: string
   networkId: string
   createdAt: number
 } & T

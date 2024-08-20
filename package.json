@@ -39,6 +39,7 @@
     "isomorphic-fetch": "^3.0.0",
     "json-bigint": "^1.0.0",
     "plasmo": "^0.88.0",
+    "qr-code-styling": "^1.6.0-rc.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "reflect-metadata": "^0.2.2",
@@ -70,7 +71,7 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.2.2"
+    "typescript": "^5.5.4"
   },
   "@parcel/resolver-default": {
     "packageExports": true
@@ -80,6 +81,9 @@
       "https://*/*",
       "http://localhost:*/*"
     ],
-    "key": "$CRX_KEY"
+    "key": "$CRX_KEY",
+    "permissions": [
+      "tabs"
+    ]
   }
 }

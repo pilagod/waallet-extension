@@ -67,7 +67,7 @@ export class PasskeyOwnerP256 implements PasskeyOwner {
   private getClientDataJson(challenge: BytesLike) {
     const clientDataJson = {
       type: "webauthn.get",
-      challenge: Bytes.wrap(challenge).eip191().unwrap("base64url"),
+      challenge: Bytes.wrap(challenge).unwrap("base64url"),
       origin: "https://webauthn.passwordless.id",
       crossOrigin: false
     }

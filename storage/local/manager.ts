@@ -18,9 +18,16 @@ export class AccountStorageManager implements AccountManager {
   public static async wrap(runner: ContractRunner, account: Account) {
     switch (account.type) {
       case AccountType.SimpleAccount:
-        return SimpleAccount.init(runner, {
-          address: account.address,
-          ownerPrivateKey: account.ownerPrivateKey
+        if (!account.factoryAddress) {
+          return SimpleAccount.init(runner, {
+            address: account.address,
+            ownerPrivateKey: account.ownerPrivateKey
+          })
+        }
+        return SimpleAccount.initWithFactory(runner, {
+          ownerPrivateKey: account.ownerPrivateKey,
+          factory: account.factoryAddress,
+          salt: number.toBigInt(account.salt)
         })
       case AccountType.PasskeyAccount:
         if (!account.factoryAddress) {

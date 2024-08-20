@@ -3,7 +3,13 @@ import type {
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
 import type { Unwraplify } from "~packages/primitive"
-import type { BigNumberish, HexString, OptionalPick } from "~typing"
+import type {
+  BigNumberish,
+  BytesLike,
+  HexString,
+  Nullable,
+  OptionalPick
+} from "~typing"
 
 export enum WaalletRpcMethod {
   eth_accounts = "eth_accounts",
@@ -14,6 +20,7 @@ export enum WaalletRpcMethod {
   eth_requestAccounts = "eth_requestAccounts",
   eth_sendTransaction = "eth_sendTransaction",
   eth_sendUserOperation = "eth_sendUserOperation",
+  eth_signTypedData_v4 = "eth_signTypedData_v4",
 
   custom_estimateGasPrice = "custom_estimateGasPrice"
 }
@@ -29,6 +36,7 @@ export type WaalletRequestArguments =
   | EthEstimateUserOperationGasArguments
   | EthSendTransactionArguments
   | EthSendUserOperationArguments
+  | EthSignTypedDataV4
   | {
       method:
         | WaalletRpcMethod.eth_accounts
@@ -86,11 +94,55 @@ export type EthSendTransactionArguments = {
   params: [EthTransaction]
 }
 
-/**
- * @param UserOperation
- * @param EntryPoint address
- */
 export type EthSendUserOperationArguments = {
   method: WaalletRpcMethod.eth_sendUserOperation
-  params: [UserOperationDataV0_6 | UserOperationDataV0_7, HexString]
+  params: [
+    UserOperationDataV0_6 | UserOperationDataV0_7,
+    HexString // EntryPoint address
+  ]
+}
+
+/* EIP-712 */
+
+export type EthSignTypedDataV4 = {
+  method: WaalletRpcMethod.eth_signTypedData_v4
+  params: [
+    HexString, // signer address
+    {
+      /**
+       * Define data structs for `domain` and `message`.
+       */
+      types: Eip712Types
+
+      /**
+       *  https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator
+       */
+      domain: Eip712Domain
+
+      /**
+       * Name of a type in `types` that describes the struct of `message`.
+       */
+      primaryType: string
+
+      /**
+       * Data for the struct of `primaryType`.
+       */
+      message: Record<string, any>
+    }
+  ]
+}
+
+export type Eip712Domain = {
+  name?: Nullable<string>
+  version?: Nullable<string>
+  chainId?: Nullable<BigNumberish>
+  verifyingContract?: Nullable<HexString>
+  salt?: Nullable<BytesLike>
+}
+
+export type Eip712Types = Record<string, Eip712Type[]>
+
+export type Eip712Type = {
+  name: string
+  type: string
 }

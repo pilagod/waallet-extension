@@ -1,11 +1,11 @@
-import { useContext, useState } from "react"
+import { Wallet } from "ethers"
+import { useContext, useEffect, useState } from "react"
 import ArrowDown from "react:~assets/arrowDown.svg"
 import ArrowUp from "react:~assets/arrowUp.svg"
 import { Link } from "wouter"
 
 import { Divider } from "~app/component/divider"
 import { ProviderContext } from "~app/context/provider"
-import { ToastContext } from "~app/context/toastContext"
 import {
   useAccount,
   useAccounts,
@@ -17,8 +17,8 @@ import { Navbar } from "~app/page/home/navbar"
 import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
 import { AccountType } from "~packages/account"
-import { PasskeyAccount } from "~packages/account/PasskeyAccount"
-import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
+import { SimpleAccount } from "~packages/account/SimpleAccount"
+import address from "~packages/util/address"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {
@@ -28,12 +28,39 @@ export enum InfoNavigation {
 
 export function Home() {
   const hasNoAccount = useAccounts().length === 0
+
+  const { provider } = useContext(ProviderContext)
+  const { createSimpleAccount } = useAction()
+  const network = useNetwork()
+
+  useEffect(() => {
+    if (!hasNoAccount) {
+      return
+    }
+
+    const initSimpleAccount = async () => {
+      const hasSimpleAccountFactory = address.isValid(
+        network.accountFactory[AccountType.SimpleAccount]
+      )
+
+      if (hasSimpleAccountFactory) {
+        const account = await SimpleAccount.initWithFactory(provider, {
+          ownerPrivateKey: Wallet.createRandom().privateKey,
+          factory: network.accountFactory[AccountType.SimpleAccount],
+          salt: number.random()
+        })
+
+        await createSimpleAccount(`Account 1`, account, network.id)
+      }
+    }
+
+    initSimpleAccount()
+  }, [network.id])
+
   return (
     <>
       <Navbar />
-      {hasNoAccount ? (
-        <AccountCreation />
-      ) : (
+      {!hasNoAccount && (
         <>
           <AccountInfo />
           <Divider />
@@ -44,43 +71,9 @@ export function Home() {
   )
 }
 
-function AccountCreation() {
-  const { provider } = useContext(ProviderContext)
-  const { createAccount } = useAction()
-  const network = useNetwork()
-
-  const { setToast } = useContext(ToastContext)
-
-  const onPasskeyAccountCreated = async () => {
-    try {
-      if (!network.accountFactory[AccountType.PasskeyAccount]) {
-        throw new Error("Passkey account factory is not set")
-      }
-      const account = await PasskeyAccount.initWithFactory(provider, {
-        owner: await PasskeyOwnerWebAuthn.register(),
-        salt: number.random(),
-        factory: network.accountFactory[AccountType.PasskeyAccount]
-      })
-      await createAccount(account, network.id)
-      setToast("Wallet Created", "success")
-    } catch (error) {
-      setToast(error.message, "failed")
-    }
-  }
-
-  return (
-    <div className="text-center">
-      <button
-        className="border-2 border-black rounded-full px-2"
-        onClick={onPasskeyAccountCreated}>
-        Create your first AA account
-      </button>
-    </div>
-  )
-}
-
 export function AccountInfo() {
   const account = useAccount()
+  const network = useNetwork()
 
   return (
     <div className="w-full pb-[24px]">
@@ -90,11 +83,11 @@ export function AccountInfo() {
         <div className="mb-[8px] leading-[19px] text-[16px] text-[#000000]">
           Balance
         </div>
-        <div className="leading-[58px] text-[48px] text-[#000000] whitespace-nowrap">{`$ ${number.formatUnitsToFixed(
+        <div className="leading-[58px] text-[48px] text-[#000000] whitespace-nowrap">{`${number.formatUnitsToFixed(
           account.balance,
           18,
           2
-        )}`}</div>
+        )} ${network.tokenSymbol}`}</div>
       </div>
       {/* Home page action */}
       <div className="flex justify-between">
@@ -108,12 +101,14 @@ export function AccountInfo() {
           </div>
         </Link>
         {/* Home page receive button */}
-        <button className="flex items-center p-[16px_38.5px_16px_38.5px] rounded-full border-[1px] border-solid border-black">
+        <Link
+          className="flex items-center px-[38.5px] py-[16px] rounded-full border-[1px] border-solid border-black"
+          href={Path.Receive}>
           <ArrowDown className="w-[24px] h-[24px] mr-[10px]" />
           <div className="leading-[19.36px] text-[16px] text-[#000000]">
             Receive
           </div>
-        </button>
+        </Link>
       </div>
     </div>
   )

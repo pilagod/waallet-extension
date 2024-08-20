@@ -24,18 +24,24 @@ export async function getLocalStorage() {
     // TODO: Separate init process by environment
 
     // Load accounts into storage
-    // TODO: Consider to write id into account
     const account = state.account ?? {}
-    // Patch id for accounts
-    Object.entries(account).forEach(([id, a]) => {
-      a.id = id
+    const accountCount = Object.keys(account).length
+    // Patch id and name for accounts
+    Object.entries(account).forEach(([id, a], i) => {
+      if (!a.id) {
+        a.id = id
+      }
+      if (!a.name) {
+        a.name = `Account ${i + 1}`
+      }
     })
-    config.accounts.forEach((a) => {
+    config.accounts.forEach((a, i) => {
       const targetAccount = Object.values(account).find(
         (as) =>
           a.chainId === as.chainId && address.isEqual(a.address, as.address)
       ) ?? {
         id: uuidv4(),
+        name: `Account ${accountCount + i + 1}`,
         transactionLog: {},
         balance: "0x00",
         tokens: []
@@ -86,7 +92,7 @@ export async function getLocalStorage() {
         networkActive: networkActive ?? Object.keys(network)[0],
         network,
         account,
-        pendingTransaction: {}
+        pendingRequests: []
       }
     })
   }

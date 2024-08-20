@@ -5,14 +5,19 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
+import { useStorage } from "~app/hook/storage"
+import { AccountCreate } from "~app/page/account/create"
+import { AccountList } from "~app/page/account/list"
 import { Home } from "~app/page/home"
+import { ImportToken } from "~app/page/importToken"
+import { NetworkList } from "~app/page/networkList"
+import { Receive } from "~app/page/receive"
 import { Review } from "~app/page/review/"
 import { Send } from "~app/page/send"
 import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
 import { WebAuthnRegistration } from "~app/page/webauthn/registration"
 import { Path } from "~app/path"
-import { useStorage } from "~app/storage"
 
 import "~style.css"
 
@@ -42,7 +47,7 @@ export function App() {
     <ProviderContextProvider>
       <ToastProvider>
         {/* Waallet popup script page */}
-        <div className="w-[390px] h-[600px] px-[16px] pt-[20px]">
+        <div className="w-[390px] h-[600px] mx-auto px-[16px] pt-[20px]">
           <Toast />
           <PageRouter />
         </div>
@@ -58,10 +63,10 @@ function PageRouter() {
     window.scrollTo(0, 0)
   }, [location])
 
-  const hasPendingTx = useStorage(
-    useShallow(({ state }) => Object.keys(state.pendingTransaction).length > 0)
+  const hasPendingRequests = useStorage(
+    useShallow(({ state }) => state.pendingRequests.length > 0)
   )
-  if (hasPendingTx && !location.startsWith(Path.Review)) {
+  if (hasPendingRequests && !location.startsWith(Path.Review)) {
     navigate(Path.Review)
     return
   }
@@ -69,21 +74,24 @@ function PageRouter() {
   return (
     <Router hook={useHashLocation}>
       <Switch>
+        <Route path={Path.AccountCreate} component={AccountCreate} />
+        <Route path={Path.AccountList} component={AccountList} />
         <Route path={Path.Home} component={Home} />
-        <Route path={Path.Send} component={Send} />
-
-        <Route
-          path={Path.WebAuthnRegistration}
-          component={WebAuthnRegistration}
-        />
+        <Route path={Path.ImportToken} component={ImportToken} />
+        <Route path={Path.NetworkList} component={NetworkList} />
+        <Route path={Path.Receive} component={Receive} />
+        <Route path={Path.Review} component={Review} />
+        {/* To enable the Send page to accept a token address as a parameter */}
+        <Route path={`${Path.Send}/:tokenAddress?`} component={Send} />
         <Route
           path={Path.WebAuthnAuthentication}
           component={WebAuthnAuthentication}
         />
         <Route path={Path.WebAuthnDevtool} component={WebAuthnDevtool} />
-
-        <Route path={Path.Review} component={Review} />
-
+        <Route
+          path={Path.WebAuthnRegistration}
+          component={WebAuthnRegistration}
+        />
         <Route path="*">
           <Redirect to={Path.Home} />
         </Route>

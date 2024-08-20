@@ -2,31 +2,42 @@ import { v4 as uuidv4 } from "uuid"
 
 import { ObservableStorage } from "~packages/storage/observable"
 import type {
-  Transaction,
-  TransactionPool
-} from "~packages/waallet/background/pool/transaction"
-import { TransactionStatus, type State } from "~storage/local/state"
+  Request,
+  RequestPool
+} from "~packages/waallet/background/pool/request"
+import { Eip712Request } from "~packages/waallet/background/pool/request"
+import { StateActor } from "~storage/local/actor"
+import {
+  RequestType,
+  TransactionStatus,
+  type State
+} from "~storage/local/state"
 
-export class TransactionStoragePool implements TransactionPool {
+export class RequestStoragePool implements RequestPool {
   public constructor(private storage: ObservableStorage<State>) {}
 
   public async send(data: {
-    tx: Transaction
-    senderId: string
+    request: Request
+    accountId: string
     networkId: string
   }) {
-    const { tx, senderId, networkId } = data
+    const { request, accountId, networkId } = data
+
+    if (request instanceof Eip712Request) {
+      throw new Error("EIP-712 is not yet supported")
+    }
+
     const id = uuidv4()
 
     this.storage.set((state) => {
-      state.pendingTransaction[id] = {
+      state.pendingRequests.push({
+        type: RequestType.Transaction,
         id,
-        status: TransactionStatus.Pending,
-        createdAt: Math.floor(Date.now() / 1000), // Get current timestamp in seconds
-        senderId,
+        createdAt: Date.now(),
+        accountId,
         networkId,
-        ...tx.unwrap()
-      }
+        ...request.unwrap()
+      })
     })
 
     return id
@@ -34,10 +45,11 @@ export class TransactionStoragePool implements TransactionPool {
 
   public wait(txId: string) {
     return new Promise<string>((resolve, reject) => {
-      const { senderId } = this.storage.get().pendingTransaction[txId]
+      const stateActor = new StateActor(this.storage.get())
+      const tx = stateActor.getTransactionRequest(txId)
 
       const subscriber = async ({ account }: State) => {
-        const txLog = account[senderId].transactionLog[txId]
+        const txLog = account[tx.accountId].transactionLog[txId]
 
         // Bundler is still processing this user operation
         if (txLog.status === TransactionStatus.Sent) {
@@ -61,8 +73,9 @@ export class TransactionStoragePool implements TransactionPool {
 
         resolve(txLog.receipt.transactionHash)
       }
+
       this.storage.subscribe(subscriber, {
-        account: { [senderId]: { transactionLog: { [txId]: {} } } }
+        account: { [tx.accountId]: { transactionLog: { [txId]: {} } } }
       })
     })
   }

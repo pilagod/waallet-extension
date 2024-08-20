@@ -21,6 +21,8 @@ export class SimpleAccountFactory implements AccountFactory {
     }
   ) {
     this.address = Address.wrap(option.address)
+    this.owner = Address.wrap(option.owner)
+    this.salt = option.salt
     this.factory = new ethers.Contract(
       this.address,
       [
@@ -30,8 +32,6 @@ export class SimpleAccountFactory implements AccountFactory {
       ],
       this.runner
     )
-    this.owner = Address.wrap(option.owner)
-    this.salt = option.salt
   }
 
   public async getAddress() {

@@ -1,9 +1,9 @@
 type ButtonProps = {
   text: string
-  disabled: boolean
-  onClick: () => void
   variant: "black" | "white"
   className?: string
+  disabled?: boolean
+  onClick?: () => void
 }
 export const Button = (props: ButtonProps) => {
   const { text, disabled, onClick, variant, className } = props

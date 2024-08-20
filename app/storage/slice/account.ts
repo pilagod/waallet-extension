@@ -1,9 +1,10 @@
 import { v4 as uuidV4 } from "uuid"
 
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
+import type { SimpleAccount } from "~packages/account/SimpleAccount"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import { type Token } from "~storage/local/state"
+import { type AccountToken } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 import type { BackgroundStateCreator } from "../middleware/background"
@@ -12,13 +13,22 @@ import type { StateSlice } from "./state"
 export interface AccountSlice {
   /* Account */
 
-  createAccount: (account: PasskeyAccount, networkId: string) => Promise<void>
+  createSimpleAccount: (
+    name: string,
+    account: SimpleAccount,
+    networkId: string
+  ) => Promise<void>
+  createPasskeyAccount: (
+    name: string,
+    account: PasskeyAccount,
+    networkId: string
+  ) => Promise<void>
   switchAccount: (accountId: string) => Promise<void>
 
   /* Token */
 
   updateBalance: (accountId: string, balance: BigNumberish) => Promise<void>
-  importToken: (accountId: string, token: Token) => Promise<void>
+  importToken: (accountId: string, token: AccountToken) => Promise<void>
   updateToken: (
     accountId: string,
     tokenAddress: HexString,
@@ -36,7 +46,11 @@ export const createAccountSlice: BackgroundStateCreator<
 > = (set) => ({
   /* Account */
 
-  createAccount: async (account: PasskeyAccount, networkId: string) => {
+  createSimpleAccount: async (
+    name: string,
+    account: SimpleAccount,
+    networkId: string
+  ) => {
     const id = uuidV4()
     const data = account.dump()
     await set(({ state }) => {
@@ -44,6 +58,35 @@ export const createAccountSlice: BackgroundStateCreator<
       state.account[id] = {
         ...data,
         id,
+        name,
+        address: data.address.unwrap(),
+        chainId: network.chainId,
+        ...(data.factory && {
+          factoryAddress: data.factory.unwrap(),
+          salt: number.toHex(data.salt)
+        }),
+        transactionLog: {},
+        balance: "0x00",
+        tokens: []
+      }
+      // Set the new account as active
+      network.accountActive = id
+    })
+  },
+
+  createPasskeyAccount: async (
+    name: string,
+    account: PasskeyAccount,
+    networkId: string
+  ) => {
+    const id = uuidV4()
+    const data = account.dump()
+    await set(({ state }) => {
+      const network = state.network[networkId]
+      state.account[id] = {
+        ...data,
+        id,
+        name,
         chainId: network.chainId,
         // TODO: Design a value object
         publicKey: {
@@ -79,7 +122,7 @@ export const createAccountSlice: BackgroundStateCreator<
     })
   },
 
-  importToken: async (accountId: string, token: Token) => {
+  importToken: async (accountId: string, token: AccountToken) => {
     await set(({ state }) => {
       state.account[accountId].tokens.push({
         address: address.normalize(token.address),
