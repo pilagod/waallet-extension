@@ -1,10 +1,13 @@
-import { v4 as uuidV4 } from "uuid"
-
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { SimpleAccount } from "~packages/account/SimpleAccount"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
-import { type AccountToken } from "~storage/local/state"
+import { StateActor } from "~storage/local/actor"
+import {
+  type AccountToken,
+  type PasskeyAccount as StoragePasskeyAccount,
+  type SimpleAccount as StorageSimpleAccount
+} from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 import type { BackgroundStateCreator } from "../middleware/background"
@@ -51,22 +54,16 @@ export const createAccountSlice: BackgroundStateCreator<
     account: SimpleAccount,
     networkId: string
   ) => {
-    const id = uuidV4()
     const data = account.dump()
     await set(({ state }) => {
-      const network = state.network[networkId]
-      state.account[id] = {
-        ...data,
-        id,
-        name,
-        chainId: network.chainId,
-        salt: number.toHex(data.salt),
-        transactionLog: {},
-        balance: "0x00",
-        tokens: []
-      }
-      // Set the new account as active
-      network.accountActive = id
+      new StateActor(state).createAccount<StorageSimpleAccount>(
+        {
+          ...data,
+          name,
+          salt: number.toHex(data.salt)
+        },
+        networkId
+      )
     })
   },
 
@@ -75,28 +72,20 @@ export const createAccountSlice: BackgroundStateCreator<
     account: PasskeyAccount,
     networkId: string
   ) => {
-    const id = uuidV4()
     const data = account.dump()
     await set(({ state }) => {
-      const network = state.network[networkId]
-      state.account[id] = {
-        ...data,
-        id,
-        name,
-        chainId: network.chainId,
-        // TODO: Design a value object
-        publicKey: {
-          x: number.toHex(data.publicKey.x),
-          y: number.toHex(data.publicKey.y)
+      new StateActor(state).createAccount<StoragePasskeyAccount>(
+        {
+          ...data,
+          name,
+          publicKey: {
+            x: number.toHex(data.publicKey.x),
+            y: number.toHex(data.publicKey.y)
+          },
+          salt: number.toHex(data.salt)
         },
-        salt: number.toHex(data.salt),
-        // TODO: Design an account periphery prototype
-        transactionLog: {},
-        balance: "0x00",
-        tokens: []
-      }
-      // Set the new account as active
-      network.accountActive = id
+        networkId
+      )
     })
   },
 

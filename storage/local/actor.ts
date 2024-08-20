@@ -1,10 +1,62 @@
-import { RequestType, type State } from "./state"
+import { v4 as uuidV4 } from "uuid"
+
+import number from "~packages/util/number"
+
+import {
+  RequestType,
+  type Account,
+  type AccountMeta,
+  type State
+} from "./state"
 
 /**
  * @dev StateActor mutates the state in-place, which can work with zustand and immer seamlessly.
  */
 export class StateActor {
   public constructor(private state: State) {}
+
+  /* Network */
+
+  /**
+   * @param networkId uuid or chain id
+   */
+  public getNetwork(networkId: string | number) {
+    if (typeof networkId === "string") {
+      const network = this.state.network[networkId]
+      if (!network) {
+        throw new Error(`Network with id ${networkId} not found`)
+      }
+      return network
+    }
+    const [network] = Object.values(this.state.network).filter(
+      (n) => n.chainId === networkId
+    )
+    if (!network) {
+      throw new Error(`Network with chain id ${networkId} not found`)
+    }
+    return network
+  }
+
+  /* Account */
+
+  public createAccount<T extends Account>(
+    account: Omit<T, Exclude<keyof AccountMeta, "name">>,
+    networkId: string | number
+  ) {
+    const id = uuidV4()
+    const network = this.getNetwork(networkId)
+    this.state.account[id] = {
+      ...account,
+      id,
+      chainId: network.chainId,
+      transactionLog: {},
+      balance: number.toHex(0),
+      tokens: []
+    } as T
+    network.accountActive = id
+  }
+
+  /* Request */
 
   public getTransactionRequest(requestId: string) {
     const [tx] = this.state.pendingRequests.filter(
