@@ -38,13 +38,13 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     runner: ContractRunner,
     option: {
       ownerPrivateKey: string
-      factory: AddressLike
+      factoryAddress: AddressLike
       salt: BigNumberish
     }
   ) {
     const owner = new ethers.Wallet(option.ownerPrivateKey)
     const factory = new SimpleAccountFactory(runner, {
-      address: option.factory,
+      address: option.factoryAddress,
       owner: owner.address,
       salt: option.salt
     })

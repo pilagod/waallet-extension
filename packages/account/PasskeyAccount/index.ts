@@ -36,12 +36,12 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     runner: ContractRunner,
     option: {
       owner: PasskeyOwner
+      factoryAddress: AddressLike
       salt: BigNumberish
-      factory: AddressLike
     }
   ) {
     const factory = new PasskeyAccountFactory(runner, {
-      address: option.factory,
+      address: option.factoryAddress,
       credentialId: option.owner.getCredentialId(),
       publicKey: option.owner.getPublicKey(),
       salt: option.salt

@@ -26,7 +26,7 @@ export class AccountStorageManager implements AccountManager {
         }
         return SimpleAccount.initWithFactory(runner, {
           ownerPrivateKey: account.ownerPrivateKey,
-          factory: account.factoryAddress,
+          factoryAddress: account.factoryAddress,
           salt: number.toBigInt(account.salt)
         })
       case AccountType.PasskeyAccount:
@@ -45,7 +45,7 @@ export class AccountStorageManager implements AccountManager {
             }
           ),
           salt: number.toBigInt(account.salt),
-          factory: account.factoryAddress
+          factoryAddress: account.factoryAddress
         })
       default:
         throw new Error(`Unknown account ${account}`)

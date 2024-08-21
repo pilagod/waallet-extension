@@ -8,7 +8,7 @@ describeAccountSuite({
   useAccount: (cfg) => {
     return SimpleAccount.initWithFactory(cfg.provider.node, {
       ownerPrivateKey: cfg.wallet.operator.privateKey,
-      factory: cfg.address.SimpleAccountFactoryV0_6,
+      factoryAddress: cfg.address.SimpleAccountFactoryV0_6,
       salt: number.random()
     })
   }

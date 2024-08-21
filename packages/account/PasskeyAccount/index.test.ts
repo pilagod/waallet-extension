@@ -13,7 +13,7 @@ describeAccountSuite({
     return PasskeyAccount.initWithFactory(cfg.provider.node, {
       owner,
       salt: number.random(),
-      factory: cfg.address.PasskeyAccountFactoryV0_6
+      factoryAddress: cfg.address.PasskeyAccountFactoryV0_6
     })
   },
   suite: (ctx) => {
