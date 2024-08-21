@@ -1,6 +1,5 @@
-import address from "packages/util/address"
-
 import { type UserOperation } from "~packages/bundler/userOperation"
+import { Address } from "~packages/primitive"
 import { StateActor } from "~storage/local/actor"
 import {
   TransactionStatus,
@@ -26,13 +25,13 @@ export interface TransactionSlice {
 
   getERC4337TransactionType: (
     networkId: string,
-    entryPoint: HexString
+    entryPoint: Address
   ) => TransactionType
 
   markERC4337TransactionRejected(
     txId: string,
     data: {
-      entryPoint: HexString
+      entryPoint: Address
       userOp: UserOperation
     }
   ): Promise<void>
@@ -40,7 +39,7 @@ export interface TransactionSlice {
   markERC4337TransactionSent(
     txId: string,
     data: {
-      entryPoint: HexString
+      entryPoint: Address
       userOp: UserOperation
       userOpHash: HexString
     }
@@ -84,9 +83,9 @@ export const createTransactionSlice: BackgroundStateCreator<
 
   /* ERC-4337 */
 
-  getERC4337TransactionType(networkId: string, entryPoint: HexString) {
+  getERC4337TransactionType(networkId: string, entryPoint: Address) {
     const network = get().state.network[networkId]
-    if (address.isEqual(entryPoint, network.entryPoint["v0.6"])) {
+    if (entryPoint.isEqual(network.entryPoint["v0.6"])) {
       return TransactionType.ERC4337V0_6
     }
     return TransactionType.ERC4337V0_7
@@ -104,7 +103,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         networkId: tx.networkId,
         createdAt: tx.createdAt,
         detail: {
-          entryPoint: data.entryPoint,
+          entryPoint: data.entryPoint.unwrap(),
           data: data.userOp.unwrap() as any
         }
       }
@@ -126,7 +125,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         networkId: tx.networkId,
         createdAt: tx.createdAt,
         detail: {
-          entryPoint: data.entryPoint,
+          entryPoint: data.entryPoint.unwrap(),
           data: data.userOp.unwrap() as any
         },
         receipt: {

@@ -111,7 +111,7 @@ export function TransactionConfirmation(props: {
       // TODO: Wrong nonce problem when confirming consecutive pending tx
       try {
         await markERC4337TransactionSent(tx.id, {
-          entryPoint: entryPoint.toString(),
+          entryPoint,
           userOp,
           userOpHash
         })
@@ -132,7 +132,7 @@ export function TransactionConfirmation(props: {
     setUserOpResolving(true)
     try {
       await markERC4337TransactionRejected(tx.id, {
-        entryPoint: (await account.actor.getEntryPoint()).toString(),
+        entryPoint: await account.actor.getEntryPoint(),
         userOp
       })
     } catch (e) {
@@ -176,7 +176,7 @@ export function TransactionConfirmation(props: {
       setUserOp(null)
       const transactionType = getERC4337TransactionType(
         tx.networkId,
-        (await account.actor.getEntryPoint()).toString()
+        await account.actor.getEntryPoint()
       )
       const execution = await account.actor.buildExecution(tx)
       const userOp =
