@@ -89,7 +89,7 @@ export class UserOperationV0_7 {
         "bytes32" // paymasterAndData
       ],
       [
-        this.sender.unwrap(),
+        this.sender.toString(),
         this.nonce,
         ethers.keccak256(this.getInitCode()),
         ethers.keccak256(this.callData),
@@ -102,7 +102,7 @@ export class UserOperationV0_7 {
     return ethers.keccak256(
       abiCoder.encode(
         ["bytes32", "address", "uint256"],
-        [ethers.keccak256(userOpPacked), entryPoint.unwrap(), chainId]
+        [ethers.keccak256(userOpPacked), entryPoint.toString(), chainId]
       )
     )
   }
@@ -112,11 +112,11 @@ export class UserOperationV0_7 {
    */
   public unwrap(): UserOperationDataV0_7 {
     return {
-      sender: this.sender.unwrap(),
+      sender: this.sender.toString(),
       nonce: number.toHex(this.nonce),
       callData: this.callData,
       ...(this.factory && {
-        factory: this.factory.unwrap(),
+        factory: this.factory.toString(),
         factoryData: this.factoryData
       }),
       callGasLimit: number.toHex(this.callGasLimit),
@@ -125,7 +125,7 @@ export class UserOperationV0_7 {
       maxFeePerGas: number.toHex(this.maxFeePerGas),
       maxPriorityFeePerGas: number.toHex(this.maxPriorityFeePerGas),
       ...(this.paymaster && {
-        paymaster: this.paymaster.unwrap(),
+        paymaster: this.paymaster.toString(),
         paymasterData: this.paymasterData,
         paymasterVerificationGasLimit: number.toHex(
           this.paymasterVerificationGasLimit
@@ -141,7 +141,7 @@ export class UserOperationV0_7 {
    */
   public unwrapPacked() {
     return {
-      sender: this.sender.unwrap(),
+      sender: this.sender.toString(),
       nonce: number.toHex(this.nonce),
       initCode: this.getInitCode(),
       callData: this.callData,
@@ -159,7 +159,7 @@ export class UserOperationV0_7 {
     if (!this.factory) {
       return "0x"
     }
-    return ethers.concat([this.factory.unwrap(), this.factoryData])
+    return ethers.concat([this.factory.toString(), this.factoryData])
   }
 
   public getAccountGasLimits() {
@@ -181,7 +181,7 @@ export class UserOperationV0_7 {
       return "0x"
     }
     return ethers.concat([
-      this.paymaster.unwrap(),
+      this.paymaster.toString(),
       ethers.zeroPadValue(number.toHex(this.paymasterVerificationGasLimit), 16),
       ethers.zeroPadValue(number.toHex(this.paymasterPostOpGasLimit), 16),
       this.paymasterData

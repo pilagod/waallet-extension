@@ -68,7 +68,7 @@ const UserOpHistoryItem: React.FC<{
   const tokenInfo: TokenTransferInfo = {
     symbol: network.tokenSymbol,
     value,
-    to: to.unwrap()
+    to: to.toString()
   }
 
   // Check if the transaction "to" address is a stored token

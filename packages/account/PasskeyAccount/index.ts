@@ -105,14 +105,14 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     const { x, y } = this.owner.getPublicKey()
     return {
       type: AccountType.PasskeyAccount as AccountType.PasskeyAccount,
-      address: this.address.unwrap(),
+      address: this.address.toString(),
       credentialId: this.owner.getCredentialId(),
       publicKey: {
         x: number.toHex(x),
         y: number.toHex(y)
       },
       ...(this.factory && {
-        factoryAddress: this.factory.address.unwrap(),
+        factoryAddress: this.factory.address.toString(),
         salt: number.toHex(this.factory.salt)
       })
     }

@@ -42,7 +42,7 @@ describe("calldata", () => {
       executeCalldata
     )
 
-    expect(to.unwrap()).toBe(tokenAddress)
+    expect(to.toString()).toBe(tokenAddress)
     expect(value).toBe(parseEther(etherValue.toString()))
     expect(data).toBe(transferCalldata)
   })

@@ -31,7 +31,7 @@ export class UserOperationV0_6 {
       return new UserOperationV0_6({
         ...data,
         initCode: ethers.concat([
-          factory?.unwrap() ?? "0x",
+          factory?.toString() ?? "0x",
           factoryData ?? "0x"
         ])
       })
@@ -92,7 +92,7 @@ export class UserOperationV0_6 {
         "bytes32"
       ],
       [
-        this.sender.unwrap(),
+        this.sender.toString(),
         this.nonce,
         ethers.keccak256(this.initCode),
         ethers.keccak256(this.callData),
@@ -107,14 +107,14 @@ export class UserOperationV0_6 {
     return ethers.keccak256(
       abiCoder.encode(
         ["bytes32", "address", "uint256"],
-        [ethers.keccak256(userOpPacked), entryPoint.unwrap(), chainId]
+        [ethers.keccak256(userOpPacked), entryPoint.toString(), chainId]
       )
     )
   }
 
   public unwrap(): UserOperationDataV0_6 {
     return {
-      sender: this.sender.unwrap(),
+      sender: this.sender.toString(),
       nonce: number.toHex(this.nonce),
       initCode: this.initCode,
       callData: this.callData,

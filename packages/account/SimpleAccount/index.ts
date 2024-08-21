@@ -88,10 +88,10 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   public dump() {
     return {
       type: AccountType.SimpleAccount as AccountType.SimpleAccount,
-      address: this.address.unwrap(),
+      address: this.address.toString(),
       ownerPrivateKey: this.owner.privateKey,
       ...(this.factory && {
-        factoryAddress: this.factory.address.unwrap(),
+        factoryAddress: this.factory.address.toString(),
         salt: number.toHex(this.factory.salt)
       })
     }
