@@ -12,8 +12,10 @@ import {
 } from "~storage/local/manager"
 import {
   TransactionStatus,
+  type Account,
   type ERC4337TransactionReverted,
   type ERC4337TransactionSucceeded,
+  type Network,
   type TransactionLog
 } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
@@ -95,124 +97,170 @@ async function main() {
     { pendingTransaction: {} }
   )
 
-  // Hold the current provider and block subscriber
-  const indexBalanceContext: {
-    provider?: JsonRpcProvider
-    blockSubscriber?: (blockNumber: number) => Promise<void>
-  } = {}
-
   const indexBalanceOnBlock = async () => {
-    const { network, networkActive } = storage.get()
-    const { nodeRpcUrl, chainId } = network[networkActive]
+    // Track networks already bound to a provider
+    const boundProviderNetworks: string[] = []
 
-    // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
-    // Refer: https://github.com/ethers-io/ethers.js/issues/4377
-    indexBalanceContext.provider = new JsonRpcProvider(nodeRpcUrl, chainId, {
-      staticNetwork: true
-    })
+    // Syncs account balances using multicall
+    const updateAccountBalances = async (
+      accounts: Account[],
+      provider: JsonRpcProvider
+    ) => {
+      // Use multicall provider to optimize RPC calls
+      const multicallProvider = MulticallWrapper.wrap(provider)
 
-    indexBalanceContext.blockSubscriber = async (blockNumber: number) => {
-      const { network, networkActive } = storage.get()
-      const { nodeRpcUrl, chainId, accountActive } = network[networkActive]
+      // Store balance update promises
+      const tokenQueries = []
 
-      // Update provider and subscriber on network switch
-      if (
-        (await indexBalanceContext.provider.getNetwork()).chainId !==
-        number.toBigInt(chainId)
-      ) {
-        indexBalanceContext.provider.off(
-          "block",
-          indexBalanceContext.blockSubscriber
-        )
-
-        indexBalanceContext.provider = new JsonRpcProvider(
-          nodeRpcUrl,
+      // Update balances for each account
+      accounts.forEach((account) => {
+        const {
+          id,
+          tokens,
           chainId,
-          {
-            staticNetwork: true
-          }
+          balance: accountBalance,
+          address: accountAddress
+        } = account
+
+        tokenQueries.push(
+          (async () => {
+            const nativeBalance =
+              await multicallProvider.getBalance(accountAddress)
+
+            // Update balance if changed
+            if (number.toBigInt(accountBalance) !== nativeBalance) {
+              storage.set((state) => {
+                state.account[id].balance = number.toHex(nativeBalance)
+              })
+
+              console.log(
+                `[background][indexBalanceOnBlock] Native token balance updated: ${nativeBalance.toString()} at chain ID: ${chainId}`
+              )
+            }
+          })()
         )
 
-        indexBalanceContext.provider.on(
-          "block",
-          indexBalanceContext.blockSubscriber
+        tokens.forEach(async (t) => {
+          tokenQueries.push(
+            (async () => {
+              const tokenContract = await ERC20Contract.init(
+                t.address,
+                multicallProvider
+              )
+              const tokenBalance = await tokenContract.balanceOf(accountAddress)
+
+              // Update token balance if changed
+              if (number.toBigInt(t.balance) !== tokenBalance) {
+                storage.set((state) => {
+                  state.account[id].tokens.find((token) =>
+                    address.isEqual(token.address, t.address)
+                  ).balance = number.toHex(tokenBalance)
+                })
+
+                console.log(
+                  `[background][indexBalanceOnBlock] ERC20 token ${
+                    t.symbol
+                  } balance updated: ${tokenBalance.toString()} at chain ID: ${chainId}`
+                )
+              }
+            })()
+          )
+        })
+      })
+
+      // Execute all balance queries
+      await Promise.all(tokenQueries)
+    }
+
+    // Handle accountActive state changes and bind providers as needed
+    const accountActiveStateSubscriber = async () => {
+      // Function to handle block updates using the provider context
+      const blockSubscriberWithProvider = async function (
+        this: { provider: JsonRpcProvider; network: Network },
+        blockNumber: number
+      ) {
+        const { chainId, accountActive } = this.network
+
+        if (!accountActive) {
+          return
+        }
+
+        const { account } = storage.get()
+        const accounts = Object.values(account).filter(
+          (account) => account.chainId === chainId
         )
-        return
+
+        await updateAccountBalances(accounts, this.provider)
       }
 
-      // If the blockNumber from the listener differs greatly from the provider's blockNumber,
-      // it indicates the observed blockNumber is from the subscriber before the provider switch.
-      if (
-        Math.abs(
-          (await indexBalanceContext.provider.getBlockNumber()) - blockNumber
-        ) > 9 ||
-        !accountActive
-      ) {
+      const { network, networkActive } = storage.get()
+      const { accountActive } = network[networkActive]
+
+      if (!accountActive) {
         return
       }
 
       const { account } = storage.get()
+      const networks = Object.values(network)
+      const accounts = Object.values(account)
 
-      const {
-        id,
-        tokens,
-        balance: accountBalance,
-        address: accountAddress
-      } = account[accountActive]
-
-      console.log(
-        `[background][indexBalanceOnBlock] Chain id: ${chainId}, New block mined: ${blockNumber}`
+      // Get unique chain IDs to prevent duplicate providers
+      const uniqueChainIds = Array.from(
+        new Set(networks.map((network) => network.chainId))
       )
 
-      // Use multicall provider to reduce calls
-      const multicallProvider = MulticallWrapper.wrap(
-        indexBalanceContext.provider
+      // Group accounts by chain ID
+      const groupedAccounts = uniqueChainIds.map((chainId) =>
+        accounts.filter((account) => account.chainId === chainId)
       )
 
-      // Update the account balance if it has changed
-      const tokenQueries = [
-        (async () => {
-          const nativeBalance =
-            await multicallProvider.getBalance(accountAddress)
+      // Bind provider for each chainId if not already bound
+      uniqueChainIds.forEach(async (chainId, i) => {
+        if (groupedAccounts[i].length === 0) {
+          return
+        }
 
-          if (number.toBigInt(accountBalance) !== nativeBalance) {
-            storage.set((state) => {
-              state.account[id].balance = number.toHex(nativeBalance)
-            })
-          }
-        })()
-      ]
-
-      // Update token balance if it has changed
-      tokens.forEach(async (t) => {
-        tokenQueries.push(
-          (async () => {
-            const tokenContract = await ERC20Contract.init(
-              t.address,
-              multicallProvider
-            )
-            const tokenBalance = await tokenContract.balanceOf(accountAddress)
-
-            if (number.toBigInt(t.balance) !== tokenBalance) {
-              storage.set((state) => {
-                state.account[id].tokens.find((token) =>
-                  address.isEqual(token.address, t.address)
-                ).balance = number.toHex(tokenBalance)
-              })
-            }
-          })()
+        const thisNetwork = networks.filter(
+          (network) => network.chainId === chainId
         )
-      })
 
-      // Execute all token balance queries in parallel
-      await Promise.all(tokenQueries)
+        const { nodeRpcUrl, id } = thisNetwork[0]
+
+        if (boundProviderNetworks.includes(id)) {
+          return
+        }
+        boundProviderNetworks.push(id)
+
+        // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
+        // Refer: https://github.com/ethers-io/ethers.js/issues/4377
+        const provider = new JsonRpcProvider(nodeRpcUrl, chainId, {
+          staticNetwork: true
+        })
+
+        // Initialize balances for existing accounts
+        await updateAccountBalances(groupedAccounts[i], provider)
+
+        const blockSubscriber = blockSubscriberWithProvider.bind({
+          provider,
+          network: thisNetwork[0]
+        })
+
+        // Listen for new blocks
+        provider.on("block", blockSubscriber)
+      })
     }
 
-    // Subscribe to new blocks using the updated block subscriber function
-    indexBalanceContext.provider.on(
-      "block",
-      indexBalanceContext.blockSubscriber
-    )
+    const { network } = storage.get()
+
+    // Subscribe to accountActive changes for each network
+    Object.values(network).forEach((network) => {
+      storage.subscribe(accountActiveStateSubscriber, {
+        network: { [network.id]: { accountActive: "" } }
+      })
+    })
+
+    // First run if the extension is reloaded
+    await accountActiveStateSubscriber()
   }
 
   const indexTransactionSent = async () => {
