@@ -153,11 +153,7 @@ const SendAmount = ({
   }
 
   const handleSend = useCallback(async () => {
-    if (
-      Address.wrap(token.address).isEqual(
-        "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-      )
-    ) {
+    if (token.address.isEqual("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")) {
       return sendNativeToken(provider, txTo, transferAmount)
     }
     return sendErc20Token(provider, txTo, transferAmount, token)

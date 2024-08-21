@@ -103,7 +103,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         networkId: tx.networkId,
         createdAt: tx.createdAt,
         detail: {
-          entryPoint: data.entryPoint.unwrap(),
+          entryPoint: data.entryPoint.toString(),
           data: data.userOp.unwrap() as any
         }
       }
@@ -125,7 +125,7 @@ export const createTransactionSlice: BackgroundStateCreator<
         networkId: tx.networkId,
         createdAt: tx.createdAt,
         detail: {
-          entryPoint: data.entryPoint.unwrap(),
+          entryPoint: data.entryPoint.toString(),
           data: data.userOp.unwrap() as any
         },
         receipt: {

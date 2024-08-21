@@ -109,7 +109,7 @@ export const createAccountSlice: BackgroundStateCreator<
         return
       }
       state.account[accountId].tokens.push({
-        address: token.address.unwrap(),
+        address: token.address.toString(),
         symbol: token.symbol,
         decimals: token.decimals,
         balance: number.toHex(token.balance)

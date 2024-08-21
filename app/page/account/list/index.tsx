@@ -96,9 +96,7 @@ function AccountItem(props: {
       </div>
       <div className="min-w-0 grow break-words">
         <div>{props.name}</div>
-        <div className="text-[12px]">
-          {Address.wrap(props.address).ellipsize()}
-        </div>
+        <div className="text-[12px]">{props.address.ellipsize()}</div>
       </div>
       <div className="min-w-0 basis-[120px] text-right">
         {number.formatUnitsToFixed(props.balance, 18, 2)} {props.tokenSymbol}

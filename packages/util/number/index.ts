@@ -1,3 +1,4 @@
+// TODO: Design a value object to deprecate it
 import * as ethers from "ethers"
 
 import type { BigNumberish } from "~typing"
