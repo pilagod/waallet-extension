@@ -44,7 +44,7 @@ export class SimpleAccountFactory implements AccountFactory {
           await this.runner.provider.call(
             await this.factory
               .getFunction("getAddress")
-              .populateTransaction(this.owner.toString(), this.salt)
+              .populateTransaction(this.owner, this.salt)
           )
         ),
         20
@@ -64,7 +64,7 @@ export class SimpleAccountFactory implements AccountFactory {
   public async getInitCode() {
     const { data } = await this.factory
       .getFunction("createAccount")
-      .populateTransaction(this.owner.toString(), this.salt)
+      .populateTransaction(this.owner, this.salt)
     return ethers.concat([await this.factory.getAddress(), data])
   }
 }
