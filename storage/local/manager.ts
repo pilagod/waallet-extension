@@ -7,10 +7,9 @@ import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
 import type { NetworkManager } from "~packages/network/manager"
 import type { ContractRunner } from "~packages/node"
 import { NodeProvider } from "~packages/node/provider"
+import { Address } from "~packages/primitive"
 import { ObservableStorage } from "~packages/storage/observable"
-import address from "~packages/util/address"
 import number from "~packages/util/number"
-import type { HexString } from "~typing"
 
 import type { Account, State } from "./state"
 
@@ -76,13 +75,11 @@ export class AccountStorageManager implements AccountManager {
     return this.get(network.accountActive)
   }
 
-  public async getByAddress(accountAddress: HexString, chainId: number) {
+  public async getByAddress(address: Address, chainId: number) {
     const { account } = this.storage.get()
     const [accountId] = Object.entries(account)
       .filter(([, a]) => {
-        return (
-          address.isEqual(a.address, accountAddress) && a.chainId === chainId
-        )
+        return address.isEqual(a.address) && a.chainId === chainId
       })
       .map(([id]) => id)
     return this.get(accountId)

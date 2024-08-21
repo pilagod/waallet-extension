@@ -12,7 +12,7 @@ import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
 import { useAccounts, useTokens } from "~app/hook/storage"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import { type AccountToken } from "~storage/local/state"
@@ -164,8 +164,7 @@ const SendAmount = ({
 
   const handleSend = useCallback(async () => {
     if (
-      address.isEqual(
-        token.address,
+      Address.wrap(token.address).isEqual(
         "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
       )
     ) {

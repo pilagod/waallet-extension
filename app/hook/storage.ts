@@ -35,6 +35,7 @@ export const useNetworks = (): Network[] => {
   })
 }
 
+// TODO: Return account type for application
 export const useAccount = (id?: string) => {
   const network = useNetwork()
   return useStorage(({ state }) => {

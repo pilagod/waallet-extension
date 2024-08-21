@@ -8,7 +8,7 @@ import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
@@ -97,7 +97,9 @@ function AccountItem(props: {
       </div>
       <div className="min-w-0 grow break-words">
         <div>{props.name}</div>
-        <div className="text-[12px]">{address.ellipsize(props.address)}</div>
+        <div className="text-[12px]">
+          {Address.wrap(props.address).ellipsize()}
+        </div>
       </div>
       <div className="min-w-0 basis-[120px] text-right">
         {number.formatUnitsToFixed(props.balance, 18, 2)} {props.tokenSymbol}

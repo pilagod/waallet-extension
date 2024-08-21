@@ -2,7 +2,7 @@ import { JsonRpcProvider } from "ethers"
 import browser from "webextension-polyfill"
 
 import { ERC20Contract } from "~packages/contract/erc20"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
 import {
@@ -195,7 +195,7 @@ async function main() {
         if (number.toBigInt(t.balance) !== tokenBalance) {
           storage.set((state) => {
             const token = state.account[accountId].tokens.find((token) =>
-              address.isEqual(token.address, t.address)
+              Address.wrap(token.address).isEqual(t.address)
             )
             if (!token) {
               console.warn(`[Popup][tokens] Unknown token: ${t.address}`)

@@ -3,7 +3,7 @@ import { useHashLocation } from "wouter/use-hash-location"
 
 import { useAccount, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 
 export function Navbar() {
   return (
@@ -53,7 +53,7 @@ function AccountSelector() {
           </div>
           <div className="leading-[14.6px] text-[12px] text-[#989898]">
             {account
-              ? address.ellipsize(account.address)
+              ? Address.wrap(account.address).ellipsize()
               : "Create new account"}
           </div>
         </div>

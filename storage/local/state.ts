@@ -34,6 +34,7 @@ export type Network = {
   nodeRpcUrl: string
   bundlerRpcUrl: string
   accountActive: Nullable<HexString>
+  // TODO: Move into config
   entryPoint: {
     [v in EntryPointVersion]: HexString
   }

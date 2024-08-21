@@ -1,4 +1,4 @@
-import { getAddress } from "ethers"
+import { getAddress, isAddress } from "ethers"
 
 import type { HexString } from "~typing"
 
@@ -10,6 +10,10 @@ interface NodeProvider {
 export type AddressLike = Address | HexString
 
 export class Address {
+  public static isValid(address: string) {
+    return isAddress(address)
+  }
+
   public static wrap(address: AddressLike) {
     if (address instanceof Address) {
       return new Address(address.unwrap())
