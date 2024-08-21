@@ -1,3 +1,4 @@
+// TODO: Deprecate this package
 import type { HexString } from "~typing"
 
 export type Token = {
