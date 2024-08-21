@@ -3,10 +3,14 @@ import { hashMessage, sha256 } from "ethers"
 import type { HexString } from "~typing"
 
 export class Bytes extends Uint8Array {
+  public static isHex(data: string) {
+    return /^(0x)?[0-9A-Fa-f]+$/g.test(data)
+  }
+
   public static wrap(data: Buffer | Uint8Array | HexString) {
     if (typeof data === "string") {
       // Data is hex string
-      if (/^(0x)?[0-9A-Fa-f]+$/g.test(data)) {
+      if (Bytes.isHex(data)) {
         return new Bytes(
           Uint8Array.from(Buffer.from(data.replace(/^0x/g, ""), "hex"))
         )
