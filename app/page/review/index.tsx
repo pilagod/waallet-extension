@@ -1,10 +1,18 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import browser from "webextension-polyfill"
 import { useHashLocation } from "wouter/use-hash-location"
 
-import { useAction, usePendingRequests } from "~app/hook/storage"
+import { ProviderContext } from "~app/context/provider"
+import {
+  useAccountWithActor,
+  useAction,
+  useNetwork,
+  usePendingRequests
+} from "~app/hook/storage"
 import { Path } from "~app/path"
+import { RequestType, type Request } from "~storage/local/state"
 
+import { Eip712Confirmation } from "./eip712"
 import { TransactionConfirmation } from "./transaction"
 
 export function Review() {
@@ -31,12 +39,14 @@ export function Review() {
   if (pendingRequests.length === 0) {
     return
   }
-  // TODO: Support more request types
-  const [tx] = pendingRequests
+
+  const [request] = pendingRequests
 
   return (
-    <ProfileSwitcher accountId={tx.accountId} networkId={tx.networkId}>
-      <TransactionConfirmation tx={tx} />
+    <ProfileSwitcher
+      accountId={request.accountId}
+      networkId={request.networkId}>
+      <PendingRequestConfirmation request={pendingRequests[0]} />
     </ProfileSwitcher>
   )
 }
@@ -64,4 +74,39 @@ function ProfileSwitcher(props: {
   }
 
   return children
+}
+
+function PendingRequestConfirmation(props: { request: Request }) {
+  const { request } = props
+
+  const { provider } = useContext(ProviderContext)
+
+  const account = useAccountWithActor(provider, request.accountId)
+  const network = useNetwork(request.networkId)
+
+  if (!account.actorLoaded) {
+    return
+  }
+
+  if (request.type === RequestType.Transaction) {
+    return (
+      <TransactionConfirmation
+        tx={request}
+        account={account}
+        network={network}
+      />
+    )
+  }
+
+  if (request.type === RequestType.Eip712) {
+    return (
+      <Eip712Confirmation
+        request={request}
+        account={account}
+        network={network}
+      />
+    )
+  }
+
+  throw new Error("Unknown request")
 }

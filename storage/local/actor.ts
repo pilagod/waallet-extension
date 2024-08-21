@@ -7,22 +7,18 @@ export class StateActor {
   public constructor(private state: State) {}
 
   public getTransactionRequest(requestId: string) {
-    const [tx] = this.state.pendingRequests.filter(
-      (r) => r.type === RequestType.Transaction && r.id === requestId
-    )
-    if (!tx) {
-      throw new Error(`Transaction request ${requestId} not found`)
+    const request = this.state.pendingRequest[requestId]
+    if (!request || request.type !== RequestType.Transaction) {
+      throw new Error(`Transaction request ${request.id} not found`)
     }
-    return tx
+    return request
   }
 
-  public resolveTransactionRequest(requestId: string) {
-    const txIndex = this.state.pendingRequests.findIndex(
-      (r) => r.type === RequestType.Transaction && r.id === requestId
-    )
-    if (txIndex < 0) {
-      throw new Error(`Transaction request ${requestId} not found`)
+  public getEip712Request(requestId: string) {
+    const request = this.state.pendingRequest[requestId]
+    if (!request || request.type !== RequestType.Eip712) {
+      throw new Error(`EIP-712 request ${request.id} not found`)
     }
-    this.state.pendingRequests.splice(txIndex, 1)
+    return request
   }
 }

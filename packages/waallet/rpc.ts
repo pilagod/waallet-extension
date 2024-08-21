@@ -2,14 +2,9 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
+import type { Eip712TypedData } from "~packages/eip/712"
 import type { Unwraplify } from "~packages/primitive"
-import type {
-  BigNumberish,
-  BytesLike,
-  HexString,
-  Nullable,
-  OptionalPick
-} from "~typing"
+import type { BigNumberish, HexString, OptionalPick } from "~typing"
 
 export enum WaalletRpcMethod {
   eth_accounts = "eth_accounts",
@@ -108,41 +103,6 @@ export type EthSignTypedDataV4 = {
   method: WaalletRpcMethod.eth_signTypedData_v4
   params: [
     HexString, // signer address
-    {
-      /**
-       * Define data structs for `domain` and `message`.
-       */
-      types: Eip712Types
-
-      /**
-       *  https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator
-       */
-      domain: Eip712Domain
-
-      /**
-       * Name of a type in `types` that describes the struct of `message`.
-       */
-      primaryType: string
-
-      /**
-       * Data for the struct of `primaryType`.
-       */
-      message: Record<string, any>
-    }
+    Eip712TypedData | string
   ]
-}
-
-export type Eip712Domain = {
-  name?: Nullable<string>
-  version?: Nullable<string>
-  chainId?: Nullable<BigNumberish>
-  verifyingContract?: Nullable<HexString>
-  salt?: Nullable<BytesLike>
-}
-
-export type Eip712Types = Record<string, Eip712Type[]>
-
-export type Eip712Type = {
-  name: string
-  type: string
 }

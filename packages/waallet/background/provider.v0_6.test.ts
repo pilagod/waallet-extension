@@ -1,7 +1,6 @@
-import { verifyTypedData } from "ethers"
-
+import { eip712Verify } from "~packages/eip/712"
+import { Bytes } from "~packages/primitive/bytes"
 import address from "~packages/util/address"
-import byte from "~packages/util/byte"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
@@ -57,7 +56,7 @@ describeWaalletSuite({
           }
         ]
       })
-      expect(byte.isHex(gas)).toBe(true)
+      expect(Bytes.isHex(gas)).toBe(true)
       expect(parseInt(gas, 16)).toBeGreaterThan(0)
     })
 
@@ -244,14 +243,14 @@ describeWaalletSuite({
         method: WaalletRpcMethod.eth_signTypedData_v4,
         params: [await ctx.account.getAddress(), typedData]
       })
+      const signatureFromJsonString =
+        await ctx.provider.waallet.request<HexString>({
+          method: WaalletRpcMethod.eth_signTypedData_v4,
+          params: [await ctx.account.getAddress(), JSON.stringify(typedData)]
+        })
+      expect(signature).toBe(signatureFromJsonString)
 
-      const { EIP712Domain, ...types } = typedData.types
-      const signer = verifyTypedData(
-        typedData.domain,
-        types,
-        typedData.message,
-        signature
-      )
+      const signer = eip712Verify(typedData, signature)
       expect(
         address.isEqual(await ctx.wallet.operator.getAddress(), signer)
       ).toBe(true)

@@ -13,6 +13,7 @@ import type { HexString } from "~typing"
 import type { BackgroundStateCreator } from "../middleware/background"
 import type { StateSlice } from "./state"
 
+// TODO: Rename to request slice
 export interface TransactionSlice {
   /* Profile */
 
@@ -44,6 +45,12 @@ export interface TransactionSlice {
       userOpHash: HexString
     }
   ): Promise<void>
+
+  /* EIP-712 */
+
+  cancelEip712Request(requestId: string): Promise<void>
+
+  resolveEip712Request(requestId: string, signature: HexString): Promise<void>
 }
 
 export const createTransactionSlice: BackgroundStateCreator<
@@ -103,7 +110,7 @@ export const createTransactionSlice: BackgroundStateCreator<
       }
       state.account[txRejected.accountId].transactionLog[txRejected.id] =
         txRejected
-      stateActor.resolveTransactionRequest(txId)
+      delete state.pendingRequest[txId]
     })
   },
 
@@ -127,7 +134,25 @@ export const createTransactionSlice: BackgroundStateCreator<
         }
       }
       state.account[txSent.accountId].transactionLog[txSent.id] = txSent
-      stateActor.resolveTransactionRequest(txId)
+      delete state.pendingRequest[txId]
+    })
+  },
+
+  /* EIP-712 */
+
+  cancelEip712Request: async (requestId: string) => {
+    await set(({ state }) => {
+      const stateActor = new StateActor(state)
+      const request = stateActor.getEip712Request(requestId)
+      delete state.pendingRequest[request.id]
+    })
+  },
+
+  resolveEip712Request: async (requestId: string, signature: HexString) => {
+    await set(({ state }) => {
+      const stateActor = new StateActor(state)
+      const request = stateActor.getEip712Request(requestId)
+      request.signature = signature
     })
   }
 })

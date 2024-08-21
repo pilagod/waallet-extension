@@ -13,12 +13,7 @@ import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
-import {
-  useAccount,
-  useAction,
-  useNetwork,
-  type Network
-} from "~app/hook/storage"
+import { useAction, type Network } from "~app/hook/storage"
 import type { Account } from "~packages/account"
 import {
   UserOperationV0_6,
@@ -30,7 +25,6 @@ import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { ETH } from "~packages/token"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
-import { AccountStorageManager } from "~storage/local/manager"
 import { TransactionType, type TransactionRequest } from "~storage/local/state"
 
 export type PaymentOption = {
@@ -38,48 +32,15 @@ export type PaymentOption = {
   paymaster: Paymaster
 }
 
-export function TransactionConfirmation(props: { tx: TransactionRequest }) {
-  const { tx } = props
-
-  const { provider } = useContext(ProviderContext)
-  const network = useNetwork(tx.networkId)
-  const sender = useAccount(tx.accountId)
-
-  const [senderAccount, setSenderAccount] = useState<Account>(null)
-
-  useEffect(() => {
-    async function setupSenderAccount() {
-      const account = await AccountStorageManager.wrap(provider, sender)
-      setSenderAccount(account)
-    }
-    setupSenderAccount()
-  }, [sender.id])
-
-  if (!senderAccount) {
-    return
-  }
-
-  return (
-    <UserOperationConfirmation
-      tx={tx}
-      sender={senderAccount}
-      senderInfo={{
-        name: sender.name
-      }}
-      network={network}
-    />
-  )
-}
-
-function UserOperationConfirmation(props: {
+export function TransactionConfirmation(props: {
   tx: TransactionRequest
-  sender: Account
-  senderInfo: {
+  account: {
+    actor: Account
     name: string
   }
   network: Network
 }) {
-  const { tx, sender, senderInfo, network } = props
+  const { tx, account, network } = props
 
   const { provider } = useContext(ProviderContext)
 
@@ -118,7 +79,7 @@ function UserOperationConfirmation(props: {
   const sendUserOperation = async () => {
     setUserOpResolving(true)
     try {
-      const entryPoint = await sender.getEntryPoint()
+      const entryPoint = await account.actor.getEntryPoint()
 
       userOp.setPaymasterAndData(
         await paymentOption.paymaster.requestPaymasterAndData(userOp)
@@ -128,7 +89,7 @@ function UserOperationConfirmation(props: {
       try {
         console.log("signing user operation...")
         setIsSigning(true)
-        const signature = await sender.sign(
+        const signature = await account.actor.sign(
           userOp.hash(entryPoint, network.chainId)
         )
         userOp.setSignature(signature)
@@ -171,7 +132,7 @@ function UserOperationConfirmation(props: {
     setUserOpResolving(true)
     try {
       await markERC4337TransactionRejected(tx.id, {
-        entryPoint: (await sender.getEntryPoint()).unwrap(),
+        entryPoint: (await account.actor.getEntryPoint()).unwrap(),
         userOp
       })
     } catch (e) {
@@ -198,7 +159,7 @@ function UserOperationConfirmation(props: {
     try {
       const gasLimit = await provider.send(
         WaalletRpcMethod.eth_estimateUserOperationGas,
-        [userOp, await sender.getEntryPoint()]
+        [userOp, await account.actor.getEntryPoint()]
       )
       userOp.setGasLimit(gasLimit)
     } catch (e) {
@@ -215,9 +176,9 @@ function UserOperationConfirmation(props: {
       setUserOp(null)
       const transactionType = getERC4337TransactionType(
         tx.networkId,
-        (await sender.getEntryPoint()).unwrap()
+        (await account.actor.getEntryPoint()).toString()
       )
-      const execution = await sender.buildExecution(tx)
+      const execution = await account.actor.buildExecution(tx)
       const userOp =
         transactionType === TransactionType.ERC4337V0_6
           ? UserOperationV0_6.wrap(execution)
@@ -282,9 +243,9 @@ function UserOperationConfirmation(props: {
               <Wallet />
             </div>
             <div className="w-full py-[9.5px] min-w-0">
-              <h3 className="pb-[4px]"> {senderInfo.name}</h3>
+              <h3 className="pb-[4px]">{account.name}</h3>
               <h4 className="text-[#989898] break-words">
-                {userOp.sender.unwrap()}
+                {userOp.sender.toString()}
               </h4>
             </div>
           </div>

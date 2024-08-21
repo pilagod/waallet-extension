@@ -1,17 +1,22 @@
+import type { Patch } from "immer"
 import { v4 as uuidv4 } from "uuid"
 
 import { ObservableStorage } from "~packages/storage/observable"
-import type {
-  Request,
-  RequestPool
+import {
+  Eip712Request,
+  TransactionRequest,
+  type Request,
+  type RequestPool
 } from "~packages/waallet/background/pool/request"
-import { Eip712Request } from "~packages/waallet/background/pool/request"
-import { StateActor } from "~storage/local/actor"
 import {
   RequestType,
   TransactionStatus,
+  type Eip712Request as PendingEip712Request,
+  type Request as PendingRequest,
+  type TransactionRequest as PendingTransactionRequest,
   type State
 } from "~storage/local/state"
+import type { HexString } from "~typing"
 
 export class RequestStoragePool implements RequestPool {
   public constructor(private storage: ObservableStorage<State>) {}
@@ -21,35 +26,56 @@ export class RequestStoragePool implements RequestPool {
     accountId: string
     networkId: string
   }) {
-    const { request, accountId, networkId } = data
-
-    if (request instanceof Eip712Request) {
-      throw new Error("EIP-712 is not yet supported")
-    }
-
-    const id = uuidv4()
+    const request = this.transformPendingRequest(data)
 
     this.storage.set((state) => {
-      state.pendingRequests.push({
-        type: RequestType.Transaction,
-        id,
-        createdAt: Date.now(),
-        accountId,
-        networkId,
-        ...request.unwrap()
-      })
+      state.pendingRequest[request.id] = request
     })
 
-    return id
+    return request.id
   }
 
-  public wait(txId: string) {
-    return new Promise<string>((resolve, reject) => {
-      const stateActor = new StateActor(this.storage.get())
-      const tx = stateActor.getTransactionRequest(txId)
+  public wait(requestId: string) {
+    const request = this.storage.get().pendingRequest[requestId]
+    if (!request) {
+      throw new Error(`Pending request ${request.id} not found`)
+    }
+    if (request.type === RequestType.Transaction) {
+      return this.waitForTransaction(request)
+    }
+    if (request.type === RequestType.Eip712) {
+      return this.waitForEip712(request)
+    }
+    throw new Error(`Unknown request type ${(request as any).type}`)
+  }
 
+  /* private */
+
+  private transformPendingRequest(data: {
+    request: Request
+    accountId: string
+    networkId: string
+  }): PendingRequest {
+    const { request, accountId, networkId } = data
+    const meta = {
+      id: uuidv4(),
+      createdAt: Date.now(),
+      accountId,
+      networkId
+    }
+    if (request instanceof TransactionRequest) {
+      return { type: RequestType.Transaction, ...meta, ...request.unwrap() }
+    }
+    if (request instanceof Eip712Request) {
+      return { type: RequestType.Eip712, ...meta, ...request.typedData }
+    }
+    throw new Error(`Unknown request type ${request}`)
+  }
+
+  private waitForTransaction(request: PendingTransactionRequest) {
+    return new Promise<HexString>((resolve, reject) => {
       const subscriber = async ({ account }: State) => {
-        const txLog = account[tx.accountId].transactionLog[txId]
+        const txLog = account[request.accountId].transactionLog[request.id]
 
         // Bundler is still processing this user operation
         if (txLog.status === TransactionStatus.Sent) {
@@ -75,7 +101,42 @@ export class RequestStoragePool implements RequestPool {
       }
 
       this.storage.subscribe(subscriber, {
-        account: { [tx.accountId]: { transactionLog: { [txId]: {} } } }
+        account: {
+          [request.accountId]: { transactionLog: { [request.id]: {} } }
+        }
+      })
+    })
+  }
+
+  private waitForEip712(request: PendingEip712Request) {
+    return new Promise<HexString>((resolve, reject) => {
+      const subscriber = async (_: State, patches: Patch[]) => {
+        const [patch] = patches.filter(
+          (p) => p.path[0] === "pendingRequest" && p.path[1] === request.id
+        )
+        if (!patch || patch.op === "replace") {
+          return
+        }
+        this.storage.unsubscribe(subscriber)
+
+        if (patch.op === "remove") {
+          reject(new Error("User rejects the signing request"))
+          return
+        }
+
+        const { signature } = this.storage.get().pendingRequest[
+          request.id
+        ] as PendingEip712Request
+
+        resolve(signature)
+
+        this.storage.set((state) => {
+          delete state.pendingRequest[request.id]
+        })
+      }
+
+      this.storage.subscribe(subscriber, {
+        pendingRequest: { [request.id]: {} }
       })
     })
   }
