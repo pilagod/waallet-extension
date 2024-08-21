@@ -10,7 +10,6 @@ import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
-import type { HexString } from "~typing"
 
 export function AccountList() {
   const [, navigate] = useHashLocation()
@@ -51,7 +50,7 @@ export function AccountList() {
                 <AccountItem
                   name={a.name}
                   address={a.address}
-                  balance={number.toBigInt(a.balance)}
+                  balance={a.balance}
                   active={a.id === network.accountActive}
                   tokenSymbol={network.tokenSymbol}
                 />
@@ -80,7 +79,7 @@ export function AccountList() {
 
 function AccountItem(props: {
   name: string
-  address: HexString
+  address: Address
   balance: bigint
   active: boolean
   tokenSymbol: string

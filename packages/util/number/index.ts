@@ -13,6 +13,10 @@ function toBigInt(n: BigNumberish) {
   return ethers.toBigInt(n)
 }
 
+function toNumber(n: BigNumberish) {
+  return ethers.toNumber(n)
+}
+
 function toString(n: BigNumberish) {
   return ethers.toBigInt(n).toString()
 }
@@ -39,6 +43,7 @@ function formatUnitsToFixed(
 export default {
   random,
   toBigInt,
+  toNumber,
   toString,
   toHex,
   formatUnitsToFixed

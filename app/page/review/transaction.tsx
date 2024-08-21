@@ -22,6 +22,7 @@ import {
 } from "~packages/bundler/userOperation"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
+import { Address } from "~packages/primitive"
 import { ETH } from "~packages/token"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -266,7 +267,7 @@ export function TransactionConfirmation(props: {
               </div>
             </div>
           ) : (
-            <AccountItem address={tx.to} />
+            <AccountItem address={Address.wrap(tx.to)} />
           )}
           {isContract && (
             <>

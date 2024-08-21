@@ -11,21 +11,11 @@ import { StepBackHeader } from "~app/component/stepBackHeader"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
-import { useAccounts, useTokens } from "~app/hook/storage"
+import { useAccounts, useTokens, type Token } from "~app/hook/storage"
 import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
-import { type AccountToken } from "~storage/local/state"
 import type { HexString, Nullable } from "~typing"
-
-const isValidTo = (to: string) => {
-  try {
-    ethers.getAddress(to)
-    return true
-  } catch (error) {
-    return false
-  }
-}
 
 const isValidValue = (value: string, decimals: number) => {
   try {
@@ -38,7 +28,7 @@ const isValidValue = (value: string, decimals: number) => {
 
 const sendNativeToken = async (
   provider: ethers.BrowserProvider,
-  to: HexString,
+  to: Address,
   value: bigint
 ) => {
   return await provider.send(WaalletRpcMethod.eth_sendTransaction, [
@@ -52,11 +42,11 @@ const sendNativeToken = async (
 
 const sendErc20Token = async (
   provider: ethers.BrowserProvider,
-  toAddress: HexString,
+  to: Address,
   value: bigint,
-  token: AccountToken
+  token: Token
 ) => {
-  const data = ERC20Contract.encodeTransferData(toAddress, value)
+  const data = ERC20Contract.encodeTransferData(to.toString(), value)
 
   return await provider.send(WaalletRpcMethod.eth_sendTransaction, [
     {
@@ -118,7 +108,7 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
               className="w-full p-[16px] hover:bg-[#F5F5F5] cursor-pointer"
               key={index}
               onClick={() => {
-                setInputTo(account.address)
+                setInputTo(account.address.toString())
               }}>
               <AccountItem address={account.address} />
             </button>
@@ -128,9 +118,9 @@ const SelectAddress = ({ onStepBack, setTxTo }) => {
       <Divider />
       <Button
         text="Next"
-        disabled={!isValidTo(inputTo)}
+        disabled={!Address.isValid(inputTo)}
         onClick={() => {
-          setTxTo(inputTo)
+          setTxTo(Address.wrap(inputTo))
         }}
         variant="black"
         className="my-[22.5px] text-[16px]"
@@ -144,8 +134,8 @@ const SendAmount = ({
   onStepBack
 }: {
   txInfo: {
-    token: AccountToken
-    txTo: HexString
+    token: Token
+    txTo: Address
   }
   onStepBack: () => void
 }) => {
@@ -223,8 +213,8 @@ export function Send() {
     ? tokens.find((token) => token.address === params.tokenAddress)
     : null
   const [tokenSelected, setTokenSelected] =
-    useState<Nullable<AccountToken>>(initialToken)
-  const [txTo, setTxTo] = useState<HexString>("")
+    useState<Nullable<Token>>(initialToken)
+  const [txTo, setTxTo] = useState<Nullable<Address>>(null)
 
   if (!tokenSelected) {
     return <SelectToken key="step1" setTokenSelected={setTokenSelected} />
@@ -246,7 +236,7 @@ export function Send() {
     <SendAmount
       key="step3"
       onStepBack={() => {
-        setTxTo("")
+        setTxTo(null)
       }}
       txInfo={{ token: tokenSelected, txTo }}
     />
