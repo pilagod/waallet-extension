@@ -104,7 +104,8 @@ export const useAccounts = () => {
   })
 }
 
-export type Token = Omit<AccountToken, "balance"> & {
+export type Token = Omit<AccountToken, "address" | "balance"> & {
+  address: Address
   balance: bigint
 }
 
@@ -114,13 +115,14 @@ export const useTokens = (accountId?: string): Token[] => {
   return useStorage(({ state }) => {
     return [
       {
-        address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        address: Address.wrap("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"),
         symbol: network.tokenSymbol,
         decimals: 18,
         balance: account.balance
       },
       ...state.account[account.id].tokens.map((t) => ({
         ...t,
+        address: Address.wrap(t.address),
         balance: number.toBigInt(t.balance)
       }))
     ]

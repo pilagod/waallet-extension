@@ -210,7 +210,7 @@ export function Send() {
   const params = useParams<{ tokenAddress?: string }>()
   const tokens = useTokens()
   const initialToken = params.tokenAddress
-    ? tokens.find((token) => token.address === params.tokenAddress)
+    ? tokens.find((token) => token.address.isEqual(params.tokenAddress))
     : null
   const [tokenSelected, setTokenSelected] =
     useState<Nullable<Token>>(initialToken)
