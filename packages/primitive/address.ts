@@ -45,6 +45,10 @@ export class Address {
     return this.address === getAddress(address)
   }
 
+  public toString() {
+    return this.unwrap()
+  }
+
   public unwrap() {
     return this.address
   }
