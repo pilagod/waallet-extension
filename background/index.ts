@@ -99,7 +99,7 @@ async function main() {
 
   const indexBalanceOnBlock = async () => {
     // Track networks already bound to a provider
-    const boundProviderNetworks: string[] = []
+    const networkIdsBoundForListeningBalance: string[] = []
 
     // Syncs account balances using multicall
     const updateAccountBalances = async (
@@ -177,7 +177,7 @@ async function main() {
       // Function to handle block updates using the provider context
       const blockSubscriberWithProvider = async function (
         this: { provider: JsonRpcProvider; network: Network },
-        blockNumber: number
+        _: number
       ) {
         const { chainId, accountActive } = this.network
 
@@ -186,11 +186,11 @@ async function main() {
         }
 
         const { account } = storage.get()
-        const accounts = Object.values(account).filter(
+        const accountsForThisNetwork = Object.values(account).filter(
           (account) => account.chainId === chainId
         )
 
-        await updateAccountBalances(accounts, this.provider)
+        await updateAccountBalances(accountsForThisNetwork, this.provider)
       }
 
       const { network, networkActive } = storage.get()
@@ -210,26 +210,26 @@ async function main() {
       )
 
       // Group accounts by chain ID
-      const groupedAccounts = uniqueChainIds.map((chainId) =>
+      const accountsGroupedByNetwork = uniqueChainIds.map((chainId) =>
         accounts.filter((account) => account.chainId === chainId)
       )
 
       // Bind provider for each chainId if not already bound
       uniqueChainIds.forEach(async (chainId, i) => {
-        if (groupedAccounts[i].length === 0) {
+        if (accountsGroupedByNetwork[i].length === 0) {
           return
         }
 
-        const thisNetwork = networks.filter(
+        const networkForCurrentChainId = networks.filter(
           (network) => network.chainId === chainId
         )
 
-        const { nodeRpcUrl, id } = thisNetwork[0]
+        const { nodeRpcUrl, id } = networkForCurrentChainId[0]
 
-        if (boundProviderNetworks.includes(id)) {
+        if (networkIdsBoundForListeningBalance.includes(id)) {
           return
         }
-        boundProviderNetworks.push(id)
+        networkIdsBoundForListeningBalance.push(id)
 
         // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
         // Refer: https://github.com/ethers-io/ethers.js/issues/4377
@@ -237,12 +237,12 @@ async function main() {
           staticNetwork: true
         })
 
-        // Initialize balances for existing accounts
-        await updateAccountBalances(groupedAccounts[i], provider)
+        // First update balances for the local testnet makeup.
+        await updateAccountBalances(accountsGroupedByNetwork[i], provider)
 
         const blockSubscriber = blockSubscriberWithProvider.bind({
           provider,
-          network: thisNetwork[0]
+          network: networkForCurrentChainId[0]
         })
 
         // Listen for new blocks
