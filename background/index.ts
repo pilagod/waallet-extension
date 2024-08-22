@@ -1,4 +1,4 @@
-import { JsonRpcProvider } from "ethers"
+import { JsonRpcProvider, type Listener } from "ethers"
 import { MulticallWrapper } from "ethers-multicall-provider"
 import browser from "webextension-polyfill"
 
@@ -98,8 +98,10 @@ async function main() {
   )
 
   const indexBalanceOnBlock = async () => {
-    // Track networks already bound to a provider
-    const networkIdsBoundForListeningBalance: string[] = []
+    const blockSubscriberContext: {
+      provider?: JsonRpcProvider
+      blockSubscriber?: Listener
+    } = {}
 
     // Syncs account balances using multicall
     const updateAccountBalances = async (
@@ -140,7 +142,7 @@ async function main() {
           })()
         )
 
-        tokens.forEach(async (t) => {
+        tokens.forEach((t) => {
           tokenQueries.push(
             (async () => {
               const tokenContract = await ERC20Contract.init(
@@ -169,98 +171,96 @@ async function main() {
       })
 
       // Execute all balance queries
-      await Promise.all(tokenQueries)
+      try {
+        await Promise.all(tokenQueries)
+      } catch (error) {
+        console.error(
+          `[background][indexBalanceOnBlock] Error executing token balance updates: ${error}`
+        )
+      }
     }
 
     // Handle accountActive state changes and bind providers as needed
-    const accountActiveStateSubscriber = async () => {
+    const networkActiveStateSubscriber = async () => {
       // Function to handle block updates using the provider context
       const blockSubscriberWithProvider = async function (
-        this: { provider: JsonRpcProvider; network: Network },
+        this: { provider: JsonRpcProvider; chainId: number },
         _: number
       ) {
-        const { chainId, accountActive } = this.network
+        // Get the latest accounts
+        const { account } = storage.get()
 
-        if (!accountActive) {
+        const accountsForThisNetwork = Object.values(account).filter(
+          (account) => account.chainId === this.chainId
+        )
+        if (accountsForThisNetwork.length <= 0) {
           return
         }
-
-        const { account } = storage.get()
-        const accountsForThisNetwork = Object.values(account).filter(
-          (account) => account.chainId === chainId
-        )
 
         await updateAccountBalances(accountsForThisNetwork, this.provider)
       }
 
       const { network, networkActive } = storage.get()
-      const { accountActive } = network[networkActive]
+      const networkInstance = network[networkActive]
+      const { accountActive, nodeRpcUrl, chainId } = networkInstance
+
+      // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
+      // Refer: https://github.com/ethers-io/ethers.js/issues/4377
+      const provider = new JsonRpcProvider(nodeRpcUrl, chainId, {
+        staticNetwork: true
+      })
+
+      const blockSubscriber = blockSubscriberWithProvider.bind({
+        provider,
+        chainId
+      })
+
+      // Update provider and subscriber on network switch
+      if (
+        blockSubscriberContext.provider &&
+        blockSubscriberContext.blockSubscriber
+      ) {
+        blockSubscriberContext.provider.off(
+          "block",
+          blockSubscriberContext.blockSubscriber
+        )
+      }
+
+      blockSubscriberContext.provider = provider
+      blockSubscriberContext.blockSubscriber = blockSubscriber
+
+      // Listen for new blocks
+      blockSubscriberContext.provider.on("block", blockSubscriber)
+      console.log(
+        `[background][indexBalanceOnBlock] Provider listening for blocks on chainId: ${chainId}`
+      )
 
       if (!accountActive) {
         return
       }
 
       const { account } = storage.get()
-      const networks = Object.values(network)
       const accounts = Object.values(account)
 
-      // Get unique chain IDs to prevent duplicate providers
-      const uniqueChainIds = Array.from(
-        new Set(networks.map((network) => network.chainId))
-      )
-
       // Group accounts by chain ID
-      const accountsGroupedByNetwork = uniqueChainIds.map((chainId) =>
-        accounts.filter((account) => account.chainId === chainId)
+      const accountsByNetwork = accounts.filter(
+        (account) => account.chainId === chainId
       )
 
-      // Bind provider for each chainId if not already bound
-      uniqueChainIds.forEach(async (chainId, i) => {
-        if (accountsGroupedByNetwork[i].length === 0) {
-          return
-        }
-
-        const networkForCurrentChainId = networks.filter(
-          (network) => network.chainId === chainId
-        )
-
-        const { nodeRpcUrl, id } = networkForCurrentChainId[0]
-
-        if (networkIdsBoundForListeningBalance.includes(id)) {
-          return
-        }
-        networkIdsBoundForListeningBalance.push(id)
-
-        // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
-        // Refer: https://github.com/ethers-io/ethers.js/issues/4377
-        const provider = new JsonRpcProvider(nodeRpcUrl, chainId, {
-          staticNetwork: true
-        })
-
-        // First update balances for the local testnet makeup.
-        await updateAccountBalances(accountsGroupedByNetwork[i], provider)
-
-        const blockSubscriber = blockSubscriberWithProvider.bind({
-          provider,
-          network: networkForCurrentChainId[0]
-        })
-
-        // Listen for new blocks
-        provider.on("block", blockSubscriber)
-      })
+      // First update balances for the local testnet makeup.
+      await updateAccountBalances(
+        accountsByNetwork,
+        blockSubscriberContext.provider
+      )
     }
 
-    const { network } = storage.get()
-
     // Subscribe to accountActive changes for each network
-    Object.values(network).forEach((network) => {
-      storage.subscribe(accountActiveStateSubscriber, {
-        network: { [network.id]: { accountActive: "" } }
-      })
+    storage.subscribe(networkActiveStateSubscriber, {
+      networkActive: ""
     })
 
     // First run if the extension is reloaded
-    await accountActiveStateSubscriber()
+    await networkActiveStateSubscriber()
   }
 
   const indexTransactionSent = async () => {
