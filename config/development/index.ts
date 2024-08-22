@@ -1,5 +1,5 @@
 import { AccountType } from "~packages/account"
-import { EntryPointVersion } from "~packages/bundler"
+import { EntryPointVersion } from "~packages/eip/4337"
 
 const accountChainId = parseInt(process.env.PLASMO_PUBLIC_ACCOUNT_CHAIN_ID)
 

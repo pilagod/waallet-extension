@@ -3,7 +3,10 @@ import type { AccountManager } from "~packages/account/manager"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
+import {
+  BundlerMode,
+  BundlerProvider
+} from "~packages/eip/4337/bundler/provider"
 import type { NetworkManager } from "~packages/network/manager"
 import type { ContractRunner } from "~packages/node"
 import { NodeProvider } from "~packages/node/provider"

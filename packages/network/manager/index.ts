@@ -1,4 +1,4 @@
-import { BundlerProvider } from "~packages/bundler/provider"
+import { BundlerProvider } from "~packages/eip/4337/bundler/provider"
 import { NodeProvider } from "~packages/node/provider"
 
 export type Network = {

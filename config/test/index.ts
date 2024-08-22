@@ -1,7 +1,10 @@
 import * as ethers from "ethers"
 
-import { EntryPointVersion } from "~packages/bundler"
-import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
+import { EntryPointVersion } from "~packages/eip/4337"
+import {
+  BundlerMode,
+  BundlerProvider
+} from "~packages/eip/4337/bundler/provider"
 import { NodeProvider } from "~packages/node/provider"
 
 const address = {

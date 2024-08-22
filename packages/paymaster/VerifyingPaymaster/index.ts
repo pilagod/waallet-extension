@@ -4,7 +4,7 @@ import {
   UserOperationV0_6,
   UserOperationV0_7,
   type UserOperation
-} from "~packages/bundler/userOperation"
+} from "~packages/eip/4337/userOperation"
 import { type ContractRunner } from "~packages/node"
 import type { Paymaster } from "~packages/paymaster"
 import { ETH, type Token } from "~packages/token"

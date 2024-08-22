@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from "uuid"
 
-import { BundlerMode, BundlerProvider } from "~packages/bundler/provider"
+import {
+  BundlerMode,
+  BundlerProvider
+} from "~packages/eip/4337/bundler/provider"
 import type { NetworkManager } from "~packages/network/manager"
 import { NodeProvider } from "~packages/node/provider"
 

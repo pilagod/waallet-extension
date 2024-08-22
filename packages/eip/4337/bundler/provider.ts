@@ -1,17 +1,17 @@
 import { Execution } from "~packages/account"
-import address from "~packages/util/address"
-import number from "~packages/util/number"
-import type { BigNumberish, HexString, Nullable } from "~typing"
-
-import { JsonRpcProvider } from "../rpc/json/provider"
-import { EntryPointVersion } from "./index"
-import { BundlerRpcMethod } from "./rpc"
+import { EntryPointVersion } from "~packages/eip/4337"
 import {
   UserOperationV0_6,
   UserOperationV0_7,
   type UserOperation,
   type UserOperationData
-} from "./userOperation"
+} from "~packages/eip/4337/userOperation"
+import { JsonRpcProvider } from "~packages/rpc/json/provider"
+import address from "~packages/util/address"
+import number from "~packages/util/number"
+import type { BigNumberish, HexString, Nullable } from "~typing"
+
+import { BundlerRpcMethod } from "./rpc"
 
 export enum BundlerMode {
   Manual = "manual",

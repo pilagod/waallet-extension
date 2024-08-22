@@ -1,6 +1,6 @@
 import address from "packages/util/address"
 
-import { type UserOperation } from "~packages/bundler/userOperation"
+import { type UserOperation } from "~packages/eip/4337/userOperation"
 import { StateActor } from "~storage/local/actor"
 import {
   TransactionStatus,
