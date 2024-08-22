@@ -6,7 +6,7 @@ import { Divider } from "~app/component/divider"
 import { QrCode } from "~app/component/qrCode"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ToastContext } from "~app/context/toastContext"
-import { useAccount } from "~app/storage"
+import { useAccount } from "~app/hook/storage"
 
 export const Receive = () => {
   const { address, name } = useAccount()
