@@ -17,10 +17,10 @@ export function Eip712Confirmation(props: {
 }) {
   const { request, account } = props
 
-  const { cancelEip712Request, resolveEip712Request } = useAction()
+  const { rejectEip712Request, resolveEip712Request } = useAction()
 
   const cancel = async () => {
-    await cancelEip712Request(request.id)
+    await rejectEip712Request(request.id)
   }
   const sign = async () => {
     const signature = await account.actor.sign(eip712Hash(request))
