@@ -9,7 +9,7 @@ import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { useAccount, useAction, useTokens } from "~app/hook/storage"
 import { Path } from "~app/path"
-import { ERC20Contract } from "~packages/contract/erc20"
+import { ERC20Contract } from "~packages/eip/20/contract"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 

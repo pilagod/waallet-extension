@@ -2,7 +2,7 @@ import { Contract, getAddress, parseUnits, zeroPadValue } from "ethers"
 
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 
-import { ERC20Contract } from "./erc20"
+import { ERC20Contract } from "./contract"
 
 describeWaalletSuite({
   name: "TokenContract instance",

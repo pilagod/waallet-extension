@@ -1,5 +1,4 @@
 import * as ethers from "ethers"
-import { ERC20Contract } from "packages/contract/erc20"
 import { useCallback, useContext, useState, type ChangeEvent } from "react"
 import { useParams } from "wouter"
 
@@ -12,6 +11,7 @@ import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
 import { ProviderContext } from "~app/context/provider"
 import { useAccounts, useTokens } from "~app/hook/storage"
+import { ERC20Contract } from "~packages/eip/20/contract"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
