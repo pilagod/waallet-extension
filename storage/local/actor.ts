@@ -79,9 +79,9 @@ export class StateActor {
     T extends Erc4337TransactionSucceeded | Erc4337TransactionReverted
   >(requestId: string, data: Omit<T, keyof Erc4337TransactionLogMeta>) {
     const log = this.getTransactionLog(requestId)
-    const next = { ...log, ...data }
-    this.state.account[log.accountId].transactionLog[log.id] = next
-    this.state.requestLog[log.id] = next
+    const logTransitted = { ...log, ...data }
+    this.state.account[log.accountId].transactionLog[log.id] = logTransitted
+    this.state.requestLog[log.id] = logTransitted
   }
 
   /* EIP-712 Request */

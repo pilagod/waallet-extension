@@ -44,7 +44,7 @@ export function Review() {
     <ProfileSwitcher
       accountId={request.accountId}
       networkId={request.networkId}>
-      <RequestConfirmation request={requests[0]} />
+      <RequestConfirmation request={request} />
     </ProfileSwitcher>
   )
 }
