@@ -3,11 +3,7 @@ import type { SimpleAccount } from "~packages/account/SimpleAccount"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { StateActor } from "~storage/local/actor"
-import {
-  type AccountToken,
-  type PasskeyAccount as StoragePasskeyAccount,
-  type SimpleAccount as StorageSimpleAccount
-} from "~storage/local/state"
+import type { AccountToken } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
 
 import type { BackgroundStateCreator } from "../middleware/background"
@@ -56,7 +52,7 @@ export const createAccountSlice: BackgroundStateCreator<
   ) => {
     const data = account.dump()
     await set(({ state }) => {
-      new StateActor(state).createAccount<StorageSimpleAccount>(
+      new StateActor(state).createAccount(
         {
           ...data,
           name,
@@ -74,7 +70,7 @@ export const createAccountSlice: BackgroundStateCreator<
   ) => {
     const data = account.dump()
     await set(({ state }) => {
-      new StateActor(state).createAccount<StoragePasskeyAccount>(
+      new StateActor(state).createAccount(
         {
           ...data,
           name,

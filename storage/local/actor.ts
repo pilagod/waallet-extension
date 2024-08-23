@@ -4,8 +4,8 @@ import number from "~packages/util/number"
 
 import {
   RequestType,
-  type Account,
-  type AccountMeta,
+  type PasskeyAccountData,
+  type SimpleAccountData,
   type State
 } from "./state"
 
@@ -39,8 +39,8 @@ export class StateActor {
 
   /* Account */
 
-  public createAccount<T extends Account>(
-    account: Omit<T, Exclude<keyof AccountMeta, "name">>,
+  public createAccount(
+    account: (SimpleAccountData | PasskeyAccountData) & { name: string },
     networkId: string | number
   ) {
     const id = uuidV4()
@@ -52,7 +52,7 @@ export class StateActor {
       transactionLog: {},
       balance: number.toHex(0),
       tokens: []
-    } as T
+    }
     network.accountActive = id
   }
 

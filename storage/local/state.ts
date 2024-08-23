@@ -59,15 +59,17 @@ export type AccountMeta<T = {}> = {
   tokens: AccountToken[]
 } & T
 
-export type SimpleAccount = AccountMeta<{
+export type SimpleAccount = AccountMeta<SimpleAccountData>
+export type SimpleAccountData = {
   type: AccountType.SimpleAccount
   address: HexString
   ownerPrivateKey: HexString
   factoryAddress?: HexString
   salt?: HexString
-}>
+}
 
-export type PasskeyAccount = AccountMeta<{
+export type PasskeyAccount = AccountMeta<PasskeyAccountData>
+export type PasskeyAccountData = {
   type: AccountType.PasskeyAccount
   address: HexString
   credentialId: B64UrlString
@@ -77,7 +79,7 @@ export type PasskeyAccount = AccountMeta<{
   }
   factoryAddress?: HexString
   salt?: HexString
-}>
+}
 
 /* Paymaster */
 
