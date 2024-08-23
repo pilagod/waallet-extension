@@ -93,7 +93,8 @@ export async function getLocalStorage() {
         networkActive: networkActive ?? Object.keys(network)[0],
         network,
         account,
-        pendingRequest: {}
+        request: {},
+        requestLog: {}
       }
     })
   }
