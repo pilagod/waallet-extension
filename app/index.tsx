@@ -63,10 +63,10 @@ function PageRouter() {
     window.scrollTo(0, 0)
   }, [location])
 
-  const hasPendingRequests = useStorage(
-    useShallow(({ state }) => state.pendingRequests.length > 0)
+  const hasRequests = useStorage(
+    useShallow(({ state }) => Object.keys(state.request).length > 0)
   )
-  if (hasPendingRequests && !location.startsWith(Path.Review)) {
+  if (hasRequests && !location.startsWith(Path.Review)) {
     navigate(Path.Review)
     return
   }

@@ -22,7 +22,8 @@ export async function getLocalStorage() {
           network: {},
           account: {},
           paymaster: {},
-          pendingRequests: []
+          request: {},
+          requestLog: {}
         },
         localStorage
       )
@@ -108,7 +109,8 @@ export async function getLocalStorage() {
         networkActive: networkActive ?? Object.keys(network)[0],
         network,
         account,
-        pendingRequests: []
+        request: {},
+        requestLog: {}
       }
     })
   }

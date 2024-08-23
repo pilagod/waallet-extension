@@ -1,6 +1,6 @@
 import type { Account } from "~packages/account"
 import type { Paymaster } from "~packages/paymaster"
-import byte from "~packages/util/byte"
+import { Bytes } from "~packages/primitive/bytes"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
 
@@ -49,7 +49,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
             }
           ]
         })
-        expect(byte.isHex(gas)).toBe(true)
+        expect(Bytes.isHex(gas)).toBe(true)
         expect(parseInt(gas, 16)).toBeGreaterThan(0)
       })
 

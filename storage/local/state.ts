@@ -4,6 +4,7 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
+import type { Eip712TypedData } from "~packages/eip/712"
 import { type Token } from "~packages/token"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
@@ -20,7 +21,8 @@ export type State = {
   paymaster: {
     [id: string]: Paymaster
   }
-  pendingRequests: Request[]
+  request: Record<string, Request>
+  requestLog: Record<string, RequestLog>
 }
 
 /* Netowork */
@@ -99,26 +101,52 @@ export type VerifyingPaymaster = {
 /* Request */
 
 export enum RequestType {
-  Transaction = "Transaction"
+  Transaction = "Transaction",
+  Eip712 = "Eip712"
 }
 
-export type Request = TransactionRequest
-
-export type TransactionRequest = {
-  type: RequestType.Transaction
+export type Request = TransactionRequest | Eip712Request
+export type RequestMeta<T = {}> = {
   id: string
   createdAt: number
   accountId: string
   networkId: string
+} & T
+
+export type TransactionRequest = RequestMeta<{
+  type: RequestType.Transaction
   to: HexString
   value: HexString
   data: HexString
   nonce?: HexString
   gasLimit?: HexString
   gasPrice?: HexString
-}
+}>
 
-/* Transaction */
+export type Eip712Request = RequestMeta<
+  {
+    type: RequestType.Eip712
+  } & Eip712TypedData
+>
+
+/* Request Log */
+
+export type RequestLog =
+  | ({
+      requestType: RequestType.Transaction
+    } & TransactionLog)
+  | ({
+      requestType: RequestType.Eip712
+    } & Eip712Log)
+
+export type RequestLogMeta<T = {}> = RequestMeta<{
+  updatedAt: number
+}> &
+  T
+
+/* Transaction Log */
+
+export type TransactionLog = Erc4337TransactionLog
 
 export enum TransactionStatus {
   // User rejects the user operation.
@@ -134,33 +162,27 @@ export enum TransactionStatus {
 }
 
 export enum TransactionType {
-  ERC4337V0_6 = "ERC4337V0_6",
-  ERC4337V0_7 = "ERC4337V0_7"
+  Erc4337V0_6 = "Erc4337V0_6",
+  Erc4337V0_7 = "Erc4337V0_7"
 }
 
-/* Transaction - Log */
+export type Erc4337TransactionLog =
+  | Erc4337TransactionRejected
+  | Erc4337TransactionSent
+  | Erc4337TransactionFailed
+  | Erc4337TransactionSucceeded
+  | Erc4337TransactionReverted
 
-export type TransactionLog = ERC4337TransactionLog
-
-export type TransactionLogMeta<T> = {
-  id: string
-  accountId: string
-  networkId: string
-  createdAt: number
-} & T
-
-/* Transaction - ERC4337 */
-
-export type ERC4337TransactionMeta<T> = TransactionLogMeta<
+export type Erc4337TransactionLogMeta<T = {}> = RequestLogMeta<
   | {
-      type: TransactionType.ERC4337V0_6
+      type: TransactionType.Erc4337V0_6
       detail: {
         entryPoint: HexString
         data: UserOperationDataV0_6
       }
     }
   | {
-      type: TransactionType.ERC4337V0_7
+      type: TransactionType.Erc4337V0_7
       detail: {
         entryPoint: HexString
         data: UserOperationDataV0_7
@@ -169,25 +191,18 @@ export type ERC4337TransactionMeta<T> = TransactionLogMeta<
 > &
   T
 
-export type ERC4337TransactionLog =
-  | ERC4337TransactionRejected
-  | ERC4337TransactionSent
-  | ERC4337TransactionFailed
-  | ERC4337TransactionSucceeded
-  | ERC4337TransactionReverted
-
-export type ERC4337TransactionRejected = ERC4337TransactionMeta<{
+export type Erc4337TransactionRejected = Erc4337TransactionLogMeta<{
   status: TransactionStatus.Rejected
 }>
 
-export type ERC4337TransactionSent = ERC4337TransactionMeta<{
+export type Erc4337TransactionSent = Erc4337TransactionLogMeta<{
   status: TransactionStatus.Sent
   receipt: {
     userOpHash: HexString
   }
 }>
 
-export type ERC4337TransactionFailed = ERC4337TransactionMeta<{
+export type Erc4337TransactionFailed = Erc4337TransactionLogMeta<{
   status: TransactionStatus.Failed
   receipt: {
     userOpHash: HexString
@@ -195,7 +210,7 @@ export type ERC4337TransactionFailed = ERC4337TransactionMeta<{
   }
 }>
 
-export type ERC4337TransactionSucceeded = ERC4337TransactionMeta<{
+export type Erc4337TransactionSucceeded = Erc4337TransactionLogMeta<{
   status: TransactionStatus.Succeeded
   receipt: {
     userOpHash: HexString
@@ -205,7 +220,7 @@ export type ERC4337TransactionSucceeded = ERC4337TransactionMeta<{
   }
 }>
 
-export type ERC4337TransactionReverted = ERC4337TransactionMeta<{
+export type Erc4337TransactionReverted = Erc4337TransactionLogMeta<{
   status: TransactionStatus.Reverted
   receipt: {
     userOpHash: HexString
@@ -215,3 +230,20 @@ export type ERC4337TransactionReverted = ERC4337TransactionMeta<{
     errorMessage: string
   }
 }>
+
+/* EIP-712 Log */
+
+export type Eip712Log = RequestLogMeta<
+  | {
+      status: Eip712Status.Resolved
+      signature: HexString
+    }
+  | {
+      status: Eip712Status.Rejected
+    }
+>
+
+export enum Eip712Status {
+  Resolved = "Resolved",
+  Rejected = "Rejected"
+}
