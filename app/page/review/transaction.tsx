@@ -54,9 +54,9 @@ export function TransactionConfirmation(props: {
   const paymentOption = paymentOptions[0]
 
   const {
-    getERC4337TransactionType,
-    markERC4337TransactionSent,
-    markERC4337TransactionRejected
+    getErc4337TransactionType,
+    markErc4337TransactionSent,
+    markErc4337TransactionRejected
   } = useAction()
 
   const isContract = tx.data !== "0x"
@@ -108,9 +108,9 @@ export function TransactionConfirmation(props: {
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
       }
-      // TODO: Wrong nonce problem when confirming consecutive pending tx
+      // TODO: Wrong nonce problem when confirming consecutive tx requests
       try {
-        await markERC4337TransactionSent(tx.id, {
+        await markErc4337TransactionSent(tx.id, {
           entryPoint,
           userOp,
           userOpHash
@@ -131,7 +131,7 @@ export function TransactionConfirmation(props: {
   const rejectUserOperation = async () => {
     setUserOpResolving(true)
     try {
-      await markERC4337TransactionRejected(tx.id, {
+      await markErc4337TransactionRejected(tx.id, {
         entryPoint: await account.actor.getEntryPoint(),
         userOp
       })
@@ -174,13 +174,13 @@ export function TransactionConfirmation(props: {
   useEffect(() => {
     async function setupUserOp() {
       setUserOp(null)
-      const transactionType = getERC4337TransactionType(
+      const transactionType = getErc4337TransactionType(
         tx.networkId,
         await account.actor.getEntryPoint()
       )
       const execution = await account.actor.buildExecution(tx)
       const userOp =
-        transactionType === TransactionType.ERC4337V0_6
+        transactionType === TransactionType.Erc4337V0_6
           ? UserOperationV0_6.wrap(execution)
           : UserOperationV0_7.wrap(execution)
       try {
