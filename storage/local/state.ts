@@ -228,6 +228,8 @@ export type Erc4337TransactionSucceededData = {
   }
 }
 
+export type Erc4337TransactionReverted =
+  Erc4337TransactionLogMeta<Erc4337TransactionRevertedData>
 export type Erc4337TransactionRevertedData = {
   status: TransactionStatus.Reverted
   receipt: {
@@ -238,8 +240,6 @@ export type Erc4337TransactionRevertedData = {
     errorMessage: string
   }
 }
-export type Erc4337TransactionReverted =
-  Erc4337TransactionLogMeta<Erc4337TransactionRevertedData>
 
 /* EIP-712 Log */
 
