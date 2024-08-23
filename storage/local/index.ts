@@ -52,11 +52,6 @@ export async function getLocalStorage() {
         id: uuidv4(),
         accountActive: null
       }
-      if (!targetNetwork.accountActive) {
-        targetNetwork.accountActive = Object.entries(account)
-          .map(([id, a]) => ({ id, ...a }))
-          .filter((a) => a.chainId === n.chainId)[0]?.id
-      }
       network[targetNetwork.id] = {
         ...targetNetwork,
         ...n
@@ -93,6 +88,15 @@ export async function getLocalStorage() {
           ...targetAccount,
           ...a
         }
+      }
+    })
+
+    // Setup active account for networks if not presented
+    Object.values(network).forEach((ns) => {
+      if (!ns.accountActive) {
+        ns.accountActive = Object.entries(account)
+          .map(([id, a]) => ({ id, ...a }))
+          .filter((a) => a.chainId === ns.chainId)[0]?.id
       }
     })
 
