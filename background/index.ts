@@ -144,7 +144,7 @@ async function main() {
         tokens.forEach((t) => {
           tokenQueries.push(
             (async () => {
-              const tokenContract = await ERC20Contract.init(
+              const tokenContract = ERC20Contract.init(
                 t.address,
                 multicallProvider
               )

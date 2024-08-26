@@ -53,7 +53,7 @@ export class ERC20Contract {
     return { from, to, value: number.toBigInt(value) }
   }
 
-  public static async init(address: HexString, runner: ContractRunner) {
+  public static init(address: HexString, runner: ContractRunner) {
     const token = new Contract(address, ERC20Contract.abi, runner)
     return new ERC20Contract(token, address)
   }
