@@ -15,7 +15,6 @@ import {
   type Account,
   type ERC4337TransactionReverted,
   type ERC4337TransactionSucceeded,
-  type Network,
   type TransactionLog
 } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
@@ -183,10 +182,10 @@ async function main() {
     // Handle accountActive state changes and bind providers as needed
     const networkActiveStateSubscriber = async () => {
       // Function to handle block updates using the provider context
-      const blockSubscriberWithProvider = async function (
-        this: { provider: JsonRpcProvider; chainId: number },
-        _: number
-      ) {
+      const blockSubscriberWithProvider = async function (this: {
+        provider: JsonRpcProvider
+        chainId: number
+      }) {
         // Get the latest accounts
         const { account } = storage.get()
 
@@ -202,7 +201,7 @@ async function main() {
 
       const { network, networkActive } = storage.get()
       const networkInstance = network[networkActive]
-      const { accountActive, nodeRpcUrl, chainId } = networkInstance
+      const { nodeRpcUrl, chainId } = networkInstance
 
       // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
       // Refer: https://github.com/ethers-io/ethers.js/issues/4377
@@ -235,26 +234,10 @@ async function main() {
         `[background][indexBalanceOnBlock] Provider listening for blocks on chainId: ${chainId}`
       )
 
-      if (!accountActive) {
-        return
-      }
-
-      const { account } = storage.get()
-      const accounts = Object.values(account)
-
-      // Group accounts by chain ID
-      const accountsByNetwork = accounts.filter(
-        (account) => account.chainId === chainId
-      )
-
       // First update balances for the local testnet makeup.
-      await updateAccountBalances(
-        accountsByNetwork,
-        blockSubscriberContext.provider
-      )
+      await blockSubscriber()
     }
 
-    // Subscribe to accountActive changes for each network
     storage.subscribe(networkActiveStateSubscriber, {
       networkActive: ""
     })
