@@ -1,7 +1,7 @@
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
-export class Transaction {
+export class TransactionRequest {
   public to: HexString
   public value: bigint
   public data: HexString
@@ -47,26 +47,4 @@ export class Transaction {
       })
     }
   }
-}
-
-export interface TransactionPool {
-  /**
-   * Send transaction to pool, it would be processed in some future.
-   *
-   * @return Uuid for this transaction.
-   */
-  send(data: {
-    tx: Transaction
-    senderId: string
-    networkId: string
-  }): Promise<string>
-
-  /**
-   * Wait for an transaction to be processed on chain.
-   *
-   * @param txId: Uuid of the transaction.
-   *
-   * @return The transaction hash.
-   */
-  wait(txId: string): Promise<HexString>
 }

@@ -2,6 +2,7 @@ import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
 } from "~packages/bundler/userOperation"
+import type { Eip712TypedData } from "~packages/eip/712"
 import type { BigNumberish, HexString, OptionalPick } from "~typing"
 
 export enum WaalletRpcMethod {
@@ -13,6 +14,7 @@ export enum WaalletRpcMethod {
   eth_requestAccounts = "eth_requestAccounts",
   eth_sendTransaction = "eth_sendTransaction",
   eth_sendUserOperation = "eth_sendUserOperation",
+  eth_signTypedData_v4 = "eth_signTypedData_v4",
 
   custom_estimateGasPrice = "custom_estimateGasPrice"
 }
@@ -22,6 +24,7 @@ export type WaalletRequestArguments =
   | EthEstimateUserOperationGasArguments
   | EthSendTransactionArguments
   | EthSendUserOperationArguments
+  | EthSignTypedDataV4
   | {
       method:
         | WaalletRpcMethod.eth_accounts
@@ -88,11 +91,20 @@ export type EthSendTransactionArguments = {
   ]
 }
 
-/**
- * @param UserOperation
- * @param EntryPoint address
- */
 export type EthSendUserOperationArguments = {
   method: WaalletRpcMethod.eth_sendUserOperation
-  params: [UserOperationDataV0_6 | UserOperationDataV0_7, HexString]
+  params: [
+    UserOperationDataV0_6 | UserOperationDataV0_7,
+    HexString // EntryPoint address
+  ]
+}
+
+/* EIP-712 */
+
+export type EthSignTypedDataV4 = {
+  method: WaalletRpcMethod.eth_signTypedData_v4
+  params: [
+    HexString, // signer address
+    Eip712TypedData | string
+  ]
 }

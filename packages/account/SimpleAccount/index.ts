@@ -4,6 +4,7 @@ import type { Call } from "~packages/account"
 import { AccountType } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import { type ContractRunner } from "~packages/node"
+import { Bytes } from "~packages/primitive/bytes"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
@@ -50,11 +51,19 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     })
   }
 
-  private account: ethers.Contract
-  private owner: ethers.Wallet
+  public static decode(calldata: HexString): Call {
+    const [dest, value, func] = new ethers.Interface(
+      SimpleAccount.abi
+    ).decodeFunctionData("execute", calldata)
+    return { to: dest, value, data: func }
+  }
+
   private static abi: string[] = [
     "function execute(address dest, uint256 value, bytes calldata func)"
   ]
+
+  private account: ethers.Contract
+  private owner: ethers.Wallet
 
   private constructor(
     runner: ContractRunner,
@@ -84,17 +93,6 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     }
   }
 
-  public async sign(message: BytesLike) {
-    return this.owner.signMessage(ethers.getBytes(message))
-  }
-
-  public static decode(calldata: HexString): Call {
-    const [dest, value, func] = new ethers.Interface(
-      SimpleAccount.abi
-    ).decodeFunctionData("execute", calldata)
-    return { to: dest, value, data: func }
-  }
-
   protected async getCallData(call: Call): Promise<HexString> {
     return this.account.interface.encodeFunctionData("execute", [
       call.to,
@@ -105,5 +103,10 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
 
   protected async getDummySignature(): Promise<HexString> {
     return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c"
+  }
+
+  protected async signRaw(message: BytesLike) {
+    const signature = this.owner.signingKey.sign(Bytes.wrap(message))
+    return signature.serialized
   }
 }

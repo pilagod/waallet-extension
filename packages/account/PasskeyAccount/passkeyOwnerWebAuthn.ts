@@ -40,7 +40,7 @@ export class PasskeyOwnerWebAuthn implements PasskeyOwner {
       sender?: browser.Runtime.MessageSender
     }
   ): Promise<WebAuthnAuthentication> {
-    const challengeB64Url = Bytes.wrap(challenge).eip191().unwrap("base64url")
+    const challengeB64Url = Bytes.wrap(challenge).unwrap("base64url")
     const webAuthnAuthentication = await (this.isWebAuthnAvailable()
       ? this.authenticateInPlace(challengeB64Url)
       : this.authenticateInBackground(challengeB64Url, metadata))

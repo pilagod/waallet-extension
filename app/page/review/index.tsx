@@ -1,15 +1,23 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import browser from "webextension-polyfill"
 import { useHashLocation } from "wouter/use-hash-location"
 
+import { ProviderContext } from "~app/context/provider"
+import {
+  useAccountWithActor,
+  useAction,
+  useNetwork,
+  useRequests
+} from "~app/hook/storage"
 import { Path } from "~app/path"
-import { useAction, usePendingTransactions } from "~app/storage"
+import { RequestType, type Request } from "~storage/local/state"
 
+import { Eip712Confirmation } from "./eip712"
 import { TransactionConfirmation } from "./transaction"
 
 export function Review() {
   const [, navigate] = useHashLocation()
-  const pendingTxs = usePendingTransactions()
+  const requests = useRequests()
 
   useEffect(() => {
     async function redirect() {
@@ -23,19 +31,22 @@ export function Review() {
         navigate(Path.Home)
       }
     }
-    if (pendingTxs.length === 0) {
+    if (requests.length === 0) {
       redirect()
     }
-  }, [pendingTxs.length])
+  }, [requests.length])
 
-  if (pendingTxs.length === 0) {
+  if (requests.length === 0) {
     return
   }
-  const [tx] = pendingTxs
+
+  const [request] = requests
 
   return (
-    <ProfileSwitcher accountId={tx.senderId} networkId={tx.networkId}>
-      <TransactionConfirmation tx={tx} />
+    <ProfileSwitcher
+      accountId={request.accountId}
+      networkId={request.networkId}>
+      <RequestConfirmation request={request} />
     </ProfileSwitcher>
   )
 }
@@ -63,4 +74,39 @@ function ProfileSwitcher(props: {
   }
 
   return children
+}
+
+function RequestConfirmation(props: { request: Request }) {
+  const { request } = props
+
+  const { provider } = useContext(ProviderContext)
+
+  const account = useAccountWithActor(provider, request.accountId)
+  const network = useNetwork(request.networkId)
+
+  if (!account.actorLoaded) {
+    return
+  }
+
+  if (request.type === RequestType.Transaction) {
+    return (
+      <TransactionConfirmation
+        tx={request}
+        account={account}
+        network={network}
+      />
+    )
+  }
+
+  if (request.type === RequestType.Eip712) {
+    return (
+      <Eip712Confirmation
+        request={request}
+        account={account}
+        network={network}
+      />
+    )
+  }
+
+  throw new Error("Unknown request")
 }

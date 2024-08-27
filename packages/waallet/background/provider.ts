@@ -13,28 +13,33 @@ import {
   type EthEstimateUserOperationGasArguments,
   type EthSendTransactionArguments,
   type EthSendUserOperationArguments,
+  type EthSignTypedDataV4,
   type WaalletRequestArguments
 } from "../rpc"
-import { Transaction, type TransactionPool } from "./pool/transaction"
+import {
+  Eip712Request,
+  TransactionRequest,
+  type RequestPool
+} from "./pool/request"
 
 export type WaalletBackgroundProviderOption = {
   accountManager?: AccountManager
   networkManager?: NetworkManager
-  transactionPool?: TransactionPool
+  requestPool?: RequestPool
 }
 
 export class WaalletBackgroundProvider {
   public constructor(
     public accountManager: AccountManager,
     public networkManager: NetworkManager,
-    public transactionPool: TransactionPool
+    public requestPool: RequestPool
   ) {}
 
   public clone(option: WaalletBackgroundProviderOption = {}) {
     const provider = new WaalletBackgroundProvider(
       option.accountManager ?? this.accountManager,
       option.networkManager ?? this.networkManager,
-      option.transactionPool ?? this.transactionPool
+      option.requestPool ?? this.requestPool
     )
     return provider
   }
@@ -57,6 +62,8 @@ export class WaalletBackgroundProvider {
         return this.handleSendTransaction(args.params) as T
       case WaalletRpcMethod.eth_sendUserOperation:
         return this.handleSendUserOperation(args.params) as T
+      case WaalletRpcMethod.eth_signTypedData_v4:
+        return this.handleSignTypedDataV4(args.params) as T
       case WaalletRpcMethod.custom_estimateGasPrice:
         return this.handleEstimateGasPrice() as T
       // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
@@ -161,18 +168,37 @@ export class WaalletBackgroundProvider {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
     }
 
-    const txId = await this.transactionPool.send({
-      tx: new Transaction({
+    const txId = await this.requestPool.send({
+      request: new TransactionRequest({
         ...tx,
         to: tx.to,
         gasLimit: tx.gas
       }),
-      senderId: accountId,
+      accountId,
       networkId
     })
-    const transactionHash = await this.transactionPool.wait(txId)
+    const transactionHash = await this.requestPool.wait(txId)
 
     return transactionHash
+  }
+
+  private async handleSignTypedDataV4(params: EthSignTypedDataV4["params"]) {
+    const [signer, typedData] = params
+
+    const { id: networkId } = this.networkManager.getActive()
+    const { id: accountId, account } = await this.accountManager.getActive()
+    if (!address.isEqual(signer, await account.getAddress())) {
+      throw new Error("Signer address doesn't match connected account")
+    }
+
+    const requestId = await this.requestPool.send({
+      request: new Eip712Request(typedData),
+      accountId,
+      networkId
+    })
+    const signature = await this.requestPool.wait(requestId)
+
+    return signature
   }
 
   private async handleSendUserOperation(

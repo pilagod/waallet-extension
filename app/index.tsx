@@ -5,6 +5,7 @@ import { useHashLocation } from "wouter/use-hash-location"
 import { useShallow } from "zustand/react/shallow"
 
 import { ProviderContextProvider } from "~app/context/provider"
+import { useStorage } from "~app/hook/storage"
 import { AccountCreate } from "~app/page/account/create"
 import { AccountList } from "~app/page/account/list"
 import { Home } from "~app/page/home"
@@ -17,7 +18,6 @@ import { WebAuthnAuthentication } from "~app/page/webauthn/authentication"
 import { WebAuthnDevtool } from "~app/page/webauthn/devtool"
 import { WebAuthnRegistration } from "~app/page/webauthn/registration"
 import { Path } from "~app/path"
-import { useStorage } from "~app/storage"
 
 import "~style.css"
 
@@ -63,10 +63,10 @@ function PageRouter() {
     window.scrollTo(0, 0)
   }, [location])
 
-  const hasPendingTx = useStorage(
-    useShallow(({ state }) => Object.keys(state.pendingTransaction).length > 0)
+  const hasRequests = useStorage(
+    useShallow(({ state }) => Object.keys(state.request).length > 0)
   )
-  if (hasPendingTx && !location.startsWith(Path.Review)) {
+  if (hasRequests && !location.startsWith(Path.Review)) {
     navigate(Path.Review)
     return
   }

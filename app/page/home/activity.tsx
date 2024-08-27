@@ -7,7 +7,7 @@ import Clock from "react:~assets/clock.svg"
 
 import { ERC20Contract } from "~/packages/contract/erc20"
 import { ScrollableWrapper } from "~app/component/scrollableWrapper"
-import { useAccount, useNetwork, useTransactionLogs } from "~app/storage"
+import { useAccount, useNetwork, useTransactionLogs } from "~app/hook/storage"
 import { decodeExecuteParams } from "~app/util/calldata"
 import { getChainName } from "~packages/network/util"
 import address from "~packages/util/address"
@@ -53,12 +53,12 @@ const UserOpHistoryItem: React.FC<{
   const { tokens, type } = useAccount()
   const network = useNetwork()
   const { createdAt, status, detail } = txLog
-  const creationDate = new Date(createdAt * 1000).toLocaleDateString("zh-TW", {
+  const creationDate = new Date(createdAt).toLocaleDateString("zh-TW", {
     year: "numeric",
     month: "numeric",
     day: "numeric"
   })
-  const creationTime = new Date(createdAt * 1000).toLocaleTimeString("zh-TW", {
+  const creationTime = new Date(createdAt).toLocaleTimeString("zh-TW", {
     hour: "numeric",
     minute: "numeric",
     second: "numeric",

@@ -9,17 +9,14 @@ import { StorageMessenger } from "./messenger"
 import { background, type BackgroundStorage } from "./middleware/background"
 import { createAccountSlice, type AccountSlice } from "./slice/account"
 import { createNetworkSlice, type NetworkSlice } from "./slice/network"
+import { createRequestSlice, type RequestSlice } from "./slice/request"
 import { createStateSlice, type StateSlice } from "./slice/state"
-import {
-  createTransactionSlice,
-  type TransactionSlice
-} from "./slice/transaction"
 
 interface Storage
   extends StateSlice,
     AccountSlice,
     NetworkSlice,
-    TransactionSlice {}
+    RequestSlice {}
 
 class StorageSyncer implements BackgroundStorage<Storage> {
   private patchesInSync: Record<string, PromiseWithResolvers<void>> = {}
@@ -81,7 +78,7 @@ export const useStorage = create<Storage>()(
       ...createStateSlice(...actions),
       ...createAccountSlice(...actions),
       ...createNetworkSlice(...actions),
-      ...createTransactionSlice(...actions)
+      ...createRequestSlice(...actions)
     }),
     new StorageSyncer(storageMessenger)
   )
@@ -90,6 +87,3 @@ export const useStorage = create<Storage>()(
 storageMessenger.get().then((state) => {
   useStorage.setStateLocally({ state })
 })
-
-// TODO: Remove it after fully migrated
-export * from "~app/hook/storage"

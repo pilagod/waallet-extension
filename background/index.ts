@@ -6,21 +6,20 @@ import { ERC20Contract } from "~packages/contract/erc20"
 import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
+import { StateActor } from "~storage/local/actor"
 import {
   AccountStorageManager,
   NetworkStorageManager
 } from "~storage/local/manager"
 import {
+  RequestType,
   TransactionStatus,
-  type Account,
-  type ERC4337TransactionReverted,
-  type ERC4337TransactionSucceeded,
-  type TransactionLog
+  type Account
 } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
 
 import { StorageAction } from "./messages/storage"
-import { TransactionStoragePool } from "./pool"
+import { RequestStoragePool } from "./pool"
 import { setupWaalletBackgroundProvider } from "./provider"
 
 console.log(
@@ -50,7 +49,7 @@ async function main() {
   setupWaalletBackgroundProvider({
     accountManager,
     networkManager,
-    transactionPool: new TransactionStoragePool(storage)
+    requestPool: new RequestStoragePool(storage)
   })
 
   const sessionStorage = await getSessionStorage()
@@ -79,9 +78,9 @@ async function main() {
   // @dev: Trigger popup when new pending user op is added into the pool.
   storage.subscribe(
     async (_, patches) => {
-      const newPendingTxs = patches.filter((p) => p.op === "add")
+      const newRequests = patches.filter((p) => p.op === "add")
 
-      if (newPendingTxs.length === 0 || sessionStorage.get().isPopupOpened) {
+      if (newRequests.length === 0 || sessionStorage.get().isPopupOpened) {
         return
       }
 
@@ -93,7 +92,7 @@ async function main() {
         height: 720
       })
     },
-    { pendingTransaction: {} }
+    { request: {} }
   )
 
   const indexBalanceOnBlock = async () => {
@@ -276,16 +275,12 @@ async function main() {
     const timeout = 3000
     console.log(`[background] Sync transactions sent every ${timeout} ms`)
 
-    const { account } = storage.get()
+    const state = storage.get()
     const { bundler } = networkManager.getActive()
 
-    // Fetch all sent user operations from all accounts
-    const txLogs = Object.values(account)
-      .map((a) => a.transactionLog)
-      .reduce((result, txLog) => {
-        return result.concat(Object.values(txLog) ?? [])
-      }, [] as TransactionLog[])
-
+    const txLogs = Object.values(state.requestLog).filter(
+      (r) => r.requestType === RequestType.Transaction
+    )
     txLogs.forEach(async (txLog) => {
       if (txLog.status !== TransactionStatus.Sent) {
         return
@@ -296,29 +291,11 @@ async function main() {
       if (!userOpReceipt) {
         return
       }
-
-      if (userOpReceipt.success) {
-        const txSucceeded: ERC4337TransactionSucceeded = {
-          ...txLog,
-          status: TransactionStatus.Succeeded,
-          receipt: {
-            userOpHash,
-            transactionHash: userOpReceipt.receipt.transactionHash,
-            blockHash: userOpReceipt.receipt.blockHash,
-            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
-          }
-        }
-        storage.set((state) => {
-          state.account[txSucceeded.senderId].transactionLog[txSucceeded.id] =
-            txSucceeded
-        })
-        return
-      }
-
-      if (!userOpReceipt.success) {
-        const txReverted: ERC4337TransactionReverted = {
-          ...txLog,
-          status: TransactionStatus.Reverted,
+      storage.set((state) => {
+        new StateActor(state).transitErc4337TransactionLog(txLog.id, {
+          status: userOpReceipt.success
+            ? TransactionStatus.Succeeded
+            : TransactionStatus.Reverted,
           receipt: {
             userOpHash,
             transactionHash: userOpReceipt.receipt.transactionHash,
@@ -326,13 +303,8 @@ async function main() {
             blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
             errorMessage: userOpReceipt.reason
           }
-        }
-        storage.set((state) => {
-          state.account[txReverted.senderId].transactionLog[txReverted.id] =
-            txReverted
         })
-        return
-      }
+      })
     })
 
     setTimeout(indexTransactionSent, timeout)
