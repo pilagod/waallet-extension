@@ -1,12 +1,12 @@
 import * as ethers from "ethers"
 
+import type { Paymaster } from "~packages/eip/4337/paymaster"
 import {
   UserOperationV0_6,
   UserOperationV0_7,
   type UserOperation
 } from "~packages/eip/4337/userOperation"
 import { type ContractRunner } from "~packages/node"
-import type { Paymaster } from "~packages/paymaster"
 import { ETH, type Token } from "~packages/token"
 import type { HexString } from "~typing"
 

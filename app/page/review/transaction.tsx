@@ -15,13 +15,13 @@ import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
 import { useAction, type Network } from "~app/hook/storage"
 import type { Account } from "~packages/account"
+import type { Paymaster } from "~packages/eip/4337/paymaster"
+import { NullPaymaster } from "~packages/eip/4337/paymaster/NullPaymaster"
 import {
   UserOperationV0_6,
   UserOperationV0_7,
   type UserOperation
 } from "~packages/eip/4337/userOperation"
-import type { Paymaster } from "~packages/paymaster"
-import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
 import { ETH } from "~packages/token"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
