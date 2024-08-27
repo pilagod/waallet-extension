@@ -112,35 +112,35 @@ async function main() {
 
       // Store balance update promises
       const tokenQueries = []
+      // Store updated balances
+      const accountBalances: {
+        [accountId: string]: {
+          nativeToken: bigint
+          erc20Token: { [address: string]: bigint }
+        }
+      } = {}
 
-      // Update balances for each account
+      // Store balances for each account
       accounts.forEach((account) => {
-        const {
-          id,
-          tokens,
-          chainId,
-          balance: accountBalance,
-          address: accountAddress
-        } = account
+        const { id, tokens, address: accountAddress } = account
 
+        // Initialize balances if not present
+        if (!accountBalances[id]) {
+          accountBalances[id] = {
+            nativeToken: BigInt(0),
+            erc20Token: {}
+          }
+        }
+
+        // Query native token balance
         tokenQueries.push(
           (async () => {
-            const nativeBalance =
+            accountBalances[id].nativeToken =
               await multicallProvider.getBalance(accountAddress)
-
-            // Update balance if changed
-            if (number.toBigInt(accountBalance) !== nativeBalance) {
-              storage.set((state) => {
-                state.account[id].balance = number.toHex(nativeBalance)
-              })
-
-              console.log(
-                `[background][indexBalanceOnBlock] Native token balance updated: ${nativeBalance.toString()} at chain ID: ${chainId}`
-              )
-            }
           })()
         )
 
+        // Query ERC20 token balances
         tokens.forEach((t) => {
           tokenQueries.push(
             (async () => {
@@ -148,22 +148,8 @@ async function main() {
                 t.address,
                 multicallProvider
               )
-              const tokenBalance = await tokenContract.balanceOf(accountAddress)
-
-              // Update token balance if changed
-              if (number.toBigInt(t.balance) !== tokenBalance) {
-                storage.set((state) => {
-                  state.account[id].tokens.find((token) =>
-                    address.isEqual(token.address, t.address)
-                  ).balance = number.toHex(tokenBalance)
-                })
-
-                console.log(
-                  `[background][indexBalanceOnBlock] ERC20 token ${
-                    t.symbol
-                  } balance updated: ${tokenBalance.toString()} at chain ID: ${chainId}`
-                )
-              }
+              accountBalances[id].erc20Token[t.address] =
+                await tokenContract.balanceOf(accountAddress)
             })()
           )
         })
@@ -177,6 +163,46 @@ async function main() {
           `[background][indexBalanceOnBlock] Error executing token balance updates: ${error}`
         )
       }
+
+      // Update balances in storage
+      storage.set((state) => {
+        for (const accountId in accountBalances) {
+          const balances = accountBalances[accountId]
+          const nativeTokenBalance = balances.nativeToken
+
+          // Update native token balance
+          if (
+            number.toBigInt(state.account[accountId].balance) !==
+            nativeTokenBalance
+          ) {
+            state.account[accountId].balance = number.toHex(nativeTokenBalance)
+
+            console.log(
+              `[background][indexBalanceOnBlock] Native token balance updated`
+            )
+          }
+
+          const erc20TokenBalances = balances.erc20Token
+
+          // Update ERC20 token balances
+          for (const erc20TokenAddress in erc20TokenBalances) {
+            const erc20TokenBalance = erc20TokenBalances[erc20TokenAddress]
+            const erc20TokenState = state.account[accountId].tokens.find(
+              (token) => address.isEqual(token.address, erc20TokenAddress)
+            )
+
+            if (
+              number.toBigInt(erc20TokenState.balance) !== erc20TokenBalance
+            ) {
+              erc20TokenState.balance = number.toHex(erc20TokenBalance)
+
+              console.log(
+                `[background][indexBalanceOnBlock] ERC20 token balance updated`
+              )
+            }
+          }
+        }
+      })
     }
 
     // Handle accountActive state changes and bind providers as needed
