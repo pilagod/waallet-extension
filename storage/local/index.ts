@@ -18,7 +18,7 @@ export async function getLocalStorage() {
       Object.assign(
         // Empty state skeleton
         {
-          networkActive: "",
+          networkActive: null,
           network: {},
           account: {},
           paymaster: {},
