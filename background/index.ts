@@ -126,7 +126,7 @@ async function main() {
         // Initialize balances if not present
         if (!accountBalances[id]) {
           accountBalances[id] = {
-            nativeToken: BigInt(0),
+            nativeToken: 0n,
             erc20Token: {}
           }
         }
@@ -225,8 +225,7 @@ async function main() {
       }
 
       const { network, networkActive } = storage.get()
-      const networkInstance = network[networkActive]
-      const { nodeRpcUrl, chainId } = networkInstance
+      const { nodeRpcUrl, chainId } = network[networkActive]
 
       // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
       // Refer: https://github.com/ethers-io/ethers.js/issues/4377
