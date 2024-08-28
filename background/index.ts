@@ -1,5 +1,4 @@
 import { JsonRpcProvider, type Listener } from "ethers"
-import { MulticallWrapper } from "ethers-multicall-provider"
 import browser from "webextension-polyfill"
 
 import { ERC20Contract } from "~packages/contract/erc20"
@@ -106,9 +105,6 @@ async function main() {
       accounts: Account[],
       provider: JsonRpcProvider
     ) => {
-      // Use multicall provider to optimize RPC calls
-      const multicallProvider = MulticallWrapper.wrap(provider)
-
       // Store balance update promises
       const tokenQueries = []
       // Store updated balances
@@ -135,7 +131,7 @@ async function main() {
         tokenQueries.push(
           (async () => {
             accountBalances[id].nativeToken =
-              await multicallProvider.getBalance(accountAddress)
+              await provider.getBalance(accountAddress)
           })()
         )
 
@@ -143,10 +139,7 @@ async function main() {
         tokens.forEach((t) => {
           tokenQueries.push(
             (async () => {
-              const tokenContract = ERC20Contract.init(
-                t.address,
-                multicallProvider
-              )
+              const tokenContract = ERC20Contract.init(t.address, provider)
               accountBalances[id].erc20Token[t.address] =
                 await tokenContract.balanceOf(accountAddress)
             })()
