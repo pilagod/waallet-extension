@@ -100,11 +100,14 @@ async function main() {
       blockSubscriber?: Listener
     } = {}
 
-    // Syncs account balances using multicall
+    // Syncs account balances
     const updateAccountBalances = async (
       accounts: Account[],
       provider: JsonRpcProvider
     ) => {
+      if (accounts.length <= 0) {
+        return
+      }
       // Store balance update promises
       const tokenQueries = []
       // Store updated balances
@@ -210,9 +213,6 @@ async function main() {
         const accountsForThisNetwork = Object.values(account).filter(
           (account) => account.chainId === this.chainId
         )
-        if (accountsForThisNetwork.length <= 0) {
-          return
-        }
 
         await updateAccountBalances(accountsForThisNetwork, this.provider)
       }
