@@ -5,12 +5,11 @@ import ArrowUpRightFromSquare from "react:~assets/arrowUpRightFromSquare.svg"
 import CircleXmark from "react:~assets/circleXmark.svg"
 import Clock from "react:~assets/clock.svg"
 
-import { ERC20Contract } from "~/packages/contract/erc20"
 import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { useAccount, useNetwork, useTransactionLogs } from "~app/hook/storage"
 import { decodeExecuteParams } from "~app/util/calldata"
+import { ERC20Contract } from "~packages/eip/20/contract"
 import { getChainName } from "~packages/network/util"
-import address from "~packages/util/address"
 import number from "~packages/util/number"
 import { TransactionStatus, type TransactionLog } from "~storage/local/state"
 import type { BigNumberish, HexString } from "~typing"
@@ -69,11 +68,11 @@ const UserOpHistoryItem: React.FC<{
   const tokenInfo: TokenTransferInfo = {
     symbol: network.tokenSymbol,
     value,
-    to
+    to: to.toString()
   }
 
   // Check if the transaction "to" address is a stored token
-  const tokenStored = tokens.find((token) => address.isEqual(token.address, to))
+  const tokenStored = tokens.find((token) => to.isEqual(token.address))
 
   // If a token is found, consider it an ERC20 token transfer
   if (tokenStored) {

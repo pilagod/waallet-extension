@@ -1,17 +1,17 @@
 import { Execution } from "~packages/account"
-import address from "~packages/util/address"
-import number from "~packages/util/number"
-import type { BigNumberish, HexString, Nullable } from "~typing"
-
-import { JsonRpcProvider } from "../rpc/json/provider"
-import { EntryPointVersion } from "./index"
-import { BundlerRpcMethod } from "./rpc"
+import { EntryPointVersion } from "~packages/eip/4337"
 import {
   UserOperationV0_6,
   UserOperationV0_7,
   type UserOperation,
   type UserOperationData
-} from "./userOperation"
+} from "~packages/eip/4337/userOperation"
+import { Address, type AddressLike } from "~packages/primitive"
+import { JsonRpcProvider } from "~packages/rpc/json/provider"
+import number from "~packages/util/number"
+import type { BigNumberish, HexString, Nullable } from "~typing"
+
+import { BundlerRpcMethod } from "./rpc"
 
 export enum BundlerMode {
   Manual = "manual",
@@ -23,20 +23,28 @@ export class BundlerProvider {
 
   private bundler: JsonRpcProvider
   private entryPoint: {
-    [v in EntryPointVersion]: HexString
+    [v in EntryPointVersion]: Address
   }
   private mode: BundlerMode = BundlerMode.Auto
 
   public constructor(option: {
     url: string
     entryPoint: {
-      [v in EntryPointVersion]: HexString
+      [v in EntryPointVersion]: AddressLike
     }
     mode?: BundlerMode
   }) {
     this.url = option.url
     this.bundler = new JsonRpcProvider(option.url)
-    this.entryPoint = option.entryPoint
+    this.entryPoint = Object.keys(option.entryPoint).reduce(
+      (r, k) => {
+        r[k] = Address.wrap(option.entryPoint[k])
+        return r
+      },
+      {} as {
+        [v in EntryPointVersion]: Address
+      }
+    )
     if (option.mode) {
       this.mode = option.mode
     }
@@ -58,17 +66,17 @@ export class BundlerProvider {
     return number.toBigInt(maxPriorityFeePerGas)
   }
 
-  public async getSupportedEntryPoints(): Promise<HexString[]> {
+  public async getSupportedEntryPoints(): Promise<Address[]> {
     const entryPoints = await this.bundler.send<HexString[]>({
       method: BundlerRpcMethod.eth_supportedEntryPoints
     })
-    return entryPoints
+    return entryPoints.map((a) => Address.wrap(a))
   }
 
   public async getUserOperationByHash(userOpHash: HexString): Promise<
     Nullable<{
       userOperation: UserOperation
-      entryPoint: HexString
+      entryPoint: Address
       blockNumber: bigint
       blockHash: HexString
       transactionHash: HexString
@@ -93,6 +101,7 @@ export class BundlerProvider {
     }
     return {
       ...data,
+      entryPoint: Address.wrap(data.entryPoint),
       userOperation: this.deriveUserOperation(data.userOperation),
       ...(data.blockNumber && {
         blockNumber: number.toBigInt(data.blockNumber)
@@ -126,7 +135,7 @@ export class BundlerProvider {
 
   public async estimateUserOperationGas(
     userOp: UserOperation,
-    entryPoint: HexString
+    entryPoint: Address
   ): Promise<{
     preVerificationGas: bigint
     verificationGasLimit: bigint
@@ -140,7 +149,7 @@ export class BundlerProvider {
       paymasterVerificationGasLimit: HexString
     }>({
       method: BundlerRpcMethod.eth_estimateUserOperationGas,
-      params: [userOp.unwrap(), entryPoint]
+      params: [userOp, entryPoint]
     })
     // Add 10% buffer to avoid over limit.
     const addBuffer = (n: bigint) => (n * 110n) / 100n
@@ -159,11 +168,11 @@ export class BundlerProvider {
 
   public async sendUserOperation(
     userOp: UserOperation,
-    entryPoint: HexString
+    entryPoint: Address
   ): Promise<HexString> {
     const userOpHash = await this.bundler.send<HexString>({
       method: BundlerRpcMethod.eth_sendUserOperation,
-      params: [userOp.unwrap(), entryPoint]
+      params: [userOp, entryPoint]
     })
     if (this.mode === BundlerMode.Manual) {
       await this.debugSendBundleNow()
@@ -179,12 +188,12 @@ export class BundlerProvider {
 
   public deriveUserOperation(
     intent: Execution | Partial<UserOperationData>,
-    entryPoint: HexString
+    entryPoint: Address
   ): UserOperation
   public deriveUserOperation(data: UserOperationData): UserOperation
   public deriveUserOperation(
     intent: (Execution | Partial<UserOperationData>) | UserOperationData,
-    entryPoint?: HexString
+    entryPoint?: Address
   ) {
     if (!entryPoint) {
       const data = intent as UserOperationData
@@ -200,18 +209,16 @@ export class BundlerProvider {
     return UserOperationV0_7.wrap(intent)
   }
 
-  public getEntryPointVersion(entryPoint: HexString): EntryPointVersion {
-    if (address.isEqual(entryPoint, this.entryPoint[EntryPointVersion.V0_6])) {
+  public getEntryPointVersion(entryPoint: Address): EntryPointVersion {
+    if (entryPoint.isEqual(this.entryPoint[EntryPointVersion.V0_6])) {
       return EntryPointVersion.V0_6
     }
     return EntryPointVersion.V0_7
   }
 
-  public async isSupportedEntryPoint(entryPoint: HexString): Promise<boolean> {
+  public async isSupportedEntryPoint(entryPoint: Address): Promise<boolean> {
     const entryPoints = await this.getSupportedEntryPoints()
-    return (
-      entryPoints.filter((ep) => address.isEqual(entryPoint, ep)).length > 0
-    )
+    return entryPoints.filter((ep) => entryPoint.isEqual(ep)).length > 0
   }
 
   public async wait(userOpHash: HexString): Promise<HexString> {

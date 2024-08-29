@@ -4,9 +4,9 @@ import config from "~config/test"
 import type { Account } from "~packages/account"
 import { SingleAccountManager } from "~packages/account/manager/single"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import { UserOperationV0_6 } from "~packages/bundler/userOperation"
+import type { Paymaster } from "~packages/eip/4337/paymaster"
+import { UserOperationV0_6 } from "~packages/eip/4337/userOperation"
 import { SingleNetworkManager } from "~packages/network/manager/single"
-import type { Paymaster } from "~packages/paymaster"
 import {
   Eip712RequestHandler,
   RequestHandler,

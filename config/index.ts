@@ -1,5 +1,5 @@
 import { AccountType } from "~packages/account"
-import { EntryPointVersion } from "~packages/bundler"
+import { EntryPointVersion } from "~packages/eip/4337"
 import type { HexString } from "~typing"
 
 import { config as developmentConfig } from "./development"

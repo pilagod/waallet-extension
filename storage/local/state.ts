@@ -1,10 +1,10 @@
 import { AccountType } from "~packages/account"
-import { EntryPointVersion } from "~packages/bundler"
+import type { Eip712TypedData } from "~packages/eip/712"
+import { EntryPointVersion } from "~packages/eip/4337"
 import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
-} from "~packages/bundler/userOperation"
-import type { Eip712TypedData } from "~packages/eip/712"
+} from "~packages/eip/4337/userOperation"
 import { type Token } from "~packages/token"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 
@@ -34,6 +34,7 @@ export type Network = {
   nodeRpcUrl: string
   bundlerRpcUrl: string
   accountActive: Nullable<HexString>
+  // TODO: Move into config
   entryPoint: {
     [v in EntryPointVersion]: HexString
   }
@@ -50,9 +51,10 @@ export type AccountToken = Token & {
   balance: HexString
 }
 
-export type AccountMeta<T> = {
+export type AccountMeta<T = {}> = {
   id: string
   name: string
+  chainId: number
   transactionLog: {
     [txId: string]: TransactionLog
   }
@@ -60,18 +62,18 @@ export type AccountMeta<T> = {
   tokens: AccountToken[]
 } & T
 
-export type SimpleAccount = AccountMeta<{
+export type SimpleAccount = AccountMeta<SimpleAccountData>
+export type SimpleAccountData = {
   type: AccountType.SimpleAccount
-  chainId: number
   address: HexString
   ownerPrivateKey: HexString
   factoryAddress?: HexString
   salt?: HexString
-}>
+}
 
-export type PasskeyAccount = AccountMeta<{
+export type PasskeyAccount = AccountMeta<PasskeyAccountData>
+export type PasskeyAccountData = {
   type: AccountType.PasskeyAccount
-  chainId: number
   address: HexString
   credentialId: B64UrlString
   publicKey?: {
@@ -80,7 +82,7 @@ export type PasskeyAccount = AccountMeta<{
   }
   factoryAddress?: HexString
   salt?: HexString
-}>
+}
 
 /* Paymaster */
 
@@ -190,26 +192,34 @@ export type Erc4337TransactionLogMeta<T = {}> = RequestLogMeta<
 > &
   T
 
-export type Erc4337TransactionRejected = Erc4337TransactionLogMeta<{
+export type Erc4337TransactionRejected =
+  Erc4337TransactionLogMeta<Erc4337TransactionRejectedData>
+export type Erc4337TransactionRejectedData = {
   status: TransactionStatus.Rejected
-}>
+}
 
-export type Erc4337TransactionSent = Erc4337TransactionLogMeta<{
+export type Erc4337TransactionSent =
+  Erc4337TransactionLogMeta<Erc4337TransactionSentData>
+export type Erc4337TransactionSentData = {
   status: TransactionStatus.Sent
   receipt: {
     userOpHash: HexString
   }
-}>
+}
 
-export type Erc4337TransactionFailed = Erc4337TransactionLogMeta<{
+export type Erc4337TransactionFailed =
+  Erc4337TransactionLogMeta<Erc4337TransactionFailedData>
+export type Erc4337TransactionFailedData = {
   status: TransactionStatus.Failed
   receipt: {
     userOpHash: HexString
     errorMessage: string
   }
-}>
+}
 
-export type Erc4337TransactionSucceeded = Erc4337TransactionLogMeta<{
+export type Erc4337TransactionSucceeded =
+  Erc4337TransactionLogMeta<Erc4337TransactionSucceededData>
+export type Erc4337TransactionSucceededData = {
   status: TransactionStatus.Succeeded
   receipt: {
     userOpHash: HexString
@@ -217,9 +227,11 @@ export type Erc4337TransactionSucceeded = Erc4337TransactionLogMeta<{
     blockHash: HexString
     blockNumber: HexString
   }
-}>
+}
 
-export type Erc4337TransactionReverted = Erc4337TransactionLogMeta<{
+export type Erc4337TransactionReverted =
+  Erc4337TransactionLogMeta<Erc4337TransactionRevertedData>
+export type Erc4337TransactionRevertedData = {
   status: TransactionStatus.Reverted
   receipt: {
     userOpHash: HexString
@@ -228,7 +240,7 @@ export type Erc4337TransactionReverted = Erc4337TransactionLogMeta<{
     blockNumber: HexString
     errorMessage: string
   }
-}>
+}
 
 /* EIP-712 Log */
 

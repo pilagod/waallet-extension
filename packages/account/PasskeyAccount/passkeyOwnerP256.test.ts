@@ -1,6 +1,6 @@
 import { p256 } from "@noble/curves/p256"
 
-import { Bytes } from "~packages/primitive/bytes"
+import { Bytes } from "~packages/primitive"
 
 import { PasskeyOwnerP256 } from "./passkeyOwnerP256"
 

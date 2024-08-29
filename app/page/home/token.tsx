@@ -4,7 +4,7 @@ import { Button } from "~app/component/button"
 import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { TokenItem } from "~app/component/tokenItem"
 import { TokenList } from "~app/component/tokenList"
-import { useTokens } from "~app/hook/storage"
+import { useTokens, type Token } from "~app/hook/storage"
 import { Path } from "~app/path"
 
 export function Token() {

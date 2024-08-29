@@ -1,15 +1,12 @@
 import QRCodeStyling, { type Options } from "qr-code-styling"
 import { useEffect, useRef, useState, type FC } from "react"
 
-import { Bytes } from "~packages/primitive/bytes"
-import type { HexString } from "~typing"
-
 interface QrCodeProps {
-  address: HexString
+  data: string
   size: number
 }
 
-export const QrCode: FC<QrCodeProps> = ({ address, size }) => {
+export const QrCode: FC<QrCodeProps> = ({ data, size }) => {
   // Refer to:
   // https://github.com/kozakdenys/qr-code-styling-examples/blob/master/examples/react/src/App.tsx
   const option: Options = {
@@ -17,7 +14,7 @@ export const QrCode: FC<QrCodeProps> = ({ address, size }) => {
     shape: "square",
     width: size,
     height: size,
-    data: generateQrCodeData(address),
+    data,
     qrOptions: {
       errorCorrectionLevel: "Q"
     },
@@ -51,8 +48,8 @@ export const QrCode: FC<QrCodeProps> = ({ address, size }) => {
     if (!qrCode) {
       return
     }
-    qrCode.update({ ...option, data: generateQrCodeData(address) })
-  }, [qrCode, address])
+    qrCode.update({ ...option, data })
+  }, [qrCode, data])
 
   return (
     <div
@@ -60,10 +57,4 @@ export const QrCode: FC<QrCodeProps> = ({ address, size }) => {
       ref={qrRef}
     />
   )
-}
-
-const generateQrCodeData = (address: HexString): string => {
-  // Refer to:
-  // https://github.com/MetaMask/metamask-extension/blob/develop/ui/components/ui/qr-code-view/qr-code-view.tsx#L36-L38
-  return `${Bytes.isHex(address) ? "ethereum:" : ""}${address}`
 }

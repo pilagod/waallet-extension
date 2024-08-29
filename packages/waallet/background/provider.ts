@@ -1,9 +1,9 @@
 import type { AccountManager } from "~packages/account/manager"
-import { BundlerRpcMethod } from "~packages/bundler/rpc"
-import { GasPriceEstimator } from "~packages/gas/price/estimator"
+import { GasPriceEstimator } from "~packages/eip/4337/bundler/estimator"
+import { BundlerRpcMethod } from "~packages/eip/4337/bundler/rpc"
 import type { NetworkManager } from "~packages/network/manager"
+import { Address, unwrapDeep } from "~packages/primitive"
 import { JsonRpcProvider } from "~packages/rpc/json/provider"
-import address from "~packages/util/address"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
@@ -14,7 +14,8 @@ import {
   type EthSendTransactionArguments,
   type EthSendUserOperationArguments,
   type EthSignTypedDataV4,
-  type WaalletRequestArguments
+  type WaalletRequestArguments,
+  type WaalletRequestArgumentsUnwrappable
 } from "../rpc"
 import {
   Eip712Request,
@@ -44,28 +45,38 @@ export class WaalletBackgroundProvider {
     return provider
   }
 
-  public async request<T>(args: WaalletRequestArguments): Promise<T> {
+  public async request<T>(
+    args: WaalletRequestArgumentsUnwrappable
+  ): Promise<T> {
+    if ("params" in args) {
+      ;(args.params as any[]) = args.params.map(unwrapDeep)
+    }
+    return this.handleRequest(args as WaalletRequestArguments) as T
+  }
+
+  private async handleRequest(args: WaalletRequestArguments) {
     console.log(args)
     const { node, bundler } = this.networkManager.getActive()
     switch (args.method) {
       case WaalletRpcMethod.eth_accounts:
-      case WaalletRpcMethod.eth_requestAccounts:
+      case WaalletRpcMethod.eth_requestAccounts: {
         const { account } = await this.accountManager.getActive()
-        return [await account.getAddress()] as T
+        return [(await account.getAddress()).unwrap()]
+      }
       case WaalletRpcMethod.eth_chainId:
-        return number.toHex(await bundler.getChainId()) as T
+        return number.toHex(await bundler.getChainId())
       case WaalletRpcMethod.eth_estimateGas:
-        return this.handleEstimateGas(args.params) as T
+        return this.handleEstimateGas(args.params)
       case WaalletRpcMethod.eth_estimateUserOperationGas:
-        return this.handleEstimateUserOperationGas(args.params) as T
+        return this.handleEstimateUserOperationGas(args.params)
       case WaalletRpcMethod.eth_sendTransaction:
-        return this.handleSendTransaction(args.params) as T
+        return this.handleSendTransaction(args.params)
       case WaalletRpcMethod.eth_sendUserOperation:
-        return this.handleSendUserOperation(args.params) as T
+        return this.handleSendUserOperation(args.params)
       case WaalletRpcMethod.eth_signTypedData_v4:
-        return this.handleSignTypedDataV4(args.params) as T
+        return this.handleSignTypedDataV4(args.params)
       case WaalletRpcMethod.custom_estimateGasPrice:
-        return this.handleEstimateGasPrice() as T
+        return this.handleEstimateGasPrice()
       // TODO: Need split the RequestArgs to NodeRequestArgs | BundlerRequestArgs
       default:
         if (args.method in BundlerRpcMethod) {
@@ -84,7 +95,7 @@ export class WaalletBackgroundProvider {
       return
     }
     const { account } = await this.accountManager.getActive()
-    if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
+    if (tx.from && !(await account.getAddress()).isEqual(tx.from)) {
       throw new Error("Address `from` doesn't match connected account")
     }
     const { bundler } = this.networkManager.getActive()
@@ -128,7 +139,8 @@ export class WaalletBackgroundProvider {
     callGasLimit: HexString
     paymasterVerificationGasLimit: HexString
   }> {
-    const [userOp, entryPoint] = params
+    const [userOp, entryPointAddress] = params
+    const entryPoint = Address.wrap(entryPointAddress)
     const { bundler } = this.networkManager.getActive()
     if (!bundler.isSupportedEntryPoint(entryPoint)) {
       throw new Error(`Unsupported EntryPoint ${entryPoint}`)
@@ -159,7 +171,7 @@ export class WaalletBackgroundProvider {
 
     const { id: networkId, bundler } = this.networkManager.getActive()
     const { id: accountId, account } = await this.accountManager.getActive()
-    if (tx.from && !address.isEqual(tx.from, await account.getAddress())) {
+    if (tx.from && !(await account.getAddress()).isEqual(tx.from)) {
       throw new Error("Address `from` doesn't match connected account")
     }
 
@@ -187,7 +199,7 @@ export class WaalletBackgroundProvider {
 
     const { id: networkId } = this.networkManager.getActive()
     const { id: accountId, account } = await this.accountManager.getActive()
-    if (!address.isEqual(signer, await account.getAddress())) {
+    if (!(await account.getAddress()).isEqual(signer)) {
       throw new Error("Signer address doesn't match connected account")
     }
 
@@ -204,7 +216,8 @@ export class WaalletBackgroundProvider {
   private async handleSendUserOperation(
     params: EthSendUserOperationArguments["params"]
   ): Promise<HexString> {
-    const [userOp, entryPoint] = params
+    const [userOp, entryPointAddress] = params
+    const entryPoint = Address.wrap(entryPointAddress)
     const { bundler } = this.networkManager.getActive()
     return bundler.sendUserOperation(
       bundler.deriveUserOperation(userOp, entryPoint),

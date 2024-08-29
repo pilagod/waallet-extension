@@ -1,4 +1,4 @@
-import { type UserOperation } from "~packages/bundler/userOperation"
+import { type UserOperation } from "~packages/eip/4337/userOperation"
 import { type Token } from "~packages/token"
 import type { HexString } from "~typing"
 

@@ -1,5 +1,5 @@
 import type { Account } from "~packages/account"
-import type { Paymaster } from "~packages/paymaster"
+import type { Paymaster } from "~packages/eip/4337/paymaster"
 import { Bytes } from "~packages/primitive/bytes"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
@@ -21,7 +21,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
           method: WaalletRpcMethod.eth_accounts
         })
         expect(accounts.length).toBeGreaterThan(0)
-        expect(accounts[0]).toBe(await ctx.account.getAddress())
+        expect(accounts[0]).toBe((await ctx.account.getAddress()).toString())
       })
 
       it("should request accounts", async () => {
@@ -29,7 +29,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
           method: WaalletRpcMethod.eth_requestAccounts
         })
         expect(accounts.length).toBeGreaterThan(0)
-        expect(accounts[0]).toBe(await ctx.account.getAddress())
+        expect(accounts[0]).toBe((await ctx.account.getAddress()).toString())
       })
 
       it("should estimate gas", async () => {
@@ -61,7 +61,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
           provider: { node }
         } = ctx
 
-        const balanceBefore = await node.getBalance(counter.getAddress())
+        const balanceBefore = await node.getBalance(counter)
         const counterBefore = (await counter.number()) as bigint
 
         await ctx.provider.waallet.request<HexString>({
@@ -75,7 +75,7 @@ export function describeAccountSuite<A extends Account, P extends Paymaster>(
           ]
         })
 
-        const balanceAfter = await node.getBalance(counter.getAddress())
+        const balanceAfter = await node.getBalance(counter)
         expect(balanceAfter - balanceBefore).toBe(1n)
 
         const counterAfter = (await counter.number()) as bigint

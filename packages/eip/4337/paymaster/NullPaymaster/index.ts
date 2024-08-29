@@ -1,4 +1,4 @@
-import type { Paymaster } from "~packages/paymaster"
+import type { Paymaster } from "~packages/eip/4337/paymaster"
 import { ETH, type Token } from "~packages/token"
 
 export class NullPaymaster implements Paymaster {

@@ -18,7 +18,7 @@ import { Token } from "~app/page/home/token"
 import { Path } from "~app/path"
 import { AccountType } from "~packages/account"
 import { SimpleAccount } from "~packages/account/SimpleAccount"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 
 export enum InfoNavigation {
@@ -39,15 +39,15 @@ export function Home() {
     }
 
     const initSimpleAccount = async () => {
-      const hasSimpleAccountFactory = address.isValid(
+      const hasSimpleAccountFactory = Address.isValid(
         network.accountFactory[AccountType.SimpleAccount]
       )
 
       if (hasSimpleAccountFactory) {
         const account = await SimpleAccount.initWithFactory(provider, {
           ownerPrivateKey: Wallet.createRandom().privateKey,
-          salt: number.random(),
-          factoryAddress: network.accountFactory[AccountType.SimpleAccount]
+          factoryAddress: network.accountFactory[AccountType.SimpleAccount],
+          salt: number.random()
         })
 
         await createSimpleAccount(`Account 1`, account, network.id)
