@@ -1,6 +1,7 @@
 import { v4 as uuidV4 } from "uuid"
 
-import address from "~packages/util/address"
+import type { UserOperation } from "~packages/bundler/userOperation"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
@@ -9,18 +10,32 @@ import {
   RequestType,
   TransactionStatus,
   TransactionType,
-  type Erc4337TransactionFailed,
-  type Erc4337TransactionLogMeta,
-  type Erc4337TransactionRejected,
-  type Erc4337TransactionReverted,
-  type Erc4337TransactionSent,
-  type Erc4337TransactionSucceeded,
+  type Erc4337TransactionFailedData,
+  type Erc4337TransactionLog,
+  type Erc4337TransactionRejectedData,
+  type Erc4337TransactionRevertedData,
+  type Erc4337TransactionSentData,
+  type Erc4337TransactionSucceededData,
   type PasskeyAccountData,
   type Request,
-  type RequestLogMeta,
   type SimpleAccountData,
   type State
 } from "./state"
+
+export type Erc4337TransactionResolveData = {
+  detail: {
+    entryPoint: Address
+    userOp: UserOperation
+  }
+} & (
+  | Erc4337TransactionRejectedData
+  | Erc4337TransactionSentData
+  | Erc4337TransactionFailedData
+)
+
+export type Erc4337TransactionTransitData =
+  | Erc4337TransactionSucceededData
+  | Erc4337TransactionRevertedData
 
 export type NetworkId = string /* uuid */ | number /* chain id */
 
@@ -86,29 +101,32 @@ export class StateActor {
     return log
   }
 
-  public getErc4337TransactionType(networkId: string, entryPoint: HexString) {
+  public getErc4337TransactionType(networkId: string, entryPoint: Address) {
     const network = this.state.network[networkId]
-    if (address.isEqual(entryPoint, network.entryPoint["v0.6"])) {
+    if (entryPoint.isEqual(network.entryPoint["v0.6"])) {
       return TransactionType.Erc4337V0_6
     }
     return TransactionType.Erc4337V0_7
   }
 
-  public resolveErc4337TransactionRequest<
-    T extends
-      | Erc4337TransactionRejected
-      | Erc4337TransactionSent
-      | Erc4337TransactionFailed
-  >(requestId: string, data: Omit<T, keyof RequestLogMeta | "type">) {
+  public resolveErc4337TransactionRequest(
+    requestId: string,
+    data: Erc4337TransactionResolveData
+  ) {
+    const {
+      detail: { entryPoint, userOp },
+      ...resolveData
+    } = data
     const request = this.getTransactionRequest(requestId)
     const log = {
-      ...data,
+      ...resolveData,
       ...this.createRequestLogMeta(request),
-      type: this.getErc4337TransactionType(
-        request.networkId,
-        data.detail.entryPoint
-      )
-    } as T
+      type: this.getErc4337TransactionType(request.networkId, entryPoint),
+      detail: {
+        entryPoint: entryPoint.toString(),
+        data: userOp.unwrap()
+      }
+    } as Erc4337TransactionLog
     // TODO: Handle failed status
     if (log.status !== TransactionStatus.Rejected) {
       this.state.account[log.accountId].transactionLog[log.id] = log
@@ -120,13 +138,14 @@ export class StateActor {
     delete this.state.request[log.id]
   }
 
-  public transitErc4337TransactionLog<
-    T extends Erc4337TransactionSucceeded | Erc4337TransactionReverted
-  >(requestId: string, data: Omit<T, keyof Erc4337TransactionLogMeta>) {
-    const log = this.getTransactionLog(requestId)
-    const logTransitted = { ...log, ...data }
+  public transitErc4337TransactionLog(
+    requestId: string,
+    data: Erc4337TransactionTransitData
+  ) {
+    const { requestType, ...log } = this.getTransactionLog(requestId)
+    const logTransitted = { ...log, ...data } as Erc4337TransactionLog
     this.state.account[log.accountId].transactionLog[log.id] = logTransitted
-    this.state.requestLog[log.id] = logTransitted
+    this.state.requestLog[log.id] = { ...logTransitted, requestType }
   }
 
   /* EIP-712 Request */

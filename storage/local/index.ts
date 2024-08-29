@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from "uuid"
 import browser from "webextension-polyfill"
 
 import { getConfig } from "~config"
+import { Address } from "~packages/primitive"
 import { ObservableStorage } from "~packages/storage/observable"
-import address from "~packages/util/address"
 import { StateActor } from "~storage/local/actor"
 
 import type { State } from "./state"
@@ -77,7 +77,8 @@ export async function getLocalStorage() {
     config.accounts.forEach((a, i) => {
       const targetAccount = Object.values(account).find(
         (as) =>
-          a.chainId === as.chainId && address.isEqual(a.address, as.address)
+          a.chainId === as.chainId &&
+          Address.wrap(a.address).isEqual(as.address)
       )
       if (!targetAccount) {
         stateActor.createAccount(

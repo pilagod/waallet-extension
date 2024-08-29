@@ -1,3 +1,4 @@
+// TODO: Design a value object to deprecate it
 import * as ethers from "ethers"
 
 import type { BigNumberish } from "~typing"
@@ -11,6 +12,10 @@ function random(byteSize: number = 32) {
 
 function toBigInt(n: BigNumberish) {
   return ethers.toBigInt(n)
+}
+
+function toNumber(n: BigNumberish) {
+  return ethers.toNumber(n)
 }
 
 function toString(n: BigNumberish) {
@@ -39,6 +44,7 @@ function formatUnitsToFixed(
 export default {
   random,
   toBigInt,
+  toNumber,
   toString,
   toHex,
   formatUnitsToFixed

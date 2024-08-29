@@ -1,7 +1,8 @@
 import * as ethers from "ethers"
 
 import { Execution } from "~packages/account"
-import address from "~packages/util/address"
+import { Address, type AddressLike } from "~packages/primitive"
+import { Type } from "~packages/transformer"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -29,13 +30,17 @@ export class UserOperationV0_6 {
       const { factory, factoryData, ...data } = intent
       return new UserOperationV0_6({
         ...data,
-        initCode: ethers.concat([factory ?? "0x", factoryData ?? "0x"])
+        initCode: ethers.concat([
+          factory?.toString() ?? "0x",
+          factoryData ?? "0x"
+        ])
       })
     }
     return new UserOperationV0_6({ ...intent })
   }
 
-  public sender: HexString
+  @Type(() => Address)
+  public sender: Address
   public nonce: bigint
   public initCode: HexString
   public callData: HexString
@@ -47,8 +52,12 @@ export class UserOperationV0_6 {
   public paymasterAndData: HexString = "0x"
   public signature: HexString = "0x"
 
-  public constructor(data: Partial<UserOperationDataV0_6>) {
-    this.sender = data.sender
+  public constructor(
+    data: Partial<Omit<UserOperationDataV0_6, "sender">> & {
+      sender?: AddressLike
+    }
+  ) {
+    this.sender = Address.wrap(data.sender)
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
 
@@ -67,7 +76,7 @@ export class UserOperationV0_6 {
     }
   }
 
-  public hash(entryPoint: HexString, chainId: BigNumberish) {
+  public hash(entryPoint: Address, chainId: BigNumberish) {
     const abiCoder = ethers.AbiCoder.defaultAbiCoder()
     const userOpPacked = abiCoder.encode(
       [
@@ -83,7 +92,7 @@ export class UserOperationV0_6 {
         "bytes32"
       ],
       [
-        this.sender,
+        this.sender.toString(),
         this.nonce,
         ethers.keccak256(this.initCode),
         ethers.keccak256(this.callData),
@@ -98,14 +107,14 @@ export class UserOperationV0_6 {
     return ethers.keccak256(
       abiCoder.encode(
         ["bytes32", "address", "uint256"],
-        [ethers.keccak256(userOpPacked), entryPoint, chainId]
+        [ethers.keccak256(userOpPacked), entryPoint.toString(), chainId]
       )
     )
   }
 
   public unwrap(): UserOperationDataV0_6 {
     return {
-      sender: this.sender,
+      sender: this.sender.toString(),
       nonce: number.toHex(this.nonce),
       initCode: this.initCode,
       callData: this.callData,
@@ -204,9 +213,5 @@ export class UserOperationV0_6 {
 
   public isGasFeeEstimated() {
     return !!(this.maxFeePerGas && this.maxPriorityFeePerGas)
-  }
-
-  public isSender(accountAddress: HexString) {
-    return address.isEqual(this.sender, accountAddress)
   }
 }

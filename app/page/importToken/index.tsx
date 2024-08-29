@@ -7,11 +7,10 @@ import { Input } from "~app/component/input"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ProviderContext } from "~app/context/provider"
 import { ToastContext } from "~app/context/toastContext"
-import { useAccount, useAction, useTokens } from "~app/hook/storage"
+import { useAccount, useAction } from "~app/hook/storage"
 import { Path } from "~app/path"
 import { ERC20Contract } from "~packages/contract/erc20"
-import address from "~packages/util/address"
-import number from "~packages/util/number"
+import { Address } from "~packages/primitive"
 
 export function ImportToken() {
   const [, navigate] = useHashLocation()
@@ -21,7 +20,6 @@ export function ImportToken() {
   const { importToken } = useAction()
 
   const account = useAccount()
-  const tokens = useTokens()
 
   const [tokenAddress, setTokenAddress] = useState("")
   const [tokenSymbol, setTokenSymbol] = useState("")
@@ -42,7 +40,7 @@ export function ImportToken() {
 
     setTokenFetching(true)
     try {
-      const contract = await ERC20Contract.init(value, provider)
+      const contract = ERC20Contract.init(value, provider)
       const [symbol, decimals, balance] = await Promise.all([
         contract.symbol(),
         contract.decimals(),
@@ -57,18 +55,14 @@ export function ImportToken() {
   }
 
   const importNewToken = async () => {
-    const hasImported = tokens.some((t) =>
-      address.isEqual(t.address, tokenAddress)
-    )
-    if (!hasImported) {
-      await importToken(account.id, {
-        address: tokenAddress,
-        symbol: tokenSymbol,
-        decimals: tokenDecimals,
-        balance: number.toHex(tokenBalance)
-      })
-      setToast(`Token ${tokenSymbol} imported!`, "success")
-    }
+    // TODO: Custom error to not shown toast when token had already imported.
+    await importToken(account.id, {
+      address: Address.wrap(tokenAddress),
+      symbol: tokenSymbol,
+      decimals: tokenDecimals,
+      balance: tokenBalance
+    })
+    setToast(`Token ${tokenSymbol} imported!`, "success")
     navigate(Path.Home)
   }
 

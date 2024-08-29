@@ -33,7 +33,7 @@ export class JsonRpcProvider {
           if (k === "id") {
             return v
           }
-          return replacer.numberToHex(k, v)
+          return replacer.pipe(k, v, [replacer.unwrap, replacer.numberToHex])
         }
       )
       console.log(`[JsonRpcProvider][${args.method}][request] ${body}`)
@@ -60,7 +60,6 @@ export class JsonRpcProvider {
       if (err instanceof ProviderRpcError) {
         throw err
       }
-
       throw new ProviderRpcError({
         code: -32600,
         message: "Invalid Request"

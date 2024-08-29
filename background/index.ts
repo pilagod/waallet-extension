@@ -1,8 +1,8 @@
-import { JsonRpcProvider } from "ethers"
+import { JsonRpcProvider, type Listener } from "ethers"
 import browser from "webextension-polyfill"
 
 import { ERC20Contract } from "~packages/contract/erc20"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
 import { StateActor } from "~storage/local/actor"
@@ -10,7 +10,11 @@ import {
   AccountStorageManager,
   NetworkStorageManager
 } from "~storage/local/manager"
-import { RequestType, TransactionStatus } from "~storage/local/state"
+import {
+  RequestType,
+  TransactionStatus,
+  type Account
+} from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
 
 import { StorageAction } from "./messages/storage"
@@ -90,6 +94,175 @@ async function main() {
     { request: {} }
   )
 
+  const indexBalanceOnBlock = async () => {
+    const blockSubscriberContext: {
+      provider?: JsonRpcProvider
+      blockSubscriber?: Listener
+    } = {}
+
+    // Syncs account balances using multicall
+    const updateAccountBalances = async (
+      accounts: Account[],
+      provider: JsonRpcProvider
+    ) => {
+      // Store balance update promises
+      const tokenQueries = []
+      // Store updated balances
+      const accountBalances: {
+        [accountId: string]: {
+          nativeToken: bigint
+          erc20Token: { [address: string]: bigint }
+        }
+      } = {}
+
+      // Store balances for each account
+      accounts.forEach((account) => {
+        const { id, tokens, address: accountAddress } = account
+
+        // Initialize balances if not present
+        if (!accountBalances[id]) {
+          accountBalances[id] = {
+            nativeToken: 0n,
+            erc20Token: {}
+          }
+        }
+
+        // Query native token balance
+        tokenQueries.push(
+          (async () => {
+            accountBalances[id].nativeToken =
+              await provider.getBalance(accountAddress)
+          })()
+        )
+
+        // Query ERC20 token balances
+        tokens.forEach((t) => {
+          tokenQueries.push(
+            (async () => {
+              const tokenContract = ERC20Contract.init(t.address, provider)
+              accountBalances[id].erc20Token[t.address] =
+                await tokenContract.balanceOf(accountAddress)
+            })()
+          )
+        })
+      })
+
+      // Execute all balance queries
+      try {
+        await Promise.all(tokenQueries)
+      } catch (error) {
+        console.error(
+          `[background][indexBalanceOnBlock] Error executing token balance updates: ${error}`
+        )
+      }
+
+      // Update balances in storage
+      storage.set((state) => {
+        for (const accountId in accountBalances) {
+          const balances = accountBalances[accountId]
+          const nativeTokenBalance = balances.nativeToken
+
+          // Update native token balance
+          if (
+            number.toBigInt(state.account[accountId].balance) !==
+            nativeTokenBalance
+          ) {
+            state.account[accountId].balance = number.toHex(nativeTokenBalance)
+
+            console.log(
+              `[background][indexBalanceOnBlock] Native token balance updated`
+            )
+          }
+
+          const erc20TokenBalances = balances.erc20Token
+
+          // Update ERC20 token balances
+          for (const erc20TokenAddress in erc20TokenBalances) {
+            const erc20TokenBalance = erc20TokenBalances[erc20TokenAddress]
+            const erc20TokenState = state.account[accountId].tokens.find(
+              (token) => Address.wrap(token.address).isEqual(erc20TokenAddress)
+            )
+
+            if (
+              number.toBigInt(erc20TokenState.balance) !== erc20TokenBalance
+            ) {
+              erc20TokenState.balance = number.toHex(erc20TokenBalance)
+
+              console.log(
+                `[background][indexBalanceOnBlock] ERC20 token balance updated`
+              )
+            }
+          }
+        }
+      })
+    }
+
+    // Handle accountActive state changes and bind providers as needed
+    const networkActiveStateSubscriber = async () => {
+      // Function to handle block updates using the provider context
+      const blockSubscriberWithProvider = async function (this: {
+        provider: JsonRpcProvider
+        chainId: number
+      }) {
+        // Get the latest accounts
+        const { account } = storage.get()
+
+        const accountsForThisNetwork = Object.values(account).filter(
+          (account) => account.chainId === this.chainId
+        )
+        if (accountsForThisNetwork.length <= 0) {
+          return
+        }
+
+        await updateAccountBalances(accountsForThisNetwork, this.provider)
+      }
+
+      const { network, networkActive } = storage.get()
+      const { nodeRpcUrl, chainId } = network[networkActive]
+
+      // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
+      // Refer: https://github.com/ethers-io/ethers.js/issues/4377
+      const provider = new JsonRpcProvider(nodeRpcUrl, chainId, {
+        staticNetwork: true
+      })
+
+      const blockSubscriber = blockSubscriberWithProvider.bind({
+        provider,
+        chainId
+      })
+
+      // Update provider and subscriber on network switch
+      if (
+        blockSubscriberContext.provider &&
+        blockSubscriberContext.blockSubscriber
+      ) {
+        blockSubscriberContext.provider.off(
+          "block",
+          blockSubscriberContext.blockSubscriber
+        )
+      }
+
+      blockSubscriberContext.provider = provider
+      blockSubscriberContext.blockSubscriber = blockSubscriber
+
+      // Listen for new blocks
+      blockSubscriberContext.provider.on("block", blockSubscriber)
+      console.log(
+        `[background][indexBalanceOnBlock] Provider listening for blocks on chainId: ${chainId}`
+      )
+
+      // First update balances for the local testnet makeup.
+      await blockSubscriber()
+    }
+
+    storage.subscribe(networkActiveStateSubscriber, {
+      networkActive: ""
+    })
+
+    // First run if the extension is reloaded
+    await networkActiveStateSubscriber()
+  }
+
   const indexTransactionSent = async () => {
     const timeout = 3000
     console.log(`[background] Sync transactions sent every ${timeout} ms`)
@@ -110,18 +283,29 @@ async function main() {
       if (!userOpReceipt) {
         return
       }
+      const receipt = {
+        userOpHash,
+        transactionHash: userOpReceipt.receipt.transactionHash,
+        blockHash: userOpReceipt.receipt.blockHash,
+        blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
+      }
       storage.set((state) => {
-        new StateActor(state).transitErc4337TransactionLog(txLog.id, {
-          status: userOpReceipt.success
-            ? TransactionStatus.Succeeded
-            : TransactionStatus.Reverted,
-          receipt: {
-            userOpHash,
-            transactionHash: userOpReceipt.receipt.transactionHash,
-            blockHash: userOpReceipt.receipt.blockHash,
-            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
-            errorMessage: userOpReceipt.reason
-          }
+        const stateActor = new StateActor(state)
+
+        if (!userOpReceipt.success) {
+          stateActor.transitErc4337TransactionLog(txLog.id, {
+            status: TransactionStatus.Reverted,
+            receipt: {
+              ...receipt,
+              errorMessage: userOpReceipt.reason
+            }
+          })
+          return
+        }
+
+        stateActor.transitErc4337TransactionLog(txLog.id, {
+          status: TransactionStatus.Succeeded,
+          receipt
         })
       })
     })
@@ -129,66 +313,11 @@ async function main() {
     setTimeout(indexTransactionSent, timeout)
   }
 
-  // TODO: In the future, adding an Indexer to the Background Script to
-  // monitor Account-related transactions. Updates like balance will trigger
-  // as needed, avoiding fixed interval polling with setInterval().
-  const fetchAccountBalances = async () => {
-    const timeout = 3000
-    console.log(`[background] fetch token balance every ${timeout} ms`)
-
-    const { node } = networkManager.getActive()
-    const { id: accountId } = await accountManager.getActive()
-
-    const { account } = storage.get()
-    const { tokens, balance, address: accountAddress } = account[accountId]
-
-    const provider = new JsonRpcProvider(node.url)
-
-    // TODO: Need to obtain the 'from' address for transferring native token and ERC20 tokens
-
-    // Update the balance of native token
-    const nativeBalance: bigint = await provider.getBalance(accountAddress)
-
-    if (number.toBigInt(balance) !== nativeBalance) {
-      storage.set((state) => {
-        state.account[accountId].balance = number.toHex(nativeBalance)
-      })
-    }
-
-    // Update the balance of all tokens
-    for (const t of tokens) {
-      try {
-        const token = await ERC20Contract.init(t.address, provider)
-        const tokenBalance = await token.balanceOf(accountAddress)
-
-        if (number.toBigInt(t.balance) !== tokenBalance) {
-          storage.set((state) => {
-            const token = state.account[accountId].tokens.find((token) =>
-              address.isEqual(token.address, t.address)
-            )
-            if (!token) {
-              console.warn(`[Popup][tokens] Unknown token: ${t.address}`)
-              return
-            }
-            token.balance = number.toHex(tokenBalance)
-          })
-        }
-      } catch (error) {
-        console.warn(
-          `[Popup][tokens] error occurred while getting balance: ${error}`
-        )
-        continue
-      }
-    }
-
-    setTimeout(fetchAccountBalances, timeout)
-  }
-
   // TODO: Using these two asynchronous functions, both executing
   // `storage.set()` commands, often triggers the error: "Error: Could not
   // establish connection. Receiving end does not exist."
+  await indexBalanceOnBlock()
   await indexTransactionSent()
-  await fetchAccountBalances()
 }
 
 main()

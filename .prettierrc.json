@@ -19,5 +19,11 @@
     "^~(.*)$",
     "",
     "^[./]"
+  ],
+  "importOrderParserPlugins": [
+    "typescript",
+    "jsx",
+    "classProperties",
+    "decorators-legacy"
   ]
 }

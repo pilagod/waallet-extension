@@ -1,4 +1,4 @@
-import address from "~packages/util/address"
+import { Address, type AddressLike } from "~packages/primitive"
 import number from "~packages/util/number"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
@@ -8,33 +8,33 @@ export enum AccountType {
 }
 
 export type Call = {
-  to: HexString
+  to: AddressLike
   value: BigNumberish
   data: HexString
 }
 
 export class Execution {
-  public sender: HexString
+  public sender: Address
   public nonce: bigint
   public callData: HexString
   public signature: HexString
-  public factory?: HexString
+  public factory?: Address
   public factoryData?: HexString
 
   public constructor(data: {
-    sender: HexString
+    sender: AddressLike
     nonce: BigNumberish
     callData: HexString
     signature: HexString
-    factory?: HexString
+    factory?: AddressLike
     factoryData?: HexString
   }) {
-    this.sender = data.sender
+    this.sender = Address.wrap(data.sender)
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
     this.signature = data.signature
     if (data.factory) {
-      this.factory = address.normalize(data.factory)
+      this.factory = Address.wrap(data.factory)
     }
     if (data.factoryData) {
       this.factoryData = data.factoryData
@@ -49,8 +49,8 @@ export enum SignatureFormat {
 
 export interface Account {
   buildExecution(call: Call): Promise<Execution>
-  getAddress(): Promise<HexString>
-  getEntryPoint(): Promise<HexString>
+  getAddress(): Promise<Address>
+  getEntryPoint(): Promise<Address>
   getNonce(): Promise<bigint>
   isDeployed(): Promise<boolean>
   sign(message: BytesLike, format?: SignatureFormat): Promise<HexString>

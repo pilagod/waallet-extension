@@ -1,5 +1,5 @@
 import { type Account as AccountInstance } from "~packages/account"
-import type { HexString } from "~typing"
+import { Address } from "~packages/primitive"
 
 export type Account = {
   id: string
@@ -9,5 +9,5 @@ export type Account = {
 export interface AccountManager {
   get(id: string): Promise<Account>
   getActive(): Promise<Account>
-  getByAddress(address: HexString, chainId: number): Promise<Account>
+  getByAddress(address: Address, chainId: number): Promise<Account>
 }
