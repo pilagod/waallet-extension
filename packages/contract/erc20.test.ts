@@ -20,7 +20,7 @@ describeWaalletSuite({
       )
 
       const fromAddress = getAddress(zeroPadValue("0x1234", 20))
-      const tokenContract = await ERC20Contract.init(TestToken, operator)
+      const tokenContract = ERC20Contract.init(TestToken, operator)
       const mintAmount = await tokenContract.parseAmount(100)
 
       const balanceBefore = await tokenContract.balanceOf(fromAddress)
