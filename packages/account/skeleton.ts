@@ -3,8 +3,7 @@ import * as ethers from "ethers"
 import type { Account, Call } from "~packages/account"
 import type { AccountFactory } from "~packages/account/factory"
 import type { ContractRunner } from "~packages/node"
-import { Bytes } from "~packages/primitive/bytes"
-import address from "~packages/util/address"
+import { Address, Bytes, type AddressLike } from "~packages/primitive"
 import type { BytesLike, HexString } from "~typing"
 
 import { Execution, SignatureFormat } from "./index"
@@ -12,17 +11,17 @@ import { Execution, SignatureFormat } from "./index"
 export abstract class AccountSkeleton<T extends AccountFactory>
   implements Account
 {
-  protected address: HexString
+  protected address: Address
   protected factory?: T
 
   protected constructor(
     protected runner: ContractRunner,
     option: {
-      address: HexString
+      address: AddressLike
       factory?: T
     }
   ) {
-    this.address = ethers.getAddress(option.address)
+    this.address = Address.wrap(option.address)
     this.factory = option.factory
   }
 
@@ -49,17 +48,17 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       callData,
       signature: dummySignature,
       ...(ethers.dataLength(initCode) > 0 && {
-        factory: address.normalize(ethers.dataSlice(initCode, 0, 20)),
+        factory: ethers.dataSlice(initCode, 0, 20),
         factoryData: ethers.dataSlice(initCode, 20)
       })
     })
   }
 
-  public async getAddress(): Promise<HexString> {
+  public async getAddress() {
     return this.address
   }
 
-  public async getEntryPoint(): Promise<HexString> {
+  public async getEntryPoint() {
     if (!(await this.isDeployed())) {
       return this.mustGetFactory().getEntryPoint()
     }
@@ -71,11 +70,15 @@ export abstract class AccountSkeleton<T extends AccountFactory>
       ],
       this.runner
     )
-    try {
-      return await account.entryPoint()
-    } catch (e) {
-      return await account.getEntryPoint()
-    }
+    return Address.wrap(
+      await (async () => {
+        try {
+          return await account.entryPoint()
+        } catch (e) {
+          return await account.getEntryPoint()
+        }
+      })()
+    )
   }
 
   public async getNonce(): Promise<bigint> {
@@ -93,9 +96,7 @@ export abstract class AccountSkeleton<T extends AccountFactory>
   }
 
   public async isDeployed(): Promise<boolean> {
-    // TODO: Cache it
-    const code = await this.runner.provider.getCode(await this.getAddress())
-    return code !== "0x"
+    return this.address.isContract(this.runner.provider)
   }
 
   public async sign(message: BytesLike, format = SignatureFormat.Eip191) {

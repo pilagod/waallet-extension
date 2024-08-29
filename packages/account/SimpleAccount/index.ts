@@ -4,19 +4,23 @@ import type { Call } from "~packages/account"
 import { AccountType } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import { type ContractRunner } from "~packages/node"
-import { Bytes } from "~packages/primitive/bytes"
+import { Address, Bytes, type AddressLike } from "~packages/primitive"
+import number from "~packages/util/number"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import { SimpleAccountFactory } from "./factory"
 
 export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
+  private static abi = [
+    "function execute(address dest, uint256 value, bytes calldata func)"
+  ]
   /**
    * Use when account is already deployed
    */
   public static async init(
     runner: ContractRunner,
     option: {
-      address: string
+      address: AddressLike
       ownerPrivateKey: string
     }
   ) {
@@ -34,7 +38,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     runner: ContractRunner,
     option: {
       ownerPrivateKey: string
-      factoryAddress: string
+      factoryAddress: AddressLike
       salt: BigNumberish
     }
   ) {
@@ -51,16 +55,16 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
     })
   }
 
-  public static decode(calldata: HexString): Call {
+  public static decode(calldata: HexString) {
     const [dest, value, func] = new ethers.Interface(
       SimpleAccount.abi
     ).decodeFunctionData("execute", calldata)
-    return { to: dest, value, data: func }
+    return {
+      to: Address.wrap(dest),
+      value: value as bigint,
+      data: func as HexString
+    }
   }
-
-  private static abi: string[] = [
-    "function execute(address dest, uint256 value, bytes calldata func)"
-  ]
 
   private account: ethers.Contract
   private owner: ethers.Wallet
@@ -68,7 +72,7 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
   private constructor(
     runner: ContractRunner,
     option: {
-      address: HexString
+      address: AddressLike
       owner: ethers.Wallet
       factory?: SimpleAccountFactory
     }
@@ -77,18 +81,18 @@ export class SimpleAccount extends AccountSkeleton<SimpleAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(option.address, SimpleAccount.abi)
+    this.account = new ethers.Contract(this.address, SimpleAccount.abi)
     this.owner = option.owner
   }
 
   public dump() {
     return {
       type: AccountType.SimpleAccount as AccountType.SimpleAccount,
-      address: this.address,
+      address: this.address.toString(),
       ownerPrivateKey: this.owner.privateKey,
       ...(this.factory && {
-        factoryAddress: this.factory.address,
-        salt: this.factory.salt
+        factoryAddress: this.factory.address.toString(),
+        salt: number.toHex(this.factory.salt)
       })
     }
   }

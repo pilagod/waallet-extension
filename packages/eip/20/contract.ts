@@ -1,4 +1,4 @@
-import { Contract, Interface, parseUnits, toNumber } from "ethers"
+import { Contract, Interface, parseUnits, type AddressLike } from "ethers"
 
 import type { ContractRunner } from "~packages/node"
 import number from "~packages/util/number"
@@ -53,7 +53,7 @@ export class ERC20Contract {
     return { from, to, value: number.toBigInt(value) }
   }
 
-  public static async init(address: HexString, runner: ContractRunner) {
+  public static init(address: HexString, runner: ContractRunner) {
     const token = new Contract(address, ERC20Contract.abi, runner)
     return new ERC20Contract(token, address)
   }
@@ -72,11 +72,11 @@ export class ERC20Contract {
   }
 
   public async decimals(): Promise<number> {
-    return toNumber(await this.token.decimals())
+    return number.toNumber(await this.token.decimals())
   }
 
-  public async balanceOf(account: HexString): Promise<bigint> {
-    return number.toBigInt(await this.token.balanceOf(account))
+  public async balanceOf(account: AddressLike): Promise<bigint> {
+    return await this.token.balanceOf(account)
   }
 
   public async parseAmount(amount: BigNumberish): Promise<bigint> {

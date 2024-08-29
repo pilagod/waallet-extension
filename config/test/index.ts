@@ -48,6 +48,10 @@ class WalletNonceManager extends ethers.NonceManager {
     super(wallet)
   }
 
+  public get address() {
+    return this.wallet.address
+  }
+
   public get privateKey() {
     return this.wallet.privateKey
   }

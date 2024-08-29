@@ -22,6 +22,7 @@ import {
   UserOperationV0_7,
   type UserOperation
 } from "~packages/eip/4337/userOperation"
+import { Address } from "~packages/primitive"
 import { ETH } from "~packages/token"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -94,16 +95,16 @@ export function TransactionConfirmation(props: {
         )
         userOp.setSignature(signature)
         setIsSigning(false)
-      } catch (signErr) {
+      } catch (e) {
         setIsSigning(false)
-        console.log("signErr", signErr)
+        console.log("signing error", e)
         setToast("Verify passkey failed.", "failed")
         return
       }
 
       const userOpHash = await provider.send(
         WaalletRpcMethod.eth_sendUserOperation,
-        [userOp.unwrap(), entryPoint]
+        [userOp, entryPoint]
       )
       if (!userOpHash) {
         throw new Error("Fail to send user operation")
@@ -159,7 +160,7 @@ export function TransactionConfirmation(props: {
     try {
       const gasLimit = await provider.send(
         WaalletRpcMethod.eth_estimateUserOperationGas,
-        [userOp.unwrap(), await account.actor.getEntryPoint()]
+        [userOp, await account.actor.getEntryPoint()]
       )
       userOp.setGasLimit(gasLimit)
     } catch (e) {
@@ -243,8 +244,10 @@ export function TransactionConfirmation(props: {
               <Wallet />
             </div>
             <div className="w-full py-[9.5px] min-w-0">
-              <h3 className="pb-[4px]"> {account.name}</h3>
-              <h4 className="text-[#989898] break-words">{userOp.sender}</h4>
+              <h3 className="pb-[4px]">{account.name}</h3>
+              <h4 className="text-[#989898] break-words">
+                {userOp.sender.toString()}
+              </h4>
             </div>
           </div>
           <h2
@@ -264,7 +267,7 @@ export function TransactionConfirmation(props: {
               </div>
             </div>
           ) : (
-            <AccountItem address={tx.to} />
+            <AccountItem address={Address.wrap(tx.to)} />
           )}
           {isContract && (
             <>

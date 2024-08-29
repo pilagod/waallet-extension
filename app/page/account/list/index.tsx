@@ -8,9 +8,8 @@ import { ScrollableWrapper } from "~app/component/scrollableWrapper"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { useAccounts, useAction, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
-import type { HexString } from "~typing"
 
 export function AccountList() {
   const [, navigate] = useHashLocation()
@@ -51,7 +50,7 @@ export function AccountList() {
                 <AccountItem
                   name={a.name}
                   address={a.address}
-                  balance={number.toBigInt(a.balance)}
+                  balance={a.balance}
                   active={a.id === network.accountActive}
                   tokenSymbol={network.tokenSymbol}
                 />
@@ -80,7 +79,7 @@ export function AccountList() {
 
 function AccountItem(props: {
   name: string
-  address: HexString
+  address: Address
   balance: bigint
   active: boolean
   tokenSymbol: string
@@ -97,7 +96,7 @@ function AccountItem(props: {
       </div>
       <div className="min-w-0 grow break-words">
         <div>{props.name}</div>
-        <div className="text-[12px]">{address.ellipsize(props.address)}</div>
+        <div className="text-[12px]">{props.address.ellipsize()}</div>
       </div>
       <div className="min-w-0 basis-[120px] text-right">
         {number.formatUnitsToFixed(props.balance, 18, 2)} {props.tokenSymbol}

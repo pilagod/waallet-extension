@@ -1,11 +1,7 @@
 import type { UserOperation } from "~packages/eip/4337/userOperation"
+import { Address } from "~packages/primitive"
 import { StateActor } from "~storage/local/actor"
-import {
-  TransactionStatus,
-  TransactionType,
-  type Erc4337TransactionRejected,
-  type Erc4337TransactionSent
-} from "~storage/local/state"
+import { TransactionStatus, TransactionType } from "~storage/local/state"
 import type { HexString } from "~typing"
 
 import type { BackgroundStateCreator } from "../middleware/background"
@@ -23,13 +19,13 @@ export interface RequestSlice {
 
   getErc4337TransactionType(
     networkId: string,
-    entryPoint: HexString
+    entryPoint: Address
   ): TransactionType
 
   markErc4337TransactionRejected(
     txId: string,
     data: {
-      entryPoint: HexString
+      entryPoint: Address
       userOp: UserOperation
     }
   ): Promise<void>
@@ -37,7 +33,7 @@ export interface RequestSlice {
   markErc4337TransactionSent(
     txId: string,
     data: {
-      entryPoint: HexString
+      entryPoint: Address
       userOp: UserOperation
       userOpHash: HexString
     }
@@ -81,7 +77,7 @@ export const createRequestSlice: BackgroundStateCreator<
 
   /* ERC-4337 */
 
-  getErc4337TransactionType: (networkId: string, entryPoint: HexString) => {
+  getErc4337TransactionType: (networkId: string, entryPoint: Address) => {
     return new StateActor(get().state).getErc4337TransactionType(
       networkId,
       entryPoint
@@ -90,30 +86,21 @@ export const createRequestSlice: BackgroundStateCreator<
 
   markErc4337TransactionRejected: async (txId, data) => {
     await set(({ state }) => {
-      new StateActor(
-        state
-      ).resolveErc4337TransactionRequest<Erc4337TransactionRejected>(txId, {
+      new StateActor(state).resolveErc4337TransactionRequest(txId, {
         status: TransactionStatus.Rejected,
-        detail: {
-          entryPoint: data.entryPoint,
-          data: data.userOp.unwrap() as any
-        }
+        detail: data
       })
     })
   },
 
   markErc4337TransactionSent: async (txId, data) => {
+    const { userOpHash, ...detail } = data
     await set(({ state }) => {
-      new StateActor(
-        state
-      ).resolveErc4337TransactionRequest<Erc4337TransactionSent>(txId, {
+      new StateActor(state).resolveErc4337TransactionRequest(txId, {
         status: TransactionStatus.Sent,
-        detail: {
-          entryPoint: data.entryPoint,
-          data: data.userOp.unwrap() as any
-        },
+        detail,
         receipt: {
-          userOpHash: data.userOpHash
+          userOpHash
         }
       })
     })

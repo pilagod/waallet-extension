@@ -3,7 +3,7 @@ import browser from "webextension-polyfill"
 import { create, type StoreApi } from "zustand"
 
 import { StorageAction } from "~background/messages/storage"
-import { Bytes } from "~packages/primitive/bytes"
+import { Bytes } from "~packages/primitive"
 
 import { StorageMessenger } from "./messenger"
 import { background, type BackgroundStorage } from "./middleware/background"
