@@ -1,9 +1,8 @@
-import { v4 as uuidV4 } from "uuid"
-
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { SimpleAccount } from "~packages/account/SimpleAccount"
 import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
+import { StateActor } from "~storage/local/actor"
 
 import type { BackgroundStateCreator } from "../middleware/background"
 import type { StateSlice } from "./state"
@@ -46,21 +45,16 @@ export const createAccountSlice: BackgroundStateCreator<
     account: SimpleAccount,
     networkId: string
   ) => {
-    const id = uuidV4()
     const data = account.dump()
     await set(({ state }) => {
-      const network = state.network[networkId]
-      state.account[id] = {
-        ...data,
-        id,
-        name,
-        chainId: network.chainId,
-        transactionLog: {},
-        balance: "0x00",
-        tokens: []
-      }
-      // Set the new account as active
-      network.accountActive = id
+      new StateActor(state).createAccount(
+        {
+          ...data,
+          name,
+          salt: number.toHex(data.salt)
+        },
+        networkId
+      )
     })
   },
 
@@ -69,22 +63,20 @@ export const createAccountSlice: BackgroundStateCreator<
     account: PasskeyAccount,
     networkId: string
   ) => {
-    const id = uuidV4()
     const data = account.dump()
     await set(({ state }) => {
-      const network = state.network[networkId]
-      state.account[id] = {
-        ...data,
-        id,
-        name,
-        chainId: network.chainId,
-        // TODO: Design an account periphery prototype
-        transactionLog: {},
-        balance: "0x00",
-        tokens: []
-      }
-      // Set the new account as active
-      network.accountActive = id
+      new StateActor(state).createAccount(
+        {
+          ...data,
+          name,
+          publicKey: {
+            x: number.toHex(data.publicKey.x),
+            y: number.toHex(data.publicKey.y)
+          },
+          salt: number.toHex(data.salt)
+        },
+        networkId
+      )
     })
   },
 

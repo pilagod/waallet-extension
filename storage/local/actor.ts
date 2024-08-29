@@ -1,5 +1,8 @@
+import { v4 as uuidV4 } from "uuid"
+
 import type { UserOperation } from "~packages/bundler/userOperation"
 import { Address } from "~packages/primitive"
+import number from "~packages/util/number"
 import type { HexString } from "~typing"
 
 import {
@@ -13,7 +16,9 @@ import {
   type Erc4337TransactionRevertedData,
   type Erc4337TransactionSentData,
   type Erc4337TransactionSucceededData,
+  type PasskeyAccountData,
   type Request,
+  type SimpleAccountData,
   type State
 } from "./state"
 
@@ -32,11 +37,51 @@ export type Erc4337TransactionTransitData =
   | Erc4337TransactionSucceededData
   | Erc4337TransactionRevertedData
 
+export type NetworkId = string /* uuid */ | number /* chain id */
+
 /**
  * @dev StateActor mutates the state in-place, which can work with zustand and immer seamlessly.
  */
 export class StateActor {
   public constructor(private state: State) {}
+
+  /* Network */
+
+  public getNetwork(networkId: NetworkId) {
+    if (typeof networkId === "string") {
+      const network = this.state.network[networkId]
+      if (!network) {
+        throw new Error(`Network with id ${networkId} not found`)
+      }
+      return network
+    }
+    const [network] = Object.values(this.state.network).filter(
+      (n) => n.chainId === networkId
+    )
+    if (!network) {
+      throw new Error(`Network with chain id ${networkId} not found`)
+    }
+    return network
+  }
+
+  /* Account */
+
+  public createAccount(
+    account: (SimpleAccountData | PasskeyAccountData) & { name: string },
+    networkId: string | number
+  ) {
+    const id = uuidV4()
+    const network = this.getNetwork(networkId)
+    this.state.account[id] = {
+      ...account,
+      id,
+      chainId: network.chainId,
+      transactionLog: {},
+      balance: number.toHex(0),
+      tokens: []
+    }
+    network.accountActive = id
+  }
 
   /* Transaction Request */
 

@@ -51,9 +51,10 @@ export type AccountToken = Token & {
   balance: HexString
 }
 
-export type AccountMeta<T> = {
+export type AccountMeta<T = {}> = {
   id: string
   name: string
+  chainId: number
   transactionLog: {
     [txId: string]: TransactionLog
   }
@@ -61,18 +62,18 @@ export type AccountMeta<T> = {
   tokens: AccountToken[]
 } & T
 
-export type SimpleAccount = AccountMeta<{
+export type SimpleAccount = AccountMeta<SimpleAccountData>
+export type SimpleAccountData = {
   type: AccountType.SimpleAccount
-  chainId: number
   address: HexString
   ownerPrivateKey: HexString
   factoryAddress?: HexString
   salt?: HexString
-}>
+}
 
-export type PasskeyAccount = AccountMeta<{
+export type PasskeyAccount = AccountMeta<PasskeyAccountData>
+export type PasskeyAccountData = {
   type: AccountType.PasskeyAccount
-  chainId: number
   address: HexString
   credentialId: B64UrlString
   publicKey?: {
@@ -81,7 +82,7 @@ export type PasskeyAccount = AccountMeta<{
   }
   factoryAddress?: HexString
   salt?: HexString
-}>
+}
 
 /* Paymaster */
 
