@@ -7,6 +7,7 @@ import { QrCode } from "~app/component/qrCode"
 import { StepBackHeader } from "~app/component/stepBackHeader"
 import { ToastContext } from "~app/context/toastContext"
 import { useAccount } from "~app/hook/storage"
+import { Address } from "~packages/primitive"
 
 export const Receive = () => {
   const { address, name } = useAccount()
@@ -14,7 +15,7 @@ export const Receive = () => {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(address)
+      await navigator.clipboard.writeText(address.toString())
       setToast("Copy address to clipboard.", "success")
     } catch (e) {
       setToast("Copy address to clipboard.", "failed")
@@ -26,7 +27,7 @@ export const Receive = () => {
       <StepBackHeader title={name} />
 
       <div className="flex items-center justify-center my-[24px]">
-        <QrCode address={address} size={200} />
+        <QrCode data={generateQrCodeData(address)} size={200} />
       </div>
       <Divider />
 
@@ -35,7 +36,7 @@ export const Receive = () => {
         <div className="w-full flex items-center py-[16px]">
           <Wallet className="w-[24px] h-[24px] mr-[12px]" />
           <div className="flex-1 min-w-0 text-[16px] text-[#000000] break-words">
-            {address}
+            {address.toString()}
           </div>
         </div>
         {/* Copy button */}
@@ -50,4 +51,10 @@ export const Receive = () => {
       </div>
     </>
   )
+}
+
+const generateQrCodeData = (address: Address): string => {
+  // Refer to:
+  // https://github.com/MetaMask/metamask-extension/blob/develop/ui/components/ui/qr-code-view/qr-code-view.tsx#L36-L38
+  return `ethereum:${address}`
 }

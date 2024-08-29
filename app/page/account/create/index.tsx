@@ -13,7 +13,7 @@ import { Path } from "~app/path"
 import { AccountType } from "~packages/account"
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import { PasskeyOwnerWebAuthn } from "~packages/account/PasskeyAccount/passkeyOwnerWebAuthn"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 
 export function AccountCreate() {
@@ -33,7 +33,7 @@ export function AccountCreate() {
     setAccountCreating(true)
     try {
       if (
-        !address.isValid(network.accountFactory[AccountType.PasskeyAccount])
+        !Address.isValid(network.accountFactory[AccountType.PasskeyAccount])
       ) {
         throw new Error("Passkey account factory is not set")
       }

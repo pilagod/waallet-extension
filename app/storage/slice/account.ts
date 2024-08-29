@@ -2,13 +2,18 @@ import { v4 as uuidV4 } from "uuid"
 
 import { PasskeyAccount } from "~packages/account/PasskeyAccount"
 import type { SimpleAccount } from "~packages/account/SimpleAccount"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
-import { type AccountToken } from "~storage/local/state"
-import type { BigNumberish, HexString } from "~typing"
 
 import type { BackgroundStateCreator } from "../middleware/background"
 import type { StateSlice } from "./state"
+
+export type Token = {
+  address: Address
+  symbol: string
+  decimals: number
+  balance: bigint
+}
 
 export interface AccountSlice {
   /* Account */
@@ -27,17 +32,7 @@ export interface AccountSlice {
 
   /* Token */
 
-  updateBalance: (accountId: string, balance: BigNumberish) => Promise<void>
-  importToken: (accountId: string, token: AccountToken) => Promise<void>
-  updateToken: (
-    accountId: string,
-    tokenAddress: HexString,
-    update: {
-      balance?: BigNumberish
-      symbol?: string
-    }
-  ) => Promise<void>
-  removeToken: (accountId: string, tokenAddress: HexString) => Promise<void>
+  importToken: (accountId: string, token: Token) => Promise<void>
 }
 
 export const createAccountSlice: BackgroundStateCreator<
@@ -105,56 +100,20 @@ export const createAccountSlice: BackgroundStateCreator<
 
   /* Token */
 
-  updateBalance: async (accountId: string, balance: BigNumberish) => {
+  importToken: async (accountId: string, token: Token) => {
     await set(({ state }) => {
-      state.account[accountId].balance = number.toHex(balance)
-    })
-  },
-
-  importToken: async (accountId: string, token: AccountToken) => {
-    await set(({ state }) => {
+      const imported = state.account[accountId].tokens.some((t) =>
+        token.address.isEqual(t.address)
+      )
+      if (imported) {
+        return
+      }
       state.account[accountId].tokens.push({
-        address: address.normalize(token.address),
+        address: token.address.toString(),
         symbol: token.symbol,
         decimals: token.decimals,
-        balance: token.balance
+        balance: number.toHex(token.balance)
       })
-    })
-  },
-
-  removeToken: async (accountId: string, tokenAddress: HexString) => {
-    await set(({ state }) => {
-      const tokenIndex = state.account[accountId].tokens.findIndex((token) =>
-        address.isEqual(token.address, tokenAddress)
-      )
-      if (tokenIndex < 0) {
-        throw new Error(`Unknown token: ${tokenAddress}`)
-      }
-      state.account[accountId].tokens.splice(tokenIndex, 1)
-    })
-  },
-
-  updateToken: async (
-    accountId: string,
-    tokenAddress: HexString,
-    update: {
-      balance?: BigNumberish
-      symbol?: string
-    }
-  ) => {
-    await set(({ state }) => {
-      const token = state.account[accountId].tokens.find((token) =>
-        address.isEqual(token.address, tokenAddress)
-      )
-      if (!token) {
-        throw new Error(`Unknown token: ${tokenAddress}`)
-      }
-      if (update.balance) {
-        token.balance = number.toHex(update.balance)
-      }
-      if (update.symbol) {
-        token.symbol = update.symbol
-      }
     })
   }
 })

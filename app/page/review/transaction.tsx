@@ -22,6 +22,7 @@ import {
 } from "~packages/bundler/userOperation"
 import type { Paymaster } from "~packages/paymaster"
 import { NullPaymaster } from "~packages/paymaster/NullPaymaster"
+import { Address } from "~packages/primitive"
 import { ETH } from "~packages/token"
 import number from "~packages/util/number"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
@@ -111,7 +112,7 @@ export function TransactionConfirmation(props: {
       // TODO: Wrong nonce problem when confirming consecutive tx requests
       try {
         await markErc4337TransactionSent(tx.id, {
-          entryPoint: entryPoint.toString(),
+          entryPoint,
           userOp,
           userOpHash
         })
@@ -132,7 +133,7 @@ export function TransactionConfirmation(props: {
     setUserOpResolving(true)
     try {
       await markErc4337TransactionRejected(tx.id, {
-        entryPoint: (await account.actor.getEntryPoint()).toString(),
+        entryPoint: await account.actor.getEntryPoint(),
         userOp
       })
     } catch (e) {
@@ -176,7 +177,7 @@ export function TransactionConfirmation(props: {
       setUserOp(null)
       const transactionType = getErc4337TransactionType(
         tx.networkId,
-        (await account.actor.getEntryPoint()).toString()
+        await account.actor.getEntryPoint()
       )
       const execution = await account.actor.buildExecution(tx)
       const userOp =
@@ -266,7 +267,7 @@ export function TransactionConfirmation(props: {
               </div>
             </div>
           ) : (
-            <AccountItem address={tx.to} />
+            <AccountItem address={Address.wrap(tx.to)} />
           )}
           {isContract && (
             <>

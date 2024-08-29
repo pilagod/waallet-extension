@@ -2,7 +2,7 @@ import { JsonRpcProvider, type Listener } from "ethers"
 import browser from "webextension-polyfill"
 
 import { ERC20Contract } from "~packages/contract/erc20"
-import address from "~packages/util/address"
+import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
 import { StateActor } from "~storage/local/actor"
@@ -180,7 +180,7 @@ async function main() {
           for (const erc20TokenAddress in erc20TokenBalances) {
             const erc20TokenBalance = erc20TokenBalances[erc20TokenAddress]
             const erc20TokenState = state.account[accountId].tokens.find(
-              (token) => address.isEqual(token.address, erc20TokenAddress)
+              (token) => Address.wrap(token.address).isEqual(erc20TokenAddress)
             )
 
             if (
@@ -283,18 +283,29 @@ async function main() {
       if (!userOpReceipt) {
         return
       }
+      const receipt = {
+        userOpHash,
+        transactionHash: userOpReceipt.receipt.transactionHash,
+        blockHash: userOpReceipt.receipt.blockHash,
+        blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
+      }
       storage.set((state) => {
-        new StateActor(state).transitErc4337TransactionLog(txLog.id, {
-          status: userOpReceipt.success
-            ? TransactionStatus.Succeeded
-            : TransactionStatus.Reverted,
-          receipt: {
-            userOpHash,
-            transactionHash: userOpReceipt.receipt.transactionHash,
-            blockHash: userOpReceipt.receipt.blockHash,
-            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
-            errorMessage: userOpReceipt.reason
-          }
+        const stateActor = new StateActor(state)
+
+        if (!userOpReceipt.success) {
+          stateActor.transitErc4337TransactionLog(txLog.id, {
+            status: TransactionStatus.Reverted,
+            receipt: {
+              ...receipt,
+              errorMessage: userOpReceipt.reason
+            }
+          })
+          return
+        }
+
+        stateActor.transitErc4337TransactionLog(txLog.id, {
+          status: TransactionStatus.Succeeded,
+          receipt
         })
       })
     })

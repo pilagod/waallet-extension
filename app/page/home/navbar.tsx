@@ -3,7 +3,6 @@ import { useHashLocation } from "wouter/use-hash-location"
 
 import { useAccount, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
-import address from "~packages/util/address"
 
 export function Navbar() {
   return (
@@ -52,9 +51,7 @@ function AccountSelector() {
             {account ? account.name : "No account"}
           </div>
           <div className="leading-[14.6px] text-[12px] text-[#989898]">
-            {account
-              ? address.ellipsize(account.address)
-              : "Create new account"}
+            {account ? account.address.ellipsize() : "Create new account"}
           </div>
         </div>
         <ChevronDown className="w-[16px] h-[16px]" />

@@ -1,9 +1,9 @@
 import Ethereum from "react:~assets/ethereum.svg"
 
+import { type Token } from "~app/hook/storage"
 import number from "~packages/util/number"
-import { type AccountToken } from "~storage/local/state"
 
-export const TokenItem = ({ token }: { token: AccountToken }) => {
+export const TokenItem = ({ token }: { token: Token }) => {
   return (
     <div className="flex items-center py-[17px]">
       <Ethereum className="w-[36px] h-[36px] mr-[12px]" />

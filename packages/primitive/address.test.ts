@@ -7,6 +7,24 @@ import { Address } from "./address"
 describe("Address", () => {
   const address = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
 
+  describe("isValid", () => {
+    it("should return true for valid address", () => {
+      // Lower case address
+      expect(Address.isValid(address)).toBe(true)
+      // Checksum address
+      expect(Address.isValid(Address.wrap(address).toString())).toBe(true)
+    })
+
+    it("should return false for invalid address", () => {
+      // Invalid address
+      expect(Address.isValid("0x1234567890")).toBe(false)
+      // Invalid checksum
+      expect(
+        Address.isValid("0xF39fd6e51aad88f6f4ce6ab8827279cFfFB92266")
+      ).toBe(false)
+    })
+  })
+
   describe("ellipsize", () => {
     it("should trim address", () => {
       const a = Address.wrap(address)

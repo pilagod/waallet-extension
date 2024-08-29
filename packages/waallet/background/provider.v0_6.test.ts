@@ -1,6 +1,6 @@
 import { eip712Verify } from "~packages/eip/712"
+import { Address } from "~packages/primitive"
 import { Bytes } from "~packages/primitive/bytes"
-import address from "~packages/util/address"
 import { describeWaalletSuite } from "~packages/util/testing/suite/waallet"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"
@@ -251,9 +251,9 @@ describeWaalletSuite({
       expect(signature).toBe(signatureFromJsonString)
 
       const signer = eip712Verify(typedData, signature)
-      expect(
-        address.isEqual(await ctx.wallet.operator.getAddress(), signer)
-      ).toBe(true)
+      expect(Address.wrap(signer).isEqual(ctx.wallet.operator.address)).toBe(
+        true
+      )
     })
   }
 })
