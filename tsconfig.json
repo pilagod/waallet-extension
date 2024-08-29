@@ -11,7 +11,8 @@
     "paths": {
       "~*": ["./*"]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "experimentalDecorators": true
   },
   "ts-node": {
     "compilerOptions": {

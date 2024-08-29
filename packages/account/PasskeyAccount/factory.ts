@@ -2,13 +2,15 @@ import * as ethers from "ethers"
 
 import type { AccountFactory } from "~packages/account/factory"
 import type { ContractRunner } from "~packages/node"
-import type { BigNumberish, HexString } from "~typing"
+import { Address, type AddressLike } from "~packages/primitive"
+import number from "~packages/util/number"
+import type { BigNumberish } from "~typing"
 
 import type { PasskeyPublicKey } from "./passkeyOwner"
 
 export class PasskeyAccountFactory implements AccountFactory {
-  public address: HexString
-  public salt: BigNumberish
+  public address: Address
+  public salt: bigint
 
   private factory: ethers.Contract
   private credentialId: string
@@ -17,16 +19,18 @@ export class PasskeyAccountFactory implements AccountFactory {
   public constructor(
     private runner: ContractRunner,
     option: {
-      address: HexString
+      address: AddressLike
       credentialId: string
       publicKey: PasskeyPublicKey
       salt: BigNumberish
     }
   ) {
-    this.address = option.address
-    this.salt = option.salt
+    this.address = Address.wrap(option.address)
+    this.credentialId = option.credentialId
+    this.publicKey = option.publicKey
+    this.salt = number.toBigInt(option.salt)
     this.factory = new ethers.Contract(
-      option.address,
+      this.address,
       [
         "function getAddress(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt) view returns (address)",
         "function createAccount(string credId, uint256 pubKeyX, uint256 pubKeyY, uint256 salt)",
@@ -34,32 +38,32 @@ export class PasskeyAccountFactory implements AccountFactory {
       ],
       this.runner
     )
-    this.credentialId = option.credentialId
-    this.publicKey = option.publicKey
   }
 
   public async getAddress() {
-    return ethers.zeroPadValue(
-      ethers.stripZerosLeft(
-        // The name of `getAddress` conflicts with the function on ethers.Contract.
-        // So we build call data from interface and directly send through node rpc provider.
-        await this.runner.provider.call(
-          await this.factory
-            .getFunction("getAddress")
-            .populateTransaction(
-              this.credentialId,
-              this.publicKey.x,
-              this.publicKey.y,
-              this.salt
-            )
-        )
-      ),
-      20
+    return Address.wrap(
+      ethers.zeroPadValue(
+        ethers.stripZerosLeft(
+          // The name of
+          // So we build call data from interface and directly send through node rpc provider.
+          await this.runner.provider.call(
+            await this.factory
+              .getFunction("getAddress")
+              .populateTransaction(
+                this.credentialId,
+                this.publicKey.x,
+                this.publicKey.y,
+                this.salt
+              )
+          )
+        ),
+        20
+      )
     )
   }
 
   public async getEntryPoint() {
-    return this.factory.entryPoint()
+    return Address.wrap(await this.factory.entryPoint())
   }
 
   public async getInitCode() {

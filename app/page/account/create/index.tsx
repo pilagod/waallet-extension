@@ -39,8 +39,8 @@ export function AccountCreate() {
       }
       const account = await PasskeyAccount.initWithFactory(provider, {
         owner: await PasskeyOwnerWebAuthn.register(),
-        salt: number.random(),
-        factoryAddress: network.accountFactory[AccountType.PasskeyAccount]
+        factoryAddress: network.accountFactory[AccountType.PasskeyAccount],
+        salt: number.random()
       })
       await createPasskeyAccount(accountName, account, network.id)
       setToast("Account created!", "success")

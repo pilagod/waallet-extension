@@ -46,8 +46,8 @@ export function Home() {
       if (hasSimpleAccountFactory) {
         const account = await SimpleAccount.initWithFactory(provider, {
           ownerPrivateKey: Wallet.createRandom().privateKey,
-          salt: number.random(),
-          factoryAddress: network.accountFactory[AccountType.SimpleAccount]
+          factoryAddress: network.accountFactory[AccountType.SimpleAccount],
+          salt: number.random()
         })
 
         await createSimpleAccount(`Account 1`, account, network.id)

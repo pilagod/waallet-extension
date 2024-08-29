@@ -3,7 +3,8 @@ import * as ethers from "ethers"
 import { AccountType } from "~packages/account"
 import { AccountSkeleton } from "~packages/account/skeleton"
 import type { ContractRunner } from "~packages/node"
-import { Bytes } from "~packages/primitive/bytes"
+import { Address, Bytes, type AddressLike } from "~packages/primitive"
+import number from "~packages/util/number"
 import type { BigNumberish, BytesLike, HexString } from "~typing"
 
 import type { Call } from "../index"
@@ -11,13 +12,17 @@ import { PasskeyAccountFactory } from "./factory"
 import type { PasskeyOwner } from "./passkeyOwner"
 
 export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
+  private static abi = [
+    "function execute(address dest, uint256 value, bytes calldata func)"
+  ]
+
   /**
    * Use when account is already deployed
    */
   public static async init(
     runner: ContractRunner,
     option: {
-      address: HexString
+      address: AddressLike
       owner: PasskeyOwner
     }
   ) {
@@ -31,8 +36,8 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     runner: ContractRunner,
     option: {
       owner: PasskeyOwner
+      factoryAddress: AddressLike
       salt: BigNumberish
-      factoryAddress: string
     }
   ) {
     const factory = new PasskeyAccountFactory(runner, {
@@ -48,11 +53,15 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
     })
   }
 
-  public static decode(calldata: HexString): Call {
+  public static decode(calldata: HexString) {
     const [dest, value, func] = new ethers.Interface(
       PasskeyAccount.abi
     ).decodeFunctionData("execute", calldata)
-    return { to: dest, value, data: func }
+    return {
+      to: Address.wrap(dest),
+      value: value as bigint,
+      data: func as HexString
+    }
   }
 
   /**
@@ -60,10 +69,10 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
    */
   public static async getCredentialId(
     runner: ContractRunner,
-    address: HexString
+    address: AddressLike
   ) {
     const account = new ethers.Contract(
-      address,
+      Address.wrap(address),
       [
         "function passkey() view returns (string credId, uint256 pubKeyX, uint256 pubKeyY)"
       ],
@@ -75,14 +84,11 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
 
   private account: ethers.Contract
   private owner: PasskeyOwner
-  private static abi: string[] = [
-    "function execute(address dest, uint256 value, bytes calldata func)"
-  ]
 
   private constructor(
     runner: ContractRunner,
     option: {
-      address: HexString
+      address: AddressLike
       owner: PasskeyOwner
       factory?: PasskeyAccountFactory
     }
@@ -91,19 +97,23 @@ export class PasskeyAccount extends AccountSkeleton<PasskeyAccountFactory> {
       address: option.address,
       factory: option.factory
     })
-    this.account = new ethers.Contract(option.address, PasskeyAccount.abi)
+    this.account = new ethers.Contract(this.address, PasskeyAccount.abi)
     this.owner = option.owner
   }
 
   public dump() {
+    const { x, y } = this.owner.getPublicKey()
     return {
       type: AccountType.PasskeyAccount as AccountType.PasskeyAccount,
-      address: this.address,
+      address: this.address.toString(),
       credentialId: this.owner.getCredentialId(),
-      publicKey: this.owner.getPublicKey(),
+      publicKey: {
+        x: number.toHex(x),
+        y: number.toHex(y)
+      },
       ...(this.factory && {
-        factoryAddress: this.factory.address,
-        salt: this.factory.salt
+        factoryAddress: this.factory.address.toString(),
+        salt: number.toHex(this.factory.salt)
       })
     }
   }

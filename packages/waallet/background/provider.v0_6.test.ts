@@ -87,7 +87,7 @@ describeWaalletSuite({
           callGasLimit: HexString
         }>({
           method: WaalletRpcMethod.eth_estimateUserOperationGas,
-          params: [userOp.unwrap(), await ctx.account.getEntryPoint()]
+          params: [userOp, await ctx.account.getEntryPoint()]
         })
 
       await expect(useInvalidNonce()).rejects.toThrow()
@@ -101,7 +101,7 @@ describeWaalletSuite({
         provider: { node }
       } = ctx
 
-      const balanceBefore = await node.getBalance(counter.getAddress())
+      const balanceBefore = await node.getBalance(counter)
       const counterBefore = (await counter.number()) as bigint
 
       const txHash = await ctx.provider.waallet.request<HexString>({
@@ -117,7 +117,7 @@ describeWaalletSuite({
       const receipt = await node.getTransactionReceipt(txHash)
       expect(receipt.status).toBe(1)
 
-      const balanceAfter = await node.getBalance(counter.getAddress())
+      const balanceAfter = await node.getBalance(counter)
       expect(balanceAfter - balanceBefore).toBe(1n)
 
       const counterAfter = (await counter.number()) as bigint
@@ -133,9 +133,7 @@ describeWaalletSuite({
       } = ctx
 
       const counterBefore = (await counter.number()) as bigint
-      const counterBalanceBefore = await node.getBalance(
-        await counter.getAddress()
-      )
+      const counterBalanceBefore = await node.getBalance(counter)
 
       const userOp = bundler.deriveUserOperation(
         await ctx.account.buildExecution({
@@ -163,16 +161,14 @@ describeWaalletSuite({
 
       const userOpHash = await ctx.provider.waallet.request<HexString>({
         method: WaalletRpcMethod.eth_sendUserOperation,
-        params: [userOp.unwrap(), entryPoint]
+        params: [userOp, entryPoint]
       })
       await bundler.wait(userOpHash)
 
       const counterAfter = (await counter.number()) as bigint
       expect(counterAfter - counterBefore).toBe(1n)
 
-      const counterBalanceAfter = await node.getBalance(
-        await counter.getAddress()
-      )
+      const counterBalanceAfter = await node.getBalance(counter)
       expect(counterBalanceAfter - counterBalanceBefore).toBe(1n)
     })
 

@@ -10,12 +10,8 @@ export function Navbar() {
     <>
       {/* Home page navbar */}
       <nav className="flex items-center justify-between mb-[16px] mt-[4px]">
-        <div>
-          <AccountSelector />
-        </div>
-        <div>
-          <NetworkSelector />
-        </div>
+        <AccountSelector />
+        <NetworkSelector />
       </nav>
     </>
   )
@@ -25,7 +21,7 @@ export function NetworkSelector() {
   const [, navigate] = useHashLocation()
   const network = useNetwork()
   return (
-    <>
+    <div>
       <button
         className="flex items-center gap-[12px] px-[20px] py-[12px] rounded-full border-[1px] border-solid border-black"
         onClick={() => navigate(Path.NetworkList)}>
@@ -36,7 +32,7 @@ export function NetworkSelector() {
           <ChevronDown />
         </div>
       </button>
-    </>
+    </div>
   )
 }
 
@@ -44,7 +40,7 @@ function AccountSelector() {
   const [, navigate] = useHashLocation()
   const account = useAccount()
   return (
-    <>
+    <div>
       {/* Home page account selector button */}
       <button
         className="p-[7px_20px_7px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
@@ -63,6 +59,6 @@ function AccountSelector() {
         </div>
         <ChevronDown className="w-[16px] h-[16px]" />
       </button>
-    </>
+    </div>
   )
 }

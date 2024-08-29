@@ -1,7 +1,8 @@
 import * as ethers from "ethers"
 
 import { Execution } from "~packages/account"
-import address from "~packages/util/address"
+import { Address, type AddressLike } from "~packages/primitive"
+import { Type } from "~packages/transformer"
 import number from "~packages/util/number"
 import type { BigNumberish, HexString } from "~typing"
 
@@ -32,10 +33,12 @@ export class UserOperationV0_7 {
     return new UserOperationV0_7({ ...intent })
   }
 
-  public sender: HexString
+  @Type(() => Address)
+  public sender: Address
   public nonce: bigint
   public callData: HexString
-  public factory?: HexString
+  @Type(() => Address)
+  public factory?: Address
   public factoryData: HexString = "0x"
   public callGasLimit: bigint = 0n
   public verificationGasLimit: bigint = 0n
@@ -44,12 +47,21 @@ export class UserOperationV0_7 {
   public maxPriorityFeePerGas: bigint = 0n
   public paymasterVerificationGasLimit: bigint = 0n
   public paymasterPostOpGasLimit: bigint = 0n
-  public paymaster?: HexString
+  @Type(() => Address)
+  public paymaster?: Address
   public paymasterData: HexString = "0x"
   public signature: HexString = "0x"
 
-  public constructor(data: Partial<UserOperationDataV0_7>) {
-    this.sender = data.sender
+  public constructor(
+    data: Partial<
+      Omit<UserOperationDataV0_7, "sender" | "factory" | "paymaster">
+    > & {
+      sender?: AddressLike
+      factory?: AddressLike
+      paymaster?: AddressLike
+    }
+  ) {
+    this.sender = Address.wrap(data.sender)
     this.nonce = number.toBigInt(data.nonce)
     this.callData = data.callData
 
@@ -63,7 +75,7 @@ export class UserOperationV0_7 {
     }
   }
 
-  public hash(entryPoint: HexString, chainId: BigNumberish) {
+  public hash(entryPoint: Address, chainId: BigNumberish) {
     const abiCoder = ethers.AbiCoder.defaultAbiCoder()
     const userOpPacked = abiCoder.encode(
       [
@@ -77,7 +89,7 @@ export class UserOperationV0_7 {
         "bytes32" // paymasterAndData
       ],
       [
-        this.sender,
+        this.sender.toString(),
         this.nonce,
         ethers.keccak256(this.getInitCode()),
         ethers.keccak256(this.callData),
@@ -90,7 +102,7 @@ export class UserOperationV0_7 {
     return ethers.keccak256(
       abiCoder.encode(
         ["bytes32", "address", "uint256"],
-        [ethers.keccak256(userOpPacked), entryPoint, chainId]
+        [ethers.keccak256(userOpPacked), entryPoint.toString(), chainId]
       )
     )
   }
@@ -100,11 +112,11 @@ export class UserOperationV0_7 {
    */
   public unwrap(): UserOperationDataV0_7 {
     return {
-      sender: this.sender,
+      sender: this.sender.toString(),
       nonce: number.toHex(this.nonce),
       callData: this.callData,
       ...(this.factory && {
-        factory: this.factory,
+        factory: this.factory.toString(),
         factoryData: this.factoryData
       }),
       callGasLimit: number.toHex(this.callGasLimit),
@@ -113,7 +125,7 @@ export class UserOperationV0_7 {
       maxFeePerGas: number.toHex(this.maxFeePerGas),
       maxPriorityFeePerGas: number.toHex(this.maxPriorityFeePerGas),
       ...(this.paymaster && {
-        paymaster: this.paymaster,
+        paymaster: this.paymaster.toString(),
         paymasterData: this.paymasterData,
         paymasterVerificationGasLimit: number.toHex(
           this.paymasterVerificationGasLimit
@@ -129,7 +141,7 @@ export class UserOperationV0_7 {
    */
   public unwrapPacked() {
     return {
-      sender: this.sender,
+      sender: this.sender.toString(),
       nonce: number.toHex(this.nonce),
       initCode: this.getInitCode(),
       callData: this.callData,
@@ -147,7 +159,7 @@ export class UserOperationV0_7 {
     if (!this.factory) {
       return "0x"
     }
-    return ethers.concat([this.factory, this.factoryData])
+    return ethers.concat([this.factory.toString(), this.factoryData])
   }
 
   public getAccountGasLimits() {
@@ -169,7 +181,7 @@ export class UserOperationV0_7 {
       return "0x"
     }
     return ethers.concat([
-      this.paymaster,
+      this.paymaster.toString(),
       ethers.zeroPadValue(number.toHex(this.paymasterVerificationGasLimit), 16),
       ethers.zeroPadValue(number.toHex(this.paymasterPostOpGasLimit), 16),
       this.paymasterData
@@ -182,9 +194,9 @@ export class UserOperationV0_7 {
     this.nonce = number.toBigInt(nonce)
   }
 
-  public setFactory(data: { factory?: HexString; factoryData?: HexString }) {
+  public setFactory(data: { factory?: AddressLike; factoryData?: HexString }) {
     if (data.factory) {
-      this.factory = ethers.getAddress(data.factory)
+      this.factory = Address.wrap(data.factory)
     }
     if (data.factoryData) {
       this.factoryData = data.factoryData
@@ -256,11 +268,11 @@ export class UserOperationV0_7 {
   }
 
   public setPaymaster(data: {
-    paymaster?: HexString
+    paymaster?: AddressLike
     paymasterData?: HexString
   }) {
     if (data.paymaster) {
-      this.paymaster = address.normalize(data.paymaster)
+      this.paymaster = Address.wrap(data.paymaster)
     }
     if (data.paymasterData) {
       this.paymasterData = data.paymasterData
@@ -273,7 +285,7 @@ export class UserOperationV0_7 {
       this.paymasterData = "0x"
       return
     }
-    this.paymaster = ethers.dataSlice(paymasterAndData, 0, 20)
+    this.paymaster = Address.wrap(ethers.dataSlice(paymasterAndData, 0, 20))
     this.paymasterData = ethers.dataSlice(paymasterAndData, 20)
   }
 
