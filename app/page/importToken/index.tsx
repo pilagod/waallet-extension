@@ -40,7 +40,7 @@ export function ImportToken() {
 
     setTokenFetching(true)
     try {
-      const contract = await ERC20Contract.init(value, provider)
+      const contract = ERC20Contract.init(value, provider)
       const [symbol, decimals, balance] = await Promise.all([
         contract.symbol(),
         contract.decimals(),
