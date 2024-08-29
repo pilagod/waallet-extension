@@ -1,7 +1,7 @@
 import { JsonRpcProvider, type Listener } from "ethers"
 import browser from "webextension-polyfill"
 
-import { ERC20Contract } from "~packages/contract/erc20"
+import { ERC20Contract } from "~packages/eip/20/contract"
 import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"

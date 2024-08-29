@@ -1,12 +1,7 @@
-import { type UserOperation } from "~packages/bundler/userOperation"
+import type { UserOperation } from "~packages/eip/4337/userOperation"
 import { Address } from "~packages/primitive"
 import { StateActor } from "~storage/local/actor"
-import {
-  TransactionStatus,
-  TransactionType,
-  type Erc4337TransactionRejected,
-  type Erc4337TransactionSent
-} from "~storage/local/state"
+import { TransactionStatus, TransactionType } from "~storage/local/state"
 import type { HexString } from "~typing"
 
 import type { BackgroundStateCreator } from "../middleware/background"

@@ -1,8 +1,8 @@
+import type { Eip712TypedData } from "~packages/eip/712"
 import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
-} from "~packages/bundler/userOperation"
-import type { Eip712TypedData } from "~packages/eip/712"
+} from "~packages/eip/4337/userOperation"
 import type { Unwraplify } from "~packages/primitive"
 import type { BigNumberish, HexString, OptionalPick } from "~typing"
 

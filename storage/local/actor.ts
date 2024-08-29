@@ -1,6 +1,6 @@
 import { v4 as uuidV4 } from "uuid"
 
-import type { UserOperation } from "~packages/bundler/userOperation"
+import type { UserOperation } from "~packages/eip/4337/userOperation"
 import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import type { HexString } from "~typing"

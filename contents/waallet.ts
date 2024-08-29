@@ -1,6 +1,7 @@
 import waalletIcon from "data-base64:~assets/waallet.svg"
 import type { PlasmoCSConfig } from "plasmo"
 
+import { announceProvider } from "~packages/eip/6939"
 import { MainWorldBackgroundMessenger } from "~packages/messenger/background/mainWorld"
 import { WaalletContentProvider } from "~packages/waallet/content/provider"
 
@@ -28,30 +29,11 @@ Object.defineProperty(window, "ethereum", {
     return provider
   }
 })
-
-const announceEip6963Provider = (provider) => {
-  const info = {
-    uuid: "53d360a5-d477-4b59-9975-151d3cac6d56",
-    name: "Waallet",
-    icon: waalletIcon,
-    rdns: "io.waallet"
-  }
-
-  window.dispatchEvent(
-    new CustomEvent("eip6963:announceProvider", {
-      detail: Object.freeze({ info, provider })
-    })
-  )
-}
-
-window.addEventListener<any>("eip6963:requestProvider", (event) => {
-  announceEip6963Provider(provider)
-})
-
-window.addEventListener<any>("eip6963:announceProvider", (event) => {
-  console.log(event)
-})
-
-announceEip6963Provider(provider)
-
 window.dispatchEvent(new Event("ethereum#initialized"))
+
+announceProvider(provider, {
+  uuid: "53d360a5-d477-4b59-9975-151d3cac6d56",
+  name: "Waallet",
+  icon: waalletIcon,
+  rdns: "io.waallet"
+})

@@ -1,5 +1,5 @@
 import type { Account } from "~packages/account"
-import type { Paymaster } from "~packages/paymaster"
+import type { Paymaster } from "~packages/eip/4337/paymaster"
 import { Bytes } from "~packages/primitive/bytes"
 import { WaalletRpcMethod } from "~packages/waallet/rpc"
 import type { HexString } from "~typing"

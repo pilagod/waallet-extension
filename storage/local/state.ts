@@ -1,10 +1,10 @@
 import { AccountType } from "~packages/account"
-import { EntryPointVersion } from "~packages/bundler"
+import type { Eip712TypedData } from "~packages/eip/712"
+import { EntryPointVersion } from "~packages/eip/4337"
 import type {
   UserOperationDataV0_6,
   UserOperationDataV0_7
-} from "~packages/bundler/userOperation"
-import type { Eip712TypedData } from "~packages/eip/712"
+} from "~packages/eip/4337/userOperation"
 import { type Token } from "~packages/token"
 import type { B64UrlString, HexString, Nullable } from "~typing"
 

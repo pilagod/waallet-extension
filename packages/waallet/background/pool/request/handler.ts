@@ -2,8 +2,8 @@ import { v4 as uuidv4 } from "uuid"
 
 import { SignatureFormat } from "~packages/account"
 import type { AccountManager } from "~packages/account/manager"
-import type { UserOperation } from "~packages/bundler/userOperation"
-import { GasPriceEstimator } from "~packages/gas/price/estimator"
+import { GasPriceEstimator } from "~packages/eip/4337/bundler/estimator"
+import type { UserOperation } from "~packages/eip/4337/userOperation"
 import type { NetworkManager } from "~packages/network/manager"
 import type { HexString } from "~typing"
 
