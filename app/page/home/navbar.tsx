@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import ChevronDown from "react:~assets/chevronDown.svg"
 import { useHashLocation } from "wouter/use-hash-location"
 
@@ -37,7 +38,14 @@ export function NetworkSelector() {
 
 function AccountSelector() {
   const [, navigate] = useHashLocation()
-  const account = useAccount()
+  let account = null
+  try {
+    account = useAccount()
+  } catch (error) {
+    console.warn(`Error in AccountSelector: ${error}`)
+    account = null
+  }
+
   return (
     <div>
       {/* Home page account selector button */}
