@@ -69,7 +69,10 @@ export type Account = Omit<
 export const useAccount = (id?: string) => {
   const network = useNetwork()
   return useStorage(({ state }) => {
-    return projectAccount(state.account[id ?? network.accountActive])
+    if (id ?? network.accountActive) {
+      return projectAccount(state.account[id ?? network.accountActive])
+    }
+    return null
   })
 }
 
