@@ -2,6 +2,10 @@ import { JsonRpcProvider, type Listener } from "ethers"
 import browser from "webextension-polyfill"
 
 import { ERC20Contract } from "~packages/eip/20/contract"
+import {
+  BundlerMode,
+  BundlerProvider
+} from "~packages/eip/4337/bundler/provider"
 import { Address } from "~packages/primitive"
 import number from "~packages/util/number"
 import { getLocalStorage } from "~storage/local"
@@ -13,7 +17,8 @@ import {
 import {
   RequestType,
   TransactionStatus,
-  type Account
+  type Account,
+  type RequestLog
 } from "~storage/local/state"
 import { getSessionStorage } from "~storage/session"
 
@@ -94,17 +99,21 @@ async function main() {
     { request: {} }
   )
 
-  const indexBalanceOnBlock = async () => {
+  const indexBalanceAndTransactionRequestOnBlock = async () => {
     const blockSubscriberContext: {
       provider?: JsonRpcProvider
       blockSubscriber?: Listener
-    } = {}
+      lastTransactionRequestUpdateTime: number
+    } = { lastTransactionRequestUpdateTime: 0 }
 
-    // Syncs account balances using multicall
+    // Syncs account balances
     const updateAccountBalances = async (
       accounts: Account[],
       provider: JsonRpcProvider
     ) => {
+      if (accounts.length <= 0) {
+        return
+      }
       // Store balance update promises
       const tokenQueries = []
       // Store updated balances
@@ -152,7 +161,7 @@ async function main() {
         await Promise.all(tokenQueries)
       } catch (error) {
         console.error(
-          `[background][indexBalanceOnBlock] Error executing token balance updates: ${error}`
+          `[background][updateAccountBalances] Error executing token balance updates: ${error}`
         )
       }
 
@@ -170,7 +179,7 @@ async function main() {
             state.account[accountId].balance = number.toHex(nativeTokenBalance)
 
             console.log(
-              `[background][indexBalanceOnBlock] Native token balance updated`
+              `[background][updateAccountBalances] Native token balance updated`
             )
           }
 
@@ -189,10 +198,112 @@ async function main() {
               erc20TokenState.balance = number.toHex(erc20TokenBalance)
 
               console.log(
-                `[background][indexBalanceOnBlock] ERC20 token balance updated`
+                `[background][updateAccountBalances] ERC20 token balance updated`
               )
             }
           }
+        }
+      })
+    }
+
+    // Syncs transaction requests
+    const updateTransactionRequests = async (
+      requestLogs: RequestLog[],
+      bundler: BundlerProvider
+    ) => {
+      // Check if 3 seconds have passed since the last execution
+      const currentTime = Date.now()
+      if (
+        currentTime - blockSubscriberContext.lastTransactionRequestUpdateTime <
+        3000
+      ) {
+        console.log(
+          `[background][updateTransactionRequests] Skipping execution to respect the 3-second threshold at block.`
+        )
+        return
+      }
+      // Update the last execution time
+      blockSubscriberContext.lastTransactionRequestUpdateTime = currentTime
+
+      if (requestLogs.length <= 0) {
+        return
+      }
+      // Store updated transaction requests
+      const transactionRequests: {
+        [requestId: string]: {
+          status: TransactionStatus.Succeeded | TransactionStatus.Reverted
+          receipt: {
+            userOpHash: string
+            transactionHash: string
+            blockHash: string
+            blockNumber: string
+            errorMessage: string
+          }
+        }
+      } = {}
+
+      // Process each request log
+      for (const requestLog of requestLogs) {
+        if (requestLog.status !== TransactionStatus.Sent) {
+          continue
+        }
+
+        // TODO: Handle different version
+        const userOpHash = requestLog.receipt.userOpHash
+
+        const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
+        if (!userOpReceipt) {
+          continue
+        }
+
+        // Initialize transaction request if not present
+        if (!transactionRequests[requestLog.id]) {
+          transactionRequests[requestLog.id] = {
+            status: TransactionStatus.Reverted,
+            receipt: {
+              userOpHash: "",
+              transactionHash: "",
+              blockHash: "",
+              blockNumber: "",
+              errorMessage: ""
+            }
+          }
+        }
+
+        transactionRequests[requestLog.id] = {
+          status: userOpReceipt.success
+            ? TransactionStatus.Succeeded
+            : TransactionStatus.Reverted,
+          receipt: {
+            userOpHash,
+            transactionHash: userOpReceipt.receipt.transactionHash,
+            blockHash: userOpReceipt.receipt.blockHash,
+            blockNumber: number.toHex(userOpReceipt.receipt.blockNumber),
+            errorMessage: userOpReceipt.reason
+          }
+        }
+      }
+
+      // Check if transactionRequests is empty and return if so
+      if (Object.keys(transactionRequests).length <= 0) {
+        return
+      }
+
+      // Update stored transaction requests
+      storage.set((state) => {
+        const stateActor = new StateActor(state)
+        for (const transactionId in transactionRequests) {
+          const transactionRequest = transactionRequests[transactionId]
+
+          if (transactionRequest.receipt.transactionHash) {
+            stateActor.transitErc4337TransactionLog(
+              transactionId,
+              transactionRequests[transactionId]
+            )
+          }
+          console.log(
+            `[background][updateTransactionRequests] Transaction request receipt updated`
+          )
         }
       })
     }
@@ -202,23 +313,35 @@ async function main() {
       // Function to handle block updates using the provider context
       const blockSubscriberWithProvider = async function (this: {
         provider: JsonRpcProvider
+        bundler: BundlerProvider
         chainId: number
+        networkId: string
       }) {
         // Get the latest accounts
-        const { account } = storage.get()
+        const { account, requestLog } = storage.get()
 
         const accountsForThisNetwork = Object.values(account).filter(
           (account) => account.chainId === this.chainId
         )
-        if (accountsForThisNetwork.length <= 0) {
-          return
-        }
+
+        const requestLogsForThisNetwork = Object.values(requestLog).filter(
+          (r) =>
+            r.networkId === this.networkId &&
+            r.requestType === RequestType.Transaction
+        )
 
         await updateAccountBalances(accountsForThisNetwork, this.provider)
+        await updateTransactionRequests(requestLogsForThisNetwork, this.bundler)
       }
 
       const { network, networkActive } = storage.get()
-      const { nodeRpcUrl, chainId } = network[networkActive]
+      const {
+        nodeRpcUrl,
+        bundlerRpcUrl,
+        entryPoint,
+        chainId,
+        id: networkId
+      } = network[networkActive]
 
       // Set `{ staticNetwork: true }` to avoid infinite retries if nodeRpcUrl fails.
       // Refer: https://github.com/ethers-io/ethers.js/issues/4377
@@ -226,9 +349,17 @@ async function main() {
         staticNetwork: true
       })
 
+      const bundler = new BundlerProvider({
+        url: bundlerRpcUrl,
+        entryPoint: entryPoint,
+        mode: chainId === 1337 ? BundlerMode.Manual : BundlerMode.Auto
+      })
+
       const blockSubscriber = blockSubscriberWithProvider.bind({
         provider,
-        chainId
+        bundler,
+        chainId,
+        networkId
       })
 
       // Update provider and subscriber on network switch
@@ -263,61 +394,7 @@ async function main() {
     await networkActiveStateSubscriber()
   }
 
-  const indexTransactionSent = async () => {
-    const timeout = 3000
-    console.log(`[background] Sync transactions sent every ${timeout} ms`)
-
-    const state = storage.get()
-    const { bundler } = networkManager.getActive()
-
-    const txLogs = Object.values(state.requestLog).filter(
-      (r) => r.requestType === RequestType.Transaction
-    )
-    txLogs.forEach(async (txLog) => {
-      if (txLog.status !== TransactionStatus.Sent) {
-        return
-      }
-      // TODO: Handle different version
-      const userOpHash = txLog.receipt.userOpHash
-      const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
-      if (!userOpReceipt) {
-        return
-      }
-      const receipt = {
-        userOpHash,
-        transactionHash: userOpReceipt.receipt.transactionHash,
-        blockHash: userOpReceipt.receipt.blockHash,
-        blockNumber: number.toHex(userOpReceipt.receipt.blockNumber)
-      }
-      storage.set((state) => {
-        const stateActor = new StateActor(state)
-
-        if (!userOpReceipt.success) {
-          stateActor.transitErc4337TransactionLog(txLog.id, {
-            status: TransactionStatus.Reverted,
-            receipt: {
-              ...receipt,
-              errorMessage: userOpReceipt.reason
-            }
-          })
-          return
-        }
-
-        stateActor.transitErc4337TransactionLog(txLog.id, {
-          status: TransactionStatus.Succeeded,
-          receipt
-        })
-      })
-    })
-
-    setTimeout(indexTransactionSent, timeout)
-  }
-
-  // TODO: Using these two asynchronous functions, both executing
-  // `storage.set()` commands, often triggers the error: "Error: Could not
-  // establish connection. Receiving end does not exist."
-  await indexBalanceOnBlock()
-  await indexTransactionSent()
+  await indexBalanceAndTransactionRequestOnBlock()
 }
 
 main()
