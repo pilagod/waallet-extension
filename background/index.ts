@@ -248,6 +248,14 @@ async function main() {
           continue
         }
 
+        // TODO: Handle different version
+        const userOpHash = requestLog.receipt.userOpHash
+
+        const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
+        if (!userOpReceipt) {
+          continue
+        }
+
         // Initialize transaction request if not present
         if (!transactionRequests[requestLog.id]) {
           transactionRequests[requestLog.id] = {
@@ -260,14 +268,6 @@ async function main() {
               errorMessage: ""
             }
           }
-        }
-
-        // TODO: Handle different version
-        const userOpHash = requestLog.receipt.userOpHash
-
-        const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
-        if (!userOpReceipt) {
-          continue
         }
 
         transactionRequests[requestLog.id] = {
