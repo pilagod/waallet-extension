@@ -161,7 +161,7 @@ async function main() {
         await Promise.all(tokenQueries)
       } catch (error) {
         console.error(
-          `[background][indexBalanceOnBlock] Error executing token balance updates: ${error}`
+          `[background][updateAccountBalances] Error executing token balance updates: ${error}`
         )
       }
 
@@ -179,7 +179,7 @@ async function main() {
             state.account[accountId].balance = number.toHex(nativeTokenBalance)
 
             console.log(
-              `[background][indexBalanceOnBlock] Native token balance updated`
+              `[background][updateAccountBalances] Native token balance updated`
             )
           }
 
@@ -198,7 +198,7 @@ async function main() {
               erc20TokenState.balance = number.toHex(erc20TokenBalance)
 
               console.log(
-                `[background][indexBalanceOnBlock] ERC20 token balance updated`
+                `[background][updateAccountBalances] ERC20 token balance updated`
               )
             }
           }
@@ -301,6 +301,9 @@ async function main() {
               transactionRequests[transactionId]
             )
           }
+          console.log(
+            `[background][updateTransactionRequests] Transaction request receipt updated`
+          )
         }
       })
     }
