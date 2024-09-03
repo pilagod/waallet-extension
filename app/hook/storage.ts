@@ -73,6 +73,16 @@ export const useAccount = (id?: string) => {
   })
 }
 
+export const useHasNoAccount = () => {
+  const network = useNetwork()
+  return useStorage(({ state }) => {
+    return (
+      Object.values(state.account).filter((a) => a.chainId === network.chainId)
+        .length === 0
+    )
+  })
+}
+
 export const useAccountWithActor = (runner: ContractRunner, id?: string) => {
   const network = useNetwork()
   const account = useStorage(({ state }) => {
