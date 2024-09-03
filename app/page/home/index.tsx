@@ -8,8 +8,8 @@ import { Divider } from "~app/component/divider"
 import { ProviderContext } from "~app/context/provider"
 import {
   useAccount,
-  useAccounts,
   useAction,
+  useHasNoAccount,
   useNetwork
 } from "~app/hook/storage"
 import { Activity } from "~app/page/home/activity"
@@ -27,7 +27,7 @@ export enum InfoNavigation {
 }
 
 export function Home() {
-  const hasNoAccount = useAccounts().length === 0
+  const hasNoAccount = useHasNoAccount()
 
   const { provider } = useContext(ProviderContext)
   const { createSimpleAccount } = useAction()
