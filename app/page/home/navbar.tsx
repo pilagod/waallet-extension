@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react"
 import ChevronDown from "react:~assets/chevronDown.svg"
 import { useHashLocation } from "wouter/use-hash-location"
 
-import { useAccount, useNetwork } from "~app/hook/storage"
+import { useAccount, useHasNoAccount, useNetwork } from "~app/hook/storage"
 import { Path } from "~app/path"
 
 export function Navbar() {
@@ -38,28 +37,55 @@ export function NetworkSelector() {
 
 function AccountSelector() {
   const [, navigate] = useHashLocation()
-  let account = null
-  try {
-    account = useAccount()
-  } catch (error) {
-    console.warn(`Error in AccountSelector: ${error}`)
-    account = null
+  const hasNoAccount = useHasNoAccount()
+
+  if (hasNoAccount) {
+    return (
+      <AccountSelectorButton
+        accountName="No account"
+        accountAddress="Create new account"
+        onClick={() => navigate(Path.AccountCreate)}
+      />
+    )
   }
 
+  return <AccountSelectorWithAccount />
+}
+
+function AccountSelectorWithAccount() {
+  const [, navigate] = useHashLocation()
+  const account = useAccount()
+
+  return (
+    <AccountSelectorButton
+      accountName={account.name}
+      accountAddress={account.address.ellipsize()}
+      onClick={() => navigate(Path.AccountList)}
+    />
+  )
+}
+
+function AccountSelectorButton({
+  accountName,
+  accountAddress,
+  onClick
+}: {
+  accountName: string
+  accountAddress: string
+  onClick: () => void
+}) {
   return (
     <div>
       {/* Home page account selector button */}
       <button
         className="p-[7px_20px_7px_20px] flex items-center rounded-full border-[1px] border-solid border-black"
-        onClick={() =>
-          account ? navigate(Path.AccountList) : navigate(Path.AccountCreate)
-        }>
+        onClick={onClick}>
         <div className="mr-[12px] flex flex-col items-start">
           <div className="leading-[19.4px] text-[16px] text-[#000000] whitespace-nowrap">
-            {account ? account.name : "No account"}
+            {accountName}
           </div>
           <div className="leading-[14.6px] text-[12px] text-[#989898]">
-            {account ? account.address.ellipsize() : "Create new account"}
+            {accountAddress}
           </div>
         </div>
         <ChevronDown className="w-[16px] h-[16px]" />
