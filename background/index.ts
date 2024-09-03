@@ -245,7 +245,7 @@ async function main() {
       // Process each request log
       for (const requestLog of requestLogs) {
         if (requestLog.status !== TransactionStatus.Sent) {
-          return
+          continue
         }
 
         // Initialize transaction request if not present
@@ -267,7 +267,7 @@ async function main() {
 
         const userOpReceipt = await bundler.getUserOperationReceipt(userOpHash)
         if (!userOpReceipt) {
-          return
+          continue
         }
 
         transactionRequests[requestLog.id] = {
@@ -282,6 +282,11 @@ async function main() {
             errorMessage: userOpReceipt.reason
           }
         }
+      }
+
+      // Check if transactionRequests is empty and return if so
+      if (Object.keys(transactionRequests).length <= 0) {
+        return
       }
 
       // Update stored transaction requests
