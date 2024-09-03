@@ -103,7 +103,8 @@ async function main() {
     const blockSubscriberContext: {
       provider?: JsonRpcProvider
       blockSubscriber?: Listener
-    } = {}
+      lastTransactionRequestUpdateTime: number
+    } = { lastTransactionRequestUpdateTime: 0 }
 
     // Syncs account balances
     const updateAccountBalances = async (
@@ -210,6 +211,20 @@ async function main() {
       requestLogs: RequestLog[],
       bundler: BundlerProvider
     ) => {
+      // Check if 3 seconds have passed since the last execution
+      const currentTime = Date.now()
+      if (
+        currentTime - blockSubscriberContext.lastTransactionRequestUpdateTime <
+        3000
+      ) {
+        console.log(
+          `[background][updateTransactionRequests] Skipping execution to respect the 3-second threshold at block.`
+        )
+        return
+      }
+      // Update the last execution time
+      blockSubscriberContext.lastTransactionRequestUpdateTime = currentTime
+
       if (requestLogs.length <= 0) {
         return
       }
